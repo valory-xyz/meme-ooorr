@@ -6,9 +6,10 @@ description: A connection that provides a wrapper around the Tweepy library.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeiaism4qxp36o6dflr3emtu4hk37dw7evimcoqkvlvt5s42af5lr5m
-  connection.py: bafybeidxirvzcudupl2erofvp7tkxtppel4rl64yuhqrffc7xjtzohburq
-  readme.md: bafybeihl7k3yi3twtvlkjntaknmib6hnhmyjurn25c4nksffcagrwkx5t4
+  __init__.py: bafybeicrwqrdownfmeyvvzu45fllxouiwvtynrzs5fhbpt3wndyyhn66eu
+  connection.py: bafybeidus4toktbvzvkxcvjqzhdlutxduyxn5ip53trya3cug256bbib5e
+  readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
+  tweepy_wrapper.py: bafybeia4wis4guz6nmqbmhuwyurbshvhacikfath6ehyjelz5ud7bfgp2q
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
