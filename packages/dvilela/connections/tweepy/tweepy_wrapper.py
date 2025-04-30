@@ -1,6 +1,28 @@
-from typing import Optional
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021-2024 David Vilela Freire
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
 
-import tweepy
+"""Tweepy wrapper."""
+
+from typing import List, Optional
+
+import tweepy  # type: ignore[import]
 
 
 class Twitter:
@@ -8,12 +30,13 @@ class Twitter:
 
     def __init__(
         self,
-        consumer_key,
-        consumer_secret,
-        access_token,
-        access_token_secret,
-        bearer_token,
+        consumer_key: str,
+        consumer_secret: str,
+        access_token: str,
+        access_token_secret: str,
+        bearer_token: str,
     ):
+        """Constructor"""
         self.oauth2_bearer_auth = tweepy.OAuth2BearerHandler(bearer_token)
         self.oauth2_app_auth = tweepy.OAuth2AppHandler(consumer_key, consumer_secret)
         self.oauth1_user_auth = tweepy.OAuth1UserHandler(
@@ -34,8 +57,11 @@ class Twitter:
         )
 
     def post_tweet(
-        self, text: str, image_paths=None, in_replay_to_tweet_id=None
-    ) -> Optional[int]:
+        self,
+        text: str,
+        image_paths: Optional[List[str]] = None,
+        in_reply_to_tweet_id: Optional[int] = None,
+    ) -> Optional[str]:
         """
         Posts a new tweet with optional media.
 
@@ -52,13 +78,14 @@ class Twitter:
                 ]
                 if image_paths
                 else None,
-                in_replay_to_tweet_id=in_replay_to_tweet_id,
+                in_reply_to_tweet_id=in_reply_to_tweet_id,
             )
             return tweet.data["id"]
-        except tweepy.TweepyException:
+        except tweepy.TweepyException as e:
+            print(e)
             return None
 
-    def delete_tweet(self, tweet_id) -> bool:
+    def delete_tweet(self, tweet_id: str) -> bool:
         """
         Deletes a specific tweet.
 
@@ -71,7 +98,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def like_tweet(self, tweet_id) -> bool:
+    def like_tweet(self, tweet_id: str) -> bool:
         """
         Likes a specific tweet.
 
@@ -84,7 +111,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def unlike_tweet(self, tweet_id) -> bool:
+    def unlike_tweet(self, tweet_id: str) -> bool:
         """
         Unlikes a specific tweet.
 
@@ -97,7 +124,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def retweet(self, tweet_id) -> bool:
+    def retweet(self, tweet_id: str) -> bool:
         """
         Retweets a specific tweet.
 
@@ -110,7 +137,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def unretweet(self, tweet_id) -> bool:
+    def unretweet(self, tweet_id: str) -> bool:
         """
         Unlikes a specific tweet.
 
@@ -123,7 +150,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def follow(self, user_id) -> bool:
+    def follow(self, user_id: str) -> bool:
         """
         Follow a specific tweet.
 
@@ -136,7 +163,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def unfollow(self, user_id) -> bool:
+    def unfollow(self, user_id: str) -> bool:
         """
         Unfollow a specific tweet.
 
@@ -149,7 +176,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def get_user_id(self, username) -> Optional[int]:
+    def get_user_id(self, username: str) -> Optional[int]:
         """
         Get a user id.
 

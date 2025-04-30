@@ -453,8 +453,7 @@ class CollectFeedbackBehaviour(
         if not tweets:
             self.context.logger.error("No tweets yet")
             return []
-        latest_tweet = tweets[-1]
-        query = f"conversation_id:{latest_tweet['tweet_id']}"
+
         feedback = None  # TODO: get from agent_db
 
         if feedback is None:
@@ -652,10 +651,11 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         self, agent_handles: list[str], interacted_tweet_ids: set[int]
     ) -> Generator[None, None, dict]:
         """Collect pending tweets from agent handles that haven't been interacted with."""
-        pending_tweets = {}
+        pending_tweets: Dict = {}
 
         for agent_handle in agent_handles:
             latest_tweets = None  # TODO: get from agent_db
+            yield  # TODO: remove (linters)
 
             if not latest_tweets:
                 self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
@@ -1396,7 +1396,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         agent_handles = yield from self.mirrordb_helper.get_active_twitter_handles()
         if agent_handles:
             # Filter out suspended accounts
-            agent_handles = None  # TODO: get from agent_db
+            agent_handles = []  # TODO: get from agent_db
 
         else:
             # using subgraph to get memeooorr handles as a fallback
@@ -1405,7 +1405,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             )
             agent_handles = yield from self.get_memeooorr_handles_from_subgraph()
             # filter out suspended accounts
-            agent_handles = None  # TODO: get from agent_db
+            agent_handles = []  # TODO: get from agent_db
 
         return agent_handles
 

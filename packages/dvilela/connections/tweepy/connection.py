@@ -21,11 +21,8 @@
 """Tweepy connection."""
 
 import json
-import os
-import secrets
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, cast
 
 from aea.configurations.base import PublicId
 from aea.connections.base import BaseSyncConnection
@@ -101,24 +98,28 @@ class TweepyConnection(BaseSyncConnection):
         :param kwargs: keyword arguments passed to component base
         """
         super().__init__(*args, **kwargs)
-        self.tweepy_consumer_api_key = self.configuration.config.get(
-            "tweepy_consumer_api_key"
+        self.tweepy_consumer_api_key: str = self.configuration.config.get(
+            "tweepy_consumer_api_key", ""
         )
-        self.tweepy_consumer_api_key_secret = self.configuration.config.get(
-            "tweepy_consumer_api_key_secret"
+        self.tweepy_consumer_api_key_secret: str = self.configuration.config.get(
+            "tweepy_consumer_api_key_secret", ""
         )
-        self.tweepy_bearer_token = self.configuration.config.get("tweepy_bearer_token")
-        self.tweepy_access_token = self.configuration.config.get("tweepy_access_token")
-        self.tweepy_access_token_secret = self.configuration.config.get(
-            "tweepy_access_token_secret"
+        self.tweepy_bearer_token: str = self.configuration.config.get(
+            "tweepy_bearer_token", ""
+        )
+        self.tweepy_access_token: str = self.configuration.config.get(
+            "tweepy_access_token", ""
+        )
+        self.tweepy_access_token_secret: str = self.configuration.config.get(
+            "tweepy_access_token_secret", ""
         )
 
         self.twitter = Twitter(
-            self.consumer_key,
-            self.consumer_secret,
-            self.access_token,
-            self.access_token_secret,
-            self.bearer_token,
+            self.tweepy_consumer_api_key,
+            self.tweepy_consumer_api_key_secret,
+            self.tweepy_access_token,
+            self.tweepy_access_token_secret,
+            self.tweepy_bearer_token,
         )
 
         self.dialogues = SrrDialogues(connection_id=PUBLIC_ID)
@@ -232,9 +233,7 @@ class TweepyConnection(BaseSyncConnection):
             return {"error": e}
 
     def post(self, tweets: List[Dict]) -> List[Optional[str]]:
-        """
-        Post a tweet or a thread.
-        """
+        """Post a tweet or a thread."""
         tweet_ids: List[Optional[str]] = []
         is_first_tweet = True
 
@@ -246,7 +245,7 @@ class TweepyConnection(BaseSyncConnection):
             tweet_id = self.twitter.post_tweet(
                 text=tweet_kwargs["text"],
                 image_paths=tweet_kwargs.get("image_paths", None),
-                in_replay_to_tweet_id=tweet_kwargs.get("reply_to", None),
+                in_reply_to_tweet_id=tweet_kwargs.get("reply_to", None),
             )
             tweet_ids.append(tweet_id)
             is_first_tweet = False
@@ -282,32 +281,32 @@ class TweepyConnection(BaseSyncConnection):
                 retries += 1
                 time.sleep(3)
 
-    def like_tweet(self, tweet_id: int) -> bool:
+    def like_tweet(self, tweet_id: str) -> Dict:
         """Like a tweet"""
         success = self.twitter.like_tweet(tweet_id)
         return {"success": success}
 
-    def unlike_tweet(self, tweet_id: int) -> bool:
+    def unlike_tweet(self, tweet_id: str) -> Dict:
         """Unlike a tweet"""
         success = self.twitter.unlike_tweet(tweet_id)
         return {"success": success}
 
-    def retweet(self, tweet_id: int) -> bool:
+    def retweet(self, tweet_id: str) -> Dict:
         """Retweet a tweet"""
         success = self.twitter.retweet(tweet_id)
         return {"success": success}
 
-    def unretweet(self, tweet_id: int) -> bool:
+    def unretweet(self, tweet_id: str) -> Dict:
         """Unretweet a tweet"""
         success = self.twitter.unretweet(tweet_id)
         return {"success": success}
 
-    def follow(self, user_id: int) -> bool:
+    def follow(self, user_id: str) -> Dict:
         """Follow a user"""
         success = self.twitter.follow(user_id)
         return {"success": success}
 
-    def unfollow(self, user_id: int) -> bool:
+    def unfollow(self, user_id: str) -> Dict:
         """Unfollow a user"""
         success = self.twitter.unfollow(user_id)
         return {"success": success}
