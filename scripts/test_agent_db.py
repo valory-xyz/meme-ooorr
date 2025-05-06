@@ -1,0 +1,157 @@
+import hashlib
+import hmac
+import json
+import os
+import time
+
+import dotenv
+import requests
+
+
+dotenv.load_dotenv(override=True)
+
+
+# https://axatbhardwaj.notion.site/MirrorDB-Agent-and-Attribute-Data-Flow-1eac8d38bc0b80edae04ff1017d80f58
+
+
+class AgentDBClient:
+    """AgentDBClient"""
+
+    def __init__(self, base_url, eth_address, private_key):
+        self.base_url = base_url.rstrip("/")
+        self.eth_address = eth_address
+        self.private_key = private_key
+
+    def _auth_headers(self, method, endpoint, payload=None):
+        """
+        Generate authentication headers using HMAC-SHA256.
+        """
+        timestamp = str(int(time.time()))
+        message = f"{method.upper()}|{endpoint}|{timestamp}"
+        if payload:
+            message += f"|{json.dumps(payload, separators=(',', ':'), sort_keys=True)}"
+        signature = hmac.new(
+            bytes.fromhex(self.private_key), message.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+        return {
+            "X-Agent-Address": self.eth_address,
+            "X-Agent-Signature": signature,
+            "X-Agent-Timestamp": timestamp,
+            "Content-Type": "application/json",
+        }
+
+    def _request(self, method, endpoint, payload=None, auth=False):
+        url = f"{self.base_url}{endpoint}"
+        headers = {"Content-Type": "application/json"}
+        if auth:
+            headers = self._auth_headers(method, endpoint, payload)
+        response = requests.request(method, url, headers=headers, json=payload)
+        if response.status_code in [200, 201]:
+            return response.json()
+        elif response.status_code == 404:
+            return None
+        else:
+            raise Exception(f"Request failed: {response.status_code} - {response.text}")
+
+    # Agent Type Methods
+    def get_agent_type(self, type_name):
+        endpoint = f"/api/agent-types/name/{type_name}"
+        return self._request("GET", endpoint)
+
+    def create_agent_type(self, type_name, description):
+        endpoint = "/api/agent-types/"
+        payload = {"type_name": type_name, "description": description}
+        return self._request("POST", endpoint, payload)
+
+    # Agent Registry Methods
+    def get_agent_by_address(self, eth_address):
+        endpoint = f"/api/agent-registry/address/{eth_address}"
+        return self._request("GET", endpoint)
+
+    def create_agent(self, agent_name, type_id, eth_address):
+        endpoint = "/api/agent-registry/"
+        payload = {
+            "agent_name": agent_name,
+            "type_id": type_id,
+            "eth_address": eth_address,
+        }
+        return self._request("POST", endpoint, payload)
+
+    # Attribute Definition Methods
+    def get_attribute_definition(self, attr_name):
+        endpoint = f"/api/attributes/name/{attr_name}"
+        return self._request("GET", endpoint)
+
+    def create_attribute_definition(
+        self, type_id, attr_name, data_type, required=False
+    ):
+        endpoint = f"/api/agent-types/{type_id}/attributes/"
+        payload = {"attr_name": attr_name, "data_type": data_type, "required": required}
+        return self._request("POST", endpoint, payload, auth=True)
+
+    # Attribute Instance Methods
+    def get_attribute_instance(self, agent_id, attr_def_id):
+        endpoint = f"/api/agents/{agent_id}/attributes/{attr_def_id}/"
+        return self._request("GET", endpoint)
+
+    def create_attribute_instance(
+        self, agent_id, attr_def_id, value, value_type="string"
+    ):
+        endpoint = f"/api/agents/{agent_id}/attributes/"
+        payload = {
+            "agent_id": agent_id,
+            "attr_def_id": attr_def_id,
+            f"{value_type}_value": value,
+        }
+        return self._request("POST", endpoint, payload, auth=True)
+
+    def update_attribute_instance(self, attribute_id, value, value_type="string"):
+        endpoint = f"/api/agent-attributes/{attribute_id}"
+        payload = {f"{value_type}_value": value}
+        return self._request("PUT", endpoint, payload, auth=True)
+
+
+if __name__ == "__main__":
+    # Initialize the client
+    client = AgentDBClient(
+        base_url="https://afmdb.autonolas.tech",
+        eth_address=os.getenv("AGENT_ADDRESS"),
+        private_key=os.getenv("AGENT_PRIVATE_KEY"),
+    )
+
+    # Ensure Agent Type exists
+    agent_type = client.get_agent_type("memeooorr")
+    print(f"agent_type = {agent_type}")
+    if not agent_type:
+        agent_type = client.create_agent_type("memeooorr", "Description of memeooorr")
+
+    # Ensure Agent exists
+    agent = client.get_agent_by_address(client.eth_address)
+    print(f"agent = {agent}")
+    if not agent:
+        agent = client.create_agent(
+            "AgentName", agent_type["type_id"], client.eth_address
+        )
+
+    # Ensure Attribute Definition exists
+    attr_def = client.get_attribute_definition("twitter_username")
+    print(f"attr_def = {attr_def}")
+    if not attr_def:
+        attr_def = client.create_attribute_definition(
+            agent_type["type_id"], "twitter_username", "string", required=True
+        )
+
+    # Ensure Attribute Instance exists
+    attr_instance = client.get_attribute_instance(
+        agent["type_id"], attr_def["attr_def_id"]
+    )
+    print(f"attr_instance = {attr_instance}")
+    if not attr_instance:
+        response = client.create_attribute_instance(
+            agent_id=agent["type_id"],
+            attr_def_id=attr_def["attr_def_id"],
+            value="user123",
+        )
+        print(response)
+    else:
+        client.update_attribute_instance(attr_instance["id"], "new_user123")
