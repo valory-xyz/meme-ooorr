@@ -43,6 +43,7 @@ PATH_TO_VAR = {
     "models/params/args/minimum_gas_balance": "MINIMUM_GAS_BALANCE",
     "models/params/args/min_feedback_replies": "MIN_FEEDBACK_REPLIES",
     "models/params/args/setup/safe_contract_address": "SAFE_CONTRACT_ADDRESS",
+    "models/params/args/twitter_username": "TWITTER_USERNAME",
     "models/params/args/persona": "PERSONA",
     "models/params/args/skip_engagement": "SKIP_ENGAGEMENT",
     "models/params/args/staking_token_contract_address": "STAKING_TOKEN_CONTRACT_ADDRESS",
