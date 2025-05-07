@@ -21,14 +21,13 @@
 """Test the AgentDBClient class."""
 
 
-import hashlib
-import hmac
-import json
 import os
-import time
+from datetime import datetime, timezone
 
 import dotenv
 import requests
+from eth_account import Account
+from eth_account.messages import encode_defunct
 
 
 dotenv.load_dotenv(override=True)
@@ -45,31 +44,29 @@ class AgentDBClient:
         self.base_url = base_url.rstrip("/")
         self.eth_address = eth_address
         self.private_key = private_key
+        self.agent_id = self.get_agent_by_address(self.eth_address)["agent_id"]
 
-    def _auth_headers(self, method, endpoint, payload=None):
-        """
-        Generate authentication headers using HMAC-SHA256.
-        """
-        timestamp = str(int(time.time()))
-        message = f"{method.upper()}|{endpoint}|{timestamp}"
-        if payload:
-            message += f"|{json.dumps(payload, separators=(',', ':'), sort_keys=True)}"
-        signature = hmac.new(
-            bytes.fromhex(self.private_key), message.encode("utf-8"), hashlib.sha256
-        ).hexdigest()
-        return {
-            "X-Agent-Address": self.eth_address,
-            "X-Agent-Signature": signature,
-            "X-Agent-Timestamp": timestamp,
-            "Content-Type": "application/json",
+    def _sign_request(self, endpoint):
+        """Generate authentication"""
+        timestamp = int(datetime.now(timezone.utc).timestamp())
+        message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
+        signed_message = Account.sign_message(
+            encode_defunct(text=message_to_sign), private_key=self.private_key
+        )
+
+        auth_data = {
+            "agent_id": self.agent_id,
+            "signature": signed_message.signature.hex(),
+            "message": message_to_sign,
         }
+        return auth_data
 
     def _request(self, method, endpoint, payload=None, auth=False):
         """Make the request"""
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
         if auth:
-            headers = self._auth_headers(method, endpoint, payload)
+            payload["auth"] = self._sign_request(endpoint)
         response = requests.request(method, url, headers=headers, json=payload)
         if response.status_code in [200, 201]:
             return response.json()
