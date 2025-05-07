@@ -18,6 +18,8 @@
 #
 # ------------------------------------------------------------------------------
 
+"""Test the AgentDBClient class."""
+
 
 import hashlib
 import hmac
@@ -39,6 +41,7 @@ class AgentDBClient:
     """AgentDBClient"""
 
     def __init__(self, base_url, eth_address, private_key):
+        """Constructor"""
         self.base_url = base_url.rstrip("/")
         self.eth_address = eth_address
         self.private_key = private_key
@@ -62,6 +65,7 @@ class AgentDBClient:
         }
 
     def _request(self, method, endpoint, payload=None, auth=False):
+        """Make the request"""
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
         if auth:
@@ -69,27 +73,30 @@ class AgentDBClient:
         response = requests.request(method, url, headers=headers, json=payload)
         if response.status_code in [200, 201]:
             return response.json()
-        elif response.status_code == 404:
+        if response.status_code == 404:
             return None
-        else:
-            raise Exception(f"Request failed: {response.status_code} - {response.text}")
+        raise Exception(f"Request failed: {response.status_code} - {response.text}")
 
     # Agent Type Methods
     def get_agent_type(self, type_name):
+        """Get agent type by name"""
         endpoint = f"/api/agent-types/name/{type_name}"
         return self._request("GET", endpoint)
 
     def create_agent_type(self, type_name, description):
+        """Create agent type"""
         endpoint = "/api/agent-types/"
         payload = {"type_name": type_name, "description": description}
         return self._request("POST", endpoint, payload)
 
     # Agent Registry Methods
     def get_agent_by_address(self, eth_address):
+        """Get agent by Ethereum address"""
         endpoint = f"/api/agent-registry/address/{eth_address}"
         return self._request("GET", endpoint)
 
     def create_agent(self, agent_name, type_id, eth_address):
+        """Create agent"""
         endpoint = "/api/agent-registry/"
         payload = {
             "agent_name": agent_name,
@@ -100,24 +107,28 @@ class AgentDBClient:
 
     # Attribute Definition Methods
     def get_attribute_definition(self, attr_name):
+        """Get attribute definition by name"""
         endpoint = f"/api/attributes/name/{attr_name}"
         return self._request("GET", endpoint)
 
     def create_attribute_definition(
         self, type_id, attr_name, data_type, required=False
     ):
+        """Create attribute definition"""
         endpoint = f"/api/agent-types/{type_id}/attributes/"
         payload = {"attr_name": attr_name, "data_type": data_type, "required": required}
         return self._request("POST", endpoint, payload, auth=True)
 
     # Attribute Instance Methods
     def get_attribute_instance(self, agent_id, attr_def_id):
+        """Get attribute instance by agent ID and attribute definition ID"""
         endpoint = f"/api/agents/{agent_id}/attributes/{attr_def_id}/"
         return self._request("GET", endpoint)
 
     def create_attribute_instance(
         self, agent_id, attr_def_id, value, value_type="string"
     ):
+        """Create attribute instance"""
         endpoint = f"/api/agents/{agent_id}/attributes/"
         payload = {
             "agent_id": agent_id,
@@ -127,6 +138,7 @@ class AgentDBClient:
         return self._request("POST", endpoint, payload, auth=True)
 
     def update_attribute_instance(self, attribute_id, value, value_type="string"):
+        """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_id}"
         payload = {f"{value_type}_value": value}
         return self._request("PUT", endpoint, payload, auth=True)
@@ -168,11 +180,11 @@ if __name__ == "__main__":
     )
     print(f"attr_instance = {attr_instance}")
     if not attr_instance:
-        response = client.create_attribute_instance(
+        result = client.create_attribute_instance(
             agent_id=agent["type_id"],
             attr_def_id=attr_def["attr_def_id"],
             value="user123",
         )
-        print(response)
+        print(result)
     else:
         client.update_attribute_instance(attr_instance["id"], "new_user123")
