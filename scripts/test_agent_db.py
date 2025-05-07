@@ -34,6 +34,7 @@ dotenv.load_dotenv(override=True)
 
 
 # https://axatbhardwaj.notion.site/MirrorDB-Agent-and-Attribute-Data-Flow-1eac8d38bc0b80edae04ff1017d80f58
+# https://afmdb.autonolas.tech/docs#/default/read_attribute_definitions_by_type_api_agent_types__type_id__attributes__get
 
 
 class AgentDBClient:
@@ -61,13 +62,15 @@ class AgentDBClient:
         }
         return auth_data
 
-    def _request(self, method, endpoint, payload=None, auth=False):
+    def _request(self, method, endpoint, payload=None, params=None, auth=False):
         """Make the request"""
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
         if auth:
             payload["auth"] = self._sign_request(endpoint)
-        response = requests.request(method, url, headers=headers, json=payload)
+        response = requests.request(
+            method, url, headers=headers, json=payload, params=params
+        )
         if response.status_code in [200, 201]:
             return response.json()
         if response.status_code == 404:
@@ -109,12 +112,22 @@ class AgentDBClient:
         return self._request("GET", endpoint)
 
     def create_attribute_definition(
-        self, type_id, attr_name, data_type, required=False
+        self, type_id, attr_name, data_type, is_required=False
     ):
         """Create attribute definition"""
         endpoint = f"/api/agent-types/{type_id}/attributes/"
-        payload = {"attr_name": attr_name, "data_type": data_type, "required": required}
-        return self._request("POST", endpoint, payload, auth=True)
+        payload = {
+            "type_id": type_id,
+            "attr_name": attr_name,
+            "data_type": data_type,
+            "is_required": is_required,
+        }
+        return self._request("POST", endpoint, {"attr_def": payload}, auth=True)
+
+    def get_attributes_by_agent_type(self, type_id):
+        """Get attributes by agent type"""
+        endpoint = f"/api/agent-types/{type_id}/attributes/"
+        return self._request("GET", endpoint)
 
     # Attribute Instance Methods
     def get_attribute_instance(self, agent_id, attr_def_id):
@@ -132,13 +145,20 @@ class AgentDBClient:
             "attr_def_id": attr_def_id,
             f"{value_type}_value": value,
         }
-        return self._request("POST", endpoint, payload, auth=True)
+        return self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
 
-    def update_attribute_instance(self, attribute_id, value, value_type="string"):
+    def update_attribute_instance(
+        self, agent_id, attribute_id, value, value_type="string"
+    ):
         """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_id}"
         payload = {f"{value_type}_value": value}
-        return self._request("PUT", endpoint, payload, auth=True)
+        payload = {
+            "agent_id": agent_id,
+            "attr_def_id": attribute_id,
+            f"{value_type}_value": value,
+        }
+        return self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
 
 
 if __name__ == "__main__":
@@ -154,6 +174,10 @@ if __name__ == "__main__":
     print(f"agent_type = {agent_type}")
     if not agent_type:
         agent_type = client.create_agent_type("memeooorr", "Description of memeooorr")
+
+    # Get agent type attributes
+    attributes = client.get_attributes_by_agent_type(agent_type["type_id"])
+    print(f"attributes = {attributes}")
 
     # Ensure Agent exists
     agent = client.get_agent_by_address(client.eth_address)
@@ -184,4 +208,7 @@ if __name__ == "__main__":
         )
         print(result)
     else:
-        client.update_attribute_instance(attr_instance["id"], "new_user123")
+        # client.update_attribute_instance(agent["agent_id"], attr_def["attr_def_id"], "new_user123")  # not authorized
+        client.update_attribute_instance(
+            agent["agent_id"], attr_instance["attribute_id"], "new_user123"
+        )  # 500
