@@ -173,12 +173,12 @@ if __name__ == "__main__":
 
     # Ensure Attribute Instance exists
     attr_instance = client.get_attribute_instance(
-        agent["type_id"], attr_def["attr_def_id"]
+        agent["agent_id"], attr_def["attr_def_id"]
     )
     print(f"attr_instance = {attr_instance}")
     if not attr_instance:
         result = client.create_attribute_instance(
-            agent_id=agent["type_id"],
+            agent_id=agent["agent_id"],
             attr_def_id=attr_def["attr_def_id"],
             value="user123",
         )
