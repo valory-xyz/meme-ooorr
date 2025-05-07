@@ -206,9 +206,7 @@ if __name__ == "__main__":
             attr_def_id=attr_def["attr_def_id"],
             value="user123",
         )
-        print(result)
     else:
-        # client.update_attribute_instance(agent["agent_id"], attr_def["attr_def_id"], "new_user123")  # not authorized
         client.update_attribute_instance(
             agent["agent_id"], attr_instance["attribute_id"], "new_user123"
-        )  # 500
+        )
