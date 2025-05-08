@@ -655,7 +655,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         for agent_handle in agent_handles:
             latest_tweets = None  # TODO: get from agent_db
-            yield  # TODO: remove (linters)
 
             if not latest_tweets:
                 self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
@@ -1394,19 +1393,13 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
     def get_agent_handles(self) -> Generator[None, None, List[str]]:
         """Get the agent handles"""
         agent_handles = yield from self.mirrordb_helper.get_active_twitter_handles()
-        if agent_handles:
-            # Filter out suspended accounts
-            agent_handles = []  # TODO: get from agent_db
-
-        else:
-            # using subgraph to get memeooorr handles as a fallback
+        if not agent_handles:
             self.context.logger.info(
                 "No memeooorr handles from MirrorDB , Now trying subgraph"
             )
             agent_handles = yield from self.get_memeooorr_handles_from_subgraph()
-            # filter out suspended accounts
-            agent_handles = []  # TODO: get from agent_db
 
+        # TODO: filter out suspended accounts
         return agent_handles
 
 
