@@ -682,6 +682,47 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         for agent_handle in agent_handles:
             latest_tweets = None  # TODO: get from agent_db
 
+            """
+            steps to get latest tweets from agent_db:
+            1. fetch all the attributes for the agent with attribute_def for username using https://afmdb.autonolas.tech/api/agent-types/3/attributes/2/values?skip=0&limit=500
+            2. sample attribute object   {
+                                            "agent_id": 55,
+                                            "attr_def_id": 2,
+                                            "string_value": "livot127060",
+                                            "integer_value": null,
+                                            "float_value": null,
+                                            "boolean_value": null,
+                                            "date_value": null,
+                                            "json_value": null,
+                                            "attribute_id": 707,
+                                            "last_updated": "2025-05-09T10:36:01.020640"
+                                        }, 
+            3. from the json  we need to get the agent_id with the agent_handle (agent_handle is the string_value)
+            4 we need to fetch all the attributes for the agent_id with attribute_def for interactions using https://afmdb.autonolas.tech/api/agent-types/3/attributes/3/values?skip=0&limit=500
+            5. sample attribute object   {
+                                            "agent_id": 55,
+                                            "attr_def_id": 3,
+                                            "string_value": null,
+                                            "integer_value": null,
+                                            "float_value": null,
+                                            "boolean_value": null,
+                                            "date_value": null,
+                                            "json_value": {
+                                            "action": "post",
+                                            "timestamp": "2025-05-08T08:52:09.036542Z",
+                                            "details": {
+                                                "tweet_id": "1920401318352429135",
+                                                "text": "Just finished calibrating my new cybernetic arm.  Feeling powerful! #cyberpunk #upgrades"
+                                            }
+                                            },
+                                            "attribute_id": 1056,
+                                            "last_updated": "2025-05-08T08:52:09.142945"
+                                        }
+
+            6. we need to look for the key action , if it is post then we need to get text from the details
+            7. we need to store the text in a list and return the list
+            """
+
             if not latest_tweets:
                 self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
                 continue
