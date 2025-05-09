@@ -1001,47 +1001,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
 
         return config_raw
 
-    def _handle_twitter_username_check(
-        self,
-        config_data: Dict[str, Any],
-        agent_id: int,
-        username_attr_def_id: int,
-        stored_username_from_config: str,
-    ) -> Generator[None, None, Tuple[Dict[str, Any], bool]]:
-        """Handles username checks when Twitter IDs match."""
-        needs_kv_update = False
-        updated_config = config_data.copy()  # Work on a copy
-
-        self.context.logger.info(
-            "Stored Twitter User ID matches current cookie ID. Verifying username..."
-        )
-
-        current_username = self.params.twitter_username
-
-        # Compare config username vs current live username
-        if stored_username_from_config != current_username:
-            self.context.logger.warning(
-                f"USERNAME MISMATCH (Config vs Live): Stored {stored_username_from_config} vs Live {current_username}. Updating local config dict."
-            )
-            updated_config[
-                "twitter_username"
-            ] = current_username  # Update local config dict
-            needs_kv_update = True  # Mark KV for update
-
-        # Compare MirrorDB attribute vs current live username (check_and_update handles this)
-        # We call this regardless of the config check result to ensure DB is synced with live data
-        self.context.logger.info(
-            "Verifying MirrorDB username attribute against live session..."
-        )
-        # Note: _check_and_update logs its own success/failure messages
-        yield from self._check_and_update_username_attribute(
-            agent_id=agent_id,
-            username_attr_def_id=username_attr_def_id,
-            current_twitter_username=current_username,  # Ensure using live username
-        )
-
-        return updated_config, needs_kv_update
-
     def _sync_twitter_details_in_config(
         self, config_data: Dict[str, Any]
     ) -> Generator[None, None, Tuple[Dict[str, Any], bool]]:
@@ -1054,9 +1013,17 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         needs_kv_update = False
         updated_config = config_data.copy()  # Work on a copy
 
-        # Extract data needed for checks
+        # 1. Fundamental Check: Is params.twitter_username configured?
+        if not self.params.twitter_username:
+            self.context.logger.error(
+                "CRITICAL: Agent parameter 'twitter_username' is not set. "
+                "Cannot synchronize Twitter details."
+            )
+            return updated_config, False  # Return original, no KV update
+
+        # 2. Extract agent_id and username_attr_def_id from config
         try:
-            stored_username_from_config = updated_config["twitter_username"]
+            stored_username_in_kv_config = updated_config["twitter_username"]
             agent_id = int(updated_config["agent_id"])
             username_attr_def_id = int(updated_config["twitter_username_attr_def_id"])
         except (KeyError, ValueError, TypeError) as e:
@@ -1065,51 +1032,28 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             )
             raise  # Re-raise as this indicates a problem with the validated config
 
-        # Validate that we can fetch details for the configured params.twitter_username.
-        # This implicitly checks if the Tweepy connection is functional for this user.
-        # The actual "twitter_name" from validation_details is not currently stored in KV config,
-        # so we don't explicitly use it here beyond this validation.
-        # validation_details = yield from self._get_validated_twitter_user_details()
-        # if not validation_details:
-        #     self.context.logger.error(
-        #         f"Failed to fetch validation details for configured agent username ('{self.params.twitter_username}'). "
-        #         f"This could indicate an issue with the Tweepy connection setup (e.g., API keys) "
-        #         f"or an invalid username in agent parameters. Aborting further sync."
-        #     )
-        #     return updated_config, False  # Return original config, no KV update.
-
-        # At this point, we assume any Tweepy operations are for self.params.twitter_username.
-        # There's no separate cookie-based session username to compare against.
-
-        # Ensure the username stored in the KV config matches params.twitter_username.
-        # This is a safeguard; it should match if registration and param updates are handled correctly.
-        if stored_username_from_config != self.params.twitter_username:
+        # 3. Ensure KV store's twitter_username matches params.twitter_username
+        if stored_username_in_kv_config != self.params.twitter_username:
             self.context.logger.warning(
-                f"KV Store config username ('{stored_username_from_config}') differs from agent params username ('{self.params.twitter_username}'). "
-                f"Updating KV store config to use params username."
+                f"KV Store config username ('{stored_username_in_kv_config}') differs from agent params username ('{self.params.twitter_username}'). "
+                f"Updating KV store config."
             )
             updated_config["twitter_username"] = self.params.twitter_username
             needs_kv_update = True
-            # This assignment ensures that _handle_twitter_username_check uses the correct target username.
-            stored_username_from_config = self.params.twitter_username
 
-        # Now, ensure the MirrorDB username *attribute* is also in sync with params.twitter_username.
-        # _handle_twitter_username_check will use the (now aligned) stored_username_from_config
-        # as the target to ensure the MirrorDB attribute matches params.twitter_username.
-        (
-            updated_config_after_username_check,  # Use a new variable to avoid confusion
-            username_check_needs_kv_update,
-        ) = yield from self._handle_twitter_username_check(
-            config_data=updated_config,  # Pass the potentially already modified config
-            agent_id=agent_id,
-            username_attr_def_id=username_attr_def_id,
-            # This ensures the MirrorDB attribute is synced to params.twitter_username.
-            stored_username_from_config=self.params.twitter_username,
+        # 4. Ensure MirrorDB username attribute is synced with params.twitter_username
+        current_username_target = self.params.twitter_username
+        self.context.logger.info(
+            f"Verifying and potentially updating MirrorDB username attribute for agent {agent_id} to target '{current_username_target}'..."
         )
-        if username_check_needs_kv_update:
-            needs_kv_update = True
 
-        return updated_config_after_username_check, needs_kv_update
+        yield from self._check_and_update_username_attribute(
+            agent_id=agent_id,
+            username_attr_def_id=username_attr_def_id,  # This is now guaranteed to be an int if we passed the try-except
+            current_twitter_username=current_username_target,
+        )
+
+        return updated_config, needs_kv_update
 
     def _save_updated_config(
         self, config_data: Dict[str, Any]
