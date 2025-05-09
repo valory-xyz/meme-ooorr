@@ -149,7 +149,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             )
             if response is None:
                 self.context.logger.error(
-                    f"Twikit call for like_tweet ID {tweet_id} failed (returned None). See previous logs for details."
+                    f"Tweepy call for like_tweet ID {tweet_id} failed (returned None). See previous logs for details."
                 )
                 return False
 
@@ -168,10 +168,10 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         """Retweet"""
         self.context.logger.info(f"Retweeting tweet with ID: {tweet_id}")
         try:
-            response = yield from self._call_twikit(method="retweet", tweet_id=tweet_id)
+            response = yield from self._call_tweepy(method="retweet", tweet_id=tweet_id)
             if response is None:
                 self.context.logger.error(
-                    f"Twikit call for retweet ID {tweet_id} failed (returned None). See previous logs for details."
+                    f"Tweepy call for retweet ID {tweet_id} failed (returned None). See previous logs for details."
                 )
                 return False
 
@@ -192,12 +192,12 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         """Follow user"""
         self.context.logger.info(f"Following user with ID: {user_id}")
         try:
-            response = yield from self._call_twikit(
+            response = yield from self._call_tweepy(
                 method="follow_user", user_id=user_id
             )
             if response is None:
                 self.context.logger.error(
-                    f"Twikit call for follow_user ID {user_id} failed (returned None). See previous logs for details."
+                    f"Tweepy call for follow_user ID {user_id} failed (returned None). See previous logs for details."
                 )
                 return False
 
