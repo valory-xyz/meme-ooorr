@@ -937,42 +937,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
 
         return mirror_db_config_data
 
-    def _get_current_twitter_user_id_from_cookie(
-        self,
-    ) -> Generator[None, None, Optional[str]]:
-        """Gets and potentially parses the current Twitter User ID from cookies."""
-        try:
-            raw_id = (
-                yield from self.behaviour.get_twitter_user_id_from_cookie()
-            )  # Use the base behaviour's method
-
-            if raw_id and isinstance(raw_id, str) and "u=" in raw_id:
-                # Assuming format might include "u=" prefix
-                parsed_id = raw_id.split("u=")[-1]
-                if parsed_id.isdigit():
-                    return parsed_id
-
-                self.context.logger.error(
-                    f"Parsed Twitter User ID is not numeric: {parsed_id} (from raw: {raw_id})"
-                )
-                return None
-            if raw_id and isinstance(raw_id, str) and raw_id.isdigit():
-                # Assuming it might just be the number directly
-                return raw_id
-
-            # If raw_id is not None but doesn't match expected formats
-            self.context.logger.error(
-                f"Unexpected format or type for Twitter User ID from cookie: {raw_id} ({type(raw_id)}) "
-            )
-            return None
-
-        except ValueError as e:
-            # _get_twitter_user_id_from_cookie raises ValueError on API error
-            self.context.logger.error(
-                f"Error getting Twitter User ID from cookie via behaviour: {e}"
-            )
-            return None
-
     def _ensure_mirror_db_config(self) -> Generator[None, None, Optional[str]]:
         """Reads MirrorDB config from KV, registers if missing, and returns raw config."""
         key = "mirrod_db_config"
@@ -984,7 +948,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
                 "No MirrorDB config found. Attempting registration..."
             )
             self.context.logger.info(
-                f"calling register_with_mirror_db in _ensure_mirror_db_config"
+                "calling register_with_mirror_db in _ensure_mirror_db_config"
             )
             yield from self.register_with_mirror_db()  # Handles getting live data & saving
             config_read = yield from self.behaviour.read_kv(keys=(key,))
@@ -1034,7 +998,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         # 3. Ensure KV store's twitter_username matches params.twitter_username
         if stored_username_in_kv_config != self.params.twitter_username:
             self.context.logger.warning(
-                f"KV Store config username ('{stored_username_in_kv_config}') differs from agent params username ('{self.params.twitter_username}'). "
+                f"KV Store config username ({stored_username_in_kv_config}) differs from agent params username ({self.params.twitter_username}). "
                 f"Updating KV store config."
             )
             updated_config["twitter_username"] = self.params.twitter_username
@@ -1043,7 +1007,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         # 4. Ensure MirrorDB username attribute is synced with params.twitter_username
         current_username_target = self.params.twitter_username
         self.context.logger.info(
-            f"Verifying and potentially updating MirrorDB username attribute for agent {agent_id} to target '{current_username_target}'..."
+            f"Verifying and potentially updating MirrorDB username attribute for agent {agent_id} to target {current_username_target}..."
         )
 
         yield from self._check_and_update_username_attribute(
@@ -2502,13 +2466,13 @@ class MemeooorrBaseBehaviour(
             return None
 
         try:
-            my_agent_id = int(my_agent_id_raw)
-            agent_type_id = int(agent_type_id_raw)
-            interactions_attr_def_id = int(interactions_attr_def_id_raw)
+            my_agent_id = int(my_agent_id_raw)  # type: ignore
+            agent_type_id = int(agent_type_id_raw)  # type: ignore
+            interactions_attr_def_id = int(interactions_attr_def_id_raw)  # type: ignore
             return my_agent_id, agent_type_id, interactions_attr_def_id
         except (ValueError, TypeError) as e:
             self.context.logger.error(
-                f"Invalid type for configuration IDs: {e}. Cannot track replies."
+                f"Invalid type for configuration IDs: my_agent_id_raw={my_agent_id_raw}, agent_type_id_raw={agent_type_id_raw}, interactions_attr_def_id_raw={interactions_attr_def_id_raw}. Error: {e}. Cannot track replies."
             )
             return None
 
@@ -2647,8 +2611,7 @@ class MemeooorrBaseBehaviour(
         self, limit: int = 100, skip: int = 0
     ) -> Generator[None, None, List[Dict[str, Any]]]:
         """
-        Fetches and identifies replies made by other agents to this agent's original tweets,
-        using data stored in MirrorDB.
+        Fetches and identifies replies made by other agents to this agent's original tweets,using data stored in MirrorDB.
 
         Args:
             limit: The maximum number of interaction records to fetch from MirrorDB.

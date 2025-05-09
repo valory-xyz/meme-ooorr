@@ -871,11 +871,13 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Prepare other tweets data
-        items_for_formatting = []
+        items_for_formatting: List[Tuple[Any, Any]] = []
         if pending_tweets:
-            items_for_formatting = dict(
-                random.sample(list(pending_tweets.items()), len(pending_tweets))
-            ).items()
+            items_for_formatting = list(
+                dict(
+                    random.sample(list(pending_tweets.items()), len(pending_tweets))
+                ).items()
+            )
 
         other_tweets = "\n\n".join(
             [
