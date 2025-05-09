@@ -154,21 +154,21 @@ class AgentDBClient:
         return self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
 
     def update_attribute_instance(
-        self, agent_id, attribute_id, value, value_type="string"
+        self, agent_id, attr_def_id, attribute_id, value, value_type="string"
     ):
         """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_id}"
         payload = {f"{value_type}_value": value}
         payload = {
             "agent_id": agent_id,
-            "attr_def_id": attribute_id,
+            "attr_def_id": attr_def_id,
             f"{value_type}_value": value,
         }
         return self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
 
     def get_all_attributes(self, agent_id):
         """Get all attributes of an agent by agent ID"""
-        endpoint = f"/api/agents/{agent_id}/all-attributes/"
+        endpoint = f"/api/agents/{agent_id}/attributes/"
         payload = {
             "agent_id": agent_id,
         }
@@ -183,63 +183,47 @@ if __name__ == "__main__":
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
 
-    # # Ensure Agent Type exists
-    # agent_type = client.get_agent_type("memeooorr")
-    # print(f"agent_type = {agent_type}")
-    # if not agent_type:
-    #     agent_type = client.create_agent_type("memeooorr", "Description of memeooorr")
+    # Ensure Agent Type exists
+    agent_type = client.get_agent_type("memeooorr")
+    print(f"agent_type = {agent_type}")
+    if not agent_type:
+        agent_type = client.create_agent_type("memeooorr", "Description of memeooorr")
 
-    # # Get agent type attributes
-    # attributes = client.get_attributes_by_agent_type(agent_type["type_id"])
-    # print(f"attributes = {attributes}")
+    # Get agent type attributes
+    attributes = client.get_attributes_by_agent_type(agent_type["type_id"])
+    print(f"attributes = {attributes}")
 
-    # # Ensure Agent exists
-    # agent = client.get_agent_by_address(client.eth_address)
-    # print(f"agent = {agent}")
-    # if not agent:
-    #     agent = client.create_agent(
-    #         "AgentName", agent_type["type_id"], client.eth_address
-    #     )
+    # Ensure Agent exists
+    agent = client.get_agent_by_address(client.eth_address)
+    print(f"agent = {agent}")
+    if not agent:
+        agent = client.create_agent(
+            "AgentName", agent_type["type_id"], client.eth_address
+        )
 
-    # # Ensure Attribute Definition exists
-    # attr_def = client.get_attribute_definition("twitter_username")
-    # print(f"attr_def = {attr_def}")
-    # if not attr_def:
-    #     attr_def = client.create_attribute_definition(
-    #         agent_type["type_id"], "twitter_username", "string", required=True
-    #     )
+    # Ensure Attribute Definition exists
+    attr_def = client.get_attribute_definition("twitter_username")
+    print(f"attr_def = {attr_def}")
+    if not attr_def:
+        attr_def = client.create_attribute_definition(
+            agent_type["type_id"], "twitter_username", "string", required=True
+        )
 
-    # # Ensure Attribute Instance exists
-    # attr_instance = client.get_attribute_instance(
-    #     agent["agent_id"], attr_def["attr_def_id"]
-    # )
-    # print(f"attr_instance = {attr_instance}")
-    # if not attr_instance:
-    #     result = client.create_attribute_instance(
-    #         agent_id=agent["agent_id"],
-    #         attr_def_id=attr_def["attr_def_id"],
-    #         value="user123",
-    #     )
-    # else:
-    #     client.update_attribute_instance(
-    #         agent["agent_id"], attr_instance["attribute_id"], "new_user123"
-    #     )
-
-    # 0. Get all agents of type memeoooorr
-    # agents = client.get_agent_by_type(3)
-    # agent_ids = [agent["agent_id"] for agent in agents]
-    # print(agent_ids)
-
-    # # 1. Get agent id by handle
-    # twitter_username_def = client.get_attribute_definition("twitter_username")
-    # attr_def_id = twitter_username_def["attr_def_id"]
-
-    # for agent_id in agent_ids:
-    #     attr_instance = client.get_attribute_instance(
-    #         agent_id, attr_def_id
-    #     )
-    #     twitter_username = attr_instance["string_value"]
-
-    # 2. Get agent tweets
-
-    print(client.get_all_attributes(66))
+    # Ensure Attribute Instance exists
+    attr_instance = client.get_attribute_instance(
+        agent["agent_id"], attr_def["attr_def_id"]
+    )
+    print(f"attr_instance = {attr_instance}")
+    if not attr_instance:
+        result = client.create_attribute_instance(
+            agent_id=agent["agent_id"],
+            attr_def_id=attr_def["attr_def_id"],
+            value="user123",
+        )
+    else:
+        client.update_attribute_instance(
+            agent["agent_id"],
+            attr_def["attr_def_id"],
+            attr_instance["attribute_id"],
+            "new_user123",
+        )
