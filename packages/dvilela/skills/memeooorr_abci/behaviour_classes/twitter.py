@@ -866,12 +866,16 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Prepare other tweets data
+        items_for_formatting = []
+        if pending_tweets:  
+            items_for_formatting = dict(
+                random.sample(list(pending_tweets.items()), len(pending_tweets))
+            ).items()
+
         other_tweets = "\n\n".join(
             [
                 f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_id: {t_data['user_id']}"
-                for t_id, t_data in dict(
-                    random.sample(list(pending_tweets.items()), len(pending_tweets))
-                ).items()
+                for t_id, t_data in items_for_formatting
             ]
         )
 
