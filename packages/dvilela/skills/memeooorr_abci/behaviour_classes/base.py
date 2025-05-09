@@ -783,7 +783,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     ) -> Generator[None, None, None]:
         """Register the agent with the MirrorDB service and save the configuration."""
         try:
-
             agent_type_name = AGENT_TYPE_NAME
             agent_type_response = yield from self._create_or_get_agent_type(
                 agent_type_name
@@ -1760,13 +1759,6 @@ class MemeooorrBaseBehaviour(
             # Return what we got, the call_tweepy will log an error if it's None.
             return mirror_db_config_data
 
-        # The complex logic for direct ID comparison and subsequent username attribute updates
-        # that was previously here has been removed. The responsibility for ensuring the
-        # configured username (params.twitter_username) is consistent with the session,
-        # and that the MirrorDB username attribute reflects this, is now handled within
-        # mirrordb_helper.mirror_db_registration_check and its callees
-        # (_sync_twitter_details_in_config, _handle_twitter_username_check).
-
         # We simply return the validated and potentially updated config.
         return mirror_db_config_data
 
@@ -2485,6 +2477,172 @@ class MemeooorrBaseBehaviour(
 
         return tweet
 
+    def _get_agent_config_for_replies(
+        self,
+    ) -> Generator[None, None, Optional[Tuple[int, int, int]]]:
+        """Fetches and validates essential agent configuration for reply tracking."""
+        self.context.logger.info("Fetching own agent configuration for reply tracking.")
+        config = yield from self.mirrordb_helper.mirror_db_registration_check()
+        if not config or not isinstance(config, dict):
+            self.context.logger.error(
+                "Failed to get valid agent configuration. Cannot track replies."
+            )
+            return None
+
+        my_agent_id_raw = config.get("agent_id")
+        agent_type_id_raw = config.get("agent_type_id")
+        interactions_attr_def_id_raw = config.get("twitter_interactions_attr_def_id")
+
+        if not all([my_agent_id_raw, agent_type_id_raw, interactions_attr_def_id_raw]):
+            self.context.logger.error(
+                f"Missing essential IDs in agent configuration: agent_id={my_agent_id_raw}, "
+                f"agent_type_id={agent_type_id_raw}, interactions_attr_def_id={interactions_attr_def_id_raw}. "
+                "Cannot track replies."
+            )
+            return None
+
+        try:
+            my_agent_id = int(my_agent_id_raw)
+            agent_type_id = int(agent_type_id_raw)
+            interactions_attr_def_id = int(interactions_attr_def_id_raw)
+            return my_agent_id, agent_type_id, interactions_attr_def_id
+        except (ValueError, TypeError) as e:
+            self.context.logger.error(
+                f"Invalid type for configuration IDs: {e}. Cannot track replies."
+            )
+            return None
+
+    def _fetch_my_original_tweet_ids(
+        self, my_agent_id: int, interactions_attr_def_id: int
+    ) -> Generator[None, None, Set[str]]:
+        """Fetches and identifies the current agent's original tweet IDs from MirrorDB."""
+        self.context.logger.info(
+            f"Fetching original tweets for agent_id: {my_agent_id}"
+        )
+        my_original_tweet_ids: Set[str] = set()
+        my_attributes_endpoint = f"/api/agents/{my_agent_id}/attributes/"
+        my_attributes_raw = yield from self.mirrordb_helper.call_mirrordb(
+            "GET",
+            endpoint=my_attributes_endpoint,
+            params={"limit": 500},  # Fetch with a limit
+        )
+
+        if not isinstance(my_attributes_raw, list):
+            self.context.logger.warning(
+                f"Could not fetch attributes or attributes format is unexpected for agent {my_agent_id} from {my_attributes_endpoint}. My original tweets might be incomplete."
+            )
+            return my_original_tweet_ids
+
+        for attribute in my_attributes_raw:
+            if attribute.get("attr_def_id") != interactions_attr_def_id:
+                continue
+
+            json_value = attribute.get("json_value")
+            if not (
+                isinstance(json_value, dict) and json_value.get("action") == "post"
+            ):
+                continue
+
+            details = json_value.get("details")
+            # An original tweet should not have 'reply_to_tweet_id' in its details
+            if isinstance(details, dict) and not details.get("reply_to_tweet_id"):
+                original_tweet_id = details.get("tweet_id")
+                if original_tweet_id:
+                    my_original_tweet_ids.add(str(original_tweet_id))
+
+        self.context.logger.info(
+            f"Identified {len(my_original_tweet_ids)} original tweet IDs by agent {my_agent_id}: {my_original_tweet_ids}"
+        )
+        return my_original_tweet_ids
+
+    def _fetch_other_agents_interactions(
+        self,
+        agent_type_id: int,
+        interactions_attr_def_id: int,
+        limit: int,
+        skip: int,
+    ) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
+        """Fetches interaction records from other agents, paginated."""
+        self.context.logger.info(
+            f"Fetching interactions from other agents (limit={limit}, skip={skip})."
+        )
+        all_interactions_params = {"limit": limit, "skip": skip}
+        all_interactions_endpoint = f"/api/agent-types/{agent_type_id}/attributes/{interactions_attr_def_id}/values"
+        all_interactions_raw = yield from self.mirrordb_helper.call_mirrordb(
+            "GET", endpoint=all_interactions_endpoint, params=all_interactions_params
+        )
+
+        if not isinstance(all_interactions_raw, list):
+            self.context.logger.error(
+                f"Failed to fetch interactions from {all_interactions_endpoint} or data is not a list."
+            )
+            return None
+
+        self.context.logger.info(
+            f"Retrieved {len(all_interactions_raw)} interaction records from other agents."
+        )
+        return all_interactions_raw
+
+    def _filter_replies_from_interactions(
+        self,
+        interactions_raw: List[Dict[str, Any]],
+        my_agent_id: int,
+        my_original_tweet_ids: Set[str],
+    ) -> List[Dict[str, Any]]:
+        """Filters raw interactions to find replies to the agent's tweets."""
+        replies_found: List[Dict[str, Any]] = []
+        if not my_original_tweet_ids:
+            self.context.logger.info(
+                f"No original tweets found for agent {my_agent_id} to check against. Skipping reply filtering."
+            )
+            return replies_found
+
+        for interaction_record in interactions_raw:
+            interaction_agent_id_raw = interaction_record.get("agent_id")
+
+            if interaction_agent_id_raw is None:
+                continue
+            try:
+                interaction_agent_id = int(interaction_agent_id_raw)
+            except (ValueError, TypeError):
+                self.context.logger.warning(
+                    f"Skipping interaction with invalid agent_id type for attribute {interaction_record.get('attribute_id')}"
+                )
+                continue
+
+            if interaction_agent_id == my_agent_id:
+                continue  # Skip own interactions
+
+            json_value = interaction_record.get("json_value")
+            if not (
+                isinstance(json_value, dict) and json_value.get("action") == "post"
+            ):
+                continue
+
+            details = json_value.get("details")
+            if not isinstance(details, dict):
+                continue
+
+            replied_to_id = details.get("reply_to_tweet_id")
+            if not (replied_to_id and str(replied_to_id) in my_original_tweet_ids):
+                continue
+
+            reply_text = details.get("text")
+            reply_tweet_id = details.get("tweet_id")
+            timestamp_str = json_value.get("timestamp")
+
+            replies_found.append(
+                {
+                    "replying_agent_id": interaction_agent_id,
+                    "original_tweet_id_replied_to": str(replied_to_id),
+                    "reply_tweet_id": (str(reply_tweet_id) if reply_tweet_id else None),
+                    "reply_text": reply_text,
+                    "reply_timestamp": timestamp_str,
+                    "interaction_attribute_id": interaction_record.get("attribute_id"),
+                }
+            )
+        return replies_found
+
     def get_replies_to_my_tweets_from_mirrordb(
         self, limit: int = 100, skip: int = 0
     ) -> Generator[None, None, List[Dict[str, Any]]]:
@@ -2503,143 +2661,29 @@ class MemeooorrBaseBehaviour(
         replies_found: List[Dict[str, Any]] = []
 
         # 1. Get Own Agent's Configuration
-        self.context.logger.info("Fetching own agent configuration for reply tracking.")
-        config = yield from self.mirrordb_helper.mirror_db_registration_check()
-        if not config or not isinstance(config, dict):
-            self.context.logger.error(
-                "Failed to get valid agent configuration. Cannot track replies."
-            )
-            return replies_found
+        config_ids = yield from self._get_agent_config_for_replies()
+        if not config_ids:
+            return replies_found  # Error logged in helper
 
-        my_agent_id = config.get("agent_id")
-        agent_type_id = config.get("agent_type_id")
-        interactions_attr_def_id = config.get("twitter_interactions_attr_def_id")
-
-        if not all([my_agent_id, agent_type_id, interactions_attr_def_id]):
-            self.context.logger.error(
-                f"Missing essential IDs in agent configuration: agent_id={my_agent_id}, "
-                f"agent_type_id={agent_type_id}, interactions_attr_def_id={interactions_attr_def_id}. "
-                "Cannot track replies."
-            )
-            return replies_found
-
-        # Ensure IDs are integers for API calls
-        try:
-            my_agent_id = int(my_agent_id)
-            agent_type_id = int(agent_type_id)
-            interactions_attr_def_id = int(interactions_attr_def_id)
-        except (ValueError, TypeError) as e:
-            self.context.logger.error(
-                f"Invalid type for configuration IDs: {e}. Cannot track replies."
-            )
-            return replies_found
+        my_agent_id, agent_type_id, interactions_attr_def_id = config_ids
 
         # 2. Fetch and Identify Own Original Tweets
-        self.context.logger.info(
-            f"Fetching original tweets for agent_id: {my_agent_id}"
+        my_original_tweet_ids = yield from self._fetch_my_original_tweet_ids(
+            my_agent_id, interactions_attr_def_id
         )
-        my_original_tweet_ids: Set[str] = set()
-        my_attributes_endpoint = f"/api/agents/{my_agent_id}/attributes/"
-        # Fetch with a limit, assuming not too many attributes per agent, adjust if needed
-        my_attributes_raw = yield from self.mirrordb_helper.call_mirrordb(
-            "GET", endpoint=my_attributes_endpoint, params={"limit": 500}
+        # Continue even if no original tweets are found, _filter_replies will handle it
+
+        # 3. Fetch All Recent Interactions from Other Agents
+        all_interactions_raw = yield from self._fetch_other_agents_interactions(
+            agent_type_id, interactions_attr_def_id, limit, skip
         )
-
-        if isinstance(my_attributes_raw, list):
-            for attribute in my_attributes_raw:
-                if attribute.get("attr_def_id") == interactions_attr_def_id:
-                    json_value = attribute.get("json_value")
-                    if (
-                        isinstance(json_value, dict)
-                        and json_value.get("action") == "post"
-                    ):
-                        details = json_value.get("details")
-                        # An original tweet should not have 'reply_to_tweet_id' in its details
-                        if isinstance(details, dict) and not details.get(
-                            "reply_to_tweet_id"
-                        ):
-                            original_tweet_id = details.get("tweet_id")
-                            if original_tweet_id:
-                                my_original_tweet_ids.add(str(original_tweet_id))
-        else:
-            self.context.logger.warning(
-                f"Could not fetch attributes or attributes format is unexpected for agent {my_agent_id} from {my_attributes_endpoint}. My original tweets might be incomplete."
-            )
-
-        if not my_original_tweet_ids:
-            self.context.logger.info(
-                f"No original tweets found for agent {my_agent_id} in MirrorDB or they could not be identified. Cannot find replies if original tweets are unknown."
-            )
-            return (
-                replies_found  # Exit if no original tweets identified to check against
-            )
-
-        self.context.logger.info(
-            f"Identified {len(my_original_tweet_ids)} original tweet IDs by agent {my_agent_id}: {my_original_tweet_ids}"
-        )
-
-        # 3. Fetch All Recent Interactions from Other Agents (Paginated)
-        self.context.logger.info(
-            f"Fetching interactions from other agents (limit={limit}, skip={skip})."
-        )
-        # Pass limit and skip as query parameters for the GET request
-        all_interactions_params = {"limit": limit, "skip": skip}
-        all_interactions_endpoint = f"/api/agent-types/{agent_type_id}/attributes/{interactions_attr_def_id}/values"
-        all_interactions_raw = yield from self.mirrordb_helper.call_mirrordb(
-            "GET", endpoint=all_interactions_endpoint, params=all_interactions_params
-        )
-
-        if not isinstance(all_interactions_raw, list):
-            self.context.logger.error(
-                f"Failed to fetch interactions from {all_interactions_endpoint} or data is not a list."
-            )
-            return replies_found
-
-        self.context.logger.info(
-            f"Retrieved {len(all_interactions_raw)} interaction records from other agents."
-        )
+        if all_interactions_raw is None:  # Indicates a fetch failure
+            return replies_found  # Error logged in helper
 
         # 4. Filter Interactions to Find Replies to Your Tweets
-        for interaction_record in all_interactions_raw:
-            interaction_agent_id = interaction_record.get("agent_id")
-
-            if interaction_agent_id is None:  # Skip if agent_id is missing
-                continue
-            try:
-                interaction_agent_id = int(interaction_agent_id)
-            except (ValueError, TypeError):
-                self.context.logger.warning(
-                    f"Skipping interaction with invalid agent_id type for attribute {interaction_record.get('attribute_id')}"
-                )
-                continue
-
-            if interaction_agent_id == my_agent_id:
-                continue  # Skip own interactions
-
-            json_value = interaction_record.get("json_value")
-            if isinstance(json_value, dict) and json_value.get("action") == "post":
-                details = json_value.get("details")
-                if isinstance(details, dict):
-                    replied_to_id = details.get("reply_to_tweet_id")
-                    if replied_to_id and str(replied_to_id) in my_original_tweet_ids:
-                        reply_text = details.get("text")
-                        reply_tweet_id = details.get("tweet_id")
-                        timestamp_str = json_value.get("timestamp")
-
-                        replies_found.append(
-                            {
-                                "replying_agent_id": interaction_agent_id,
-                                "original_tweet_id_replied_to": str(replied_to_id),
-                                "reply_tweet_id": (
-                                    str(reply_tweet_id) if reply_tweet_id else None
-                                ),
-                                "reply_text": reply_text,
-                                "reply_timestamp": timestamp_str,
-                                "interaction_attribute_id": interaction_record.get(
-                                    "attribute_id"
-                                ),
-                            }
-                        )
+        replies_found = self._filter_replies_from_interactions(
+            all_interactions_raw, my_agent_id, my_original_tweet_ids
+        )
 
         # 5. Return Results
         self.context.logger.info(

@@ -128,7 +128,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, bool]:
         """Like a tweet"""
 
-        self.context.logger.info(f"Liking tweet with ID: {tweet_id}")
+        self.context.logger.info(f"Replying to tweet with ID: {tweet_id}")
         tweet = {"text": text}
         if quote:
             tweet["attachment_url"] = f"https://x.com/{user_name}/status/{tweet_id}"
@@ -466,11 +466,16 @@ class CollectFeedbackBehaviour(
     def get_feedback(self) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
         """Get the responses to our agent's tweets from MirrorDB."""
 
+        # Search new replies
+        tweets = yield from self.get_tweets_from_db()
+        if not tweets:
+            self.context.logger.error("No tweets yet")
+            return []
+
         self.context.logger.info(
             "Attempting to get replies to agent's tweets from MirrorDB."
         )
-        # Call the new method from MemeooorrBaseBehaviour.
-        # It defaults to limit=100 interactions fetched from MirrorDB to check for replies.
+
         all_replies = yield from self.get_replies_to_my_tweets_from_mirrordb(
             limit=100, skip=0
         )
@@ -867,7 +872,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         # Prepare other tweets data
         items_for_formatting = []
-        if pending_tweets:  
+        if pending_tweets:
             items_for_formatting = dict(
                 random.sample(list(pending_tweets.items()), len(pending_tweets))
             ).items()

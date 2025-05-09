@@ -9,10 +9,10 @@
         "connection/dvilela/genai/0.1.0": "bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty",
         "connection/dvilela/kv_store/0.1.0": "bafybeiecnl7yc5qx6x4q7467i66ehmfw4qydnnry7tjs7plqeytb6ueyvu",
         "connection/dvilela/tweepy/0.1.0": "bafybeibgydbcabdrbdzhejss6dwkvvh4f5jkq7qhlap7vhi5j3bmo2ohoq",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeid6g5gjikb62asfognaqxwkndvy4yr2cwvmozdonegfwuitq53myq",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeib76rtrfbhm627a75d3oucyw4o2skjxof2566vvugrg7ojkim6eha",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeiecx7f3vmjowshiu3ygwjys2f4ae7i6ffdygn7fvm5kafndbyx3wu",
-        "service/dvilela/memeooorr/0.1.0": "bafybeigd5b4edxbwjjtuecnldes7mqijvxfymo5ae6ol4jv3au5obgimhq"
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeifarqslnaqmclkplx4hknu2kbcd4iqkib2db44jakesol64ubo6jq",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeig3mnpzwawp6lfqpwrdumbhlgiytqynv436wkwxbwyda5cpoeeybm",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeig736jvjp76qwn6uujup5bng44d6lwuz5qmlxizhiu4w2pos2rodm",
+        "service/dvilela/memeooorr/0.1.0": "bafybeibr4gh273bs5wj2j5yzm6cce6k7hdqmw3galzzp6ohdyjhui22p74"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeig2d36zxy65vd7fwhs7scotuktydcarm74aprmrb5nioiymr3yixm",
