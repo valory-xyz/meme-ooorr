@@ -643,7 +643,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         for agent_handle in agent_handles:
             # latest_tweets = None  # TODO: get from agent_db
 
-            latest_tweets = yield from self.fetch_latest_tweet_from_twitter(
+            latest_tweets = yield from self.fetch_latest_tweets_from_twitter(
                 agent_handle, 1
             )
 

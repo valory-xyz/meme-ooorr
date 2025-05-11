@@ -2655,7 +2655,7 @@ class MemeooorrBaseBehaviour(
             f"/api/agent-types/{agent_type_id}/attributes/{username_attr_def_id}/values"
         )
         self.context.logger.info(
-            f"Querying MirrorDB for {agent_handle} to find its mdb_agent_id: {username_attrs_endpoint}"
+            f"Querying MirrorDB for {agent_handle} to find its mdb_agent_id"
         )
         username_attributes = yield from self.mirrordb_helper.call_mirrordb(
             "GET",
@@ -2781,9 +2781,8 @@ class MemeooorrBaseBehaviour(
             return None  # Error logged by helper, indicates a critical config issue
 
         ids = self.mirrordb_helper._extract_required_ids_from_config(config)
-        agent_type_id = ids["agent_type_id"]
-        username_attr_def_id = ids["username_attr_def_id"]
-        interactions_attr_def_id = ids["interactions_attr_def_id"]
+
+        interactions_attr_def_id, username_attr_def_id, agent_type_id = ids
 
         # 2. Find MirrorDB agent_id for the agent_handle
         mdb_agent_id = yield from self._get_mdb_agent_id_from_handle(
