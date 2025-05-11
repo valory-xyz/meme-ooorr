@@ -681,7 +681,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                                         }
 
             6. we need to look for the key action , if it is post then we need to get text from the details
-            7. we need to store the text in a list and return the list
+            7. we need to store the text in a list and return the list of dicts
             """
 
             if not latest_tweets:
