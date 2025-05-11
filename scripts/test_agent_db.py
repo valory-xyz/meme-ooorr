@@ -51,7 +51,7 @@ class AgentDBClient:
         """Generate authentication"""
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
-        signed_message = Account.sign_message(
+        signed_message = Account.sign_message(  # pylint: disable=no-value-for-parameter
             encode_defunct(text=message_to_sign), private_key=self.private_key
         )
 
@@ -62,7 +62,9 @@ class AgentDBClient:
         }
         return auth_data
 
-    def _request(self, method, endpoint, payload=None, params=None, auth=False):
+    def _request(
+        self, method, endpoint, payload=None, params=None, auth=False
+    ):  # pylint: disable=too-many-arguments
         """Make the request"""
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
@@ -153,7 +155,7 @@ class AgentDBClient:
         }
         return self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
 
-    def update_attribute_instance(
+    def update_attribute_instance(  # pylint: disable=too-many-arguments
         self, agent_id, attr_def_id, attribute_id, value, value_type="string"
     ):
         """Update attribute instance"""
@@ -205,7 +207,7 @@ if __name__ == "__main__":
     attr_def = client.get_attribute_definition("twitter_username")
     print(f"attr_def = {attr_def}")
     if not attr_def:
-        attr_def = client.create_attribute_definition(
+        attr_def = client.create_attribute_definition(  # pylint: disable=unexpected-keyword-arg
             agent_type["type_id"], "twitter_username", "string", required=True
         )
 
