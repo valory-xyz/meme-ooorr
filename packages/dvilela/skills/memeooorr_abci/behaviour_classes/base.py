@@ -1321,11 +1321,11 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     ) -> Optional[Tuple[int, int, int]]:
         """Extracts and validates interaction, username, and agent type IDs from config."""
         # Check if config itself is valid first
-        if not isinstance(config, dict):
-            self.context.logger.error(
-                f"Invalid config type provided for ID extraction: {type(config)}"
-            )
-            return None
+        # if not isinstance(config, dict):
+        #     self.context.logger.error(
+        #         f"Invalid config type provided for ID extraction: {type(config)}"
+        #     )
+        #     return None
 
         interactions_id_raw = config.get("twitter_interactions_attr_def_id")
         username_id_raw = config.get("twitter_username_attr_def_id")
@@ -1345,10 +1345,10 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             return None
 
         try:
-            interactions_id = int(cast(Union[str, int], interactions_id_raw))
-            username_id = int(cast(Union[str, int], username_id_raw))
+            interactions_attr_def_id = int(cast(Union[str, int], interactions_id_raw))
+            username_attr_def_id = int(cast(Union[str, int], username_id_raw))
             agent_type_id = int(cast(Union[str, int], agent_type_id_raw))
-            return interactions_id, username_id, agent_type_id
+            return interactions_attr_def_id, username_attr_def_id, agent_type_id
         except (ValueError, TypeError) as e:
             self.context.logger.error(
                 f"Error converting required IDs to integers: {e}. Config: {config}"
@@ -1521,10 +1521,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             )
             return handles  # Early exit
         interactions_attr_def_id, username_attr_def_id, agent_type_id = ids
-        self.context.logger.debug(
-            f"Using IDs from config: interactions={interactions_attr_def_id}, "
-            f"username={username_attr_def_id}, agent_type={agent_type_id}"
-        )
 
         # 3. Fetch All Interactions
         all_interactions = yield from self._fetch_all_interactions(
@@ -2438,7 +2434,6 @@ class MemeooorrBaseBehaviour(
             )
             return None
 
-
     def _fetch_my_original_tweet_ids(
         self, my_agent_id: int, interactions_attr_def_id: int
     ) -> Generator[None, None, Set[str]]:
@@ -2651,66 +2646,21 @@ class MemeooorrBaseBehaviour(
         )
         return replies_found
 
-    def fetch_latest_tweets_from_twitter(
-        self, agent_handle: str, limit: int = 5
-    ) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
-        """Fetch the latest tweets for a given Twitter handle using ONLY MirrorDB.
-
-        Args:
-            agent_handle: The Twitter screen name of the user.
-            limit: The maximum number of tweets to fetch.
-
-        Returns:
-            A list of tweet dictionaries, or None if an error occurs.
-            Each tweet dictionary will contain 'id' (tweet_id), 'text', 'user_name'.
-            'user_id' will be None as Twitter APIs are not called.
-        """
-        self.context.logger.info(
-            f"Fetching latest {limit} tweets for Twitter handle '{agent_handle}' using MirrorDB."
-        )
-        formatted_tweets: List[Dict[str, Any]] = []
-
-        # 1. Fetch base MirrorDB configuration
-        config = yield from self.mirrordb_helper.get_base_mirror_db_config(
-            f"for {agent_handle} tweet fetching"
-        )
-        if config is None:
-            return None  # Error logged by helper
-
-        # Extract and validate IDs specific to tweet fetching from the base config
-        agent_type_id_raw = config.get("agent_type_id")
-        username_attr_def_id_raw = config.get("twitter_username_attr_def_id")
-        interactions_attr_def_id_raw = config.get("twitter_interactions_attr_def_id")
-
-        if not all(
-            [agent_type_id_raw, username_attr_def_id_raw, interactions_attr_def_id_raw]
-        ):
-            self.context.logger.error(
-                f"MirrorDB config for {agent_handle} is missing required IDs (agent_type_id, twitter_username_attr_def_id, or twitter_interactions_attr_def_id) for tweet fetching."
-            )
-            return None
-        try:
-            agent_type_id = int(str(agent_type_id_raw))
-            username_attr_def_id = int(str(username_attr_def_id_raw))
-            interactions_attr_def_id = int(str(interactions_attr_def_id_raw))
-        except (ValueError, TypeError) as e:
-            self.context.logger.error(
-                f"Error converting MirrorDB config IDs to int for {agent_handle} tweet fetching: {e}"
-            )
-            return None
-
-        # 2. Find MirrorDB agent_id for the agent_handle
+    def _get_mdb_agent_id_from_handle(
+        self, agent_handle: str, agent_type_id: int, username_attr_def_id: int
+    ) -> Generator[None, None, Optional[int]]:
+        """Finds the MirrorDB agent_id for a given agent_handle."""
         mdb_agent_id: Optional[int] = None
         username_attrs_endpoint = (
             f"/api/agent-types/{agent_type_id}/attributes/{username_attr_def_id}/values"
         )
         self.context.logger.info(
-            f"Querying MirrorDB for {agent_handle}: {username_attrs_endpoint}"
+            f"Querying MirrorDB for {agent_handle} to find its mdb_agent_id: {username_attrs_endpoint}"
         )
         username_attributes = yield from self.mirrordb_helper.call_mirrordb(
             "GET",
             endpoint=username_attrs_endpoint,
-            params={"limit": 1000},
+            params={"limit": 1000},  # Assuming a large enough limit to find the handle
         )
 
         if isinstance(username_attributes, list):
@@ -2723,49 +2673,55 @@ class MemeooorrBaseBehaviour(
                             self.context.logger.info(
                                 f"Found MirrorDB agent ID {mdb_agent_id} for {agent_handle}."
                             )
-                            break
+                            return mdb_agent_id  # Return as soon as found
                         except (ValueError, TypeError):
                             self.context.logger.warning(
-                                f"Invalid agent_id format {mdb_agent_id_raw} for {agent_handle}."
+                                f"Invalid agent_id format {mdb_agent_id_raw} for {agent_handle} while searching for mdb_agent_id."
                             )
-            if mdb_agent_id is None:
-                self.context.logger.warning(
-                    f"No MirrorDB agent ID found for Twitter handle: {agent_handle}."
-                )
-                return None
+                            # Don't return None here, continue searching in case of other valid entries
+            # If loop completes and mdb_agent_id is still None
+            self.context.logger.warning(
+                f"No MirrorDB agent ID found for Twitter handle: {agent_handle} after checking {len(username_attributes)} attributes."
+            )
+            return None
         else:
             self.context.logger.error(
-                f"Failed to fetch or parse username attributes for {agent_handle} from MirrorDB."
+                f"Failed to fetch or parse username attributes for {agent_handle} from MirrorDB when searching for mdb_agent_id."
             )
             return None
 
-        # 3. Fetch interactions for the mdb_agent_id
+    def _fetch_and_process_posted_tweets_for_agent(
+        self,
+        mdb_agent_id: int,
+        interactions_attr_def_id: int,
+        agent_handle_for_logging: str,
+    ) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
+        """Fetches attributes for a specific agent and processes them to find posted tweet details."""
         interactions_endpoint = f"/api/agents/{mdb_agent_id}/attributes/"
         self.context.logger.info(
-            f"Fetching interactions for MirrorDB agent ID {mdb_agent_id} ({agent_handle})."
+            f"Fetching attributes for MirrorDB agent ID {mdb_agent_id} ({agent_handle_for_logging}) from {interactions_endpoint}."
         )
-        agent_interactions = yield from self.mirrordb_helper.call_mirrordb(
+        agent_attributes = yield from self.mirrordb_helper.call_mirrordb(
             "GET",
             endpoint=interactions_endpoint,
-            params={"limit": 200},  # Fetch recent interactions
+            params={"limit": 200},  # Fetch recent attributes
         )
 
-        if not isinstance(agent_interactions, list):
+        if not isinstance(agent_attributes, list):
             self.context.logger.error(
-                f"Failed to fetch or parse interactions for {agent_handle} (ID: {mdb_agent_id}) from MirrorDB."
+                f"Failed to fetch or parse attributes for {agent_handle_for_logging} (ID: {mdb_agent_id}) from MirrorDB. Expected a list, got {type(agent_attributes)}."
             )
             return None
 
-        # 4. Process interactions to find posts
         posted_tweets_details: List[Dict[str, Any]] = []
-        for interaction in agent_interactions:
+        for attribute_interaction in agent_attributes:
             if (
-                not isinstance(interaction, dict)
-                or interaction.get("attr_def_id") != interactions_attr_def_id
+                not isinstance(attribute_interaction, dict)
+                or attribute_interaction.get("attr_def_id") != interactions_attr_def_id
             ):
                 continue
 
-            json_value = interaction.get("json_value")
+            json_value = attribute_interaction.get("json_value")
             if isinstance(json_value, dict) and json_value.get("action") == "post":
                 details = json_value.get("details")
                 timestamp_str = json_value.get("timestamp")
@@ -2784,27 +2740,90 @@ class MemeooorrBaseBehaviour(
                                 "tweet_id": str(tweet_id),
                                 "text": str(text),
                                 "timestamp": parsed_timestamp,
-                                # user_name will be the agent_handle as we are fetching for that specific handle
                             }
                         )
                     else:
                         self.context.logger.warning(
-                            f"Could not parse timestamp {timestamp_str} for a tweet from {agent_handle}."
+                            f"Could not parse timestamp {timestamp_str} for a tweet from {agent_handle_for_logging}."
                         )
+        return posted_tweets_details
+
+    def fetch_latest_tweets_from_twitter(
+        self, agent_handle: str, num_tweets: int
+    ) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
+        """Fetch the specified number of latest tweets for a given Twitter handle using ONLY MirrorDB.
+
+        Args:
+            agent_handle: The Twitter screen name of the user.
+            num_tweets: The number of latest tweets to fetch.
+
+        Returns:
+            A list of tweet dictionaries if found (can be empty if no tweets),
+            or None if a critical error occurs during fetching.
+            Each tweet dictionary will contain 'id' (tweet_id), 'text', 'user_name'.
+            'user_id' will be None as Twitter APIs are not called.
+        """
+        if num_tweets <= 0:
+            self.context.logger.warning(
+                f"num_tweets must be positive. Received {num_tweets} for {agent_handle}. Returning empty list."
+            )
+            return []
+
+        self.context.logger.info(
+            f"Fetching {num_tweets} latest tweet(s) for Twitter handle '{agent_handle}' using MirrorDB."
+        )
+
+        # 1. Fetch base MirrorDB configuration
+        config = yield from self.mirrordb_helper.get_base_mirror_db_config(
+            f"for {agent_handle} latest tweets fetching"
+        )
+        if config is None:
+            return None  # Error logged by helper, indicates a critical config issue
+
+        ids = self.mirrordb_helper._extract_required_ids_from_config(config)
+        agent_type_id = ids["agent_type_id"]
+        username_attr_def_id = ids["username_attr_def_id"]
+        interactions_attr_def_id = ids["interactions_attr_def_id"]
+
+        # 2. Find MirrorDB agent_id for the agent_handle
+        mdb_agent_id = yield from self._get_mdb_agent_id_from_handle(
+            agent_handle, agent_type_id, username_attr_def_id
+        )
+        if mdb_agent_id is None:
+            # Error/warning already logged by the helper method
+            # This means the agent handle wasn't found, so no tweets.
+            return []
+
+        # 3. Fetch and process interactions for the mdb_agent_id to get posted tweet details
+        posted_tweets_details = (
+            yield from self._fetch_and_process_posted_tweets_for_agent(
+                mdb_agent_id, interactions_attr_def_id, agent_handle
+            )
+        )
+
+        if posted_tweets_details is None:
+            # This implies a failure in fetching attributes for the agent from MirrorDB.
+            self.context.logger.error(
+                f"Could not fetch and process tweets for {agent_handle} (ID: {mdb_agent_id}). Returning None."
+            )
+            return None  # Indicates an issue fetching agent's attributes
 
         if not posted_tweets_details:
+            # Fetching was okay, but the agent simply has no 'post' interactions recorded.
             self.context.logger.info(
-                f"No 'post' interactions found in MirrorDB for {agent_handle} (ID: {mdb_agent_id})."
+                f"No 'post' interactions found in MirrorDB for {agent_handle} (ID: {mdb_agent_id}). Returning empty list."
             )
-            return []  # Return empty list if no posts
+            return []
 
         # 5. Sort tweets by timestamp (most recent first)
         posted_tweets_details.sort(key=lambda x: x["timestamp"], reverse=True)
 
-        # 6. Format for final output (up to limit)
-        for i, tweet_detail in enumerate(posted_tweets_details):
-            if i >= limit:
-                break
+        # 6. Get the required number of LATEST tweet details
+        latest_n_tweet_details = posted_tweets_details[:num_tweets]
+
+        # 7. Format these latest tweets
+        formatted_tweets: List[Dict[str, Any]] = []
+        for tweet_detail in latest_n_tweet_details:
             formatted_tweets.append(
                 {
                     "id": tweet_detail["tweet_id"],
@@ -2818,6 +2837,6 @@ class MemeooorrBaseBehaviour(
             )
 
         self.context.logger.info(
-            f"Successfully fetched {len(formatted_tweets)} tweets for {agent_handle} from MirrorDB. "
+            f"Successfully fetched {len(formatted_tweets)} tweet(s) for {agent_handle} from MirrorDB."
         )
         return formatted_tweets
