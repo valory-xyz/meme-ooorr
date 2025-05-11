@@ -1320,26 +1320,22 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         self, config: Dict[str, Any]
     ) -> Optional[Tuple[int, int, int]]:
         """Extracts and validates interaction, username, and agent type IDs from config."""
-        # Check if config itself is valid first
-        # if not isinstance(config, dict):
-        #     self.context.logger.error(
-        #         f"Invalid config type provided for ID extraction: {type(config)}"
-        #     )
-        #     return None
 
         interactions_id_raw = config.get("twitter_interactions_attr_def_id")
         username_id_raw = config.get("twitter_username_attr_def_id")
         agent_type_id_raw = config.get("agent_type_id")
+        my_agent_id_raw = config.get("agent_id")
 
         # Ensure required keys exist and are not None
         if (
             interactions_id_raw is None
             or username_id_raw is None
             or agent_type_id_raw is None
+            or my_agent_id_raw is None
         ):
             self.context.logger.error(
                 f"Missing required IDs in mirrod_db_config: "
-                f"interactions={interactions_id_raw}, username={username_id_raw}, type={agent_type_id_raw}. "
+                f"interactions={interactions_id_raw}, username={username_id_raw}, type={agent_type_id_raw}, agent_id={my_agent_id_raw}. "
                 f"Config: {config}"
             )
             return None
@@ -1348,7 +1344,14 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             interactions_attr_def_id = int(cast(Union[str, int], interactions_id_raw))
             username_attr_def_id = int(cast(Union[str, int], username_id_raw))
             agent_type_id = int(cast(Union[str, int], agent_type_id_raw))
-            return interactions_attr_def_id, username_attr_def_id, agent_type_id
+            my_agent_id = int(cast(Union[str, int], my_agent_id_raw))
+
+            return {
+                "interactions_attr_def_id": interactions_attr_def_id,
+                "username_attr_def_id": username_attr_def_id,
+                "agent_type_id": agent_type_id,
+                "my_agent_id": my_agent_id,
+            }
         except (ValueError, TypeError) as e:
             self.context.logger.error(
                 f"Error converting required IDs to integers: {e}. Config: {config}"
@@ -1514,13 +1517,10 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
 
         # 2. Extract and Validate Required IDs from the checked config
         ids = self._extract_required_ids_from_config(config)
-        if not ids:
-            # Error logged in helper
-            self.context.logger.error(
-                "Aborting handle fetch: Failed to extract required IDs from config."
-            )
-            return handles  # Early exit
-        interactions_attr_def_id, username_attr_def_id, agent_type_id = ids
+
+        agent_type_id = ids["agent_type_id"]
+        interactions_attr_def_id = ids["interactions_attr_def_id"]
+        username_attr_def_id = ids["username_attr_def_id"]
 
         # 3. Fetch All Interactions
         all_interactions = yield from self._fetch_all_interactions(
@@ -1571,6 +1571,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     ) -> Generator[None, None, Optional[Dict[str, Any]]]:
         """
         Fetches the base MirrorDB config via mirror_db_registration_check,
+
         logs with context if it fails, and returns the config dict or None.
         """
         config = yield from self.mirror_db_registration_check()
@@ -2618,9 +2619,11 @@ class MemeooorrBaseBehaviour(
         if config is None:
             return replies_found
 
-        my_agent_id = config.get("agent_id")
-        agent_type_id = config.get("agent_type_id")
-        interactions_attr_def_id = config.get("twitter_interactions_attr_def_id")
+        ids = self.mirrordb_helper._extract_required_ids_from_config(config)
+
+        my_agent_id = ids["my_agent_id"]
+        agent_type_id = ids["agent_type_id"]
+        interactions_attr_def_id = ids["interactions_attr_def_id"]
 
         # 2. Fetch and Identify Own Original Tweets
         my_original_tweet_ids = yield from self._fetch_my_original_tweet_ids(
@@ -2770,7 +2773,7 @@ class MemeooorrBaseBehaviour(
             return []
 
         self.context.logger.info(
-            f"Fetching {num_tweets} latest tweet(s) for Twitter handle '{agent_handle}' using MirrorDB."
+            f"Fetching {num_tweets} latest tweet(s) for Twitter handle {agent_handle} using MirrorDB."
         )
 
         # 1. Fetch base MirrorDB configuration
@@ -2782,7 +2785,9 @@ class MemeooorrBaseBehaviour(
 
         ids = self.mirrordb_helper._extract_required_ids_from_config(config)
 
-        interactions_attr_def_id, username_attr_def_id, agent_type_id = ids
+        agent_type_id = ids["agent_type_id"]
+        username_attr_def_id = ids["username_attr_def_id"]
+        interactions_attr_def_id = ids["interactions_attr_def_id"]
 
         # 2. Find MirrorDB agent_id for the agent_handle
         mdb_agent_id = yield from self._get_mdb_agent_id_from_handle(
