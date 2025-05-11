@@ -23,7 +23,7 @@ import json
 import random
 import secrets
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union
 from uuid import uuid4
 
@@ -213,26 +213,6 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 f"Exception following user with ID {user_id}: {e}"
             )
             return False
-
-    def _parse_iso_timestamp(self, timestamp_str: str) -> Optional[float]:
-        """Parse an ISO timestamp string, handling 'Z' suffix, and return UTC timestamp."""
-        if not timestamp_str or not isinstance(timestamp_str, str):
-            self.context.logger.warning(
-                f"Invalid timestamp string provided: {timestamp_str}"
-            )
-            return None
-        try:
-            # Handle potential timezone info (e.g., Z for UTC)
-            if timestamp_str.endswith("Z"):
-                timestamp_str = timestamp_str[:-1] + "+00:00"
-            dt_object = datetime.fromisoformat(timestamp_str)
-            # Convert to UTC timestamp float
-            return dt_object.replace(tzinfo=timezone.utc).timestamp()
-        except ValueError:
-            self.context.logger.warning(
-                f"Could not parse timestamp string: {timestamp_str}"
-            )
-            return None
 
     def _parse_mirrordb_tweet_details(
         self, json_value: Dict[str, Any]
@@ -466,12 +446,6 @@ class CollectFeedbackBehaviour(
     def get_feedback(self) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
         """Get the responses to our agent's tweets from MirrorDB."""
 
-        # Search new replies
-        tweets = yield from self.get_tweets_from_db()
-        if not tweets:
-            self.context.logger.error("No tweets yet")
-            return []
-
         self.context.logger.info(
             "Attempting to get replies to agent's tweets from MirrorDB."
         )
@@ -480,17 +454,9 @@ class CollectFeedbackBehaviour(
             limit=100, skip=0
         )
 
-        if (
-            all_replies is None
-        ):  # Should ideally return [] based on current implementation
-            self.context.logger.error(
-                "Failed to retrieve replies from MirrorDB (method returned None)."
-            )
-            return []  # Return empty list on failure to match original behavior pattern
-
-        if not all_replies:
+        if all_replies is None or not all_replies:
             self.context.logger.info(
-                "No replies found to my agent's tweets in MirrorDB."
+                "Returning empty list as no replies are available or retrieved."
             )
             return []
 
@@ -498,12 +464,7 @@ class CollectFeedbackBehaviour(
 
         # Sort by 'reply_timestamp' in descending order (most recent first).
         # Timestamps are ISO strings like "2024-01-15T12:30:45.123Z"
-        try:
-            all_replies.sort(key=lambda r: r.get("reply_timestamp", ""), reverse=True)
-        except Exception as e:  # pylint: disable=broad-except
-            self.context.logger.warning(
-                f"Could not sort replies by timestamp: {e}. Proceeding with unsorted replies."
-            )
+        all_replies.sort(key=lambda r: r.get("reply_timestamp", ""), reverse=True)
 
         # Keep only the most relevant (e.g., latest 10)
         feedback_to_return = all_replies[:10]

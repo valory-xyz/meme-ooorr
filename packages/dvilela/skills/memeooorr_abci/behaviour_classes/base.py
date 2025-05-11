@@ -217,9 +217,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         """Parse the JSON response from MirrorDB."""
         try:
             # Check if response_message is None before accessing payload
-            self.context.logger.info(
-                f"Response message in _parse_mirrordb_response: {response_message}"
-            )
             if response_message is None:
                 self.context.logger.error(
                     "Received None response message from MirrorDB."
@@ -624,9 +621,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     ) -> Generator[None, None, Optional[Dict[str, Any]]]:
         """Fetches the existing username attribute instance from MirrorDB."""
         get_endpoint = f"/api/agents/{agent_id}/attributes/{username_attr_def_id}/"
-        self.context.logger.info(
-            f"Checking existing username attribute for agent {agent_id} via GET {get_endpoint}"
-        )
         existing_attribute = yield from self.call_mirrordb("GET", endpoint=get_endpoint)
         # call_mirrordb handles logging for 404 or other errors
         return existing_attribute
@@ -755,9 +749,6 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
                 return  # Cannot proceed without attribute_id
 
             if stored_username == current_twitter_username:
-                self.context.logger.info(
-                    f"Stored username attribute for agent {agent_id} matches current. No update needed."
-                )
                 return  # No action needed
 
             # Update required
@@ -976,15 +967,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         needs_kv_update = False
         updated_config = config_data.copy()  # Work on a copy
 
-        # 1. Fundamental Check: Is params.twitter_username configured?
-        if not self.params.twitter_username:
-            self.context.logger.error(
-                "CRITICAL: Agent parameter 'twitter_username' is not set. "
-                "Cannot synchronize Twitter details."
-            )
-            return updated_config, False  # Return original, no KV update
-
-        # 2. Extract agent_id and username_attr_def_id from config
+        # 1. Extract agent_id and username_attr_def_id from config
         try:
             stored_username_in_kv_config = updated_config["twitter_username"]
             agent_id = int(updated_config["agent_id"])
@@ -995,7 +978,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             )
             raise  # Re-raise as this indicates a problem with the validated config
 
-        # 3. Ensure KV store's twitter_username matches params.twitter_username
+        # 2. Ensure KV store's twitter_username matches params.twitter_username
         if stored_username_in_kv_config != self.params.twitter_username:
             self.context.logger.warning(
                 f"KV Store config username ({stored_username_in_kv_config}) differs from agent params username ({self.params.twitter_username}). "
@@ -1004,11 +987,8 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             updated_config["twitter_username"] = self.params.twitter_username
             needs_kv_update = True
 
-        # 4. Ensure MirrorDB username attribute is synced with params.twitter_username
+        # 3. Ensure MirrorDB username attribute is synced with params.twitter_username
         current_username_target = self.params.twitter_username
-        self.context.logger.info(
-            f"Verifying and potentially updating MirrorDB username attribute for agent {agent_id} to target {current_username_target}..."
-        )
 
         yield from self._check_and_update_username_attribute(
             agent_id=agent_id,
@@ -2441,6 +2421,26 @@ class MemeooorrBaseBehaviour(
 
         return tweet
 
+    def _parse_iso_timestamp(self, timestamp_str: str) -> Optional[float]:
+        """Parse an ISO timestamp string, handling 'Z' suffix, and return UTC timestamp."""
+        if not timestamp_str or not isinstance(timestamp_str, str):
+            self.context.logger.warning(
+                f"Invalid timestamp string provided: {timestamp_str}"
+            )
+            return None
+        try:
+            # Handle potential timezone info (e.g., Z for UTC)
+            if timestamp_str.endswith("Z"):
+                timestamp_str = timestamp_str[:-1] + "+00:00"
+            dt_object = datetime.fromisoformat(timestamp_str)
+            # Convert to UTC timestamp float
+            return dt_object.replace(tzinfo=timezone.utc).timestamp()
+        except ValueError:
+            self.context.logger.warning(
+                f"Could not parse timestamp string: {timestamp_str}"
+            )
+            return None
+
     def _get_agent_config_for_replies(
         self,
     ) -> Generator[None, None, Optional[Tuple[int, int, int]]]:
@@ -2479,23 +2479,26 @@ class MemeooorrBaseBehaviour(
     def _fetch_my_original_tweet_ids(
         self, my_agent_id: int, interactions_attr_def_id: int
     ) -> Generator[None, None, Set[str]]:
-        """Fetches and identifies the current agent's original tweet IDs from MirrorDB."""
+        """Fetches and identifies the current agent's LATEST original tweet ID from MirrorDB."""
         self.context.logger.info(
-            f"Fetching original tweets for agent_id: {my_agent_id}"
+            f"Fetching original tweets for agent_id: {my_agent_id} to find the latest one."
         )
-        my_original_tweet_ids: Set[str] = set()
+        latest_original_tweet_id: Optional[str] = None
+
         my_attributes_endpoint = f"/api/agents/{my_agent_id}/attributes/"
         my_attributes_raw = yield from self.mirrordb_helper.call_mirrordb(
             "GET",
             endpoint=my_attributes_endpoint,
-            params={"limit": 500},  # Fetch with a limit
+            params={"limit": 500},  # Fetch a reasonable number of recent attributes
         )
 
         if not isinstance(my_attributes_raw, list):
             self.context.logger.warning(
-                f"Could not fetch attributes or attributes format is unexpected for agent {my_agent_id} from {my_attributes_endpoint}. My original tweets might be incomplete."
+                f"Could not fetch attributes or attributes format is unexpected for agent {my_agent_id} from {my_attributes_endpoint}. Cannot determine latest tweet."
             )
-            return my_original_tweet_ids
+            return set()
+
+        original_posts_with_timestamps: List[Tuple[float, str]] = []
 
         for attribute in my_attributes_raw:
             if attribute.get("attr_def_id") != interactions_attr_def_id:
@@ -2511,13 +2514,40 @@ class MemeooorrBaseBehaviour(
             # An original tweet should not have 'reply_to_tweet_id' in its details
             if isinstance(details, dict) and not details.get("reply_to_tweet_id"):
                 original_tweet_id = details.get("tweet_id")
-                if original_tweet_id:
-                    my_original_tweet_ids.add(str(original_tweet_id))
+                timestamp_str = json_value.get("timestamp")
+
+                if original_tweet_id and timestamp_str:
+                    # Parse the timestamp string to a comparable format (e.g., float timestamp)
+                    # Assuming self._parse_iso_timestamp() is available from a parent or self
+                    parsed_timestamp = self._parse_iso_timestamp(timestamp_str)  # type: ignore
+                    if parsed_timestamp is not None:
+                        original_posts_with_timestamps.append(
+                            (parsed_timestamp, str(original_tweet_id))
+                        )
+                    else:
+                        self.context.logger.warning(
+                            f"Could not parse timestamp {timestamp_str} for tweet {original_tweet_id}"
+                        )
+
+        if not original_posts_with_timestamps:
+            self.context.logger.info(
+                f"No original posts with valid timestamps found for agent {my_agent_id}."
+            )
+            return set()
+
+        # Sort by timestamp in descending order (most recent first)
+        original_posts_with_timestamps.sort(key=lambda x: x[0], reverse=True)
+
+        # The first element is the latest original post
+        self.context.logger.info(
+            f"Original posts with timestamps: {original_posts_with_timestamps}"
+        )
+        latest_original_tweet_id = original_posts_with_timestamps[0][1]
 
         self.context.logger.info(
-            f"Identified {len(my_original_tweet_ids)} original tweet IDs by agent {my_agent_id}: {my_original_tweet_ids}"
+            f"Identified latest original tweet ID for agent {my_agent_id}: {latest_original_tweet_id}"
         )
-        return my_original_tweet_ids
+        return {latest_original_tweet_id}  # Return a set with only the latest ID
 
     def _fetch_other_agents_interactions(
         self,
