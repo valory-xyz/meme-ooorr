@@ -1073,7 +1073,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             tweet_data = kwargs.get("tweets", [{}])[0]
             tweet_text = tweet_data.get("text")
             original_tweet_id_being_replied_to = tweet_data.get(
-                "reply_to_tweet_id"
+                "reply_to"
             )  # Check for existing 'reply_to_tweet_id' key
 
             tweepy_response_list = response_json.get("response")

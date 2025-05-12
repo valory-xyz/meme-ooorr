@@ -45,13 +45,16 @@ class AgentDBClient:
         self.base_url = base_url.rstrip("/")
         self.eth_address = eth_address
         self.private_key = private_key
-        self.agent_id = self.get_agent_by_address(self.eth_address)["agent_id"]
+        self.agent_id = None  # Initialize to None
+        agent_data = self.get_agent_by_address(self.eth_address)
+        if agent_data:
+            self.agent_id = agent_data["agent_id"]
 
     def _sign_request(self, endpoint):
         """Generate authentication"""
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
-        signed_message = Account.sign_message(  # pylint: disable=no-value-for-parameter
+        signed_message = Account.sign_message(
             encode_defunct(text=message_to_sign), private_key=self.private_key
         )
 
@@ -62,9 +65,7 @@ class AgentDBClient:
         }
         return auth_data
 
-    def _request(
-        self, method, endpoint, payload=None, params=None, auth=False
-    ):  # pylint: disable=too-many-arguments
+    def _request(self, method, endpoint, payload=None, params=None, auth=False):
         """Make the request"""
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
@@ -155,7 +156,7 @@ class AgentDBClient:
         }
         return self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
 
-    def update_attribute_instance(  # pylint: disable=too-many-arguments
+    def update_attribute_instance(
         self, agent_id, attr_def_id, attribute_id, value, value_type="string"
     ):
         """Update attribute instance"""
@@ -185,47 +186,134 @@ if __name__ == "__main__":
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
 
+    print(f"Eth address from script: {client.eth_address}")
+    # print(f"Private key from script: {client.private_key}") # Be cautious with printing private keys
+    print(f"Initial client.agent_id (after __init__): {client.agent_id}")
+
     # Ensure Agent Type exists
-    agent_type = client.get_agent_type("memeooorr")
-    print(f"agent_type = {agent_type}")
+    agent_type_name = "memeooorr"
+    agent_type_description = "Agent type for memeooorr service"
+    agent_type = client.get_agent_type(agent_type_name)
+    print(f"Fetched agent_type '{agent_type_name}': {agent_type}")
     if not agent_type:
-        agent_type = client.create_agent_type("memeooorr", "Description of memeooorr")
+        print(f"Agent type '{agent_type_name}' not found. Creating...")
+        agent_type = client.create_agent_type(agent_type_name, agent_type_description)
+        print(f"Created agent_type: {agent_type}")
 
-    # Get agent type attributes
-    attributes = client.get_attributes_by_agent_type(agent_type["type_id"])
-    print(f"attributes = {attributes}")
-
-    # Ensure Agent exists
-    agent = client.get_agent_by_address(client.eth_address)
-    print(f"agent = {agent}")
-    if not agent:
-        agent = client.create_agent(
-            "AgentName", agent_type["type_id"], client.eth_address
+    if not agent_type or "type_id" not in agent_type:
+        raise Exception(
+            f"Failed to get or create agent type '{agent_type_name}'. Response: {agent_type}"
         )
+    agent_type_id = agent_type["type_id"]
+    print(f"Using agent_type_id: {agent_type_id}")
+
+    # Get agent type attributes (optional, for info)
+    # attributes = client.get_attributes_by_agent_type(agent_type_id)
+    # print(f"Attributes for type_id {agent_type_id}: {attributes}")
+
+    # Ensure Agent exists and client.agent_id is correctly set
+    agent_data = client.get_agent_by_address(client.eth_address)
+    print(f"Fetched agent_data for address {client.eth_address}: {agent_data}")
+
+    if not agent_data:
+        print(f"Agent not found for address {client.eth_address}. Creating agent...")
+        agent_name_to_create = f"memeooorr_agent_{client.eth_address[:6]}"
+        agent_data = client.create_agent(
+            agent_name_to_create, agent_type_id, client.eth_address
+        )
+        print(f"Created agent_data: {agent_data}")
+
+    if not agent_data or "agent_id" not in agent_data:
+        raise Exception(
+            f"Failed to get or create agent for address {client.eth_address}. Response: {agent_data}"
+        )
+
+    # IMPORTANT: Update client.agent_id with the definitive agent_id
+    client.agent_id = agent_data["agent_id"]
+    print(f"Client agent_id successfully set to: {client.agent_id}")
 
     # Ensure Attribute Definition exists
-    attr_def = client.get_attribute_definition("twitter_username")
-    print(f"attr_def = {attr_def}")
-    if not attr_def:
-        attr_def = client.create_attribute_definition(  # pylint: disable=unexpected-keyword-arg
-            agent_type["type_id"], "twitter_username", "string", required=True
+    # Note: This operation requires authentication, so client.agent_id must be set.
+    if client.agent_id is None:
+        raise Exception(
+            "Cannot proceed: client.agent_id is not set. Agent might not have been found or created correctly."
         )
 
+    attr_name = "twitter_username"
+    attr_def = client.get_attribute_definition(attr_name)  # This does not require auth
+    print(f"Fetched attribute_definition '{attr_name}': {attr_def}")
+
+    if not attr_def:
+        print(f"Attribute definition '{attr_name}' not found. Creating...")
+        # The create_attribute_definition method itself needs auth
+        attr_def = client.create_attribute_definition(
+            type_id=agent_type_id,
+            attr_name=attr_name,
+            data_type="string",
+            is_required=True,  # Corrected parameter name
+        )
+        print(f"Created attribute_definition: {attr_def}")
+
+    if not attr_def or "attr_def_id" not in attr_def:
+        raise Exception(
+            f"Failed to get or create attribute definition '{attr_name}'. Response: {attr_def}"
+        )
+    attr_def_id = attr_def["attr_def_id"]
+    print(f"Using attr_def_id: {attr_def_id}")
+
     # Ensure Attribute Instance exists
-    attr_instance = client.get_attribute_instance(
-        agent["agent_id"], attr_def["attr_def_id"]
+    # This operation also requires authentication.
+    attr_instance_value = "test_twitter_user_123"  # Example value
+
+    # get_attribute_instance does not require auth by default per its definition in the class
+    attr_instance = client.get_attribute_instance(client.agent_id, attr_def_id)
+    print(
+        f"Fetched attribute_instance for agent_id {client.agent_id}, attr_def_id {attr_def_id}: {attr_instance}"
     )
-    print(f"attr_instance = {attr_instance}")
-    if not attr_instance:
-        result = client.create_attribute_instance(
-            agent_id=agent["agent_id"],
-            attr_def_id=attr_def["attr_def_id"],
-            value="user123",
+
+    if (
+        not attr_instance
+    ):  # Assuming get_attribute_instance returns None if not found, or an empty list.
+        # If it returns an object with no 'attribute_id', that's a different case.
+        # The API seems to return a single object or 404 -> None.
+        print(
+            f"Attribute instance not found. Creating for agent_id {client.agent_id}..."
         )
+        # create_attribute_instance requires auth
+        created_instance = client.create_attribute_instance(
+            agent_id=client.agent_id,
+            attr_def_id=attr_def_id,
+            value=attr_instance_value,
+        )
+        print(f"Created attribute_instance: {created_instance}")
     else:
-        client.update_attribute_instance(
-            agent["agent_id"],
-            attr_def["attr_def_id"],
-            attr_instance["attribute_id"],
-            "new_user123",
-        )
+        # Ensure attr_instance is a dictionary and has 'attribute_id'
+        if not isinstance(attr_instance, dict) or "attribute_id" not in attr_instance:
+            # This might happen if the API returns an empty list or unexpected format.
+            # Let's assume for now it's an object as described.
+            # If get_attribute_instance returns a list, need attr_instance[0]['attribute_id']
+            print(
+                f"Warning: attr_instance is not in the expected format or lacks 'attribute_id'. Got: {attr_instance}"
+            )
+            print(f"Attempting to create a new instance instead of updating.")
+            created_instance = client.create_attribute_instance(
+                agent_id=client.agent_id,
+                attr_def_id=attr_def_id,
+                value=attr_instance_value,
+            )
+            print(f"Created attribute_instance (fallback): {created_instance}")
+
+        else:
+            print(
+                f"Attribute instance found (ID: {attr_instance['attribute_id']}). Updating..."
+            )
+            # update_attribute_instance requires auth
+            updated_instance = client.update_attribute_instance(
+                agent_id=client.agent_id,
+                attr_def_id=attr_def_id,
+                attribute_id=attr_instance["attribute_id"],
+                value=attr_instance_value,  # New value or same value for testing
+            )
+            print(f"Updated attribute_instance: {updated_instance}")
+
+    print("\nAll operations completed.")
