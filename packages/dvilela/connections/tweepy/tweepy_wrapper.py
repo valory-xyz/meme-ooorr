@@ -20,7 +20,7 @@
 
 """Tweepy wrapper."""
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import tweepy  # type: ignore[import]
 
@@ -200,5 +200,18 @@ class Twitter:
         try:
             user = self.client.get_user(username=username)
             return user.data.id
+        except tweepy.TweepyException:
+            return None
+
+    def get_me(self) -> Optional[Dict]:
+        """
+        Get my user.
+
+        Args:
+            user_id (int): The ID of the user to unfollow.
+        """
+        try:
+            result = self.client.get_me()
+            return {"user_id": result.data.id, "username": result.data.username}
         except tweepy.TweepyException:
             return None

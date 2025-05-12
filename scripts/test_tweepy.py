@@ -39,4 +39,5 @@ twitter = Twitter(
 
 # twitter.post_tweet("Hello world!")
 # twitter.get_user_id("autonolas")
-twitter.follow_by_username("autonolas")
+# twitter.follow_by_username("autonolas")
+print(twitter.get_me())

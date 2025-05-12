@@ -808,7 +808,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             # 4. Initialize Config Data (using configured username)
             config_data = {
                 "agent_id": agent_id,
-                "twitter_username": self.params.twitter_username,
+                "twitter_username": self.context.state.twitter_username,
                 "agent_type_id": agent_type_id,
                 "twitter_interactions_attr_def_id": None,
                 "twitter_username_attr_def_id": None,
@@ -835,7 +835,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
                 yield from self._check_and_update_username_attribute(
                     agent_id=agent_id,
                     username_attr_def_id=username_attr_def_id,
-                    current_twitter_username=self.params.twitter_username,
+                    current_twitter_username=self.context.state.twitter_username,
                 )
             else:
                 self.context.logger.error(
@@ -979,16 +979,16 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             raise  # Re-raise as this indicates a problem with the validated config
 
         # 2. Ensure KV store's twitter_username matches params.twitter_username
-        if stored_username_in_kv_config != self.params.twitter_username:
+        if stored_username_in_kv_config != self.context.state.twitter_username:
             self.context.logger.warning(
-                f"KV Store config username ({stored_username_in_kv_config}) differs from agent params username ({self.params.twitter_username}). "
+                f"KV Store config username ({stored_username_in_kv_config}) differs from agent params username ({self.context.state.twitter_username}). "
                 f"Updating KV store config."
             )
-            updated_config["twitter_username"] = self.params.twitter_username
+            updated_config["twitter_username"] = self.context.state.twitter_username
             needs_kv_update = True
 
         # 3. Ensure MirrorDB username attribute is synced with params.twitter_username
-        current_username_target = self.params.twitter_username
+        current_username_target = self.context.state.twitter_username
 
         yield from self._check_and_update_username_attribute(
             agent_id=agent_id,
@@ -2102,7 +2102,7 @@ class MemeooorrBaseBehaviour(
             handle = match.group(1)
 
             # Exclude my own username
-            if handle == self.params.twitter_username:
+            if handle == self.context.state.twitter_username:
                 continue
 
             handles.append(handle)
@@ -2184,7 +2184,7 @@ class MemeooorrBaseBehaviour(
             handle = match.group(1)
 
             # Exclude my own username
-            if handle == self.params.twitter_username:
+            if handle == self.context.state.twitter_username:
                 continue
 
             handles.append(handle)

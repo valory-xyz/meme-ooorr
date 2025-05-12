@@ -319,3 +319,7 @@ class TweepyConnection(BaseSyncConnection):
         """Unfollow a user"""
         success = self.twitter.unfollow_by_id(user_id)
         return {"success": success}
+
+    def get_me(self) -> Optional[Dict]:
+        """Unfollow a user"""
+        return self.twitter.get_me()

@@ -404,6 +404,24 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
         return kv_tweets
 
+    def init_own_twitter_details(self) -> Generator[None, None, Optional[Dict]]:
+        """Initialize own Twitter account details."""
+
+        if (
+            self.context.state.twitter_username is not None
+            and self.context.state.twitter_id is not None
+        ):
+            return
+
+        account_details = yield from self._call_tweepy(
+            method="get_me",
+        )
+        if not account_details:
+            self.context.logger.error("Couldn't fetch own Twitter account details.")
+            return
+        self.context.state.twitter_username = account_details.get("username")
+        self.context.state.twitter_id = account_details.get("user_id")
+
 
 def _format_previous_tweets_str(tweets: Optional[List[Dict]]) -> str:
     """Format the list of previous tweets into a string for the prompt."""
@@ -420,7 +438,7 @@ def _format_previous_tweets_str(tweets: Optional[List[Dict]]) -> str:
 
 
 class CollectFeedbackBehaviour(
-    MemeooorrBaseBehaviour
+    BaseTweetBehaviour
 ):  # pylint: disable=too-many-ancestors
     """CollectFeedbackBehaviour"""
 
@@ -430,6 +448,9 @@ class CollectFeedbackBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
+            # Initialize own Twitter details
+            yield from self.init_own_twitter_details()
+
             feedback = yield from self.get_feedback()
 
             payload = CollectFeedbackPayload(
