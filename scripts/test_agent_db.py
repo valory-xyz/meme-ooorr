@@ -94,9 +94,9 @@ class AgentDBClient:
         return self._request("POST", endpoint, payload)
 
     # Agent Registry Methods
-    def get_agent_by_address(self, eth_address):
+    def get_agent_by_address(self, eth_addr):
         """Get agent by Ethereum address"""
-        endpoint = f"/api/agent-registry/address/{eth_address}"
+        endpoint = f"/api/agent-registry/address/{eth_addr}"
         return self._request("GET", endpoint)
 
     def get_agent_by_type(self, type_id):
@@ -115,19 +115,19 @@ class AgentDBClient:
         return self._request("POST", endpoint, payload)
 
     # Attribute Definition Methods
-    def get_attribute_definition(self, attr_name):
+    def get_attribute_definition(self, attribute_name):
         """Get attribute definition by name"""
-        endpoint = f"/api/attributes/name/{attr_name}"
+        endpoint = f"/api/attributes/name/{attribute_name}"
         return self._request("GET", endpoint)
 
     def create_attribute_definition(
-        self, type_id, attr_name, data_type, is_required=False
+        self, type_id, attribute_name, data_type, is_required=False
     ):
         """Create attribute definition"""
         endpoint = f"/api/agent-types/{type_id}/attributes/"
         payload = {
             "type_id": type_id,
-            "attr_name": attr_name,
+            "attr_name": attribute_name,
             "data_type": data_type,
             "is_required": is_required,
         }
@@ -139,32 +139,31 @@ class AgentDBClient:
         return self._request("GET", endpoint)
 
     # Attribute Instance Methods
-    def get_attribute_instance(self, agent_id, attr_def_id):
+    def get_attribute_instance(self, agent_id, attribute_def_id):
         """Get attribute instance by agent ID and attribute definition ID"""
-        endpoint = f"/api/agents/{agent_id}/attributes/{attr_def_id}/"
+        endpoint = f"/api/agents/{agent_id}/attributes/{attribute_def_id}/"
         return self._request("GET", endpoint)
 
     def create_attribute_instance(
-        self, agent_id, attr_def_id, value, value_type="string"
+        self, agent_id, attribute_def_id, value, value_type="string"
     ):
         """Create attribute instance"""
         endpoint = f"/api/agents/{agent_id}/attributes/"
         payload = {
             "agent_id": agent_id,
-            "attr_def_id": attr_def_id,
+            "attr_def_id": attribute_def_id,
             f"{value_type}_value": value,
         }
         return self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
 
     def update_attribute_instance(
-        self, agent_id, attr_def_id, attribute_id, value, value_type="string"
+        self, agent_id, attribute_def_id, attribute_id, value, value_type="string"
     ):
         """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_id}"
-        payload = {f"{value_type}_value": value}
         payload = {
             "agent_id": agent_id,
-            "attr_def_id": attr_def_id,
+            "attr_def_id": attribute_def_id,
             f"{value_type}_value": value,
         }
         return self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
@@ -181,7 +180,7 @@ class AgentDBClient:
 if __name__ == "__main__":
     # Initialize the client
     client = AgentDBClient(
-        base_url="https://afmdb.autonolas.tech",
+        base_url="http://localhost:8000",
         eth_address=os.getenv("AGENT_ADDRESS"),
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
@@ -248,7 +247,7 @@ if __name__ == "__main__":
         # The create_attribute_definition method itself needs auth
         attr_def = client.create_attribute_definition(
             type_id=agent_type_id,
-            attr_name=attr_name,
+            attribute_name=attr_name,
             data_type="string",
             is_required=True,  # Corrected parameter name
         )
@@ -282,7 +281,7 @@ if __name__ == "__main__":
         # create_attribute_instance requires auth
         created_instance = client.create_attribute_instance(
             agent_id=client.agent_id,
-            attr_def_id=attr_def_id,
+            attribute_def_id=attr_def_id,
             value=attr_instance_value,
         )
         print(f"Created attribute_instance: {created_instance}")
@@ -290,15 +289,14 @@ if __name__ == "__main__":
         # Ensure attr_instance is a dictionary and has 'attribute_id'
         if not isinstance(attr_instance, dict) or "attribute_id" not in attr_instance:
             # This might happen if the API returns an empty list or unexpected format.
-            # Let's assume for now it's an object as described.
-            # If get_attribute_instance returns a list, need attr_instance[0]['attribute_id']
             print(
-                f"Warning: attr_instance is not in the expected format or lacks 'attribute_id'. Got: {attr_instance}"
+                "Warning: attr_instance is not in the expected format or lacks 'attribute_id'. Got:",
+                attr_instance,
             )
-            print(f"Attempting to create a new instance instead of updating.")
+            print("Attempting to create a new instance instead of updating.")
             created_instance = client.create_attribute_instance(
                 agent_id=client.agent_id,
-                attr_def_id=attr_def_id,
+                attribute_def_id=attr_def_id,
                 value=attr_instance_value,
             )
             print(f"Created attribute_instance (fallback): {created_instance}")
@@ -310,7 +308,7 @@ if __name__ == "__main__":
             # update_attribute_instance requires auth
             updated_instance = client.update_attribute_instance(
                 agent_id=client.agent_id,
-                attr_def_id=attr_def_id,
+                attribute_def_id=attr_def_id,
                 attribute_id=attr_instance["attribute_id"],
                 value=attr_instance_value,  # New value or same value for testing
             )
