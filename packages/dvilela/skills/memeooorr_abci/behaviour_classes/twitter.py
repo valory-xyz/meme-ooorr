@@ -23,7 +23,7 @@ import json
 import random
 import secrets
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union
 from uuid import uuid4
 
@@ -128,7 +128,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, bool]:
         """Like a tweet"""
 
-        self.context.logger.info(f"Liking tweet with ID: {tweet_id}")
+        self.context.logger.info(f"Replying to tweet with ID: {tweet_id}")
         tweet = {"text": text}
         if quote:
             tweet["attachment_url"] = f"https://x.com/{user_name}/status/{tweet_id}"
@@ -214,26 +214,6 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             )
             return False
 
-    def _parse_iso_timestamp(self, timestamp_str: str) -> Optional[float]:
-        """Parse an ISO timestamp string, handling 'Z' suffix, and return UTC timestamp."""
-        if not timestamp_str or not isinstance(timestamp_str, str):
-            self.context.logger.warning(
-                f"Invalid timestamp string provided: {timestamp_str}"
-            )
-            return None
-        try:
-            # Handle potential timezone info (e.g., Z for UTC)
-            if timestamp_str.endswith("Z"):
-                timestamp_str = timestamp_str[:-1] + "+00:00"
-            dt_object = datetime.fromisoformat(timestamp_str)
-            # Convert to UTC timestamp float
-            return dt_object.replace(tzinfo=timezone.utc).timestamp()
-        except ValueError:
-            self.context.logger.warning(
-                f"Could not parse timestamp string: {timestamp_str}"
-            )
-            return None
-
     def _parse_mirrordb_tweet_details(
         self, json_value: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
@@ -253,9 +233,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         if not (tweet_id and text and timestamp_str):
             return None
 
-        timestamp = self._parse_iso_timestamp(timestamp_str)
+        timestamp = self.parse_iso_timestamp(timestamp_str)
         if timestamp is None:
-            # Logged in _parse_iso_timestamp
+            # Logged in parse_iso_timestamp
             return None
 
         return {
@@ -381,7 +361,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             ):
                 created_at = tweet.get("created_at")
                 if created_at and isinstance(created_at, str):
-                    timestamp = self._parse_iso_timestamp(created_at)
+                    timestamp = self.parse_iso_timestamp(created_at)
                     if timestamp:
                         tweet["timestamp"] = timestamp
                     else:
@@ -463,44 +443,33 @@ class CollectFeedbackBehaviour(
 
         self.set_done()
 
-    def get_feedback(self) -> Generator[None, None, Optional[List]]:
-        """Get the responses"""
+    def get_feedback(self) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
+        """Get the responses to our agent's tweets from MirrorDB."""
 
-        # Search new replies
-        tweets = yield from self.get_tweets_from_db()
-        if not tweets:
-            self.context.logger.error("No tweets yet")
-            return []
-
-        feedback = None  # TODO: get from agent_db
-
-        if feedback is None:
-            self.context.logger.error(
-                "Could not retrieve any replies due to an API error"
-            )
-            return None
-
-        if not feedback:
-            self.context.logger.error("No tweets match the query")
-            return []
-
-        self.context.logger.info(f"Retrieved {len(feedback)} replies")
-
-        # Sort tweets by popularity using a weighted sum (views + quotes + retweets)
-        feedback = list(
-            sorted(
-                feedback,
-                key=lambda t: int(t.get("view_count", 0) or 0)
-                + 3 * int(t.get("retweet_count", 0) or 0)
-                + 5 * int(t.get("quote_count", 0) or 0),
-                reverse=True,
-            )
+        self.context.logger.info(
+            "Attempting to get replies to agent's tweets from MirrorDB."
         )
 
-        # Keep only the most relevant tweet to avoid sending too many tokens to the LLM
-        feedback = feedback[:10]
+        all_replies = yield from self.get_replies_to_my_tweets_from_mirrordb(
+            limit=100, skip=0
+        )
 
-        return feedback
+        if all_replies is None or not all_replies:
+            self.context.logger.info(
+                "Returning empty list as no replies are available or retrieved."
+            )
+            return []
+
+        self.context.logger.info(f"Retrieved {len(all_replies)} replies from MirrorDB.")
+
+        # Sort by 'reply_timestamp' in descending order (most recent first).
+        # Timestamps are ISO strings like "2024-01-15T12:30:45.123Z"
+        all_replies.sort(key=lambda r: r.get("reply_timestamp", ""), reverse=True)
+
+        # Keep only the most relevant (e.g., latest 10)
+        feedback_to_return = all_replies[:10]
+
+        return feedback_to_return
 
 
 class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors
@@ -672,14 +641,19 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         pending_tweets: Dict = {}
 
         for agent_handle in agent_handles:
-            latest_tweets = None  # TODO: get from agent_db
+            # latest_tweets = None  # TODO: get from agent_db
+
+            latest_tweets = yield from self.fetch_latest_tweets_from_mirror_db(
+                agent_handle, 1
+            )
 
             if not latest_tweets:
                 self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
                 continue
 
-            tweet_id = latest_tweets[0]["id"]
+            tweet_data = latest_tweets[0]
 
+            tweet_id = tweet_data["tweet_id"]
             # Skip previously interacted tweets
             if int(tweet_id) in interacted_tweet_ids:
                 self.context.logger.info(
@@ -688,9 +662,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 continue
 
             pending_tweets[tweet_id] = {
-                "text": latest_tweets[0]["text"],
-                "user_name": latest_tweets[0]["user_name"],
-                "user_id": latest_tweets[0]["user_id"],
+                "text": tweet_data["text"],
+                "user_name": tweet_data["user_name"],
             }
 
         return pending_tweets
@@ -863,12 +836,18 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Prepare other tweets data
-        other_tweets = "\n\n".join(
-            [
-                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_id: {t_data['user_id']}"
-                for t_id, t_data in dict(
+        items_for_formatting: List[Tuple[Any, Any]] = []
+        if pending_tweets:
+            items_for_formatting = list(
+                dict(
                     random.sample(list(pending_tweets.items()), len(pending_tweets))
                 ).items()
+            )
+
+        other_tweets = "\n\n".join(
+            [
+                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_name: {t_data['user_name']}"
+                for t_id, t_data in items_for_formatting
             ]
         )
 
