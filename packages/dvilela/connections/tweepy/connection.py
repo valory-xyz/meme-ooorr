@@ -227,7 +227,7 @@ class TweepyConnection(BaseSyncConnection):
         try:
             response = method(**payload.get("kwargs", {}))
             self.logger.info(f"Tweepy response: {response}")
-            return {"response": response}
+            return response
 
         except Exception as e:
             return {"error": e}
