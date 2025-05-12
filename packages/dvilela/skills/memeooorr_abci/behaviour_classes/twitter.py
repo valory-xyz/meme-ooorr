@@ -233,9 +233,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         if not (tweet_id and text and timestamp_str):
             return None
 
-        timestamp = self._parse_iso_timestamp(timestamp_str)
+        timestamp = self.parse_iso_timestamp(timestamp_str)
         if timestamp is None:
-            # Logged in _parse_iso_timestamp
+            # Logged in parse_iso_timestamp
             return None
 
         return {
@@ -361,7 +361,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             ):
                 created_at = tweet.get("created_at")
                 if created_at and isinstance(created_at, str):
-                    timestamp = self._parse_iso_timestamp(created_at)
+                    timestamp = self.parse_iso_timestamp(created_at)
                     if timestamp:
                         tweet["timestamp"] = timestamp
                     else:
@@ -641,14 +641,19 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         pending_tweets: Dict = {}
 
         for agent_handle in agent_handles:
-            latest_tweets = None  # TODO: get from agent_db
+            # latest_tweets = None  # TODO: get from agent_db
+
+            latest_tweets = yield from self.fetch_latest_tweets_from_mirror_db(
+                agent_handle, 1
+            )
 
             if not latest_tweets:
                 self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
                 continue
 
-            tweet_id = latest_tweets[0]["id"]
+            tweet_data = latest_tweets[0]
 
+            tweet_id = tweet_data["tweet_id"]
             # Skip previously interacted tweets
             if int(tweet_id) in interacted_tweet_ids:
                 self.context.logger.info(
@@ -657,9 +662,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 continue
 
             pending_tweets[tweet_id] = {
-                "text": latest_tweets[0]["text"],
-                "user_name": latest_tweets[0]["user_name"],
-                "user_id": latest_tweets[0]["user_id"],
+                "text": tweet_data["text"],
+                "user_name": tweet_data["user_name"],
             }
 
         return pending_tweets
@@ -842,7 +846,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         other_tweets = "\n\n".join(
             [
-                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_id: {t_data['user_id']}"
+                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_name: {t_data['user_name']}"
                 for t_id, t_data in items_for_formatting
             ]
         )
