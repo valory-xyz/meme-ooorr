@@ -1,7 +1,7 @@
 
 # How to obtain X API tokens
 
-1. Visit X developer dashboard and login with you X account.
+1. Visit [X developer dashboard](https://developer.x.com/en/portal/dashboard)  and login with you X account.
 
 2. If this is the first time you visit this website, you will be offered different account tiers. Sign up for free account.
 
