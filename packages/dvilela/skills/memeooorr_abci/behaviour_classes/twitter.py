@@ -188,29 +188,29 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             )
             return False
 
-    def follow_user(self, user_id: str) -> Generator[None, None, bool]:
+    def follow_user(self, user_name: str) -> Generator[None, None, bool]:
         """Follow user"""
-        self.context.logger.info(f"Following user with ID: {user_id}")
+        self.context.logger.info(f"Following user with user_name: {user_name}")
         try:
             response = yield from self._call_tweepy(
-                method="follow_by_id", user_id=user_id
+                method="follow_by_username", username=user_name
             )
             if response is None:
                 self.context.logger.error(
-                    f"Tweepy call for follow_user ID {user_id} failed (returned None). See previous logs for details."
+                    f"Tweepy call for follow_user user_name {user_name} failed (returned None). See previous logs for details."
                 )
                 return False
 
             if not response.get("success", False):
                 error_message = response.get("error", "Unknown error occurred.")
                 self.context.logger.error(
-                    f"Error Following user with ID {user_id}: {error_message}"
+                    f"Error Following user with user_name {user_name}: {error_message}"
                 )
                 return False
             return response["success"]
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
-                f"Exception following user with ID {user_id}: {e}"
+                f"Exception following user with user_name {user_name}: {e}"
             )
             return False
 
@@ -1192,13 +1192,13 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             return
 
         tweet_id = interaction.get("selected_tweet_id", None)
-        user_id = interaction.get("user_id", None)
+        user_name = interaction.get("user_name", None)
         action = interaction.get("action", None)
         text = interaction.get("text", None)
 
         # Validate action and parameters (using context)
         if not self._validate_interaction(
-            action, tweet_id, user_id, context.pending_tweets
+            action, tweet_id, user_name, context.pending_tweets
         ):
             return
 
@@ -1223,7 +1223,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 action,
                 tweet_id,
                 text,
-                user_id,
+                user_name,
                 context.pending_tweets,  # Pass needed context items
                 context.new_interacted_tweet_ids,
             )
@@ -1283,7 +1283,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         return True  # Indicate success
 
     def _validate_interaction(
-        self, action: str, tweet_id: str, user_id: str, pending_tweets: dict
+        self, action: str, tweet_id: str, user_name: str, pending_tweets: dict
     ) -> bool:
         """Validate tweet interaction parameters."""
         if action == "none":
@@ -1302,11 +1302,11 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             return False
 
         if action == "follow" and (
-            not user_id
-            or user_id not in [t["user_id"] for t in pending_tweets.values()]
+            not user_name
+            or user_name not in [t["user_name"] for t in pending_tweets.values()]
         ):
             self.context.logger.error(
-                f"Action is {action} but user_id is not valid [{user_id}]"
+                f"Action is {action} but user_name is not valid [{user_name}]"
             )
             return False
 
@@ -1339,7 +1339,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         action: str,
         tweet_id: Optional[str],  # Can be None for follow
         text: Optional[str],
-        user_id: Optional[str],  # Target for follow
+        user_name: Optional[str],  # Target for follow
         pending_tweets: dict,
         new_interacted_tweet_ids: List[int],
     ) -> Generator[None, None, None]:
@@ -1351,12 +1351,12 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         user_name_for_quote: Optional[str] = None
 
         if action == "follow":
-            if not user_id:  # Safeguard, should be validated by _validate_interaction
+            if not user_name:  # Safeguard, should be validated by _validate_interaction
                 self.context.logger.error(
-                    "Follow action initiated but no user_id provided."
+                    "Follow action initiated but no user_name provided."
                 )
                 return
-            self.context.logger.info(f"Trying to {action} user {user_id}")
+            self.context.logger.info(f"Trying to {action} user {user_name}")
         else:  # For like, retweet, reply, quote
             if (
                 tweet_id is None
@@ -1387,8 +1387,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         if action == "like":
             # tweet_id is guaranteed to be non-None here by the checks above for non-follow actions
             success = yield from self.like_tweet(tweet_id)  # type: ignore
-        elif action == "follow" and user_id:
-            success = yield from self.follow_user(user_id)
+        elif action == "follow" and user_name:
+            success = yield from self.follow_user(user_name)
         elif action == "retweet":
             # tweet_id is guaranteed to be non-None here
             success = yield from self.retweet(tweet_id)  # type: ignore
@@ -1415,7 +1415,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             ]
         )
         self.context.logger.info(tools_info)
-        
+        tools_info = ""
         return tools_info
 
     def get_agent_handles(self) -> Generator[None, None, List[str]]:

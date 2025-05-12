@@ -1076,6 +1076,10 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
                 "reply_to"
             )  # Check for existing 'reply_to_tweet_id' key
 
+            # checking if tweet is a quote
+            if tweet_data.get("attachment_url"):
+                details["quote_url"] = tweet_data.get("attachment_url")
+
             tweepy_response_list = response_json.get("response")
             tweepy_tweet_id = (
                 tweepy_response_list[0]
@@ -1121,11 +1125,13 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         self, kwargs: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Get interaction details for a 'follow' action."""
-        target_user_id = kwargs.get("user_id")
-        if not target_user_id:
-            self.context.logger.error(f"Missing user_id in kwargs for follow: {kwargs}")
+        target_username = kwargs.get("username")
+        if not target_username:
+            self.context.logger.error(
+                f"Missing username in kwargs for follow: {kwargs}"
+            )
             return None
-        return {"user_id": str(target_user_id)}
+        return {"username": str(target_username)}
 
     def _get_interaction_details(
         self, method: str, kwargs: Dict[str, Any], response_json: Dict[str, Any]
@@ -1285,6 +1291,11 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     ) -> Generator[None, None, None]:
         """Record Tweepy interaction in MirrorDB."""
         # Check if the method is one we need to record
+
+        # change follow_by_username or follow_by_id to follow_user
+        if method == "follow_by_username" or method == "follow_by_id":
+            method = "follow_user"
+
         recordable_methods = {"post", "like_tweet", "retweet", "follow_user"}
         if method not in recordable_methods or mirror_db_config_data is None:
             return  # Only record specific actions if config exists

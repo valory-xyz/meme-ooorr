@@ -57,7 +57,10 @@ class Twitter:
         )
 
     def post_tweet(
-        self, text: str, image_paths: Optional[List[str]] = None, in_reply_to_tweet_id: Optional[int] = None
+        self,
+        text: str,
+        image_paths: Optional[List[str]] = None,
+        in_reply_to_tweet_id: Optional[int] = None,
     ) -> Optional[str]:
         """
         Posts a new tweet with optional media.

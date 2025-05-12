@@ -8,25 +8,25 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeidya27sckiwnk3zwp44z5ftsogwtb2otqnvlqchbq6vsghlmiwavi
+  behaviour_classes/base.py: bafybeia3lq4zhlxxo6pkhv7xrpoe42mdfpcgjp4ydwu5vbefvwxs7rriwe
   behaviour_classes/chain.py: bafybeifcfmdro2oebny3n3sp6xvalnpg5xjqztexyc24z4sca3h2jecjbu
   behaviour_classes/db.py: bafybeifiufhjk2vgeoxd7fsl7bskpxx6rtkvayq6vx6yzb5d66wa2sjnxi
   behaviour_classes/llm.py: bafybeihtv5g2gtvkiorgijmmoukxdrvkyweoqucsuwexuxc32bg6bazyai
   behaviour_classes/mech.py: bafybeih6o6zs27wreoeu4ol5bbhnp33bj7sibvsn7symo63q77v3kbts4q
-  behaviour_classes/twitter.py: bafybeibqakseqombmlskzn6wmi2j6ararimyhpjfpgqh6nikg5mclvvucm
+  behaviour_classes/twitter.py: bafybeiamyu7efq7zv4hqutntqeg4jnxhrisnwlqtjfx3stnkeqczrymdku
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeid7eyay5wtutduxyovq6kuofbigozlnuahjyjrcuszwdhicvcoes4
   handlers.py: bafybeicdbw4ayfuifdgmyezncazjabr333ltieaxq5gbgh5s7nkp5llxyi
   models.py: bafybeibahq7p7p2dkbyl5capozrwfqdpwjkugpyg6jwwfocoa4mqz6jem4
   payloads.py: bafybeibitehqtl4mydt7e7qdestsrvxdj5klclqu2dackckp5f2sazmlcm
-  prompts.py: bafybeif622yx4zoo3laez3ghysqgcsqmdwo6rwwzuvr4imywgoad4zzisy
-  rounds.py: bafybeigff3iq27ut2ktdqptyapkif7kkqxdklhvx2akavjtag3cvy5jbxy
+  prompts.py: bafybeicgezsc5zx5nmcft43qphjrdfcajzofbtupff3evnhsbdxtllri3e
+  rounds.py: bafybeia3ep7ackjwes5jx36akbtp5cdiozwsoiyrf3yf35u5ysfjr2htwq
   rounds_info.py: bafybeib6a5a7bvwvfiscnbhsc6sejloelyglnu6lwbeeileyxrsgkxcb6a
 fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeiecnl7yc5qx6x4q7467i66ehmfw4qydnnry7tjs7plqeytb6ueyvu
-- dvilela/tweepy:0.1.0:bafybeie3zckxz3hjxmp6f5yxu65l5zho5hnl34jesmgn6qafw2gswxxijy
+- dvilela/tweepy:0.1.0:bafybeifekzvnfa3vtzz364jkynoyfo4tujs2wvorc6uxrhxwjudiz4tufu
 - dvilela/mirror_db:0.1.0:bafybeifgjuwvqpjafwkdqjt4223i7jdm6ppyijdx2knox4md7tfbhpvmbq
 - dvilela/genai:0.1.0:bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty
 - valory/http_server:0.22.0:bafybeic3jpkum7g6qo6x6vdrmvvhj7vqw7ec2op72uc3yfhmnlp5hn3joy
@@ -46,7 +46,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
-- valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
+- valory/mech_interact_abci:0.1.0:bafybeibkdcaarbq5alrvuadnqtt2sawauvuz66h4t4aq6rptbibd4xghia
 behaviours:
   main:
     args: {}
