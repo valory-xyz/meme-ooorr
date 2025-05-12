@@ -23,7 +23,7 @@ import json
 import random
 import secrets
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union
 from uuid import uuid4
 
@@ -128,7 +128,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, bool]:
         """Like a tweet"""
 
-        self.context.logger.info(f"Liking tweet with ID: {tweet_id}")
+        self.context.logger.info(f"Replying to tweet with ID: {tweet_id}")
         tweet = {"text": text}
         if quote:
             tweet["attachment_url"] = f"https://x.com/{user_name}/status/{tweet_id}"
@@ -143,12 +143,17 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     def like_tweet(self, tweet_id: str) -> Generator[None, None, bool]:
         """Like a tweet"""
         self.context.logger.info(f"Liking tweet with ID: {tweet_id}")
-
         try:
             response = yield from self._call_tweepy(
                 method="like_tweet", tweet_id=tweet_id
             )
-            if response is None or not response.get("success", False):
+            if response is None:
+                self.context.logger.error(
+                    f"Tweepy call for like_tweet ID {tweet_id} failed (returned None). See previous logs for details."
+                )
+                return False
+
+            if not response.get("success", False):
                 error_message = response.get("error", "Unknown error occurred.")
                 self.context.logger.error(
                     f"Error liking tweet with ID {tweet_id}: {error_message}"
@@ -162,10 +167,15 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     def retweet(self, tweet_id: str) -> Generator[None, None, bool]:
         """Retweet"""
         self.context.logger.info(f"Retweeting tweet with ID: {tweet_id}")
-
         try:
             response = yield from self._call_tweepy(method="retweet", tweet_id=tweet_id)
-            if response is None or not response.get("success", False):
+            if response is None:
+                self.context.logger.error(
+                    f"Tweepy call for retweet ID {tweet_id} failed (returned None). See previous logs for details."
+                )
+                return False
+
+            if not response.get("success", False):
                 error_message = response.get("error", "Unknown error occurred.")
                 self.context.logger.error(
                     f"Error retweeting tweet with ID {tweet_id}: {error_message}"
@@ -182,8 +192,16 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         """Follow user"""
         self.context.logger.info(f"Following user with ID: {user_id}")
         try:
-            response = yield from self._call_tweepy(method="follow", user_id=user_id)
-            if response is None or not response.get("success", False):
+            response = yield from self._call_tweepy(
+                method="follow_user", user_id=user_id
+            )
+            if response is None:
+                self.context.logger.error(
+                    f"Tweepy call for follow_user ID {user_id} failed (returned None). See previous logs for details."
+                )
+                return False
+
+            if not response.get("success", False):
                 error_message = response.get("error", "Unknown error occurred.")
                 self.context.logger.error(
                     f"Error Following user with ID {user_id}: {error_message}"
@@ -195,26 +213,6 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 f"Exception following user with ID {user_id}: {e}"
             )
             return False
-
-    def _parse_iso_timestamp(self, timestamp_str: str) -> Optional[float]:
-        """Parse an ISO timestamp string, handling 'Z' suffix, and return UTC timestamp."""
-        if not timestamp_str or not isinstance(timestamp_str, str):
-            self.context.logger.warning(
-                f"Invalid timestamp string provided: {timestamp_str}"
-            )
-            return None
-        try:
-            # Handle potential timezone info (e.g., Z for UTC)
-            if timestamp_str.endswith("Z"):
-                timestamp_str = timestamp_str[:-1] + "+00:00"
-            dt_object = datetime.fromisoformat(timestamp_str)
-            # Convert to UTC timestamp float
-            return dt_object.replace(tzinfo=timezone.utc).timestamp()
-        except ValueError:
-            self.context.logger.warning(
-                f"Could not parse timestamp string: {timestamp_str}"
-            )
-            return None
 
     def _parse_mirrordb_tweet_details(
         self, json_value: Dict[str, Any]
@@ -235,9 +233,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         if not (tweet_id and text and timestamp_str):
             return None
 
-        timestamp = self._parse_iso_timestamp(timestamp_str)
+        timestamp = self.parse_iso_timestamp(timestamp_str)
         if timestamp is None:
-            # Logged in _parse_iso_timestamp
+            # Logged in parse_iso_timestamp
             return None
 
         return {
@@ -363,7 +361,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             ):
                 created_at = tweet.get("created_at")
                 if created_at and isinstance(created_at, str):
-                    timestamp = self._parse_iso_timestamp(created_at)
+                    timestamp = self.parse_iso_timestamp(created_at)
                     if timestamp:
                         tweet["timestamp"] = timestamp
                     else:
@@ -445,44 +443,33 @@ class CollectFeedbackBehaviour(
 
         self.set_done()
 
-    def get_feedback(self) -> Generator[None, None, Optional[List]]:
-        """Get the responses"""
+    def get_feedback(self) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
+        """Get the responses to our agent's tweets from MirrorDB."""
 
-        # Search new replies
-        tweets = yield from self.get_tweets_from_db()
-        if not tweets:
-            self.context.logger.error("No tweets yet")
-            return []
-
-        feedback = None  # TODO: get from agent_db
-
-        if feedback is None:
-            self.context.logger.error(
-                "Could not retrieve any replies due to an API error"
-            )
-            return None
-
-        if not feedback:
-            self.context.logger.error("No tweets match the query")
-            return []
-
-        self.context.logger.info(f"Retrieved {len(feedback)} replies")
-
-        # Sort tweets by popularity using a weighted sum (views + quotes + retweets)
-        feedback = list(
-            sorted(
-                feedback,
-                key=lambda t: int(t.get("view_count", 0) or 0)
-                + 3 * int(t.get("retweet_count", 0) or 0)
-                + 5 * int(t.get("quote_count", 0) or 0),
-                reverse=True,
-            )
+        self.context.logger.info(
+            "Attempting to get replies to agent's tweets from MirrorDB."
         )
 
-        # Keep only the most relevant tweet to avoid sending too many tokens to the LLM
-        feedback = feedback[:10]
+        all_replies = yield from self.get_replies_to_my_tweets_from_mirrordb(
+            limit=100, skip=0
+        )
 
-        return feedback
+        if all_replies is None or not all_replies:
+            self.context.logger.info(
+                "Returning empty list as no replies are available or retrieved."
+            )
+            return []
+
+        self.context.logger.info(f"Retrieved {len(all_replies)} replies from MirrorDB.")
+
+        # Sort by 'reply_timestamp' in descending order (most recent first).
+        # Timestamps are ISO strings like "2024-01-15T12:30:45.123Z"
+        all_replies.sort(key=lambda r: r.get("reply_timestamp", ""), reverse=True)
+
+        # Keep only the most relevant (e.g., latest 10)
+        feedback_to_return = all_replies[:10]
+
+        return feedback_to_return
 
 
 class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors
@@ -654,15 +641,19 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         pending_tweets: Dict = {}
 
         for agent_handle in agent_handles:
-            latest_tweets = None  # TODO: get from agent_db
-            yield  # TODO: remove (linters)
+            # latest_tweets = None  # TODO: get from agent_db
+
+            latest_tweets = yield from self.fetch_latest_tweets_from_mirror_db(
+                agent_handle, 1
+            )
 
             if not latest_tweets:
                 self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
                 continue
 
-            tweet_id = latest_tweets[0]["id"]
+            tweet_data = latest_tweets[0]
 
+            tweet_id = tweet_data["tweet_id"]
             # Skip previously interacted tweets
             if int(tweet_id) in interacted_tweet_ids:
                 self.context.logger.info(
@@ -671,9 +662,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 continue
 
             pending_tweets[tweet_id] = {
-                "text": latest_tweets[0]["text"],
-                "user_name": latest_tweets[0]["user_name"],
-                "user_id": latest_tweets[0]["user_id"],
+                "text": tweet_data["text"],
+                "user_name": tweet_data["user_name"],
             }
 
         return pending_tweets
@@ -846,12 +836,18 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Prepare other tweets data
-        other_tweets = "\n\n".join(
-            [
-                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_id: {t_data['user_id']}"
-                for t_id, t_data in dict(
+        items_for_formatting: List[Tuple[Any, Any]] = []
+        if pending_tweets:
+            items_for_formatting = list(
+                dict(
                     random.sample(list(pending_tweets.items()), len(pending_tweets))
                 ).items()
+            )
+
+        other_tweets = "\n\n".join(
+            [
+                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_name: {t_data['user_name']}"
+                for t_id, t_data in items_for_formatting
             ]
         )
 
@@ -1295,8 +1291,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             return False
 
         # Treat tweet_with_media like tweet - it doesn't need a tweet_id
+        # Also, 'follow' action does not need a tweet_id for this specific check.
         if (
-            action not in ["tweet", "tweet_with_media"]
+            action not in ["tweet", "tweet_with_media", "follow"]
             and str(tweet_id) not in pending_tweets.keys()
         ):
             self.context.logger.error(
@@ -1340,42 +1337,71 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
     def _handle_tweet_interaction(  # pylint: disable=too-many-arguments
         self,
         action: str,
-        tweet_id: str,
-        text: str,
-        user_id: str,
+        tweet_id: Optional[str],  # Can be None for follow
+        text: Optional[str],
+        user_id: Optional[str],  # Target for follow
         pending_tweets: dict,
         new_interacted_tweet_ids: List[int],
     ) -> Generator[None, None, None]:
-        """Handle interaction with an existing tweet."""
+        """Handle interaction with an existing tweet or user."""
         if text and not is_tweet_valid(text):
             self.context.logger.error("The tweet is too long.")
             return
 
-        self.context.logger.info(f"Trying to {action} tweet {tweet_id}")
-        # Ensure tweet_id is string for dictionary lookup
-        str_tweet_id = str(tweet_id)
-        if str_tweet_id not in pending_tweets:
-            self.context.logger.error(
-                f"Tweet ID {tweet_id} not found in pending tweets for interaction."
-            )
-            return
-        user_name = pending_tweets[str_tweet_id]["user_name"]
+        user_name_for_quote: Optional[str] = None
+
+        if action == "follow":
+            if not user_id:  # Safeguard, should be validated by _validate_interaction
+                self.context.logger.error(
+                    "Follow action initiated but no user_id provided."
+                )
+                return
+            self.context.logger.info(f"Trying to {action} user {user_id}")
+        else:  # For like, retweet, reply, quote
+            if (
+                tweet_id is None
+            ):  # Safeguard, should be validated by _validate_interaction
+                self.context.logger.error(
+                    f"Action {action} initiated but no tweet_id provided."
+                )
+                return
+
+            self.context.logger.info(f"Trying to {action} tweet {tweet_id}")
+            str_tweet_id = str(tweet_id)  # tweet_id is not None here
+
+            if str_tweet_id not in pending_tweets:
+                self.context.logger.error(
+                    f"Tweet ID {tweet_id} not found in pending tweets for {action} interaction."
+                )
+                return
+
+            if action == "quote":
+                user_name_for_quote = pending_tweets[str_tweet_id].get("user_name")
+                if not user_name_for_quote:
+                    self.context.logger.error(
+                        f"User name for tweet {tweet_id} not found in pending_tweets, required for quote."
+                    )
+                    return
 
         success = False
         if action == "like":
-            success = yield from self.like_tweet(tweet_id)
+            # tweet_id is guaranteed to be non-None here by the checks above for non-follow actions
+            success = yield from self.like_tweet(tweet_id)  # type: ignore
         elif action == "follow" and user_id:
             success = yield from self.follow_user(user_id)
         elif action == "retweet":
-            success = yield from self.retweet(tweet_id)
+            # tweet_id is guaranteed to be non-None here
+            success = yield from self.retweet(tweet_id)  # type: ignore
         elif action == "reply":
-            success = yield from self.respond_tweet(tweet_id, text)
+            # tweet_id is guaranteed to be non-None here
+            success = yield from self.respond_tweet(tweet_id, text)  # type: ignore
         elif action == "quote":
+            # tweet_id and user_name_for_quote are guaranteed to be non-None if we reach here
             success = yield from self.respond_tweet(
-                tweet_id, text, quote=True, user_name=user_name
+                tweet_id, text, quote=True, user_name=user_name_for_quote  # type: ignore
             )
 
-        if success:
+        if success and action != "follow" and tweet_id is not None:
             new_interacted_tweet_ids.append(int(tweet_id))
 
     def generate_mech_tool_info(self) -> str:
@@ -1389,24 +1415,19 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             ]
         )
         self.context.logger.info(tools_info)
+
         return tools_info
 
     def get_agent_handles(self) -> Generator[None, None, List[str]]:
         """Get the agent handles"""
         agent_handles = yield from self.mirrordb_helper.get_active_twitter_handles()
-        if agent_handles:
-            # Filter out suspended accounts
-            agent_handles = []  # TODO: get from agent_db
-
-        else:
-            # using subgraph to get memeooorr handles as a fallback
+        if not agent_handles:
             self.context.logger.info(
                 "No memeooorr handles from MirrorDB , Now trying subgraph"
             )
             agent_handles = yield from self.get_memeooorr_handles_from_subgraph()
-            # filter out suspended accounts
-            agent_handles = []  # TODO: get from agent_db
 
+        # TODO: filter out suspended accounts
         return agent_handles
 
 
