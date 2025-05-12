@@ -205,8 +205,11 @@ class TweepyConnection(BaseSyncConnection):
         AVAILABLE_METHODS = [
             "post",
             "like_tweet",
+            "unlike_tweet",
             "retweet",
-            "follow_user",
+            "unretweet",
+            "follow",
+            "unfollow",
         ]
 
         if not all(i in payload for i in REQUIRED_PROPERTIES):
