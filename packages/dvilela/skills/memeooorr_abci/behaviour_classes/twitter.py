@@ -912,7 +912,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         other_tweets_str = (
             "\n\n".join(
                 [
-                    f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_id: {t_data['user_id']}"
+                    f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_name: {t_data['user_name']}"
                     for t_id, t_data in other_tweets_data.items()
                 ]
             )
@@ -1415,7 +1415,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             ]
         )
         self.context.logger.info(tools_info)
-
+        
         return tools_info
 
     def get_agent_handles(self) -> Generator[None, None, List[str]]:
