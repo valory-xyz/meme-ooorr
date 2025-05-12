@@ -57,10 +57,7 @@ class Twitter:
         )
 
     def post_tweet(
-        self,
-        text: str,
-        image_paths: Optional[List[str]] = None,
-        in_reply_to_tweet_id: Optional[int] = None,
+        self, text: str, image_paths: Optional[List[str]] = None, in_reply_to_tweet_id: Optional[int] = None
     ) -> Optional[str]:
         """
         Posts a new tweet with optional media.
@@ -150,9 +147,9 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def follow(self, user_id: str) -> bool:
+    def follow_by_id(self, user_id: str) -> bool:
         """
-        Follow a specific tweet.
+        Follow a specific user.
 
         Args:
             user_id (int): The ID of the user to follow.
@@ -163,7 +160,21 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def unfollow(self, user_id: str) -> bool:
+    def follow_by_username(self, username: str) -> bool:
+        """
+        Follow a specific user.
+
+        Args:user_name
+            user_id (int): The ID of the user to follow.
+        """
+        try:
+            user_id = self.get_user_id(username=username)
+            self.follow_by_id(user_id)
+            return True
+        except tweepy.TweepyException:
+            return False
+
+    def unfollow_by_id(self, user_id: str) -> bool:
         """
         Unfollow a specific tweet.
 

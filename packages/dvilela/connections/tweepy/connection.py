@@ -306,10 +306,10 @@ class TweepyConnection(BaseSyncConnection):
 
     def follow(self, user_id: str) -> Dict:
         """Follow a user"""
-        success = self.twitter.follow(user_id)
+        success = self.twitter.follow_by_id(user_id)
         return {"success": success}
 
     def unfollow(self, user_id: str) -> Dict:
         """Unfollow a user"""
-        success = self.twitter.unfollow(user_id)
+        success = self.twitter.unfollow_by_id(user_id)
         return {"success": success}
