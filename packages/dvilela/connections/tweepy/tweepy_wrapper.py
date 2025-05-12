@@ -172,6 +172,8 @@ class Twitter:
         """
         try:
             user_id = self.get_user_id(username=username)
+            if not user_id:
+                return False
             self.follow_by_id(user_id)
             return True
         except tweepy.TweepyException:
@@ -190,7 +192,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def get_user_id(self, username: str) -> Optional[int]:
+    def get_user_id(self, username: str) -> Optional[str]:
         """
         Get a user id.
 

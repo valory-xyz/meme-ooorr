@@ -404,7 +404,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
         return kv_tweets
 
-    def init_own_twitter_details(self) -> Generator[None, None, Optional[Dict]]:
+    def init_own_twitter_details(self) -> Generator[None, None, None]:
         """Initialize own Twitter account details."""
 
         if (
