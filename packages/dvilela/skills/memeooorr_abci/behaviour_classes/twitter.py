@@ -193,7 +193,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         self.context.logger.info(f"Following user with ID: {user_id}")
         try:
             response = yield from self._call_tweepy(
-                method="follow_user", user_id=user_id
+                method="follow_by_id", user_id=user_id
             )
             if response is None:
                 self.context.logger.error(

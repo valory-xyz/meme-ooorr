@@ -208,8 +208,9 @@ class TweepyConnection(BaseSyncConnection):
             "unlike_tweet",
             "retweet",
             "unretweet",
-            "follow",
-            "unfollow",
+            "follow_by_id",
+            "follow_by_username",
+            "unfollow_by_id",
         ]
 
         if not all(i in payload for i in REQUIRED_PROPERTIES):
@@ -304,12 +305,17 @@ class TweepyConnection(BaseSyncConnection):
         success = self.twitter.unretweet(tweet_id)
         return {"success": success}
 
-    def follow(self, user_id: str) -> Dict:
+    def follow_by_id(self, user_id: str) -> Dict:
         """Follow a user"""
         success = self.twitter.follow_by_id(user_id)
         return {"success": success}
 
-    def unfollow(self, user_id: str) -> Dict:
+    def follow_by_username(self, username: str) -> Dict:
+        """Follow a user"""
+        success = self.twitter.follow_by_username(username)
+        return {"success": success}
+
+    def unfollow_by_id(self, user_id: str) -> Dict:
         """Unfollow a user"""
         success = self.twitter.unfollow_by_id(user_id)
         return {"success": success}
