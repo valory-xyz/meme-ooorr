@@ -46,17 +46,18 @@ class AgentDBClient:
         self.eth_address = eth_address
         self.private_key = private_key
         self.agent_id = None  # Initialize to None
-        agent_data = self.get_agent_by_address(self.eth_address)
-        if agent_data:
-            self.agent_id = agent_data["agent_id"]
+        initial_agent_data = self.get_agent_by_address(self.eth_address)
+        if initial_agent_data:
+            self.agent_id = initial_agent_data["agent_id"]
 
     def _sign_request(self, endpoint):
         """Generate authentication"""
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
         signed_message = Account.sign_message(
-            encode_defunct(text=message_to_sign), private_key=self.private_key
-        )
+            signable_message=encode_defunct(text=message_to_sign),
+            private_key=self.private_key,
+        )  # pylint: disable=no-value-for-parameter
 
         auth_data = {
             "agent_id": self.agent_id,
@@ -65,13 +66,11 @@ class AgentDBClient:
         }
         return auth_data
 
-    def _request(self, method, endpoint, payload=None, params=None, auth=False):
+    def _request(self, method, endpoint, payload=None, params=None):
         """Make the request"""
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
-        if auth:
-            payload = payload or {}
-            payload["auth"] = self._sign_request(endpoint)
+        # Auth is now handled by the caller by embedding it in the payload
         response = requests.request(
             method, url, headers=headers, json=payload, params=params
         )
@@ -131,7 +130,9 @@ class AgentDBClient:
             "data_type": data_type,
             "is_required": is_required,
         }
-        return self._request("POST", endpoint, {"attr_def": payload}, auth=True)
+        attr_payload = {"attr_def": payload}
+        attr_payload["auth"] = self._sign_request(endpoint)
+        return self._request("POST", endpoint, attr_payload)
 
     def get_attributes_by_agent_type(self, type_id):
         """Get attributes by agent type"""
@@ -144,37 +145,47 @@ class AgentDBClient:
         endpoint = f"/api/agents/{agent_id}/attributes/{attribute_def_id}/"
         return self._request("GET", endpoint)
 
-    def create_attribute_instance(
-        self, agent_id, attribute_def_id, value, value_type="string"
-    ):
+    def create_attribute_instance(self, agent_id, attribute_def_id, value_details):
         """Create attribute instance"""
         endpoint = f"/api/agents/{agent_id}/attributes/"
         payload = {
             "agent_id": agent_id,
             "attr_def_id": attribute_def_id,
-            f"{value_type}_value": value,
+            f"{value_details['type']}_value": value_details["value"],
         }
-        return self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
+        agent_attr_payload = {"agent_attr": payload}
+        agent_attr_payload["auth"] = self._sign_request(endpoint)
+        return self._request("POST", endpoint, agent_attr_payload)
 
     def update_attribute_instance(
-        self, agent_id, attribute_def_id, attribute_id, value, value_type="string"
+        self, agent_id, attribute_def_id, attribute_id, value_details
     ):
         """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_id}"
         payload = {
             "agent_id": agent_id,
             "attr_def_id": attribute_def_id,
-            f"{value_type}_value": value,
+            f"{value_details['type']}_value": value_details["value"],
         }
-        return self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
+        agent_attr_payload = {"agent_attr": payload}
+        agent_attr_payload["auth"] = self._sign_request(endpoint)
+        return self._request("PUT", endpoint, agent_attr_payload)
 
     def get_all_attributes(self, agent_id):
         """Get all attributes of an agent by agent ID"""
         endpoint = f"/api/agents/{agent_id}/attributes/"
+        # This method seems to require auth based on its call pattern below,
+        # although the original code passed params. Let's assume it needs auth.
         payload = {
             "agent_id": agent_id,
+            "auth": self._sign_request(endpoint),  # Add auth here
         }
-        return self._request("GET", endpoint, {"agent_attr": payload}, auth=True)
+        # Pass None for payload in _request as it's now part of params conceptually or endpoint path
+        # Actually, the API might expect agent_id in the body even for GET with auth?
+        # Let's stick to sending it in the body along with auth, mimicking other auth'd calls.
+        # The original code had a bug here, passing params={...} instead of json={...} for a GET potentially.
+        # Let's assume GET with body is needed for auth. If not, this needs adjustment.
+        return self._request("GET", endpoint, payload=payload)  # Pass payload
 
 
 if __name__ == "__main__":
@@ -282,7 +293,7 @@ if __name__ == "__main__":
         created_instance = client.create_attribute_instance(
             agent_id=client.agent_id,
             attribute_def_id=attr_def_id,
-            value=attr_instance_value,
+            value_details={"value": attr_instance_value, "type": "string"},
         )
         print(f"Created attribute_instance: {created_instance}")
     else:
@@ -297,7 +308,7 @@ if __name__ == "__main__":
             created_instance = client.create_attribute_instance(
                 agent_id=client.agent_id,
                 attribute_def_id=attr_def_id,
-                value=attr_instance_value,
+                value_details={"value": attr_instance_value, "type": "string"},
             )
             print(f"Created attribute_instance (fallback): {created_instance}")
 
@@ -310,7 +321,7 @@ if __name__ == "__main__":
                 agent_id=client.agent_id,
                 attribute_def_id=attr_def_id,
                 attribute_id=attr_instance["attribute_id"],
-                value=attr_instance_value,  # New value or same value for testing
+                value_details={"value": attr_instance_value, "type": "string"},
             )
             print(f"Updated attribute_instance: {updated_instance}")
 

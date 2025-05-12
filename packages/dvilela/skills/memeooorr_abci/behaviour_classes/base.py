@@ -1293,7 +1293,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         # Check if the method is one we need to record
 
         # change follow_by_username or follow_by_id to follow_user
-        if method == "follow_by_username" or method == "follow_by_id":
+        if method in ("follow_by_username", "follow_by_id"):
             method = "follow_user"
 
         recordable_methods = {"post", "like_tweet", "retweet", "follow_user"}

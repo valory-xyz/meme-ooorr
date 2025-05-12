@@ -411,16 +411,17 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             self.context.state.twitter_username is not None
             and self.context.state.twitter_id is not None
         ):
-            return
+            return None
 
         account_details = yield from self._call_tweepy(
             method="get_me",
         )
         if not account_details:
             self.context.logger.error("Couldn't fetch own Twitter account details.")
-            return
+            return None
         self.context.state.twitter_username = account_details.get("username")
         self.context.state.twitter_id = account_details.get("user_id")
+        return account_details
 
 
 def _format_previous_tweets_str(tweets: Optional[List[Dict]]) -> str:
