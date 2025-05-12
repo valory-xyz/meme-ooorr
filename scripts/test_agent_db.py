@@ -54,10 +54,10 @@ class AgentDBClient:
         """Generate authentication"""
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
-        signed_message = Account.sign_message(
+        signed_message = Account.sign_message(  # pylint: disable=no-value-for-parameter
             signable_message=encode_defunct(text=message_to_sign),
             private_key=self.private_key,
-        )  # pylint: disable=no-value-for-parameter
+        )
 
         auth_data = {
             "agent_id": self.agent_id,
