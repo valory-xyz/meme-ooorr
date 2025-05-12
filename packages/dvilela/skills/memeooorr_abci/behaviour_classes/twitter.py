@@ -846,7 +846,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         other_tweets = "\n\n".join(
             [
-                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_id: {t_data['user_id']}"
+                f"tweet_id: {t_id}\ntweet_text: {t_data['text']}\nuser_name: {t_data['user_name']}"
                 for t_id, t_data in items_for_formatting
             ]
         )

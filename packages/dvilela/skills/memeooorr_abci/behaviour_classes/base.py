@@ -1073,8 +1073,8 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             tweet_data = kwargs.get("tweets", [{}])[0]
             tweet_text = tweet_data.get("text")
             original_tweet_id_being_replied_to = tweet_data.get(
-                "reply_to"
-            )  # Check for existing 'reply_to' key
+                "reply_to_tweet_id"
+            )  # Check for existing 'reply_to_tweet_id' key
 
             tweepy_response_list = response_json.get("response")
             tweepy_tweet_id = (
@@ -2658,6 +2658,7 @@ class MemeooorrBaseBehaviour(
         # 5. Return Results
         self.context.logger.info(
             f"Found {len(replies_found)} replies to my tweets from MirrorDB."
+            f"replies_found: {replies_found}"
         )
         return replies_found
 
@@ -2873,7 +2874,7 @@ class MemeooorrBaseBehaviour(
         for tweet_detail in latest_n_tweet_details:
             formatted_tweets.append(
                 {
-                    "id": tweet_detail["tweet_id"],
+                    "tweet_id": tweet_detail["tweet_id"],
                     "text": tweet_detail["text"],
                     "user_name": agent_handle,
                     "timestamp_from_db": tweet_detail["timestamp"],
