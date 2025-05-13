@@ -191,7 +191,7 @@ class AgentDBClient:
 if __name__ == "__main__":
     # Initialize the client
     client = AgentDBClient(
-        base_url="http://localhost:8000",
+        base_url="https://afmdb.autonolas.tech/",
         eth_address=os.getenv("AGENT_ADDRESS"),
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
