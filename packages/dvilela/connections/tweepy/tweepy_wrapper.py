@@ -20,7 +20,7 @@
 
 """Tweepy wrapper."""
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import tweepy  # type: ignore[import]
 
@@ -150,9 +150,9 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def follow(self, user_id: str) -> bool:
+    def follow_by_id(self, user_id: str) -> bool:
         """
-        Follow a specific tweet.
+        Follow a specific user.
 
         Args:
             user_id (int): The ID of the user to follow.
@@ -163,7 +163,23 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def unfollow(self, user_id: str) -> bool:
+    def follow_by_username(self, username: str) -> bool:
+        """
+        Follow a specific user.
+
+        Args:user_name
+            user_id (int): The ID of the user to follow.
+        """
+        try:
+            user_id = self.get_user_id(username=username)
+            if not user_id:
+                return False
+            self.follow_by_id(user_id)
+            return True
+        except tweepy.TweepyException:
+            return False
+
+    def unfollow_by_id(self, user_id: str) -> bool:
         """
         Unfollow a specific tweet.
 
@@ -176,7 +192,7 @@ class Twitter:
         except tweepy.TweepyException:
             return False
 
-    def get_user_id(self, username: str) -> Optional[int]:
+    def get_user_id(self, username: str) -> Optional[str]:
         """
         Get a user id.
 
@@ -186,5 +202,18 @@ class Twitter:
         try:
             user = self.client.get_user(username=username)
             return user.data.id
+        except tweepy.TweepyException:
+            return None
+
+    def get_me(self) -> Optional[Dict]:
+        """
+        Get my user.
+
+        Args:
+            user_id (int): The ID of the user to unfollow.
+        """
+        try:
+            result = self.client.get_me()
+            return {"user_id": result.data.id, "username": result.data.username}
         except tweepy.TweepyException:
             return None

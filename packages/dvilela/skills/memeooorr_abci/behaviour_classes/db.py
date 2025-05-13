@@ -44,6 +44,7 @@ class LoadDatabaseBehaviour(
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             persona = yield from self.load_db()
             yield from self.populate_keys_in_kv()
+            yield from self.init_own_twitter_details()
 
             payload = LoadDatabasePayload(
                 sender=self.context.agent_address,

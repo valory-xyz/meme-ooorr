@@ -37,4 +37,7 @@ twitter = Twitter(
     bearer_token=os.getenv("TWEEPY_BEARER_TOKEN"),
 )
 
-twitter.post_tweet("Hello world!")
+# twitter.post_tweet("Hello world!")
+# twitter.get_user_id("autonolas")
+# twitter.follow_by_username("autonolas")
+print(twitter.get_me())

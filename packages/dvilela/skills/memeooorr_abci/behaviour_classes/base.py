@@ -808,7 +808,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             # 4. Initialize Config Data (using configured username)
             config_data = {
                 "agent_id": agent_id,
-                "twitter_username": self.params.twitter_username,
+                "twitter_username": self.context.state.twitter_username,
                 "agent_type_id": agent_type_id,
                 "twitter_interactions_attr_def_id": None,
                 "twitter_username_attr_def_id": None,
@@ -835,7 +835,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
                 yield from self._check_and_update_username_attribute(
                     agent_id=agent_id,
                     username_attr_def_id=username_attr_def_id,
-                    current_twitter_username=self.params.twitter_username,
+                    current_twitter_username=self.context.state.twitter_username,
                 )
             else:
                 self.context.logger.error(
@@ -979,16 +979,16 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             raise  # Re-raise as this indicates a problem with the validated config
 
         # 2. Ensure KV store's twitter_username matches params.twitter_username
-        if stored_username_in_kv_config != self.params.twitter_username:
+        if stored_username_in_kv_config != self.context.state.twitter_username:
             self.context.logger.warning(
-                f"KV Store config username ({stored_username_in_kv_config}) differs from agent params username ({self.params.twitter_username}). "
+                f"KV Store config username ({stored_username_in_kv_config}) differs from agent params username ({self.context.state.twitter_username}). "
                 f"Updating KV store config."
             )
-            updated_config["twitter_username"] = self.params.twitter_username
+            updated_config["twitter_username"] = self.context.state.twitter_username
             needs_kv_update = True
 
         # 3. Ensure MirrorDB username attribute is synced with params.twitter_username
-        current_username_target = self.params.twitter_username
+        current_username_target = self.context.state.twitter_username
 
         yield from self._check_and_update_username_attribute(
             agent_id=agent_id,
@@ -1073,8 +1073,12 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             tweet_data = kwargs.get("tweets", [{}])[0]
             tweet_text = tweet_data.get("text")
             original_tweet_id_being_replied_to = tweet_data.get(
-                "reply_to_tweet_id"
+                "reply_to"
             )  # Check for existing 'reply_to_tweet_id' key
+
+            # checking if tweet is a quote
+            if tweet_data.get("attachment_url"):
+                details["quote_url"] = tweet_data.get("attachment_url")
 
             tweepy_response_list = response_json.get("response")
             tweepy_tweet_id = (
@@ -1121,11 +1125,13 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         self, kwargs: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Get interaction details for a 'follow' action."""
-        target_user_id = kwargs.get("user_id")
-        if not target_user_id:
-            self.context.logger.error(f"Missing user_id in kwargs for follow: {kwargs}")
+        target_username = kwargs.get("username")
+        if not target_username:
+            self.context.logger.error(
+                f"Missing username in kwargs for follow: {kwargs}"
+            )
             return None
-        return {"user_id": str(target_user_id)}
+        return {"username": str(target_username)}
 
     def _get_interaction_details(
         self, method: str, kwargs: Dict[str, Any], response_json: Dict[str, Any]
@@ -1285,6 +1291,11 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     ) -> Generator[None, None, None]:
         """Record Tweepy interaction in MirrorDB."""
         # Check if the method is one we need to record
+
+        # change follow_by_username or follow_by_id to follow_user
+        if method in ("follow_by_username", "follow_by_id"):
+            method = "follow_user"
+
         recordable_methods = {"post", "like_tweet", "retweet", "follow_user"}
         if method not in recordable_methods or mirror_db_config_data is None:
             return  # Only record specific actions if config exists
@@ -1670,18 +1681,21 @@ class MemeooorrBaseBehaviour(
         """Send a request message to the Tweepy connection and handle MirrorDB interactions."""
         # Track this API call with our unified tracking function
 
-        mirror_db_config_data = (
-            yield from self.mirrordb_helper.get_base_mirror_db_config(
-                "for Tweepy interaction"
-            )
-        )
+        if method != "get_me":
+            # this is to avoid circular calls to get_me
 
-        if mirror_db_config_data is None:
-            self.context.logger.error(
-                "MirrorDB config data is None after pre-Tweepy checks. This may indicate an issue with registration or username validation."
+            mirror_db_config_data = (
+                yield from self.mirrordb_helper.get_base_mirror_db_config(
+                    "for Tweepy interaction"
+                )
             )
-            # Depending on strictness, could return None here, or proceed cautiously.
-            # For now, will proceed, but Tweepy interaction recording might fail.
+
+            if mirror_db_config_data is None:
+                self.context.logger.error(
+                    "MirrorDB config data is None after pre-Tweepy checks. This may indicate an issue with registration or username validation."
+                )
+                # Depending on strictness, could return None here, or proceed cautiously.
+                # For now, will proceed, but Tweepy interaction recording might fail.
 
         # Create the request message for Tweepy
         srr_dialogues = cast(SrrDialogues, self.context.srr_dialogues)
@@ -1700,10 +1714,11 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(response_json["error"])
             return None
 
-        # Handle MirrorDB interaction if applicable
-        yield from self._handle_mirrordb_interaction_post_tweepy(
-            method, kwargs, response_json, mirror_db_config_data  # type: ignore
-        )
+        if method != "get_me":
+            # Handle MirrorDB interaction if applicable
+            yield from self._handle_mirrordb_interaction_post_tweepy(
+                method, kwargs, response_json, mirror_db_config_data  # type: ignore
+            )
         return response_json.get("response")
 
     def _handle_mirrordb_interaction_post_tweepy(
@@ -2091,7 +2106,7 @@ class MemeooorrBaseBehaviour(
             handle = match.group(1)
 
             # Exclude my own username
-            if handle == self.params.twitter_username:
+            if handle == self.context.state.twitter_username:
                 continue
 
             handles.append(handle)
@@ -2173,7 +2188,7 @@ class MemeooorrBaseBehaviour(
             handle = match.group(1)
 
             # Exclude my own username
-            if handle == self.params.twitter_username:
+            if handle == self.context.state.twitter_username:
                 continue
 
             handles.append(handle)
@@ -2440,6 +2455,24 @@ class MemeooorrBaseBehaviour(
                 f"Could not parse timestamp string: {timestamp_str}"
             )
             return None
+
+    def init_own_twitter_details(self) -> Generator[None, None, None]:
+        """Initialize own Twitter account details."""
+
+        if (
+            self.context.state.twitter_username is not None
+            and self.context.state.twitter_id is not None
+        ):
+            return
+
+        account_details = yield from self._call_tweepy(
+            method="get_me",
+        )
+        if not account_details:
+            self.context.logger.error("Couldn't fetch own Twitter account details.")
+            return
+        self.context.state.twitter_username = account_details.get("username")
+        self.context.state.twitter_id = account_details.get("user_id")
 
     def _fetch_my_original_tweet_ids(
         self, my_agent_id: int, interactions_attr_def_id: int
