@@ -191,39 +191,13 @@ class AgentDBClient:
 if __name__ == "__main__":
     # Initialize the client
 
-    base_url = "http://localhost:8000"
-
-    # check if localhost if running if not then ask user if they want to use autonolas or enter a custom url
-    import requests
-
-    def is_localhost_running(url):
-        try:
-            # adding docs /docs#/ to the url
-            response = requests.get(url + "/docs#/")
-            return response.status_code == 200
-        except Exception:
-            return False
-
-    if base_url == "http://localhost:8000":
-        if not is_localhost_running(base_url):
-            print(f"Could not connect to {base_url}.")
-            response = input(
-                "Do you want to use autonolas or enter a custom url? (a/c): "
-            )
-            if response.lower() == "a":
-                base_url = "https://afmdb.autonolas.tech/"
-            else:
-                base_url = input("Enter a custom url: ")
-        # else: localhost is running, proceed as normal
-
     client = AgentDBClient(
-        base_url=base_url,
+        base_url=os.getenv("MIRROR_DB_BASE_URL") or "https://afmdb.autonolas.tech/",
         eth_address=os.getenv("AGENT_ADDRESS"),
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
 
     print(f"Eth address from script: {client.eth_address}")
-    # print(f"Private key from script: {client.private_key}") # Be cautious with printing private keys
     print(f"Initial client.agent_id (after __init__): {client.agent_id}")
 
     # Ensure Agent Type exists
