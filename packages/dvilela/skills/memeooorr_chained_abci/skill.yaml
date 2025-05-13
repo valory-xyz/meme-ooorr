@@ -12,7 +12,7 @@ fingerprint:
   dialogues.py: bafybeiawrgmlra5f6o63nhv5kc77wvzoqmcareub3lf4qceuwpjso4pjbe
   fsm_specification.yaml: bafybeiahfitqf3u5oiqzxnjq5fgxexqdtuvqpvcd45u6pyzrzjh3qtzue4
   handlers.py: bafybeibw5nfno2scl5qzly3fpvodgoovikl6h3hoiiu6e4sqpbbczbzfim
-  models.py: bafybeieofhtja5yon4ggi3wqgmy4ha7brcktwrinpyski73zify7qmrfku
+  models.py: bafybeicmk5ys4r6kyqvmambfdgx3pqtdvv73potei5j7i5pfgamuvqft7e
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []

@@ -57,7 +57,7 @@ MULTIPLIER_2 = 50
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    abci_app_cls = MemeooorrChainedSkillAbciApp
+    abci_app_cls = MemeooorrChainedSkillAbciApp  # type: ignore[assignment]
 
     def __init__(self, *args: Any, skill_context: SkillContext, **kwargs: Any) -> None:
         """Init"""
