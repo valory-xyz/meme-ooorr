@@ -2451,7 +2451,7 @@ class MemeooorrBaseBehaviour(
                 f"Could not parse timestamp string: {timestamp_str}"
             )
             return None
-        
+
     def init_own_twitter_details(self) -> Generator[None, None, None]:
         """Initialize own Twitter account details."""
 

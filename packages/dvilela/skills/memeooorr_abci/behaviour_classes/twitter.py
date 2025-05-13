@@ -405,8 +405,6 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         return kv_tweets
 
 
-
-
 def _format_previous_tweets_str(tweets: Optional[List[Dict]]) -> str:
     """Format the list of previous tweets into a string for the prompt."""
     if not tweets:
@@ -432,7 +430,6 @@ class CollectFeedbackBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-
             feedback = yield from self.get_feedback()
 
             payload = CollectFeedbackPayload(
