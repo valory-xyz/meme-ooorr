@@ -143,7 +143,7 @@ def get_meme_coins_from_subgraph():
 def get_packages(package_type: str):
     """Gets minted packages from the Olas subgraph"""
 
-    url = "https://subgraph.staging.autonolas.tech/subgraphs/name/autonolas-base/"
+    url = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-base/"
 
     headers = {"Content-Type": "application/json"}
 
@@ -196,7 +196,7 @@ def introspect_subgraph():
 
 # introspect_subgraph()
 
-meme_coin_data = get_meme_coins_from_subgraph()
+meme_coin_data = get_memeooorr_handles_from_subgraph()
 
 # Print the meme coin data in a formatted JSON output
 print(json.dumps(meme_coin_data, indent=4))
