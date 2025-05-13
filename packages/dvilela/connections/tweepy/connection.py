@@ -321,5 +321,5 @@ class TweepyConnection(BaseSyncConnection):
         return {"success": success}
 
     def get_me(self) -> Optional[Dict]:
-        """Unfollow a user"""
+        """Get own user information"""
         return self.twitter.get_me()
