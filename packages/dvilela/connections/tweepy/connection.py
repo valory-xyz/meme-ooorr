@@ -211,6 +211,7 @@ class TweepyConnection(BaseSyncConnection):
             "follow_by_id",
             "follow_by_username",
             "unfollow_by_id",
+            "get_me",
         ]
 
         if not all(i in payload for i in REQUIRED_PROPERTIES):
