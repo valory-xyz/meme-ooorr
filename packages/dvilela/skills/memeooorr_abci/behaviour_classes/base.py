@@ -2451,6 +2451,24 @@ class MemeooorrBaseBehaviour(
                 f"Could not parse timestamp string: {timestamp_str}"
             )
             return None
+        
+    def init_own_twitter_details(self) -> Generator[None, None, None]:
+        """Initialize own Twitter account details."""
+
+        if (
+            self.context.state.twitter_username is not None
+            and self.context.state.twitter_id is not None
+        ):
+            return
+
+        account_details = yield from self._call_tweepy(
+            method="get_me",
+        )
+        if not account_details:
+            self.context.logger.error("Couldn't fetch own Twitter account details.")
+            return
+        self.context.state.twitter_username = account_details.get("username")
+        self.context.state.twitter_id = account_details.get("user_id")
 
     def _fetch_my_original_tweet_ids(
         self, my_agent_id: int, interactions_attr_def_id: int
