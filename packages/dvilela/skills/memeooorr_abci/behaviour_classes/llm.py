@@ -147,7 +147,7 @@ class ActionDecisionBehaviour(
 
         tweet_responses = "\n\n".join(
             [
-                f"tweet: {t['text']}\nviews: {t['view_count']}\nquotes: {t['quote_count']}\nretweets{t['retweet_count']}"
+                f"tweet: {t['reply_text']}\nagent_id: {t['replying_agent_id']}\ntweet_id: {t['reply_tweet_id']}"
                 for t in self.synchronized_data.feedback
             ]
         )
