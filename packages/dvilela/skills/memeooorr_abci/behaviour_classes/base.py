@@ -1681,18 +1681,21 @@ class MemeooorrBaseBehaviour(
         """Send a request message to the Tweepy connection and handle MirrorDB interactions."""
         # Track this API call with our unified tracking function
 
-        mirror_db_config_data = (
-            yield from self.mirrordb_helper.get_base_mirror_db_config(
-                "for Tweepy interaction"
-            )
-        )
+        if method != "get_me":
+            # this is to avoid circular calls to get_me
 
-        if mirror_db_config_data is None:
-            self.context.logger.error(
-                "MirrorDB config data is None after pre-Tweepy checks. This may indicate an issue with registration or username validation."
+            mirror_db_config_data = (
+                yield from self.mirrordb_helper.get_base_mirror_db_config(
+                    "for Tweepy interaction"
+                )
             )
-            # Depending on strictness, could return None here, or proceed cautiously.
-            # For now, will proceed, but Tweepy interaction recording might fail.
+
+            if mirror_db_config_data is None:
+                self.context.logger.error(
+                    "MirrorDB config data is None after pre-Tweepy checks. This may indicate an issue with registration or username validation."
+                )
+                # Depending on strictness, could return None here, or proceed cautiously.
+                # For now, will proceed, but Tweepy interaction recording might fail.
 
         # Create the request message for Tweepy
         srr_dialogues = cast(SrrDialogues, self.context.srr_dialogues)
@@ -1711,10 +1714,11 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(response_json["error"])
             return None
 
-        # Handle MirrorDB interaction if applicable
-        yield from self._handle_mirrordb_interaction_post_tweepy(
-            method, kwargs, response_json, mirror_db_config_data  # type: ignore
-        )
+        if method != "get_me":
+            # Handle MirrorDB interaction if applicable
+            yield from self._handle_mirrordb_interaction_post_tweepy(
+                method, kwargs, response_json, mirror_db_config_data  # type: ignore
+            )
         return response_json.get("response")
 
     def _handle_mirrordb_interaction_post_tweepy(
