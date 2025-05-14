@@ -196,7 +196,7 @@ def introspect_subgraph():
 
 # introspect_subgraph()
 
-meme_coin_data = get_memeooorr_handles_from_subgraph()
+meme_coin_data = get_meme_coins_from_subgraph()
 
 # Print the meme coin data in a formatted JSON output
 print(json.dumps(meme_coin_data, indent=4))
