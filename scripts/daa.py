@@ -81,10 +81,13 @@ HTTP_OK = 200
 
 
 def load_contract(
-    contract_address: str, abi_file: str, chain_config: Dict, has_abi_key: bool = True
+    contract_address: str,
+    abi_file_name: str,
+    chain_config: Dict,
+    has_abi_key: bool = True,
 ) -> Contract:
     """Load a smart contract"""
-    with open(Path("abis", f"{abi_file}.json"), "r", encoding="utf-8") as abi_file:
+    with open(Path("abis", f"{abi_file_name}.json"), "r", encoding="utf-8") as abi_file:
         contract_abi = json.load(abi_file)
         if has_abi_key:
             contract_abi = contract_abi["abi"]
@@ -181,7 +184,7 @@ def get_memeooorr_safes(chain_config):
     """Read service details from the service registry"""
     service_registry = load_contract(
         contract_address=chain_config["SERVICE_REGISTRY_ADDRES"],
-        abi_file="service_registry/ServiceRegistry",
+        abi_file_name="service_registry/ServiceRegistry",
         chain_config=chain_config,
         has_abi_key=False,
     )
@@ -192,13 +195,13 @@ def get_memeooorr_safes(chain_config):
     for service_id in range(n_services):
         print(f"Reading service {service_id} of {n_services}")
         (
-            security_deposit,
+            security_deposit,  # pylint: disable=unused-variable
             multisig,
-            config_hash,
-            threshold,
-            max_num_agent_instances,
-            num_agent_instances,
-            state,
+            config_hash,  # pylint: disable=unused-variable
+            threshold,  # pylint: disable=unused-variable
+            max_num_agent_instances,  # pylint: disable=unused-variable
+            num_agent_instances,  # pylint: disable=unused-variable
+            state,  # pylint: disable=unused-variable
             agent_ids,
         ) = service_registry.functions.getService(service_id).call()
         if agent_ids != [43]:
@@ -220,9 +223,9 @@ def calculate_daas(chain_config):
 
 if __name__ == "__main__":
     n_daas_base = calculate_daas(CHAIN_CONFIGS["BASE"])
-    print(f"DAAS Base: {n_daas_base}")
-
     n_daas_celo = calculate_daas(CHAIN_CONFIGS["CELO"])
+
+    print(f"DAAS Base: {n_daas_base}")
     print(f"DAAS Celo: {n_daas_celo}")
 
 #  engagement rate = total no. of engagements/total impressions
