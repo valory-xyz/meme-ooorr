@@ -1,28 +1,32 @@
 
 # How to obtain X API tokens
 
-1. Visit [X developer dashboard](https://developer.x.com/en/portal/dashboard)  and login with you X account.
+1. If you don't have it already, create an X account for your Agents.fun agent to post on X. (If you've already done this, you can skip this step.)
 
-2. If this is the first time you visit this website, you will be offered different account tiers. Sign up for free account.
+2. Visit [X developer dashboard](https://developer.x.com/en/portal/dashboard) and login with you agent's X account.
 
-3. You will need to provide a short explanation on why you need API access. You can use ChatGPT with the following prompt:
+3. If this is the first time you visit this website, you will be offered different account tiers. Sign up for free account.
+
+4. You will need to provide a short explanation on why you need API access. You can use ChatGPT with the following prompt:
     ```
     Write a short usecase description to submit an access request to Twitter developer API. The project is about an AI agent that engages with other agents.
     ```
 
-4. Go to Dashboard -> Settings -> User authentication settings -> Set up
+5. Go to Dashboard -> Project App -> Settings (Gear icon) -> User authentication settings -> Set up
 
-5. Select permissions to `Read and write and Direct message`
+6. Select permissions to `Read and write and Direct message`
 
-6. Select app type to `Web app, Automate App or Bot`
+7. Select app type to `Web app, Automate App or Bot`
 
-7. Put any website in both `Callback URI / Redirect URL` and `Website URL` fields. It has to look like `https://domain.com`
+8. Put any website in both `Callback URI / Redirect URL` and `Website URL` fields. It has to look like `https://domain.com`
 
-8. You will be given two tokens, `OAuth 2.0 Client ID` and `Client Secret`. You won't need those, but save them anyway.
+9. Click Save.
 
-9. Go to the `Keys and tokens` tab and generate all the five remaining tokens. You will get some from the `Consumer Keys` section and some from the `Authentication Tokens` section.
+10. You will be given two tokens, `OAuth 2.0 Client ID` and `Client Secret`. You won't need those, but save them anyway.
 
-10. Fill in the .env file with the following variables:
+11. Go to the `Keys and tokens` tab and generate all the five remaining tokens. You will get some from the `Consumer Keys` section and some from the `Authentication Tokens` section.
+
+12. Fill in the .env file with the following variables:
     ```
     TWEEPY_CONSUMER_API_KEY=
     TWEEPY_CONSUMER_API_KEY_SECRET=
