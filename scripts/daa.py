@@ -115,8 +115,8 @@ else:
 
 def save_daa_db():
     """Save the DAA database."""
-    with open(DAA_DB_PATH, "w", encoding="utf8") as daa_db_file:
-        json.dump(daa_db.model_dump(), daa_db_file, indent=4, default=str)
+    with open(DAA_DB_PATH, "w", encoding="utf8") as db_file:
+        json.dump(daa_db.model_dump(), db_file, indent=4, default=str)
 
 
 def load_contract(
@@ -157,8 +157,7 @@ def get_block_by_datetime(
     now = int(datetime.now(timezone.utc).timestamp())
     timestamp = int(dt.timestamp())
 
-    if timestamp > now:
-        timestamp = now
+    timestamp = min(now, timestamp)
 
     params = {
         "module": "block",
@@ -350,5 +349,6 @@ def calculate_daas(chain_config):
 if __name__ == "__main__":
     calculate_daas(CHAIN_CONFIGS["BASE"])
 
+# TODO: other KPIs
 #  engagement rate = total no. of engagements/total impressions
 #  engagements = likes + retweets + replies + profile clicks + link clicks
