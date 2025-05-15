@@ -313,6 +313,10 @@ def calculate_daas(chain_config):
     # Read all new agents from the chain
     update_agents(chain_config)
 
+    if not daa_db.agents:
+        print("No agents found")
+        return
+
     # Get the latest parsed number
     latest_parsed_block = max(
         (
