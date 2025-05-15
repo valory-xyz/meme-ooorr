@@ -56,8 +56,8 @@ query Tokens($limit: Int, $after: String) {
 """
 
 PACKAGE_QUERY = """
-query getPackages($package_type: String!) {
-    units(where: {packageType: $package_type}) {
+query getPackages($package_type: String!, $first: Int, $skip: Int) {
+    units(where: {packageType: $package_type}, first: $first, skip: $skip) {
         id,
         packageType,
         publicId,
@@ -149,12 +149,10 @@ def get_packages(package_type: str):
 
     query = {
         "query": PACKAGE_QUERY,
-        "variables": {
-            "package_type": package_type,
-        },
+        "variables": {"package_type": package_type, "first": 1000, "skip": None},
     }
 
-    response = requests.post(url=url, json=query, headers=headers)
+    response = requests.post(url=url, json=query, headers=headers, timeout=60)
 
     # Handle HTTP errors
     if response.status_code != HTTP_OK:

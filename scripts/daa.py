@@ -22,12 +22,13 @@
 
 import json
 import os
-import time
+from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import dotenv
 import requests
+from pydantic import BaseModel
 from web3 import Web3
 from web3.contract import Contract
 
@@ -42,6 +43,8 @@ CELO_BLOCKS_PER_SECOND = 1
 
 BLOCK_MARGIN = 2
 MEMEOOORR_DESCRIPTION_PATTERN = r"^Memeooorr @(\w+)$"
+
+DAA_DB_PATH = "daa_base.json"
 
 
 CHAIN_CONFIGS = {
@@ -80,6 +83,42 @@ query getPackages($package_type: String!, $first: Int, $skip: Int) {
 HTTP_OK = 200
 
 
+class Transaction(BaseModel):
+    """Transaction"""
+
+    block_number: int
+    timestamp: int
+    transaction_hash: str
+
+
+class AgentsFun(BaseModel):
+    """AgentsFun"""
+
+    service_id: int
+    multisig: str
+    transactions: Dict[str, Transaction] = {}
+
+
+class DAAdatabase(BaseModel):
+    """DAAdatabase"""
+
+    agents: Dict[int, AgentsFun] = {}
+
+
+if Path(DAA_DB_PATH).exists():
+    with open(DAA_DB_PATH, "r", encoding="utf8") as daa_db_file:
+        daa_json = json.load(daa_db_file)
+        daa_db = DAAdatabase(**daa_json)
+else:
+    daa_db = DAAdatabase()
+
+
+def save_daa_db():
+    """Save the DAA database."""
+    with open(DAA_DB_PATH, "w", encoding="utf8") as daa_db_file:
+        json.dump(daa_db.model_dump(), daa_db_file, indent=4, default=str)
+
+
 def load_contract(
     contract_address: str,
     abi_file_name: str,
@@ -111,50 +150,95 @@ def get_latest_block_number(chain_config):
     return int(data["result"], 16) if "result" in data else None
 
 
-def get_transactions(address, chain_config):
-    """Get transactions for a given address."""
+def get_block_by_datetime(
+    dt: datetime, chain_config, closest: str = "before"
+) -> Optional[int]:
+    """Get the block number closest to a given datetime."""
+    now = int(datetime.now(timezone.utc).timestamp())
+    timestamp = int(dt.timestamp())
 
-    end_block = get_latest_block_number(chain_config)
-    if not end_block:
-        return None
-
-    # Parse the last 24 hours only
-    start_block = end_block - int(BLOCK_MARGIN * chain_config["BLOCKS_PER_DAY"])
+    if timestamp > now:
+        timestamp = now
 
     params = {
-        "module": "account",
-        "action": "txlist",
-        "address": address,
-        "startblock": start_block,
-        "endblock": end_block,
-        "sort": "desc",
+        "module": "block",
+        "action": "getblocknobytime",
+        "timestamp": timestamp,
+        "closest": closest,
         "apikey": chain_config["API_KEY"],
     }
+
     response = requests.get(chain_config["API_BASE"], params=params, timeout=60)
     data = response.json()
+
     if data["status"] != "1":
-        return []
-    return data["result"]
-
-
-def has_recent_transactions(address, chain_config):
-    """Check if the address has made any transactions in the last 24 hours."""
-    print(f"Checking address {address} for recent transactions... ", end="")
-    transactions = get_transactions(address, chain_config)
-    if transactions is None:
-        print("inactive")
+        print(f"Scanner error: {data}")
         return None
 
-    if not transactions:
-        print("inactive")
-        return False
+    return int(data["result"])
 
-    latest_tx_timestamp = int(transactions[0]["timeStamp"])
-    a_day_ago = int(time.time()) - 24 * 3600
 
-    active = latest_tx_timestamp >= a_day_ago
-    print("active" if active else "inactive")
-    return active
+def update_transactions(chain_config, day, latest_parsed_block):
+    """Get transactions."""
+
+    day_start = datetime.combine(day, time.min, tzinfo=timezone.utc)
+    day_end = datetime.combine(day, time.max, tzinfo=timezone.utc)
+
+    start_block = get_block_by_datetime(day_start, chain_config)
+    end_block = get_block_by_datetime(day_end, chain_config)
+
+    # Check if this day has been already processed
+    if latest_parsed_block is not None and latest_parsed_block > end_block:
+        print(f"Already processed day {day}")
+        return
+
+    if not start_block or not end_block:
+        print(f"Error while pulling the transactions: {day}")
+        return
+
+    for service_id, service in daa_db.agents.items():
+        print(f"    Reading transactions for service {service_id}")
+
+        params = {
+            "module": "account",
+            "action": "txlist",
+            "address": service.multisig,
+            "startblock": start_block,
+            "endblock": end_block,
+            "sort": "desc",
+            "apikey": chain_config["API_KEY"],
+        }
+
+        response = requests.get(chain_config["API_BASE"], params=params, timeout=60)
+        data = response.json()
+
+        if data["status"] != "1":
+            if data.get("message", None) != "No transactions found":
+                print(f"Error while pulling the transactions: {data}")
+            continue
+
+        for tx in data["result"]:
+            daa_db.agents[service_id].transactions[tx["hash"]] = Transaction(
+                block_number=int(tx["blockNumber"]),
+                timestamp=int(tx["timeStamp"]),
+                transaction_hash=tx["hash"],
+            )
+
+    save_daa_db()
+
+
+def was_service_active(service_id: int, day: datetime.date) -> bool:
+    """Check if the address has made any transactions in a specific day."""
+    day_start = datetime.combine(day, time.min, tzinfo=timezone.utc)
+    day_end = datetime.combine(day, time.max, tzinfo=timezone.utc)
+
+    transactions = [
+        tx
+        for tx in daa_db.agents[service_id].transactions.values()
+        if tx.timestamp >= day_start.timestamp() and tx.timestamp <= day_end.timestamp()
+    ]
+
+    return len(transactions) > 0
 
 
 def get_packages(package_type: str):
@@ -180,8 +264,9 @@ def get_packages(package_type: str):
     return response_json
 
 
-def get_memeooorr_safes(chain_config):
-    """Read service details from the service registry"""
+def update_agents(chain_config):
+    """Update agent info."""
+
     service_registry = load_contract(
         contract_address=chain_config["SERVICE_REGISTRY_ADDRES"],
         abi_file_name="service_registry/ServiceRegistry",
@@ -191,8 +276,15 @@ def get_memeooorr_safes(chain_config):
 
     n_services = service_registry.functions.totalSupply().call()
 
-    safes = []
-    for service_id in range(n_services):
+    if not daa_db.agents:
+        latest_parsed_service = 0
+    else:
+        latest_parsed_service = max(daa_db.agents.keys())
+
+    if latest_parsed_service >= n_services:
+        return
+
+    for service_id in range(latest_parsed_service, n_services):
         print(f"Reading service {service_id} of {n_services}")
         (
             security_deposit,  # pylint: disable=unused-variable
@@ -204,29 +296,59 @@ def get_memeooorr_safes(chain_config):
             state,  # pylint: disable=unused-variable
             agent_ids,
         ) = service_registry.functions.getService(service_id).call()
+
         if agent_ids != [43]:
             continue
-        safes.append(multisig)
-    return safes
+
+        daa_db.agents[service_id] = AgentsFun(
+            service_id=service_id,
+            multisig=multisig,
+        )
+
+    save_daa_db()
 
 
 def calculate_daas(chain_config):
     """Calculate the DAAs."""
-    safes = get_memeooorr_safes(chain_config)
-    print(f"Found {len(safes)} agents.fun safes")
 
-    daas = [
-        address for address in safes if has_recent_transactions(address, chain_config)
-    ]
-    return len(daas)
+    # Read all new agents from the chain
+    update_agents(chain_config)
+
+    # Get the latest parsed number
+    latest_parsed_block = max(
+        (
+            max(tx.block_number for tx in service.transactions.values())
+            for service in daa_db.agents.values()
+            if service.transactions
+        ),
+        default=None,
+    )
+
+    # Update transactions and calculate daas for the past week
+    today = datetime.utcnow().date()
+
+    daas = {}
+
+    for i in range(7):
+        day = today - timedelta(days=i)
+        print(f"Reading transactions for {day}")
+
+        update_transactions(chain_config, day, latest_parsed_block)
+
+        daas[day] = 0
+
+        for service_id in daa_db.agents.keys():
+            if was_service_active(service_id, day):
+                daas[day] += 1
+
+        print(f"DAAs for {day}: {daas[day]}")
+
+    trailing_average = sum(daas.values()) / len(daas)
+    print(f"Trailing average: {trailing_average}")
 
 
 if __name__ == "__main__":
-    n_daas_base = calculate_daas(CHAIN_CONFIGS["BASE"])
-    n_daas_celo = calculate_daas(CHAIN_CONFIGS["CELO"])
-
-    print(f"DAAS Base: {n_daas_base}")
-    print(f"DAAS Celo: {n_daas_celo}")
+    calculate_daas(CHAIN_CONFIGS["BASE"])
 
 #  engagement rate = total no. of engagements/total impressions
 #  engagements = likes + retweets + replies + profile clicks + link clicks

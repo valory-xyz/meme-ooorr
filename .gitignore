@@ -48,3 +48,5 @@ globals.json
 gitleaks_ignore.py
 agent_log.txt
 agent_log.log
+
+daa_base.json
