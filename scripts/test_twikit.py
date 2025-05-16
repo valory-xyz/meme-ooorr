@@ -26,6 +26,7 @@ import os
 import random
 import re
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 import dotenv
@@ -165,5 +166,75 @@ async def get_followers_ids(user: str) -> Optional[List[str]]:
     return follower_ids
 
 
+async def get_tweet_engagement_rate(tweet, client=None) -> Optional[float]:
+    """Get tweet engagement rate"""
+    if client is None:
+        client = await cookie_login()
+
+    engagements = (
+        tweet.favorite_count
+        + tweet.retweet_count
+        + tweet.quote_count
+        + tweet.reply_count
+    )
+    impressions = int(tweet.view_count) if tweet.view_count else 0
+
+    return engagements / impressions if impressions > 0 else 0
+
+
+async def get_latest_user_tweets(user: str, client=None) -> List[Dict[str, Any]]:
+    """Get user tweets"""
+    if client is None:
+        client = await cookie_login()
+
+    if is_twitter_id(user):
+        user_id = user
+    else:
+        try:
+            user_obj = await client.get_user_by_screen_name(user)
+        except twikit.errors.UserUnavailable:
+            return None
+        user_id = user_obj.id
+
+    try:
+        tweets = await client.get_user_tweets(
+            user_id=user_id, tweet_type="Tweets", count=50
+        )
+    except KeyError:
+        print(f"User might be restricted or banned")
+        return None
+
+    now = datetime.now(timezone.utc)
+    this_week_tweets = [
+        tweet
+        for tweet in tweets
+        if now - datetime.strptime(tweet.created_at, "%a %b %d %H:%M:%S %z %Y")
+        <= timedelta(days=7)
+    ]
+
+    return this_week_tweets
+
+
+async def calculate_user_engagement(user: str) -> float:
+    """Calculate user engagement"""
+    client = await cookie_login()
+    tweets = await get_latest_user_tweets(user=user, client=client)
+
+    if not tweets:
+        print(f"No tweets found for {user}")
+        return None
+
+    print(f"Analizing {len(tweets)} tweets from {user}")
+    engagements = {}
+    for tweet in tweets:
+        eng_rate = await get_tweet_engagement_rate(tweet, client)
+        engagements[tweet.id] = eng_rate
+        print(f"Tweet {tweet.id} engagement rate: {eng_rate}")
+        time.sleep(1)
+
+    return sum(engagements.values()) / len(engagements) if engagements else 0
+
+
 if __name__ == "__main__":
-    print(asyncio.run(validate_login()))
+    # print(asyncio.run(validate_login()))
+    print(asyncio.run(get_latest_user_tweets("karab_olas1")))
