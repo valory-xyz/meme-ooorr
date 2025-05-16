@@ -37,8 +37,6 @@ from web3.contract import Contract
 from scripts.test_subgraph import get_memeooorr_handles_from_subgraph
 from scripts.test_twikit import calculate_user_engagement, get_followers_ids
 
-from packages.dvilela.connections.tweepy.tweepy_wrapper import Twitter
-
 
 dotenv.load_dotenv(override=True)
 
@@ -394,7 +392,7 @@ def calculate_engagement_rate_avg():
 
         try:
             eng_rate_avg = asyncio.run(calculate_user_engagement(agent_handle))
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             print(f"Error while calculating engagement rate for {agent_handle}: {e}")
             continue
 

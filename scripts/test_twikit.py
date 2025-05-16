@@ -37,15 +37,7 @@ dotenv.load_dotenv(override=True)
 
 
 def is_twitter_id(twitter_id: str) -> bool:
-    """
-    Check if a string is a valid Twitter ID.
-
-    Args:
-        twitter_id (str): The string to check.
-
-    Returns:
-        bool: True if the string is a valid Twitter ID, False otherwise.
-    """
+    """Check if a string is a valid Twitter ID."""
     return bool(re.match(r"^\d{1,20}$", twitter_id))
 
 
@@ -201,7 +193,7 @@ async def get_latest_user_tweets(user: str, client=None) -> List[Dict[str, Any]]
             user_id=user_id, tweet_type="Tweets", count=50
         )
     except KeyError:
-        print(f"User might be restricted or banned")
+        print("User might be restricted or banned")
         return None
 
     now = datetime.now(timezone.utc)
