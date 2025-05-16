@@ -412,5 +412,6 @@ def calculate_engagement_rate_avg():
 
 if __name__ == "__main__":
     # calculate_daas(CHAIN_CONFIGS["BASE"])
-    # calculate_follower_avg()
-    calculate_engagement_rate_avg()
+    # calculate_daas(CHAIN_CONFIGS["CELO"])
+    calculate_follower_avg()
+    # calculate_engagement_rate_avg()
