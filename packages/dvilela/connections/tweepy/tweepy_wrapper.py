@@ -20,8 +20,9 @@
 
 """Tweepy wrapper."""
 
-from typing import Dict, List, Optional
 import re
+from typing import Dict, List, Optional
+
 import tweepy  # type: ignore[import]
 
 

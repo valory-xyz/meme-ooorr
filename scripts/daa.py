@@ -20,8 +20,10 @@
 
 """Calculate DAAs."""
 
+import asyncio
 import json
 import os
+import time as core_time
 from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Optional
@@ -31,8 +33,11 @@ import requests
 from pydantic import BaseModel
 from web3 import Web3
 from web3.contract import Contract
-from packages.dvilela.connections.tweepy.tweepy_wrapper import Twitter
+
 from scripts.test_subgraph import get_memeooorr_handles_from_subgraph
+from scripts.test_twikit import get_followers_ids
+
+from packages.dvilela.connections.tweepy.tweepy_wrapper import Twitter
 
 
 dotenv.load_dotenv(override=True)
@@ -355,18 +360,20 @@ def calculate_daas(chain_config):
 def calculate_follower_avg():
     """Calculate agent follower average."""
 
-    # agent_handles = get_memeooorr_handles_from_subgraph()
+    agent_handles = get_memeooorr_handles_from_subgraph()
+    followers = {}
 
-    twitter = Twitter(
-        consumer_key=os.getenv("TWEEPY_CONSUMER_API_KEY"),
-        consumer_secret=os.getenv("TWEEPY_CONSUMER_API_KEY_SECRET"),
-        access_token=os.getenv("TWEEPY_ACCESS_TOKEN"),
-        access_token_secret=os.getenv("TWEEPY_ACCESS_TOKEN_SECRET"),
-        bearer_token=os.getenv("TWEEPY_BEARER_TOKEN"),
-    )
+    for agent_handle in agent_handles:
+        follower_ids = asyncio.run(get_followers_ids(agent_handle))
+        if follower_ids is None:
+            continue
+        print(f"{agent_handle} has {len(follower_ids)} followers")
+        followers[agent_handle] = len(follower_ids)
+        core_time.sleep(1)
 
-    follower_ids = twitter.get_follower_ids("dvilelaf")
-    print(f"Follower ids: {follower_ids}")
+    print(f"Follower average: {sum(followers.values()) / len(followers):.2f}")
+    with open("followers.json", "w", encoding="utf-8") as followers_file:
+        json.dump(followers, followers_file, indent=4)
 
 
 if __name__ == "__main__":

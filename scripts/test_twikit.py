@@ -24,14 +24,28 @@
 import asyncio
 import os
 import random
+import re
 import time
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 import dotenv
 import twikit
 
 
 dotenv.load_dotenv(override=True)
+
+
+def is_twitter_id(twitter_id: str) -> bool:
+    """
+    Check if a string is a valid Twitter ID.
+
+    Args:
+        twitter_id (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid Twitter ID, False otherwise.
+    """
+    return bool(re.match(r"^\d{1,20}$", twitter_id))
 
 
 def tweet_to_json(tweet: Any) -> Dict:
@@ -134,4 +148,22 @@ async def search_tweet() -> None:
     return tweets
 
 
-print(asyncio.run(validate_login()))
+async def get_followers_ids(user: str) -> Optional[List[str]]:
+    """Get follower ids"""
+    client = await cookie_login()
+
+    if is_twitter_id(user):
+        user_id = user
+    else:
+        try:
+            user_obj = await client.get_user_by_screen_name(user)
+        except twikit.errors.UserUnavailable:
+            return None
+        user_id = user_obj.id
+
+    follower_ids = await client.get_followers_ids(user_id=user_id, count=5000)
+    return follower_ids
+
+
+if __name__ == "__main__":
+    print(asyncio.run(validate_login()))
