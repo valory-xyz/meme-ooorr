@@ -31,6 +31,8 @@ import requests
 from pydantic import BaseModel
 from web3 import Web3
 from web3.contract import Contract
+from packages.dvilela.connections.tweepy.tweepy_wrapper import Twitter
+from scripts.test_subgraph import get_memeooorr_handles_from_subgraph
 
 
 dotenv.load_dotenv(override=True)
@@ -350,8 +352,26 @@ def calculate_daas(chain_config):
     print(f"Trailing average: {trailing_average}")
 
 
+def calculate_follower_avg():
+    """Calculate agent follower average."""
+
+    # agent_handles = get_memeooorr_handles_from_subgraph()
+
+    twitter = Twitter(
+        consumer_key=os.getenv("TWEEPY_CONSUMER_API_KEY"),
+        consumer_secret=os.getenv("TWEEPY_CONSUMER_API_KEY_SECRET"),
+        access_token=os.getenv("TWEEPY_ACCESS_TOKEN"),
+        access_token_secret=os.getenv("TWEEPY_ACCESS_TOKEN_SECRET"),
+        bearer_token=os.getenv("TWEEPY_BEARER_TOKEN"),
+    )
+
+    follower_ids = twitter.get_follower_ids("dvilelaf")
+    print(f"Follower ids: {follower_ids}")
+
+
 if __name__ == "__main__":
-    calculate_daas(CHAIN_CONFIGS["BASE"])
+    # calculate_daas(CHAIN_CONFIGS["BASE"])
+    calculate_follower_avg()
 
 # TODO: other KPIs
 #  engagement rate = total no. of engagements/total impressions

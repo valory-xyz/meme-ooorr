@@ -192,9 +192,10 @@ def introspect_subgraph():
             print(f)
 
 
-# introspect_subgraph()
+if __name__ == "__main__":
+  # introspect_subgraph()
 
-meme_coin_data = get_meme_coins_from_subgraph()
+  meme_coin_data = get_meme_coins_from_subgraph()
 
-# Print the meme coin data in a formatted JSON output
-print(json.dumps(meme_coin_data, indent=4))
+  # Print the meme coin data in a formatted JSON output
+  print(json.dumps(meme_coin_data, indent=4))
