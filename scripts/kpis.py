@@ -20,8 +20,10 @@
 
 """Calculate DAAs."""
 
+import asyncio
 import json
 import os
+import time as core_time
 from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Optional
@@ -31,6 +33,9 @@ import requests
 from pydantic import BaseModel
 from web3 import Web3
 from web3.contract import Contract
+
+from scripts.test_subgraph import get_memeooorr_handles_from_subgraph
+from scripts.test_twikit import calculate_user_engagement, get_followers_ids
 
 
 dotenv.load_dotenv(override=True)
@@ -350,9 +355,61 @@ def calculate_daas(chain_config):
     print(f"Trailing average: {trailing_average}")
 
 
-if __name__ == "__main__":
-    calculate_daas(CHAIN_CONFIGS["BASE"])
+def calculate_follower_avg():
+    """Calculate agent follower average."""
 
-# TODO: other KPIs
-#  engagement rate = total no. of engagements/total impressions
-#  engagements = likes + retweets + replies + profile clicks + link clicks
+    agent_handles = get_memeooorr_handles_from_subgraph()
+    followers = {}
+
+    for agent_handle in agent_handles:
+        follower_ids = asyncio.run(get_followers_ids(agent_handle))
+        if follower_ids is None:
+            continue
+        print(f"{agent_handle} has {len(follower_ids)} followers")
+        followers[agent_handle] = len(follower_ids)
+        core_time.sleep(1)
+
+    print(f"Follower average: {sum(followers.values()) / len(followers):.2f}")
+    with open("followers.json", "w", encoding="utf-8") as followers_file:
+        json.dump(followers, followers_file, indent=4)
+
+
+def calculate_engagement_rate_avg():
+    """Calculate agent engagement rate average."""
+
+    if Path("engagement_rate.json").exists():
+        with open("engagement_rate.json", "r", encoding="utf-8") as engagement_file:
+            engagements = json.load(engagement_file)
+    else:
+        engagements = {}
+
+    agent_handles = get_memeooorr_handles_from_subgraph()
+
+    for agent_handle in agent_handles:
+        # Skip already processed agents
+        if agent_handle in engagements:
+            continue
+
+        try:
+            eng_rate_avg = asyncio.run(calculate_user_engagement(agent_handle))
+        except Exception as e:  # pylint: disable=broad-except
+            print(f"Error while calculating engagement rate for {agent_handle}: {e}")
+            continue
+
+        print(f"Engagement rate average: {eng_rate_avg}")
+        engagements[agent_handle] = eng_rate_avg
+
+        with open("engagement_rate.json", "w", encoding="utf-8") as engagement_file:
+            json.dump(engagements, engagement_file, indent=4)
+
+    engagements = {k: v for k, v in engagements.items() if v is not None}
+    print(
+        f"Engagement rate average: {sum(engagements.values()) / len(engagements):.2f}"
+    )
+
+
+if __name__ == "__main__":
+    # calculate_daas(CHAIN_CONFIGS["BASE"])
+    # calculate_daas(CHAIN_CONFIGS["CELO"])
+    calculate_follower_avg()
+    # calculate_engagement_rate_avg()
