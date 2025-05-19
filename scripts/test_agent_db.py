@@ -148,7 +148,6 @@ class AgentDBClient:
         result = self._request("POST", endpoint, payload)
         return AgentType.model_validate(result) if result else None
 
-    # Agent Registry Methods
     def get_agent_by_address(self, eth_address) -> Optional[AgentInstance]:
         """Get agent by Ethereum address"""
         endpoint = f"/api/agent-registry/address/{eth_address}"
@@ -160,6 +159,18 @@ class AgentDBClient:
         endpoint = f"/api/agent-types/{type_id}/"
         result = self._request("GET", endpoint)
         return AgentType.model_validate(result) if result else None
+
+    def get_agent_instances_by_type_id(self, type_id) -> List[AgentInstance]:
+        """Get agent instances by type"""
+        endpoint = f"/api/agent-types/{type_id}/agents/"
+        params = {
+            "skip": 0,
+            "limit": 100,
+        }
+        result = self._request(method="GET", endpoint=endpoint, params=params)
+        return (
+            [AgentInstance.model_validate(agent) for agent in result] if result else []
+        )
 
     def create_agent(
         self, agent_name: str, agent_type: AgentType, eth_address: str
@@ -390,11 +401,9 @@ class TwitterLike(TwitterAction):
         )
 
 
-class AgentsFun:
-    """AgentsFun"""
+class AgentsFunAgent:
+    """AgentsFunAgent"""
 
-    twitter_username: str = None
-    interactions: List[Any] = []
     action_to_class: Dict[str, Any] = {
         "post": TwitterPost,
         "retweet": TwitterRewtweet,
@@ -402,13 +411,22 @@ class AgentsFun:
         "like": TwitterLike,
     }
 
-    def __init__(self, client: AgentDBClient):
+    def __init__(self, client: AgentDBClient, agent_instance: AgentInstance):
         """Constructor"""
         self.client = client
+        self.agent_instance = agent_instance
+        self.twitter_username: str = None
+        self.posts: List[TwitterPost] = []
+        self.likes: List[TwitterLike] = []
+        self.retweets: List[TwitterRewtweet] = []
+        self.follows: List[TwitterFollow] = []
+        self.loaded = False
 
-    def load_data(self):
+    def load(self):
         """Load agent data"""
-        attributes = self.client.get_all_instance_attributes_parsed(self.client.agent)
+        attributes = self.client.get_all_instance_attributes_parsed(self.agent_instance)
+
+        interactions = []
         for attr in attributes:
             if attr["attr_name"] == "twitter_username":
                 self.twitter_username = attr["attr_value"]
@@ -420,9 +438,54 @@ class AgentsFun:
                     raise ValueError(
                         f"Unknown Twitter action: {attr['attr_value']['action']}"
                     )
-                self.interactions.append(
+                interactions.append(
                     action_class.from_nested_json(data=attr["attr_value"])
                 )
+
+        # Separate the interactions into different lists and sort by timestamp
+        interactions.sort(key=lambda x: x.timestamp)
+        self.posts = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterPost)
+        ]
+        self.retweets = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterRewtweet)
+        ]
+        self.likes = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterLike)
+        ]
+        self.follows = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterFollow)
+        ]
+        self.loaded = True
+
+
+class AgentsFunDatabase:
+    """AgentsFunDatabase"""
+
+    def __init__(self, client: AgentDBClient):
+        """Constructor"""
+        self.client = client
+        self.agent_type = client.get_agent_type("memeooorr")
+        self.agents = []
+
+    def load(self):
+        """Load data"""
+        agent_instances = self.client.get_agent_instances_by_type_id(
+            self.agent_type.type_id
+        )
+        print(f"Found {len(agent_instances)} agent instances")
+        for agent_instance in agent_instances:
+            print(f"Loading agent instance {agent_instance.agent_id}")
+            self.agents.append(AgentsFunAgent(self.client, agent_instance))
+            self.agents[-1].load()
 
 
 def example(client: AgentDBClient):
@@ -504,7 +567,7 @@ if __name__ == "__main__":
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
 
-    agents_fun = AgentsFun(client=client)
-    agents_fun.load_data()
+    agents_fun = AgentsFunDatabase(client=client)
+    agents_fun.load()
 
     # example(client)
