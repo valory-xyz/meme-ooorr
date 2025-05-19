@@ -20,9 +20,23 @@
 
 """Tweepy wrapper."""
 
+import re
 from typing import Dict, List, Optional
 
 import tweepy  # type: ignore[import]
+
+
+def is_twitter_id(twitter_id: str) -> bool:
+    """
+    Check if a string is a valid Twitter ID.
+
+    Args:
+        twitter_id (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid Twitter ID, False otherwise.
+    """
+    return bool(re.match(r"^\d{1,20}$", twitter_id))
 
 
 class Twitter:
@@ -216,4 +230,21 @@ class Twitter:
             result = self.client.get_me()
             return {"user_id": result.data.id, "username": result.data.username}
         except tweepy.TweepyException:
+            return None
+
+    def get_follower_ids(self, user: str) -> Optional[List[str]]:
+        """
+        Get a list of follower ids.
+
+        Args:
+            user_id (int): The ID of the user to unfollow.
+        """
+
+        user_id = user if is_twitter_id(user) else self.get_user_id(user)
+
+        try:
+            result = self.api.get_follower_ids(user_id=user_id)
+            return result.data.ids
+        except tweepy.TweepyException as e:
+            print(e)
             return None
