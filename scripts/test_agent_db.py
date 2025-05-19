@@ -23,7 +23,7 @@
 
 import os
 from datetime import datetime, timezone
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import dotenv
 import requests
@@ -90,13 +90,6 @@ class AgentsFunAgentType(BaseModel):
     attribute_definitions: List[AttributeDefinition]
 
 
-class AgentsFunInstance(BaseModel):
-    """AgentsFunInstance"""
-
-    twitter_username: str
-    interactions: List[Any]
-
-
 class AgentDBClient:
     """AgentDBClient"""
 
@@ -106,6 +99,9 @@ class AgentDBClient:
         self.eth_address = eth_address
         self.private_key = private_key
         self.agent = self.get_agent_by_address(self.eth_address)
+        self.agent_type = (
+            self.get_agent_type_by_type_id(self.agent.type_id) if self.agent else None
+        )
 
     def _sign_request(self, endpoint):
         """Generate authentication"""
@@ -159,10 +155,11 @@ class AgentDBClient:
         result = self._request("GET", endpoint)
         return AgentInstance.model_validate(result) if result else None
 
-    def get_agent_by_type(self, type_id):
+    def get_agent_type_by_type_id(self, type_id) -> Optional[AgentType]:
         """Get agent by type"""
-        endpoint = f"/api/agent-types/{type_id}/agents/"
-        return self._request("GET", endpoint)
+        endpoint = f"/api/agent-types/{type_id}/"
+        result = self._request("GET", endpoint)
+        return AgentType.model_validate(result) if result else None
 
     def create_agent(
         self, agent_name: str, agent_type: AgentType, eth_address: str
@@ -178,9 +175,19 @@ class AgentDBClient:
         return AgentInstance.model_validate(result) if result else None
 
     # Attribute Definition Methods
-    def get_attribute_definition(self, attr_name: str) -> Optional[AttributeDefinition]:
+    def get_attribute_definition_by_name(
+        self, attr_name: str
+    ) -> Optional[AttributeDefinition]:
         """Get attribute definition by name"""
         endpoint = f"/api/attributes/name/{attr_name}"
+        result = self._request("GET", endpoint)
+        return AttributeDefinition.model_validate(result) if result else None
+
+    def get_attribute_definition_by_id(
+        self, attr_id: int
+    ) -> Optional[AttributeDefinition]:
+        """Get attribute definition by id"""
+        endpoint = f"/api/attributes/{attr_id}"
         result = self._request("GET", endpoint)
         return AttributeDefinition.model_validate(result) if result else None
 
@@ -259,22 +266,167 @@ class AgentDBClient:
         result = self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
         return AttributeInstance.model_validate(result) if result else None
 
-    def get_all_attributes(self, agent_id):
+    def get_all_instance_attributes_raw(self, agent_instance: AgentInstance):
         """Get all attributes of an agent by agent ID"""
-        endpoint = f"/api/agents/{agent_id}/attributes/"
+        endpoint = f"/api/agents/{agent_instance.agent_id}/attributes/"
         payload = {
-            "agent_id": agent_id,
+            "agent_id": agent_instance.agent_id,
         }
         return self._request("GET", endpoint, {"agent_attr": payload}, auth=True)
 
+    def parse_attribute_instance(self, attribute_instance: AttributeInstance):
+        """Parse attribute instance"""
+        attribute_definition = self.get_attribute_definition_by_id(
+            attribute_instance.attr_def_id
+        )
+        data_type = attribute_definition.data_type
+        attr_value = getattr(attribute_instance, f"{data_type}_value", None)
 
-if __name__ == "__main__":
-    # Initialize the client
-    client = AgentDBClient(
-        base_url=os.getenv("MIRROR_DB_BASE_URL"),
-        eth_address=os.getenv("AGENT_ADDRESS"),
-        private_key=os.getenv("AGENT_PRIVATE_KEY"),
-    )
+        if data_type == "date":
+            attr_value = datetime.fromisoformat(attr_value).astimezone(timezone.utc)
+        elif data_type == "json":
+            pass
+        elif data_type == "string":
+            attr_value = str(attr_value)
+        elif data_type == "integer":
+            attr_value = int(attr_value)
+        elif data_type == "float":
+            attr_value = float(attr_value)
+        elif data_type == "boolean":
+            attr_value = bool(attr_value)
+
+        parsed_attribute_instance = {
+            "attr_name": attribute_definition.attr_name,
+            "attr_value": attr_value,
+        }
+        return parsed_attribute_instance
+
+    def get_all_instance_attributes_parsed(self, agent_instance: AgentInstance):
+        """Get all attributes of an agent by agent ID"""
+        attribute_instances = self.get_all_instance_attributes_raw(agent_instance)
+        parsed_attributes = [
+            self.parse_attribute_instance(AttributeInstance(**attr))
+            for attr in attribute_instances
+        ]
+        return parsed_attributes
+
+
+class TwitterAction(BaseModel):
+    """TwitterAction"""
+
+    action: str
+    timestamp: datetime
+
+
+class TwitterPost(TwitterAction):
+    """TwitterPost"""
+
+    tweet_id: str
+    text: str
+    reply_to_tweet_id: Optional[str] = None
+
+    @classmethod
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
+        """Convert nested JSON to TwitterPost"""
+        return cls(
+            action=data["action"],
+            timestamp=datetime.fromisoformat(
+                data["timestamp"].replace("Z", "+00:00")
+            ).astimezone(timezone.utc),
+            tweet_id=data["details"]["tweet_id"],
+            text=data["details"]["text"],
+            reply_to_tweet_id=data["details"].get("reply_to_tweet_id", None),
+        )
+
+
+class TwitterRewtweet(TwitterAction):
+    """TwitterRewtweet"""
+
+    tweet_id: str
+
+    @classmethod
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
+        """Convert nested JSON to TwitterPost"""
+        return cls(
+            action=data["action"],
+            timestamp=datetime.fromisoformat(
+                data["timestamp"].replace("Z", "+00:00")
+            ).astimezone(timezone.utc),
+            tweet_id=data["details"]["tweet_id"],
+        )
+
+
+class TwitterFollow(TwitterAction):
+    """TwitterFollow"""
+
+    username: str
+
+    @classmethod
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
+        """Convert nested JSON to TwitterPost"""
+        return cls(
+            action=data["action"],
+            timestamp=datetime.fromisoformat(
+                data["timestamp"].replace("Z", "+00:00")
+            ).astimezone(timezone.utc),
+            username=data["details"]["username"],
+        )
+
+
+class TwitterLike(TwitterAction):
+    """TwitterLike"""
+
+    tweet_id: str
+
+    @classmethod
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
+        """Convert nested JSON to TwitterPost"""
+        return cls(
+            action=data["action"],
+            timestamp=datetime.fromisoformat(
+                data["timestamp"].replace("Z", "+00:00")
+            ).astimezone(timezone.utc),
+            tweet_id=data["details"]["tweet_id"],
+        )
+
+
+class AgentsFun:
+    """AgentsFun"""
+
+    twitter_username: str = None
+    interactions: List[Any] = []
+    action_to_class: Dict[str, Any] = {
+        "post": TwitterPost,
+        "retweet": TwitterRewtweet,
+        "follow": TwitterFollow,
+        "like": TwitterLike,
+    }
+
+    def __init__(self, client: AgentDBClient):
+        """Constructor"""
+        self.client = client
+
+    def load_data(self):
+        """Load agent data"""
+        attributes = self.client.get_all_instance_attributes_parsed(self.client.agent)
+        for attr in attributes:
+            if attr["attr_name"] == "twitter_username":
+                self.twitter_username = attr["attr_value"]
+            elif attr["attr_name"] == "twitter_interactions":
+                action_class = self.action_to_class.get(
+                    attr["attr_value"]["action"], None
+                )
+                if not action_class:
+                    raise ValueError(
+                        f"Unknown Twitter action: {attr['attr_value']['action']}"
+                    )
+                self.interactions.append(
+                    action_class.from_nested_json(data=attr["attr_value"])
+                )
+
+
+def example(client: AgentDBClient):
+    """Example usage of the AgentDBClient class."""
 
     # Read or create agent type
     memeooorr_type = client.get_agent_type("memeooorr")
@@ -298,7 +450,9 @@ if __name__ == "__main__":
         print(f"memeooorr_instance = {memeooorr_instance}")
 
     # Read or create atttribute definition
-    twitter_username_attr_def = client.get_attribute_definition("twitter_username")
+    twitter_username_attr_def = client.get_attribute_definition_by_name(
+        "twitter_username"
+    )
     print(f"twitter_username_attr_def = {twitter_username_attr_def}")
 
     if not twitter_username_attr_def:
@@ -320,6 +474,7 @@ if __name__ == "__main__":
     )
     print(f"twitter_username_attr_instance = {twitter_username_attr_instance}")
 
+    # Create or update attribute instance
     if not twitter_username_attr_instance:
         twitter_username_instance = client.create_attribute_instance(
             agent_instance=memeooorr_instance,
@@ -336,9 +491,20 @@ if __name__ == "__main__":
         )
         print(f"Updated twitter_username_instance = {twitter_username_attr_instance}")
 
+    # Get all attributes of an agent
+    all_attributes = client.get_all_instance_attributes_parsed(memeooorr_instance)
+    print(f"all_attributes = {all_attributes}")
 
-# # Tables: agent definition, agent instance, attribute definition, attribute instance
 
-# # Create agent
-# # Create table
-#     # For each value
+if __name__ == "__main__":
+    # Initialize the client
+    client = AgentDBClient(
+        base_url=os.getenv("MIRROR_DB_BASE_URL"),
+        eth_address=os.getenv("AGENT_ADDRESS"),
+        private_key=os.getenv("AGENT_PRIVATE_KEY"),
+    )
+
+    agents_fun = AgentsFun(client=client)
+    agents_fun.load_data()
+
+    # example(client)
