@@ -54,6 +54,7 @@ class PostMechResponseBehaviour(
     def async_act(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
         mech_for_twitter = False
+        failed_mech = False
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
                 f"Processing mech response: {self.synchronized_data.mech_responses}"
@@ -64,10 +65,17 @@ class PostMechResponseBehaviour(
                 self.synchronized_data.mech_responses
             )
 
+            if mech_for_twitter:
+                self.context.logger.info("Mech response processed successfully")
+            else:
+                failed_mech = True
+                self.context.logger.error("Failed to process mech response")
+
             sender = self.context.agent_address
             payload = MechPayload(
                 sender=sender,
                 mech_for_twitter=mech_for_twitter,
+                failed_mech=failed_mech,
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():

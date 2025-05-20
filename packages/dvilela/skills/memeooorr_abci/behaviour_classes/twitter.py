@@ -868,22 +868,27 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         # we are providing context of the last prompt to the LLM so that it can use it to create a normal tweet
 
         if self.synchronized_data.failed_mech:
-            last_prompt = yield from self._get_stored_kv_data("last_prompt", "")
-            ENFORCE_ACTION_COMMAND_FAILED_MECH = (
+            self.context.logger.info(
+                "It seems like the mech failed to deliver the response forcing agent to create a normal tweet"
+            )
+            last_prompt = yield from self._read_kv(keys=("last_prompt",))
+            ENFORCE_ACTION_COMMAND_FAILED_MECH_SUBPROMPT = (
                 ENFORCE_ACTION_COMMAND_FAILED_MECH.format(last_prompt=last_prompt)
             )
-            extra_command = ENFORCE_ACTION_COMMAND_FAILED_MECH
+            extra_command = ENFORCE_ACTION_COMMAND_FAILED_MECH_SUBPROMPT
+            tools_info = ""
         else:
             extra_command = (
                 ENFORCE_ACTION_COMMAND if is_staking_kpi_met is False else ""
             )
+            tools_info = (self.generate_mech_tool_info(),)  # type: ignore
 
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
             previous_tweets=previous_tweets_str,
             other_tweets=other_tweets,
             mech_response="",
-            tools=self.generate_mech_tool_info(),
+            tools=tools_info,
             time=self.get_sync_time_str(),
             extra_command=extra_command,
         )

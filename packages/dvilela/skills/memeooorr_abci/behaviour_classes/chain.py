@@ -534,9 +534,18 @@ class CheckFundsBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             event = yield from self.get_event()
 
+            if event == Event.NO_FUNDS.value:
+                check_funds_count = cast(
+                    int, self.synchronized_data.check_funds_count + 1
+                )
+                self.context.logger.info(
+                    f"check_funds_count: {check_funds_count} , Event: {event}"
+                )
+
             payload = CheckFundsPayload(
                 sender=self.context.agent_address,
                 event=event,
+                check_funds_count=check_funds_count,
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():

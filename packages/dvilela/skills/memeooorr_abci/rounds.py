@@ -86,6 +86,7 @@ class Event(Enum):
     MECH = "mech"
     RETRY = "retry"
     NONE = "none"
+    SKIP = "skip"
 
 
 class SynchronizedData(BaseSynchronizedData):
@@ -188,6 +189,11 @@ class SynchronizedData(BaseSynchronizedData):
     def failed_mech(self) -> bool:
         """Get the failed mech."""
         return bool(self.db.get("failed_mech", False))
+
+    @property
+    def check_funds_count(self) -> int:
+        """Get the check funds count."""
+        return int(self.db.get("check_funds_count", 0))  # type: ignore
 
 
 class EventRoundBase(CollectSameUntilThresholdRound):
@@ -409,6 +415,8 @@ class EngageTwitterRound(CollectSameUntilThresholdRound):
                 synchronized_data_class=SynchronizedData,
                 **{
                     get_name(SynchronizedData.mech_for_twitter): False,
+                    get_name(SynchronizedData.final_tx_hash): None,
+                    get_name(SynchronizedData.failed_mech): False,
                 },
             )
             return synchronized_data, Event.DONE
@@ -449,6 +457,7 @@ class MechRoundBase(CollectSameUntilThresholdRound):
                     get_name(
                         SynchronizedData.mech_for_twitter
                     ): payload.mech_for_twitter,
+                    get_name(SynchronizedData.failed_mech): payload.failed_mech,
                 },
             )
 
@@ -466,7 +475,7 @@ class PostMechResponseRound(MechRoundBase):
     """PostMechResponseRound"""
 
     # This needs to be mentioned for static checkers
-    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT
+    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT , Event.ERROR
 
 
 class FailedMechRequestRound(MechRoundBase):
@@ -598,13 +607,51 @@ class ActionTweetRound(EventRoundBase):
     # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.ERROR, Event.MISSING_TWEET
 
 
-class CheckFundsRound(EventRoundBase):
+class CheckFundsRound(CollectSameUntilThresholdRound):
     """CheckFundsRound"""
 
     payload_class = CheckFundsPayload  # type: ignore
+    synchronized_data_class = SynchronizedData
     extended_requirements = ()
+
     # This needs to be mentioned for static checkers
-    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.NO_FUNDS
+    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT,Event.NO_FUNDS, Event.SKIP
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            self.context.logger.info(
+                f"CheckFundsRound threshold reached: {self.threshold_reached}"
+            )
+            payload = CheckFundsPayload(
+                *(("dummy_sender",) + self.most_voted_payload_values)
+            )
+
+            if payload.check_funds_count >= 3 and payload.event == Event.NO_FUNDS.value:
+                self.context.logger.info(
+                    "check_funds_count >= 3 and event == Event.NO_FUNDS , skipping and moving to ResetRound"
+                )
+                return self.synchronized_data, Event.SKIP
+
+            if payload.check_funds_count < 3 and payload.event == Event.NO_FUNDS.value:
+                self.context.logger.info(
+                    f"check_funds_count < 3 and event == Event.NO_FUNDS , updating check_funds_count to {payload.check_funds_count}"
+                )
+                synchronized_data = self.synchronized_data.update(
+                    synchronized_data_class=SynchronizedData,
+                    **{
+                        get_name(
+                            SynchronizedData.check_funds_count
+                        ): payload.check_funds_count,
+                    },
+                )
+
+                return synchronized_data, Event.NO_FUNDS
+
+            if payload.event == Event.DONE.value:
+                return self.synchronized_data, Event.DONE
+
+        return None
 
 
 class PostTxDecisionMakingRound(EventRoundBase):
@@ -785,6 +832,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.NO_FUNDS: CheckFundsRound,
             Event.NO_MAJORITY: CheckFundsRound,
             Event.ROUND_TIMEOUT: CheckFundsRound,
+            Event.SKIP: FinishedToResetRound,
         },
         PostTxDecisionMakingRound: {
             Event.DONE: FinishedToResetRound,
@@ -803,6 +851,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.DONE: EngageTwitterRound,
             Event.NO_MAJORITY: PostMechResponseRound,
             Event.ROUND_TIMEOUT: FailedMechResponseRound,
+            Event.ERROR: FailedMechResponseRound,
         },
         TransactionLoopCheckRound: {
             Event.DONE: FinishedToResetRound,

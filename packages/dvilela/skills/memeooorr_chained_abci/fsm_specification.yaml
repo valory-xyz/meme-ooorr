@@ -20,6 +20,7 @@ alphabet_in:
 - RETRY
 - ROUND_TIMEOUT
 - SETTLE
+- SKIP
 - SKIP_REQUEST
 - SUSPICIOUS_ACTIVITY
 - VALIDATE_TIMEOUT
@@ -86,6 +87,7 @@ transition_func:
     (CheckFundsRound, NO_FUNDS): CheckFundsRound
     (CheckFundsRound, NO_MAJORITY): CheckFundsRound
     (CheckFundsRound, ROUND_TIMEOUT): CheckFundsRound
+    (CheckFundsRound, SKIP): ResetAndPauseRound
     (CheckLateTxHashesRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckLateTxHashesRound, CHECK_TIMEOUT): CheckLateTxHashesRound
     (CheckLateTxHashesRound, DONE): PostTxDecisionMakingRound
@@ -138,8 +140,9 @@ transition_func:
     (MechResponseRound, NO_MAJORITY): MechResponseRound
     (MechResponseRound, ROUND_TIMEOUT): FailedMechResponseRound
     (PostMechResponseRound, DONE): EngageTwitterRound
+    (PostMechResponseRound, ERROR): FailedMechResponseRound
     (PostMechResponseRound, NO_MAJORITY): PostMechResponseRound
-    (PostMechResponseRound, ROUND_TIMEOUT): PostMechResponseRound
+    (PostMechResponseRound, ROUND_TIMEOUT): FailedMechResponseRound
     (PostTxDecisionMakingRound, ACTION): ActionPreparationRound
     (PostTxDecisionMakingRound, DONE): ResetAndPauseRound
     (PostTxDecisionMakingRound, MECH): MechResponseRound

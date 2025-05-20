@@ -102,6 +102,7 @@ class CheckFundsPayload(BaseTxPayload):
     """Represent a transaction payload for the CheckFundsRound."""
 
     event: str
+    check_funds_count: int
 
 
 @dataclass(frozen=True)
