@@ -66,6 +66,10 @@ class StakingState(Enum):
     EVICTED = 2
 
 
+# Constants
+MAX_CHECK_FUNDS_COUNT = 3
+
+
 class Event(Enum):
     """MemeooorrAbciApp Events"""
 
@@ -627,15 +631,23 @@ class CheckFundsRound(CollectSameUntilThresholdRound):
                 *(("dummy_sender",) + self.most_voted_payload_values)
             )
 
-            if payload.check_funds_count >= 3 and payload.event == Event.NO_FUNDS.value:
+            # if the check_funds_count is greater than or equal to MAX_CHECK_FUNDS_COUNT and the event is Event.NO_FUNDS, skip and move to ResetRound
+            if (
+                payload.check_funds_count >= MAX_CHECK_FUNDS_COUNT
+                and payload.event == Event.NO_FUNDS.value
+            ):  # here it means that the user has not added funds after 3 attempts (120 seconds * 3 = 360 seconds)
                 self.context.logger.info(
                     "check_funds_count >= 3 and event == Event.NO_FUNDS , skipping and moving to ResetRound"
                 )
                 return self.synchronized_data, Event.SKIP
 
-            if payload.check_funds_count < 3 and payload.event == Event.NO_FUNDS.value:
+            # if the check_funds_count is less than MAX_CHECK_FUNDS_COUNT and the event is Event.NO_FUNDS, update the check_funds_count
+            if (
+                payload.check_funds_count < MAX_CHECK_FUNDS_COUNT
+                and payload.event == Event.NO_FUNDS.value
+            ):  # this means  we need to wait for the user to add funds
                 self.context.logger.info(
-                    f"check_funds_count < 3 and event == Event.NO_FUNDS , updating check_funds_count to {payload.check_funds_count}"
+                    f"check_funds_count < {MAX_CHECK_FUNDS_COUNT} and event == Event.NO_FUNDS , updating check_funds_count to {payload.check_funds_count}"
                 )
                 synchronized_data = self.synchronized_data.update(
                     synchronized_data_class=SynchronizedData,
@@ -850,7 +862,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
         PostMechResponseRound: {
             Event.DONE: EngageTwitterRound,
             Event.NO_MAJORITY: PostMechResponseRound,
-            Event.ROUND_TIMEOUT: FailedMechResponseRound,
+            Event.ROUND_TIMEOUT: PostMechResponseRound,
             Event.ERROR: FailedMechResponseRound,
         },
         TransactionLoopCheckRound: {

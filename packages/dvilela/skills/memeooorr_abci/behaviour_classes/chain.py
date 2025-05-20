@@ -68,7 +68,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LE
 
 WaitableConditionType = Generator[None, None, Optional[bool]]
 
-
+WAIT_TIME_DELAY = 120
 ETH_PRICE = 0
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -541,6 +541,14 @@ class CheckFundsBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
                 self.context.logger.info(
                     f"check_funds_count: {check_funds_count} , Event: {event}"
                 )
+                # we want to make the agent wait for 120 seconds before checking again
+                self.context.logger.info(
+                    f"Waiting for {WAIT_TIME_DELAY} seconds before checking again"
+                )
+
+                yield from self.sleep(WAIT_TIME_DELAY)
+            else:
+                check_funds_count = 0
 
             payload = CheckFundsPayload(
                 sender=self.context.agent_address,

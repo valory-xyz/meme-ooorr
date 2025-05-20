@@ -500,7 +500,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 sender=self.context.agent_address,
                 event=event,
                 mech_request=mech_request,
-                failed_mech=False,
                 tx_submitter=self.matching_round.auto_round_id(),
             )
 
