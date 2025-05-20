@@ -28,6 +28,15 @@ from dataclasses import dataclass
 ENFORCE_ACTION_COMMAND = "Please use tools, as you are required to meet some action KPIs and you have not met them yet."
 
 
+ENFORCE_ACTION_COMMAND_FAILED_MECH = """
+Your previous request from mech was successfull but the mech failed to deliver the response, please procees without using use tweet action 
+
+Here is the latest Prompt you sent for mech use it to create a normal tweet
+
+{last_prompt}
+
+"""
+
 TWITTER_DECISION_PROMPT = """
 You are a user on Twitter with a specific persona. You create tweets and also analyze tweets from other users and decide whether to interact with them or not.
 

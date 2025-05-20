@@ -184,6 +184,11 @@ class SynchronizedData(BaseSynchronizedData):
         """Get the mech for twitter."""
         return bool(self.db.get("mech_for_twitter", False))
 
+    @property
+    def failed_mech(self) -> bool:
+        """Get the failed mech."""
+        return bool(self.db.get("failed_mech", False))
+
 
 class EventRoundBase(CollectSameUntilThresholdRound):
     """EventRoundBase"""
@@ -797,7 +802,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
         PostMechResponseRound: {
             Event.DONE: EngageTwitterRound,
             Event.NO_MAJORITY: PostMechResponseRound,
-            Event.ROUND_TIMEOUT: PostMechResponseRound,
+            Event.ROUND_TIMEOUT: FailedMechResponseRound,
         },
         TransactionLoopCheckRound: {
             Event.DONE: FinishedToResetRound,

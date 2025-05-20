@@ -35,6 +35,7 @@ from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
 from packages.dvilela.skills.memeooorr_abci.prompts import (
     ALTERNATIVE_MODEL_TWITTER_PROMPT,
     ENFORCE_ACTION_COMMAND,
+    ENFORCE_ACTION_COMMAND_FAILED_MECH,
     MECH_RESPONSE_SUBPROMPT,
     TWITTER_DECISION_PROMPT,
     build_decision_schema,
@@ -499,6 +500,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 sender=self.context.agent_address,
                 event=event,
                 mech_request=mech_request,
+                failed_mech=False,
                 tx_submitter=self.matching_round.auto_round_id(),
             )
 
@@ -861,7 +863,20 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         is_staking_kpi_met = self.synchronized_data.is_staking_kpi_met
-        extra_command = ENFORCE_ACTION_COMMAND if is_staking_kpi_met is False else ""
+        # Here we want to make sure that even if mech response is not deilvered we do not skip the tweet action
+
+        # we are providing context of the last prompt to the LLM so that it can use it to create a normal tweet
+
+        if self.synchronized_data.failed_mech:
+            last_prompt = yield from self._get_stored_kv_data("last_prompt", "")
+            ENFORCE_ACTION_COMMAND_FAILED_MECH = (
+                ENFORCE_ACTION_COMMAND_FAILED_MECH.format(last_prompt=last_prompt)
+            )
+            extra_command = ENFORCE_ACTION_COMMAND_FAILED_MECH
+        else:
+            extra_command = (
+                ENFORCE_ACTION_COMMAND if is_staking_kpi_met is False else ""
+            )
 
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,

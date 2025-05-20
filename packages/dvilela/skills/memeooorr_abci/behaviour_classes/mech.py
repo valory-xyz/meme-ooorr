@@ -481,6 +481,7 @@ class FailedMechResponseBehaviour(
             payload = MechPayload(
                 sender=sender,
                 mech_for_twitter=False,
+                failed_mech=True,
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
