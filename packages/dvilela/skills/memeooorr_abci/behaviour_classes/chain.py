@@ -530,7 +530,7 @@ class CheckFundsBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
 
     def async_act(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
-
+        check_funds_count = 0
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             event = yield from self.get_event()
 
@@ -547,8 +547,6 @@ class CheckFundsBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
                 )
 
                 yield from self.sleep(WAIT_TIME_DELAY)
-            else:
-                check_funds_count = 0
 
             payload = CheckFundsPayload(
                 sender=self.context.agent_address,
