@@ -68,7 +68,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LE
 
 WaitableConditionType = Generator[None, None, Optional[bool]]
 
-
+WAIT_TIME_DELAY = 20
 ETH_PRICE = 0
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -530,13 +530,28 @@ class CheckFundsBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
 
     def async_act(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
-
+        check_funds_count = 0
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             event = yield from self.get_event()
+
+            if event == Event.NO_FUNDS.value:
+                check_funds_count = cast(
+                    int, self.synchronized_data.check_funds_count + 1
+                )
+                self.context.logger.info(
+                    f"check_funds_count: {check_funds_count} , Event: {event}"
+                )
+                # we want to make the agent wait for 120 seconds before checking again
+                self.context.logger.info(
+                    f"Waiting for {WAIT_TIME_DELAY} seconds before checking again"
+                )
+
+                yield from self.sleep(WAIT_TIME_DELAY)
 
             payload = CheckFundsPayload(
                 sender=self.context.agent_address,
                 event=event,
+                check_funds_count=check_funds_count,
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
