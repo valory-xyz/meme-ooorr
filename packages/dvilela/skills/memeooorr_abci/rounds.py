@@ -67,7 +67,7 @@ class StakingState(Enum):
 
 
 # Constants
-MAX_CHECK_FUNDS_COUNT = 3
+MAX_CHECK_FUNDS_COUNT = 15
 
 
 class Event(Enum):
@@ -635,9 +635,9 @@ class CheckFundsRound(CollectSameUntilThresholdRound):
             if (
                 payload.check_funds_count >= MAX_CHECK_FUNDS_COUNT
                 and payload.event == Event.NO_FUNDS.value
-            ):  # here it means that the user has not added funds after 3 attempts (120 seconds * 3 = 360 seconds)
+            ):  # here it means that the user has not added funds after 15 attempts (20 seconds * 15 = 300 seconds)
                 self.context.logger.info(
-                    "check_funds_count >= 3 and event == Event.NO_FUNDS , skipping and moving to ResetRound"
+                    "check_funds_count >= 15 and event == Event.NO_FUNDS , skipping and moving to ResetRound"
                 )
                 return self.synchronized_data, Event.SKIP
 

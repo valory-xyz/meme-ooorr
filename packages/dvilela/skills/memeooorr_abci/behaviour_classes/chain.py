@@ -68,7 +68,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LE
 
 WaitableConditionType = Generator[None, None, Optional[bool]]
 
-WAIT_TIME_DELAY = 120
+WAIT_TIME_DELAY = 20
 ETH_PRICE = 0
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
