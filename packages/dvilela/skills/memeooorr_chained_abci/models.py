@@ -50,8 +50,8 @@ RandomnessApi = MemeooorrRandomnessApi
 MechResponseSpecs = BaseMechResponseSpecs
 
 MARGIN = 5
-MULTIPLIER = 100
-MULTIPLIER_2 = 50
+MULTIPLIER = 10
+MULTIPLIER_MECH = 50
 
 
 class SharedState(BaseSharedState):
@@ -84,7 +84,7 @@ class SharedState(BaseSharedState):
         MemeooorrChainedSkillAbciApp.event_to_timeout[
             MechInteractEvent.ROUND_TIMEOUT
         ] = (
-            self.context.params.round_timeout_seconds * MULTIPLIER_2
+            self.context.params.round_timeout_seconds * MULTIPLIER_MECH
         )  # need to introduce a parameter for this
 
 
