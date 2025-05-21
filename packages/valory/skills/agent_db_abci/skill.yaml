@@ -139,5 +139,8 @@ models:
   tendermint_dialogues:
     args: {}
     class_name: TendermintDialogues
+  agent_db:
+    args: {}
+    class_name: AgentDB
 dependencies: {}
 is_abstract: true

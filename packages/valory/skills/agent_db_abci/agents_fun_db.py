@@ -1,0 +1,280 @@
+
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2023-2024 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""This module contains classes to interact with Agents.Fun agent data on AgentDB."""
+
+from rich.align import Align
+from rich.console import Console
+from rich.table import Table
+from typing import Any, Dict, List
+from datetime import datetime, timedelta, timezone
+from packages.agents_fun_db.agent_db_client import AgentDBClient
+
+from packages.agents_fun_db.twitter_models import (
+    TwitterAction,
+    TwitterPost,
+    TwitterRewtweet,
+    TwitterFollow,
+    TwitterLike,
+)
+from packages.agents_fun_db.agent_db_client import AgentInstance
+
+
+MEMEOOORR = "memeooorr"
+
+
+class AgentsFunAgent:
+    """AgentsFunAgent"""
+
+    action_to_class: Dict[str, Any] = {
+        "post": TwitterPost,
+        "retweet": TwitterRewtweet,
+        "follow": TwitterFollow,
+        "like": TwitterLike,
+    }
+
+    def __init__(self, client: AgentDBClient, agent_instance: AgentInstance):
+        """Constructor"""
+        self.client = client
+        self.agent_instance = agent_instance
+        self.twitter_username: str = None
+        self.twitter_user_id: str = None
+        self.posts: List[TwitterPost] = []
+        self.likes: List[TwitterLike] = []
+        self.retweets: List[TwitterRewtweet] = []
+        self.follows: List[TwitterFollow] = []
+        self.loaded = False
+
+    @classmethod
+    def register(cls, agent_name: str, client: AgentDBClient):
+        """Register agent"""
+        agent_instance = client.create_agent_instance(
+            agent_name=agent_name,
+            agent_type=client.get_agent_type_by_type_name(MEMEOOORR),
+            eth_address=client.eth_address,
+        )
+
+        return cls(client, agent_instance)
+
+    def delete(self):
+        """Delete agent instance"""
+        self.client.delete_agent_instance(self.agent_instance)
+
+    def load(self):
+        """Load agent data"""
+        attributes = self.client.get_all_agent_instance_attributes_parsed(
+            self.agent_instance
+        )
+
+        interactions = []
+        for attr in attributes:
+            if attr["attr_name"] == "twitter_username":
+                self.twitter_username = attr["attr_value"]
+            elif attr["attr_name"] == "twitter_user_id":
+                self.twitter_user_id = attr["attr_value"]
+            elif attr["attr_name"] == "twitter_interactions":
+                action_class = self.action_to_class.get(
+                    attr["attr_value"]["action"], None
+                )
+                if not action_class:
+                    raise ValueError(
+                        f"Unknown Twitter action: {attr['attr_value']['action']}"
+                    )
+                interactions.append(
+                    action_class.from_nested_json(data=attr["attr_value"])
+                )
+
+        # Separate the interactions into different lists and sort by timestamp
+        interactions.sort(key=lambda x: x.timestamp)
+        self.posts = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterPost)
+        ]
+        self.retweets = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterRewtweet)
+        ]
+        self.likes = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterLike)
+        ]
+        self.follows = [
+            interaction
+            for interaction in interactions
+            if isinstance(interaction, TwitterFollow)
+        ]
+        self.loaded = True
+
+    def add_interaction(self, interaction: TwitterAction):
+        """Add interaction to agent"""
+
+        # Check if the interaction is valid
+        action_class = self.action_to_class.get(interaction.action, None)
+        if not action_class:
+            raise ValueError(f"Unknown Twitter action: {interaction.action}")
+
+        # Create attribute instance
+        attr_def = self.client.get_attribute_definition_by_name("twitter_interactions")
+        if not attr_def:
+            raise ValueError("Attribute definition not found")
+
+        # Create or update attribute instance
+        attr_instance = self.client.create_attribute_instance(
+            agent_instance=self.agent_instance,
+            attribute_def=attr_def,
+            value=interaction.to_json(),
+            value_type="json",
+        )
+        return attr_instance
+
+    def __str__(self) -> str:
+        if not self.loaded:
+            self.load()
+
+        title = f"@{self.twitter_username}"
+        table = Table(title=title, show_lines=True)
+        table.add_column("Type", style="cyan", no_wrap=True, justify="center")
+        table.add_column("Timestamp", style="magenta", justify="center")
+        table.add_column("Details", style="yellow", justify="center")
+
+        interactions = self.likes + self.retweets + self.posts + self.follows
+        interactions.sort(key=lambda x: x.timestamp)
+
+        for interaction in interactions:
+            table.add_row(
+                interaction.action,
+                interaction.timestamp.strftime("%Y-%m-%d %H:%M"),
+                interaction.model_dump_json(exclude={"action", "timestamp"}),
+            )
+
+        console = Console()
+        with console.capture() as capture:
+            console.print(Align.center(table))
+
+        return capture.get()
+
+
+class AgentsFunDatabase:
+    """AgentsFunDatabase"""
+
+    def __init__(self, client: AgentDBClient):
+        """Constructor"""
+        self.client = client
+        self.agent_type = client.get_agent_type_by_type_name(MEMEOOORR)
+        self.agents = []
+
+    def load(self):
+        """Load data"""
+        agent_instances = self.client.get_agent_instances_by_type_id(
+            self.agent_type.type_id
+        )
+        for agent_instance in agent_instances:
+            self.agents.append(AgentsFunAgent(self.client, agent_instance))
+            self.agents[-1].load()
+
+    def get_tweet_likes_number(self, tweet_id) -> int:
+        """Get all tweet likes"""
+        tweet_likes = 0
+        for agent in self.agents:
+            if not agent.loaded:
+                agent.load()
+            for like in agent.likes:
+                if like.tweet_id == tweet_id:
+                    tweet_likes += 1
+                    break
+        return tweet_likes
+
+    def get_tweet_retweets_number(self, tweet_id) -> int:
+        """Get all tweet retweets"""
+        tweet_retweets = 0
+        for agent in self.agents:
+            if not agent.loaded:
+                agent.load()
+            for retweet in agent.retweets:
+                if retweet.tweet_id == tweet_id:
+                    tweet_retweets += 1
+                    break
+        return tweet_retweets
+
+    def get_tweet_replies(self, tweet_id) -> List[TwitterPost]:
+        """Get all tweet replies"""
+        tweet_replies = []
+        for agent in self.agents:
+            if not agent.loaded:
+                agent.load()
+            for post in agent.posts:
+                if post.reply_to_tweet_id == tweet_id:
+                    tweet_replies.append(post)
+                    break
+        return tweet_replies
+
+    def get_tweet_feedback(self, tweet_id) -> Dict[str, Any]:
+        """Get all tweet feedback"""
+        tweet_feedback = {
+            "likes": self.get_tweet_likes_number(tweet_id),
+            "retweets": self.get_tweet_retweets_number(tweet_id),
+            "replies": self.get_tweet_replies(tweet_id),
+        }
+        return tweet_feedback
+
+    def get_active_agents(self) -> List[AgentsFunAgent]:
+        """Get all active agents"""
+        active_agents = []
+        for agent in self.agents:
+            if not agent.loaded:
+                agent.load()
+
+            # An agent is active if it has posted in the last 7 days
+            if not agent.posts:
+                continue
+
+            if agent.posts[-1].timestamp < datetime.now(timezone.utc) - timedelta(
+                days=7
+            ):
+                continue
+
+            active_agents.append(agent)
+        return active_agents
+
+    def __str__(self) -> str:
+        table = Table(title="Agents.fun agent_db", show_lines=True)
+        table.add_column("Agent ID", style="green", justify="center")
+        table.add_column("Twitter name", style="cyan", no_wrap=True, justify="center")
+        table.add_column("Twitter id", style="magenta", justify="center")
+        table.add_column("Agent address", style="yellow", justify="center")
+
+        for agent in self.agents:
+            if not agent.loaded:
+                agent.load()
+            table.add_row(
+                str(agent.agent_instance.agent_id),
+                agent.twitter_username,
+                agent.twitter_user_id,
+                str(agent.agent_instance.eth_address),
+            )
+
+        console = Console()
+        with console.capture() as capture:
+            console.print(Align.center(table))
+
+        return capture.get()
