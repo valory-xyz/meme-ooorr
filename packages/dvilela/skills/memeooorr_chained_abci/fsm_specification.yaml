@@ -158,7 +158,7 @@ transition_func:
     (RegistrationRound, DONE): LoadDatabaseRound
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): LoadDatabaseRound
-    (ResetAndPauseRound, DONE): PullMemesRound
+    (ResetAndPauseRound, DONE): CheckStakingRound
     (ResetAndPauseRound, NO_MAJORITY): ResetAndPauseRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): ResetAndPauseRound
     (ResetRound, DONE): RandomnessTransactionSubmissionRound

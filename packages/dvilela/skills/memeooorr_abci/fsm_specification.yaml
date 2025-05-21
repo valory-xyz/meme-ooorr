@@ -20,6 +20,7 @@ final_states:
 label: MemeooorrAbciApp
 start_states:
 - ActionPreparationRound
+- CheckStakingRound
 - FailedMechRequestRound
 - FailedMechResponseRound
 - LoadDatabaseRound
