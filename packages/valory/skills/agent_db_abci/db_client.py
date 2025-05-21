@@ -22,9 +22,9 @@
 
 from packages.valory.skills.agent_db_abci.db_models import AgentType, AgentInstance, AttributeDefinition, AttributeInstance
 from datetime import datetime, timezone
-from eth_account import Account
+import json
 from eth_account.messages import encode_defunct
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Callable
 
 
 # Docs at:
@@ -35,32 +35,44 @@ from typing import Any, List, Optional
 class AgentDBClient:
     """AgentDBClient"""
 
-    def __init__(self, base_url, private_key):
+    def __init__(self, base_url):
         """Constructor"""
-        self.base_url = base_url.rstrip("/")
-        self.agent = None
+        self.base_url: str = base_url.rstrip("/")
+        self.agent: AgentInstance = None
         self.agent_type = None
-        self.address = Account.from_key(private_key).address
-        self.private_key = private_key
+        self.address: str = None
+        self.signing_func: Callable = None
+        self.http_request_func: Callable = None
+
+    def set_external_funcs(self, address: str, http_request_func: Callable, signing_func: Callable):
+        """Inject external functions"""
+
+        self.address = address
+        self.http_request_func = http_request_func
+        self.signing_func = signing_func
 
     def _sign_request(self, endpoint):
         """Generate authentication"""
 
+        if self.signing_func is None:
+            raise ValueError("Signing function not set. Use set_external_funcs to set it.")
+
         if self.agent is None:
-            self.agent = self.get_agent_instance_by_address(self.address)
+            self.agent = yield from self.get_agent_instance_by_address(self.address)
             self.agent_type = (
                 self.get_agent_type_by_type_id(self.agent.type_id) if self.agent else None
             )
 
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
-        signed_message = Account.sign_message(
-            encode_defunct(text=message_to_sign), private_key=self.private_key
+
+        signature = yield from self.signing_func(
+            encode_defunct(text=message_to_sign)
         )
 
         auth_data = {
             "agent_id": self.agent.agent_id,
-            "signature": signed_message.signature.hex(),
+            "signature": signature.hex(),
             "message": message_to_sign,
         }
         return auth_data
@@ -69,6 +81,10 @@ class AgentDBClient:
         self, method, endpoint, payload=None, params=None, auth=False, nested_auth=True
     ):
         """Make the request"""
+
+        if self.http_request_func is None:
+            raise ValueError("HTTP request function not set. Use set_external_funcs to set it.")
+
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
         if auth:
@@ -77,9 +93,11 @@ class AgentDBClient:
                 payload["auth"] = self._sign_request(endpoint)
             else:
                 payload = payload | self._sign_request(endpoint)
-        response = requests.request(
-            method, url, headers=headers, json=payload, params=params
+
+        response = yield from self.http_request_func(
+            method=method, url=url, content=json.dumps(payload).encode(), headers=headers, parameters=params
         )
+
         if response.status_code in [200, 201]:
             return response.json()
         if response.status_code == 404:
@@ -92,25 +110,25 @@ class AgentDBClient:
         """Create agent type"""
         endpoint = "/api/agent-types/"
         payload = {"type_name": type_name, "description": description}
-        result = self._request("POST", endpoint, payload)
+        result = yield from self._request("POST", endpoint, payload)
         return AgentType.model_validate(result) if result else None
 
     def get_agent_type_by_type_id(self, type_id) -> Optional[AgentType]:
         """Get agent by type"""
         endpoint = f"/api/agent-types/{type_id}/"
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return AgentType.model_validate(result) if result else None
 
     def get_agent_type_by_type_name(self, type_name) -> Optional[AgentType]:
         """Get agent by type"""
         endpoint = f"/api/agent-types/name/{type_name}/"
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return AgentType.model_validate(result) if result else None
 
     def delete_agent_type(self, agent_type: AgentType):
         """Delete agent type"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/"
-        result = self._request("DELETE", endpoint, auth=True, nested_auth=True)
+        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=True)
         return AgentType.model_validate(result) if result else None
 
     # Agent Instance Methods
@@ -125,13 +143,13 @@ class AgentDBClient:
             "type_id": agent_type.type_id,
             "eth_address": eth_address,
         }
-        result = self._request("POST", endpoint, payload)
+        result = yield from self._request("POST", endpoint, payload)
         return AgentInstance.model_validate(result) if result else None
 
     def get_agent_instance_by_address(self, eth_address) -> Optional[AgentInstance]:
         """Get agent by Ethereum address"""
         endpoint = f"/api/agent-registry/address/{eth_address}"
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return AgentInstance.model_validate(result) if result else None
 
     def get_agent_instances_by_type_id(self, type_id) -> List[AgentInstance]:
@@ -141,7 +159,7 @@ class AgentDBClient:
             "skip": 0,
             "limit": 100,
         }
-        result = self._request(method="GET", endpoint=endpoint, params=params)
+        result = yield from self._request(method="GET", endpoint=endpoint, params=params)
         return (
             [AgentInstance.model_validate(agent) for agent in result] if result else []
         )
@@ -149,7 +167,7 @@ class AgentDBClient:
     def delete_agent_instance(self, agent_instance: AgentInstance):
         """Delete agent instance"""
         endpoint = f"/api/agent-registry/{agent_instance.agent_id}/"
-        result = self._request("DELETE", endpoint, auth=True, nested_auth=False)
+        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=False)
         return AgentInstance.model_validate(result) if result else None
 
     # Attribute Definition Methods
@@ -171,7 +189,7 @@ class AgentDBClient:
             "default_value": default_value,
             "is_required": is_required,
         }
-        result = self._request("POST", endpoint, {"attr_def": payload}, auth=True)
+        result = yield from self._request("POST", endpoint, {"attr_def": payload}, auth=True)
         return AttributeDefinition.model_validate(result) if result else None
 
     def get_attribute_definition_by_name(
@@ -179,7 +197,7 @@ class AgentDBClient:
     ) -> Optional[AttributeDefinition]:
         """Get attribute definition by name"""
         endpoint = f"/api/attributes/name/{attr_name}"
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return AttributeDefinition.model_validate(result) if result else None
 
     def get_attribute_definition_by_id(
@@ -187,13 +205,13 @@ class AgentDBClient:
     ) -> Optional[AttributeDefinition]:
         """Get attribute definition by id"""
         endpoint = f"/api/attributes/{attr_id}"
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return AttributeDefinition.model_validate(result) if result else None
 
     def get_attribute_definitions_by_agent_type(self, agent_type: AgentType):
         """Get attributes by agent type"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/attributes/"
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return (
             [AttributeDefinition.model_validate(attr) for attr in result]
             if result
@@ -203,7 +221,7 @@ class AgentDBClient:
     def delete_attribute_definition(self, attr_def: AttributeDefinition):
         """Delete attribute definition"""
         endpoint = f"/api/attributes/{attr_def.attr_def_id}/"
-        result = self._request("DELETE", endpoint, auth=True, nested_auth=True)
+        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=True)
         return AttributeDefinition.model_validate(result) if result else None
 
     # Attribute Instance Methods
@@ -222,7 +240,7 @@ class AgentDBClient:
             "attr_def_id": attribute_def.attr_def_id,
             f"{value_type}_value": value,
         }
-        result = self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
+        result = yield from self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
         return AttributeInstance.model_validate(result) if result else None
 
     def get_attribute_instance(
@@ -232,7 +250,7 @@ class AgentDBClient:
         endpoint = (
             f"/api/agents/{agent_instance.agent_id}/attributes/{attr_def.attr_def_id}/"
         )
-        result = self._request("GET", endpoint)
+        result = yield from self._request("GET", endpoint)
         return AttributeInstance.model_validate(result) if result else None
 
     def update_attribute_instance(
@@ -251,7 +269,7 @@ class AgentDBClient:
             "attr_def_id": attribute_def.attr_def_id,
             f"{value_type}_value": value,
         }
-        result = self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
+        result = yield from self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
         return AttributeInstance.model_validate(result) if result else None
 
     def delete_attribute_instance(
@@ -259,7 +277,7 @@ class AgentDBClient:
     ) -> Optional[AttributeInstance]:
         """Delete attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_instance.attribute_id}"
-        result = self._request("DELETE", endpoint, auth=True, nested_auth=True)
+        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=True)
         return AttributeInstance.model_validate(result) if result else None
 
     # Get all attributes of an agent instance
@@ -270,11 +288,12 @@ class AgentDBClient:
         payload = {
             "agent_id": agent_instance.agent_id,
         }
-        return self._request("GET", endpoint, {"agent_attr": payload}, auth=True)
+        result = yield from self._request("GET", endpoint, {"agent_attr": payload}, auth=True)
+        return result
 
     def parse_attribute_instance(self, attribute_instance: AttributeInstance):
         """Parse attribute instance"""
-        attribute_definition = self.get_attribute_definition_by_id(
+        attribute_definition = yield from self.get_attribute_definition_by_id(
             attribute_instance.attr_def_id
         )
         data_type = attribute_definition.data_type
@@ -301,7 +320,7 @@ class AgentDBClient:
 
     def get_all_agent_instance_attributes_parsed(self, agent_instance: AgentInstance):
         """Get all attributes of an agent by agent ID"""
-        attribute_instances = self.get_all_agent_instance_attributes_raw(agent_instance)
+        attribute_instances = yield from self.get_all_agent_instance_attributes_raw(agent_instance)
         parsed_attributes = [
             self.parse_attribute_instance(AttributeInstance(**attr))
             for attr in attribute_instances

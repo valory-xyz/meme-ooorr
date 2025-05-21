@@ -20,7 +20,7 @@
 """This package contains round behaviours of AgentDBAbciApp."""
 
 from abc import ABC
-from typing import Generator, Set, Type
+from typing import Set, Type, Any
 
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.agent_db_abci.rounds import (
     AgentDBAbciApp,
     AgentDBRound,
-    AgentDBPayload
 )
 
 class AgentDBBehaviour(BaseBehaviour, ABC):
@@ -39,19 +38,18 @@ class AgentDBBehaviour(BaseBehaviour, ABC):
 
     matching_round: Type[AbstractRound] = AgentDBRound
 
-    def async_act(self) -> Generator:
-        """Do the act, supporting asynchronous execution."""
+    def __init__(
+        self,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize the behaviour."""
+        super().__init__(**kwargs)
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            sender = self.context.agent_address
-            payload = AgentDBPayload(sender=sender, content="")
-
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
+        self.context.agent_db.set_external_funcs(
+            address=self.context.agent_address,
+            http_request_func=self.get_http_response,
+            signing_func=self.get_signature
+        )
 
 class AgentDBRoundBehaviour(AbstractRoundBehaviour):
     """AgentDBRoundBehaviour"""

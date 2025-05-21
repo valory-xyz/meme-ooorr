@@ -278,7 +278,6 @@ if __name__ == "__main__":
     # Initialize the client
     client = AgentDBClient(
         base_url=os.getenv("MIRROR_DB_BASE_URL"),
-        eth_address=os.getenv("AGENT_ADDRESS"),
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
 

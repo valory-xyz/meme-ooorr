@@ -65,21 +65,22 @@ class AgentsFunAgent:
     @classmethod
     def register(cls, agent_name: str, client: AgentDBClient):
         """Register agent"""
-        agent_instance = client.create_agent_instance(
+        agent_type = yield from client.get_agent_type_by_type_name(MEMEOOORR)
+        agent_instance = yield from client.create_agent_instance(
             agent_name=agent_name,
-            agent_type=client.get_agent_type_by_type_name(MEMEOOORR),
-            eth_address=client.eth_address,
+            agent_type=agent_type,
+            eth_address=client.address,
         )
 
         return cls(client, agent_instance)
 
     def delete(self):
         """Delete agent instance"""
-        self.client.delete_agent_instance(self.agent_instance)
+        yield from self.client.delete_agent_instance(self.agent_instance)
 
     def load(self):
         """Load agent data"""
-        attributes = self.client.get_all_agent_instance_attributes_parsed(
+        attributes = yield from self.client.get_all_agent_instance_attributes_parsed(
             self.agent_instance
         )
 
@@ -134,12 +135,12 @@ class AgentsFunAgent:
             raise ValueError(f"Unknown Twitter action: {interaction.action}")
 
         # Create attribute instance
-        attr_def = self.client.get_attribute_definition_by_name("twitter_interactions")
+        attr_def = yield from self.client.get_attribute_definition_by_name("twitter_interactions")
         if not attr_def:
             raise ValueError("Attribute definition not found")
 
         # Create or update attribute instance
-        attr_instance = self.client.create_attribute_instance(
+        attr_instance = yield from self.client.create_attribute_instance(
             agent_instance=self.agent_instance,
             attribute_def=attr_def,
             value=interaction.to_json(),
@@ -180,12 +181,12 @@ class AgentsFunDatabase:
     def __init__(self, client: AgentDBClient):
         """Constructor"""
         self.client = client
-        self.agent_type = client.get_agent_type_by_type_name(MEMEOOORR)
+        self.agent_type = yield from client.get_agent_type_by_type_name(MEMEOOORR)
         self.agents = []
 
     def load(self):
         """Load data"""
-        agent_instances = self.client.get_agent_instances_by_type_id(
+        agent_instances = yield from self.client.get_agent_instances_by_type_id(
             self.agent_type.type_id
         )
         for agent_instance in agent_instances:

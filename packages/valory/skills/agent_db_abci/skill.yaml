@@ -140,7 +140,8 @@ models:
     args: {}
     class_name: TendermintDialogues
   agent_db:
-    args: {}
+    args:
+      base_url: https://afmdb.autonolas.tech
     class_name: AgentDB
 dependencies: {}
 is_abstract: true
