@@ -781,6 +781,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
     initial_round_cls: AppState = LoadDatabaseRound
     initial_states: Set[AppState] = {
         LoadDatabaseRound,
+        CheckStakingRound,
         PullMemesRound,
         ActionPreparationRound,
         PostTxDecisionMakingRound,
@@ -898,6 +899,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
     cross_period_persisted_keys: FrozenSet[str] = frozenset(["persona"])
     db_pre_conditions: Dict[AppState, Set[str]] = {
         LoadDatabaseRound: set(),
+        CheckStakingRound: set(),
         PullMemesRound: set(),
         ActionPreparationRound: set(),
         PostTxDecisionMakingRound: set(),
