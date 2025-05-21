@@ -862,15 +862,15 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
                 f"Saving final consolidated MirrorDB config data: {config_data}"
             )
             write_success = yield from self.behaviour.write_kv(
-                {"mirrod_db_config": json.dumps(config_data)}
+                {"agents_db_config": json.dumps(config_data)}
             )
             if write_success:
                 self.context.logger.info(
-                    "Successfully wrote mirrod_db_config to KV store."
+                    "Successfully wrote agents_db_config to KV store."
                 )
             else:
                 self.context.logger.error(
-                    "Failed to write mirrod_db_config to KV store during registration."
+                    "Failed to write agents_db_config to KV store during registration."
                 )
 
             self.context.logger.info("MirrorDB registration/update process completed.")
@@ -930,7 +930,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
 
     def _ensure_mirror_db_config(self) -> Generator[None, None, Optional[str]]:
         """Reads MirrorDB config from KV, registers if missing, and returns raw config."""
-        key = "mirrod_db_config"
+        key = "agents_db_config"
         config_read = yield from self.behaviour.read_kv(keys=(key,))
         config_raw = config_read.get(key) if config_read else None
 
@@ -1004,7 +1004,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
         """Saves the updated config data to the KV store."""
         self.context.logger.info("Saving updated MirrorDB config to KV store...")
         success = yield from self.behaviour.write_kv(
-            {"mirrod_db_config": json.dumps(config_data)}
+            {"agents_db_config": json.dumps(config_data)}
         )
         if success:
             self.context.logger.info("Successfully saved updated config to KV store.")
@@ -1179,18 +1179,18 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
     def _get_interaction_attr_def_id(self) -> Generator[None, None, Optional[int]]:
         """Retrieve and validate the twitter_interactions_attr_def_id from KV store."""
         # Read the main MirrorDB config object first
-        kv_data_full = yield from self.behaviour.read_kv(keys=("mirrod_db_config",))
+        kv_data_full = yield from self.behaviour.read_kv(keys=("agents_db_config",))
 
-        if not kv_data_full or "mirrod_db_config" not in kv_data_full:
+        if not kv_data_full or "agents_db_config" not in kv_data_full:
             self.context.logger.error(
-                "Missing 'mirrod_db_config' in KV Store. Cannot retrieve interaction attr_def_id."
+                "Missing 'agents_db_config' in KV Store. Cannot retrieve interaction attr_def_id."
             )
             return None
 
-        mirrod_db_config_str = kv_data_full["mirrod_db_config"]
+        mirrod_db_config_str = kv_data_full["agents_db_config"]
         if not mirrod_db_config_str:
             self.context.logger.error(
-                "'mirrod_db_config' is empty in KV Store. Cannot retrieve interaction attr_def_id."
+                "'agents_db_config' is empty in KV Store. Cannot retrieve interaction attr_def_id."
             )
             return None
 
@@ -1198,7 +1198,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             config_dict = json.loads(mirrod_db_config_str)
         except json.JSONDecodeError:
             self.context.logger.error(
-                f"Failed to parse 'mirrod_db_config' JSON: {mirrod_db_config_str}. Cannot retrieve interaction attr_def_id."
+                f"Failed to parse 'agents_db_config' JSON: {mirrod_db_config_str}. Cannot retrieve interaction attr_def_id."
             )
             return None
 
@@ -1206,7 +1206,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
 
         if attr_def_id_str is None:
             self.context.logger.error(
-                "Missing 'twitter_interactions_attr_def_id' within 'mirrod_db_config' in KV Store. Cannot record interaction."
+                "Missing 'twitter_interactions_attr_def_id' within 'agents_db_config' in KV Store. Cannot record interaction."
             )
             return None
 
@@ -1345,7 +1345,7 @@ class MirrorDBHelper:  # pylint: disable=too-many-locals
             or my_agent_id_raw is None
         ):
             self.context.logger.error(
-                f"Missing required IDs in mirrod_db_config: "
+                f"Missing required IDs in agents_db_config: "
                 f"interactions={interactions_id_raw}, username={username_id_raw}, type={agent_type_id_raw}, agent_id={my_agent_id_raw}. "
                 f"Config: {config}"
             )
