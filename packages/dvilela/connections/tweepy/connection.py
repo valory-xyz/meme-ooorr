@@ -235,7 +235,7 @@ class TweepyConnection(BaseSyncConnection):
             return response
 
         except Exception as e:
-            return {"error": e}
+            return {"error": str(e)}
 
     def post(self, tweets: List[Dict]) -> List[Optional[str]]:
         """Post a tweet or a thread."""
