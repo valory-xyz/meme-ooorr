@@ -150,5 +150,7 @@ models:
   agents_fun_db:
     args: {}
     class_name: AgentsFunDatabase
-dependencies: {}
+dependencies:
+  pydantic:
+    version: ">=2.11.4"
 is_abstract: true

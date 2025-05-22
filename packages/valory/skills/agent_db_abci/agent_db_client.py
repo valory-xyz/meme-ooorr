@@ -23,7 +23,6 @@
 from packages.valory.skills.agent_db_abci.agent_db_models import AgentType, AgentInstance, AttributeDefinition, AttributeInstance
 from datetime import datetime, timezone
 import json
-from eth_account.messages import encode_defunct
 from typing import Any, List, Optional, Callable
 from aea.skills.base import Model
 
