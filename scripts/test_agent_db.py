@@ -20,6 +20,8 @@
 
 """Test the AgentDBClient class."""
 
+# pylint: disable=unused-variable,too-many-arguments,too-many-instance-attributes
+
 
 import json
 import os
@@ -117,7 +119,7 @@ class AgentDBClient:
 
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
-        signed_message = Account.sign_message(
+        signed_message = Account.sign_message(  # pylint: disable=no-value-for-parameter
             encode_defunct(text=message_to_sign), private_key=self.private_key
         )
 
@@ -948,13 +950,13 @@ def memeooorr_example(client: AgentDBClient):
 
 if __name__ == "__main__":
     # Initialize the client
-    client = AgentDBClient(
+    db_client = AgentDBClient(
         base_url=os.getenv("MIRROR_DB_BASE_URL"),
         eth_address=os.getenv("AGENT_ADDRESS"),
         private_key=os.getenv("AGENT_PRIVATE_KEY"),
     )
 
-    # reset_agents_fun_db(client)
-    # init_memeooorr_db(client)
-    # basic_example(client)
-    memeooorr_example(client)
+    # reset_agents_fun_db(db_client)
+    # init_memeooorr_db(db_client)
+    # basic_example(db_client)
+    memeooorr_example(db_client)

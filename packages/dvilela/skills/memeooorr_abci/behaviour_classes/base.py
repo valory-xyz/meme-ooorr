@@ -66,7 +66,6 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.srr.dialogues import SrrDialogue, SrrDialogues
 from packages.valory.protocols.srr.message import SrrMessage
-from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.models import Requests
 from packages.valory.skills.agent_db_abci.behaviours import AgentDBBehaviour
 
