@@ -1,21 +1,17 @@
 alphabet_in:
-- API_ERROR
 - DONE
 - NO_MAJORITY
-- RETRY
 - ROUND_TIMEOUT
-default_start_state: StreamReadRound
+default_start_state: AgentDBRound
 final_states:
 - FinishedReadingRound
 label: AgentDBAbciApp
 start_states:
-- StreamReadRound
+- AgentDBRound
 states:
+- AgentDBRound
 - FinishedReadingRound
-- StreamReadRound
 transition_func:
-    (StreamReadRound, API_ERROR): StreamReadRound
-    (StreamReadRound, DONE): FinishedReadingRound
-    (StreamReadRound, NO_MAJORITY): StreamReadRound
-    (StreamReadRound, RETRY): StreamReadRound
-    (StreamReadRound, ROUND_TIMEOUT): StreamReadRound
+    (AgentDBRound, DONE): FinishedReadingRound
+    (AgentDBRound, NO_MAJORITY): AgentDBRound
+    (AgentDBRound, ROUND_TIMEOUT): AgentDBRound
