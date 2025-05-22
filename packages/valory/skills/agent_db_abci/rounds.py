@@ -57,7 +57,8 @@ class AgentDBRound(CollectSameUntilThresholdRound):
     extended_requirements = ()
     payload_class = AgentDBPayload
 
-    ERROR_PAYLOAD = "ERROR_PAYLOAD"
+    # This needs to be mentioned for static checkers
+    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT
 
 
 class FinishedReadingRound(DegenerateRound):
