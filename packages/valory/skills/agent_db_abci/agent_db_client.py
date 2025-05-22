@@ -106,7 +106,7 @@ class AgentDBClient(Model):
         )
 
         if response.status_code in [200, 201]:
-            return response.json()
+            return json.loads(response.body)
         if response.status_code == 404:
             return None
         raise Exception(f"Request failed: {response.status_code} - {response.text}")
