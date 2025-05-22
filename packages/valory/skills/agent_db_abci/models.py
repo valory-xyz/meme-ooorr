@@ -19,10 +19,6 @@
 
 """This module contains the shared state for the abci skill of AgentDBAbciApp."""
 
-from typing import Any, Dict, Optional
-
-from aea.skills.base import SkillContext
-
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
@@ -32,8 +28,9 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.agent_db_abci.rounds import AgentDBAbciApp
-from packages.valory.skills.agent_db_abci.db_client import AgentDBClient as BaseAgentDB
+from packages.valory.skills.agent_db_abci.agent_db_client import AgentDBClient as BaseAgentDBClient
 from packages.valory.skills.agent_db_abci.agents_fun_db import AgentsFunDatabase as BaseAgentsFunDatabase
+
 
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
@@ -45,7 +42,7 @@ class Params(BaseParams):
     """Parameters."""
 
 
-AgentDB = BaseAgentDB
+AgentDBClient = BaseAgentDBClient
 AgentsFunDatabase = BaseAgentsFunDatabase
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

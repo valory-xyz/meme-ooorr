@@ -20,11 +20,12 @@
 
 """This module contains classes to interact with AgentDB."""
 
-from packages.valory.skills.agent_db_abci.db_models import AgentType, AgentInstance, AttributeDefinition, AttributeInstance
+from packages.valory.skills.agent_db_abci.agent_db_models import AgentType, AgentInstance, AttributeDefinition, AttributeInstance
 from datetime import datetime, timezone
 import json
 from eth_account.messages import encode_defunct
 from typing import Any, List, Optional, Callable
+from aea.skills.base import Model
 
 
 # Docs at:
@@ -32,11 +33,12 @@ from typing import Any, List, Optional, Callable
 # https://afmdb.autonolas.tech/docs#/default/read_attribute_definitions_by_type_api_agent_types__type_id__attributes__get
 
 
-class AgentDBClient:
+class AgentDBClient(Model):
     """AgentDBClient"""
 
-    def __init__(self, base_url):
+    def __init__(self, base_url, **kwargs: Any):
         """Constructor"""
+        super().__init__(**kwargs)
         self.base_url: str = base_url.rstrip("/")
         self.agent: AgentInstance = None
         self.agent_type = None

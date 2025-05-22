@@ -25,16 +25,16 @@ from rich.console import Console
 from rich.table import Table
 from typing import Any, Dict, List
 from datetime import datetime, timedelta, timezone
-from packages.agents_fun_db.agent_db_client import AgentDBClient
+from packages.valory.skills.agent_db_abci.agent_db_client import AgentDBClient, AgentInstance
 
-from packages.agents_fun_db.twitter_models import (
+from packages.valory.skills.agent_db_abci.twitter_models import (
     TwitterAction,
     TwitterPost,
     TwitterRewtweet,
     TwitterFollow,
     TwitterLike,
 )
-from packages.agents_fun_db.agent_db_client import AgentInstance
+from aea.skills.base import Model
 
 
 MEMEOOORR = "memeooorr"
@@ -175,11 +175,12 @@ class AgentsFunAgent:
         return capture.get()
 
 
-class AgentsFunDatabase:
+class AgentsFunDatabase(Model):
     """AgentsFunDatabase"""
 
-    def __init__(self):
+    def __init__(self, **kwargs: Any) -> None:
         """Constructor"""
+        super().__init__(**kwargs)
         self.client = None
         self.agent_type = None
         self.agents = []
