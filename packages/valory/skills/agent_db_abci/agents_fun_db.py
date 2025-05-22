@@ -20,9 +20,6 @@
 
 """This module contains classes to interact with Agents.Fun agent data on AgentDB."""
 
-from rich.align import Align
-from rich.console import Console
-from rich.table import Table
 from typing import Any, Dict, List
 from datetime import datetime, timedelta, timezone
 from packages.valory.skills.agent_db_abci.agent_db_client import AgentDBClient, AgentInstance
@@ -149,30 +146,8 @@ class AgentsFunAgent:
         return attr_instance
 
     def __str__(self) -> str:
-        if not self.loaded:
-            self.load()
-
-        title = f"@{self.twitter_username}"
-        table = Table(title=title, show_lines=True)
-        table.add_column("Type", style="cyan", no_wrap=True, justify="center")
-        table.add_column("Timestamp", style="magenta", justify="center")
-        table.add_column("Details", style="yellow", justify="center")
-
-        interactions = self.likes + self.retweets + self.posts + self.follows
-        interactions.sort(key=lambda x: x.timestamp)
-
-        for interaction in interactions:
-            table.add_row(
-                interaction.action,
-                interaction.timestamp.strftime("%Y-%m-%d %H:%M"),
-                interaction.model_dump_json(exclude={"action", "timestamp"}),
-            )
-
-        console = Console()
-        with console.capture() as capture:
-            console.print(Align.center(table))
-
-        return capture.get()
+        """String representation of the agent"""
+        return f"Agent id={self.agent_instance.agent_id}  loaded={self.loaded}  username=@{self.twitter_username}"
 
 
 class AgentsFunDatabase(Model):
@@ -200,14 +175,14 @@ class AgentsFunDatabase(Model):
         )
         for agent_instance in agent_instances:
             self.agents.append(AgentsFunAgent(self.client, agent_instance))
-            self.agents[-1].load()
+            yield from self.agents[-1].load()
 
     def get_tweet_likes_number(self, tweet_id) -> int:
         """Get all tweet likes"""
         tweet_likes = 0
         for agent in self.agents:
             if not agent.loaded:
-                agent.load()
+                yield from agent.load()
             for like in agent.likes:
                 if like.tweet_id == tweet_id:
                     tweet_likes += 1
@@ -219,7 +194,7 @@ class AgentsFunDatabase(Model):
         tweet_retweets = 0
         for agent in self.agents:
             if not agent.loaded:
-                agent.load()
+                yield from agent.load()
             for retweet in agent.retweets:
                 if retweet.tweet_id == tweet_id:
                     tweet_retweets += 1
@@ -231,7 +206,7 @@ class AgentsFunDatabase(Model):
         tweet_replies = []
         for agent in self.agents:
             if not agent.loaded:
-                agent.load()
+                yield from agent.load()
             for post in agent.posts:
                 if post.reply_to_tweet_id == tweet_id:
                     tweet_replies.append(post)
@@ -240,10 +215,14 @@ class AgentsFunDatabase(Model):
 
     def get_tweet_feedback(self, tweet_id) -> Dict[str, Any]:
         """Get all tweet feedback"""
+        likes = yield from self.get_tweet_likes_number(tweet_id)
+        retweets = yield from self.get_tweet_retweets_number(tweet_id)
+        replies = yield from self.get_tweet_replies(tweet_id)
+
         tweet_feedback = {
-            "likes": self.get_tweet_likes_number(tweet_id),
-            "retweets": self.get_tweet_retweets_number(tweet_id),
-            "replies": self.get_tweet_replies(tweet_id),
+            "likes": likes,
+            "retweets": retweets,
+            "replies": replies,
         }
         return tweet_feedback
 
@@ -252,7 +231,7 @@ class AgentsFunDatabase(Model):
         active_agents = []
         for agent in self.agents:
             if not agent.loaded:
-                agent.load()
+                yield from agent.load()
 
             # An agent is active if it has posted in the last 7 days
             if not agent.posts:
@@ -267,24 +246,5 @@ class AgentsFunDatabase(Model):
         return active_agents
 
     def __str__(self) -> str:
-        table = Table(title="Agents.fun agent_db", show_lines=True)
-        table.add_column("Agent ID", style="green", justify="center")
-        table.add_column("Twitter name", style="cyan", no_wrap=True, justify="center")
-        table.add_column("Twitter id", style="magenta", justify="center")
-        table.add_column("Agent address", style="yellow", justify="center")
-
-        for agent in self.agents:
-            if not agent.loaded:
-                agent.load()
-            table.add_row(
-                str(agent.agent_instance.agent_id),
-                agent.twitter_username,
-                agent.twitter_user_id,
-                str(agent.agent_instance.eth_address),
-            )
-
-        console = Console()
-        with console.capture() as capture:
-            console.print(Align.center(table))
-
-        return capture.get()
+        """String representation of the database"""
+        return f"AgentsFunDatabase with {len(self.agents)} agents"

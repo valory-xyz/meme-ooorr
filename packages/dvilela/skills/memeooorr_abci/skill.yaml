@@ -10,7 +10,7 @@ fingerprint:
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeihgtcwkq2yvpsf4p5sngfqy26lbvpxrh6dwjo7ldnlxvzvsbl6lyq
   behaviour_classes/chain.py: bafybeibaiaz5sysmrwg2vrpwpsnop2733wyerlm3ntgxcpchbsve2rbbmi
-  behaviour_classes/db.py: bafybeihuebpivrdat2gkak5iplufko4u77lppa6qs3k5qh3iqk3oputvau
+  behaviour_classes/db.py: bafybeid36af27ygmka4lyeoqywljiwbapduya6gn5ona5k3ldes5xyznse
   behaviour_classes/llm.py: bafybeia4psq37osbqrassjozya5xto2lpitnsymirbezqyzjy5wesadhgy
   behaviour_classes/mech.py: bafybeig5r6w7yjg26tj6m2khikqjtkcva6sojef6pdjrfnpmfwdqgfkavm
   behaviour_classes/twitter.py: bafybeid5zb5filbby2arjihc3a3iaiaykweavwla6ka2tauupbgfgtoi64
@@ -47,7 +47,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeihs2ktchplxdbq5tdlyrciwck726iolat4hslsnentbm5tlpo4iey
+- valory/agent_db_abci:0.1.0:bafybeifaacmnlcf37my2i4ihdxidvocgq5b4jewqs5frbos5sc7bivwczq
 behaviours:
   main:
     args: {}

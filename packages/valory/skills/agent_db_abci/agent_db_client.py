@@ -73,13 +73,13 @@ class AgentDBClient(Model):
         timestamp = int(datetime.now(timezone.utc).timestamp())
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
 
-        signature = yield from self.signing_func(
+        signature_hex = yield from self.signing_func(
             message_to_sign.encode("utf-8")
         )
 
         auth_data = {
             "agent_id": self.agent.agent_id,
-            "signature": signature.hex(),
+            "signature": signature_hex,
             "message": message_to_sign,
         }
         return auth_data
@@ -96,10 +96,11 @@ class AgentDBClient(Model):
         headers = {"Content-Type": "application/json"}
         if auth:
             payload = payload or {}
+            auth = yield from self._sign_request(endpoint)
             if nested_auth:
-                payload["auth"] = self._sign_request(endpoint)
+                payload["auth"] = auth
             else:
-                payload = payload | self._sign_request(endpoint)
+                payload = payload | auth
 
         response = yield from self.http_request_func(
             method=method, url=url, content=json.dumps(payload).encode(), headers=headers, parameters=params
@@ -107,8 +108,10 @@ class AgentDBClient(Model):
 
         if response.status_code in [200, 201]:
             return json.loads(response.body)
+
         if response.status_code == 404:
             return None
+
         raise Exception(f"Request failed: {response.status_code} - {response.text}")
 
     # Agent Type Methods
@@ -328,8 +331,8 @@ class AgentDBClient(Model):
     def get_all_agent_instance_attributes_parsed(self, agent_instance: AgentInstance):
         """Get all attributes of an agent by agent ID"""
         attribute_instances = yield from self.get_all_agent_instance_attributes_raw(agent_instance)
-        parsed_attributes = [
-            self.parse_attribute_instance(AttributeInstance(**attr))
-            for attr in attribute_instances
-        ]
+        parsed_attributes = []
+        for attr in attribute_instances:
+            result = yield from self.parse_attribute_instance(AttributeInstance(**attr))
+            parsed_attributes.append(result)
         return parsed_attributes
