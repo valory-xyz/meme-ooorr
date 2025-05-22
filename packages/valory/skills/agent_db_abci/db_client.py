@@ -44,12 +44,17 @@ class AgentDBClient:
         self.signing_func: Callable = None
         self.http_request_func: Callable = None
 
-    def set_external_funcs(self, address: str, http_request_func: Callable, signing_func: Callable):
+    def initialize(self, address: str, http_request_func: Callable, signing_func: Callable):
         """Inject external functions"""
 
-        self.address = address
-        self.http_request_func = http_request_func
-        self.signing_func = signing_func
+        if self.address is None:
+            self.address = address
+
+        if self.http_request_func is None:
+            self.http_request_func = http_request_func
+
+        if self.signing_func is None:
+            self.signing_func = signing_func
 
     def _sign_request(self, endpoint):
         """Generate authentication"""
@@ -67,7 +72,7 @@ class AgentDBClient:
         message_to_sign = f"timestamp:{timestamp},endpoint:{endpoint}"
 
         signature = yield from self.signing_func(
-            encode_defunct(text=message_to_sign)
+            message_to_sign.encode("utf-8")
         )
 
         auth_data = {

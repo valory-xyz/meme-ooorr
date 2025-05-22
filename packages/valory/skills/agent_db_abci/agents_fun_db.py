@@ -178,14 +178,22 @@ class AgentsFunAgent:
 class AgentsFunDatabase:
     """AgentsFunDatabase"""
 
-    def __init__(self, client: AgentDBClient):
+    def __init__(self):
         """Constructor"""
-        self.client = client
-        self.agent_type = yield from client.get_agent_type_by_type_name(MEMEOOORR)
+        self.client = None
+        self.agent_type = None
         self.agents = []
+
+    def initialize(self, client: AgentDBClient):
+        """Initialize agent"""
+        if self.client is None:
+            self.client = client
 
     def load(self):
         """Load data"""
+        if self.agent_type is None:
+            self.agent_type = yield from self.client.get_agent_type_by_type_name(MEMEOOORR)
+
         agent_instances = yield from self.client.get_agent_instances_by_type_id(
             self.agent_type.type_id
         )

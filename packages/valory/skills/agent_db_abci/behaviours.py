@@ -33,6 +33,7 @@ from packages.valory.skills.agent_db_abci.rounds import (
     AgentDBRound,
 )
 
+
 class AgentDBBehaviour(BaseBehaviour, ABC):
     """AgentDBBehaviour"""
 
@@ -45,11 +46,16 @@ class AgentDBBehaviour(BaseBehaviour, ABC):
         """Initialize the behaviour."""
         super().__init__(**kwargs)
 
-        self.context.agent_db.set_external_funcs(
+        self.context.agent_db_client.initialize(
             address=self.context.agent_address,
             http_request_func=self.get_http_response,
             signing_func=self.get_signature
         )
+
+        self.context.agents_fun_db.initialize(
+            client=self.context.agent_db_client,
+        )
+
 
 class AgentDBRoundBehaviour(AbstractRoundBehaviour):
     """AgentDBRoundBehaviour"""
