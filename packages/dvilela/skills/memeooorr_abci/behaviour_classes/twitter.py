@@ -51,7 +51,7 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.mech_interact_abci.states.base import MechMetadata
-
+from packages.valory.skills.agent_db_abci.twitter_models import TwitterPost
 
 MAX_TWEET_CHARS = 280
 JSON_RESPONSE_REGEXES = [r"json.?({.*})", r"json({.*})", r"\`\`\`json(.*)\`\`\`"]
@@ -215,209 +215,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             )
             return False
 
-    def _parse_mirrordb_tweet_details(
-        self, json_value: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
-        """Extracts and formats tweet details from MirrorDB json_value."""
-        if not (
-            isinstance(json_value, dict)
-            and json_value.get("action") == "post"
-            and isinstance(json_value.get("details"), dict)
-        ):
-            return None
-
-        details = json_value["details"]
-        timestamp_str = json_value.get("timestamp")
-        tweet_id = details.get("tweet_id")
-        text = details.get("text")
-
-        if not (tweet_id and text and timestamp_str):
-            return None
-
-        timestamp = self.parse_iso_timestamp(timestamp_str)
-        if timestamp is None:
-            # Logged in parse_iso_timestamp
-            return None
-
-        return {
-            "tweet_id": tweet_id,
-            "text": text,
-            "timestamp": timestamp,  # Store as timestamp float
-            "created_at": timestamp_str,  # Keep original string too
-        }
-
-    def _process_mirrordb_attributes(
-        self,
-        all_attributes: Optional[List[Dict]],
-        interactions_attr_def_id: int,
-        limit: int,
-        agent_id: int,  # Added for logging
-    ) -> Optional[List[Dict]]:
-        """Process attributes fetched from MirrorDB to extract posted tweets."""
-        if not all_attributes or not isinstance(all_attributes, list):
-            log_msg = (
-                f"No attributes found for agent {agent_id}."
-                if all_attributes is None
-                else f"Unexpected response type from MirrorDB: {type(all_attributes)}. Expected list."
-            )
-            self.context.logger.info(log_msg)
-            return None
-
-        self.context.logger.info(
-            f"Retrieved {len(all_attributes)} attributes from MirrorDB for agent {agent_id}."
-        )
-        posted_tweets = []
-        for attr in all_attributes:
-            if attr.get("attr_def_id") == interactions_attr_def_id:
-                json_value = attr.get("json_value")
-                # Ensure json_value is a dictionary before parsing
-                if isinstance(json_value, dict):
-                    tweet_details = self._parse_mirrordb_tweet_details(json_value)
-                    if tweet_details:
-                        posted_tweets.append(tweet_details)
-                else:
-                    self.context.logger.warning(
-                        f"Attribute {attr.get('attribute_id')} has missing or invalid json_value."
-                    )
-
-        if not posted_tweets:
-            self.context.logger.info(
-                f"No 'post' interaction attributes found for agent {agent_id} with attr_def_id {interactions_attr_def_id}."
-            )
-            return None
-
-        # Sort tweets by timestamp (most recent first)
-        posted_tweets.sort(key=lambda x: x["timestamp"], reverse=True)
-        self.context.logger.info(
-            f"Found {len(posted_tweets)} posted tweets in MirrorDB attributes. Returning latest {limit}."
-        )
-        return posted_tweets[:limit]
-
-    def _fetch_tweets_from_mirrordb(
-        self, limit: int
-    ) -> Generator[None, None, Optional[List[Dict]]]:
-        """Fetch latest tweets from MirrorDB."""
-        self.context.logger.info("Trying to get latest tweets from MirrorDB for agent")
-        mirror_db_config_data = (
-            yield from self.mirrordb_helper.mirror_db_registration_check()
-        )
-
-        if not mirror_db_config_data:
-            self.context.logger.warning("No MirrorDB config found.")
-            return None
-
-        agent_id = mirror_db_config_data.get("agent_id")
-        interactions_attr_def_id_raw = mirror_db_config_data.get(
-            "twitter_interactions_attr_def_id"
-        )
-
-        if not agent_id or not interactions_attr_def_id_raw:
-            self.context.logger.warning(
-                "MirrorDB config missing agent_id or twitter_interactions_attr_def_id."
-            )
-            return None
-
-        try:
-            interactions_attr_def_id = int(interactions_attr_def_id_raw)
-            endpoint = f"/api/agents/{agent_id}/attributes/"
-            self.context.logger.info(f"Calling MirrorDB endpoint: GET {endpoint}")
-
-            all_attributes = yield from self.mirrordb_helper.call_mirrordb(
-                http_method="GET",
-                endpoint=endpoint,
-            )
-
-            return self._process_mirrordb_attributes(
-                all_attributes, interactions_attr_def_id, limit, agent_id
-            )
-
-        except (ValueError, TypeError) as e:
-            self.context.logger.error(f"Error processing MirrorDB config ID: {e}")
-            return None
-        except Exception as e:  # pylint: disable=broad-except
-            self.context.logger.error(
-                f"Error getting or processing attributes from MirrorDB: {e}"
-            )
-            return None
-
-    def _fetch_tweets_from_kv(
-        self, limit: int
-    ) -> Generator[None, None, Optional[List[Dict]]]:
-        """Fetch latest tweets from the local KV store as a fallback."""
-        self.context.logger.info(
-            f"Getting latest {limit} tweets from local DB as fallback."
-        )
-        tweets = yield from self.get_tweets_from_db()
-
-        if not tweets:
-            self.context.logger.info("No tweets found in local KV store.")
-            return None
-
-        # Process timestamps if needed (assuming 'created_at' might be ISO string)
-        processed_tweets = []
-        for tweet in tweets:
-            # Ensure timestamp is float, parse if needed
-            if "timestamp" not in tweet or not isinstance(
-                tweet["timestamp"], (int, float)
-            ):
-                created_at = tweet.get("created_at")
-                if created_at and isinstance(created_at, str):
-                    timestamp = self.parse_iso_timestamp(created_at)
-                    if timestamp:
-                        tweet["timestamp"] = timestamp
-                    else:
-                        self.context.logger.warning(
-                            f"Could not parse 'created_at' for tweet {tweet.get('tweet_id')}, skipping timestamp update."
-                        )
-                else:
-                    self.context.logger.warning(
-                        f"Tweet {tweet.get('tweet_id')} missing valid 'timestamp' and 'created_at'."
-                    )
-            processed_tweets.append(tweet)
-
-        return processed_tweets[:limit]
-
-    def get_previous_tweets(  # pylint: disable=too-many-locals
-        self, limit: int = 5
-    ) -> Generator[None, None, Optional[List[Dict]]]:
-        """Get the latest tweets posted by the agent.
-
-        Tries to fetch interaction attributes from MirrorDB first.
-        Falls back to local KV store if MirrorDB fails or returns no results.
-
-        Args:
-            limit (int, optional): Maximum number of tweets to return. Defaults to 5.
-
-        Returns:
-            Generator yielding Optional[List[Dict]]: List of tweets or None
-        """
-        mirror_tweets = yield from self._fetch_tweets_from_mirrordb(limit)
-
-        if mirror_tweets is not None:
-            # MirrorDB succeeded, even if it returned an empty list []
-            return mirror_tweets
-
-        # Fallback to KV store if MirrorDB failed (returned None)
-        self.context.logger.info(
-            "Couldn't fetch tweets from MirrorDB. Falling back to local KV store."
-        )
-        kv_tweets = yield from self._fetch_tweets_from_kv(limit)
-
-        return kv_tweets
-
-
-def _format_previous_tweets_str(tweets: Optional[List[Dict]]) -> str:
-    """Format the list of previous tweets into a string for the prompt."""
-    if not tweets:
-        return "No previous tweets"
-
-    random.shuffle(tweets)
-    return "\n\n".join(
-        [
-            f"tweet_id: {tweet['tweet_id']}\ntweet_text: {tweet['text']}\ntime: {datetime.fromtimestamp(tweet['timestamp']).strftime('%Y-%m-%d %H:%M:%S')}"
-            for tweet in tweets
-        ]
-    )
+    def _format_previous_tweets_str(self, tweets: List[TwitterPost]) -> str:
+        """Format previous tweets as a string"""
+        return "\n".join([f"{post.text} ({post.timestamp})" for post in tweets])
 
 
 class CollectFeedbackBehaviour(
@@ -450,27 +250,15 @@ class CollectFeedbackBehaviour(
         self.context.logger.info(
             "Attempting to get replies to agent's tweets from MirrorDB."
         )
+        # fetch the last tweet posted by the agent using agents_db
+        last_tweet = self.context.agents_fun_db.agents[0].posts[-1]
+        self.context.logger.info(f"Last tweet : {last_tweet}")
+        tweet_id = last_tweet.tweet_id
+        # fetch feedback from agents_db
+        feedback = yield self.context.agents_fun_db.get_tweet_replies(tweet_id)
+        self.context.logger.info(f"Feedback: {feedback}")
 
-        all_replies = yield from self.get_replies_to_my_tweets_from_mirrordb(
-            limit=100, skip=0
-        )
-
-        if all_replies is None or not all_replies:
-            self.context.logger.info(
-                "Returning empty list as no replies are available or retrieved."
-            )
-            return []
-
-        self.context.logger.info(f"Retrieved {len(all_replies)} replies from MirrorDB.")
-
-        # Sort by 'reply_timestamp' in descending order (most recent first).
-        # Timestamps are ISO strings like "2024-01-15T12:30:45.123Z"
-        all_replies.sort(key=lambda r: r.get("reply_timestamp", ""), reverse=True)
-
-        # Keep only the most relevant (e.g., latest 10)
-        feedback_to_return = all_replies[:10]
-
-        return feedback_to_return
+        return feedback
 
 
 class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors
@@ -853,13 +641,16 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Get previous tweets
-        tweets = yield from self.get_previous_tweets()
+        tweets = self.context.agents_fun_db.get_my_agent_posts()
+
         tweets = tweets[-5:] if tweets else None
-        previous_tweets_str = _format_previous_tweets_str(tweets)
+        previous_tweets_str = self._format_previous_tweets_str(tweets)
         # Keep original list/dict structure for return value, if needed later
         previous_tweets_for_return = (
             tweets if isinstance(tweets, (list, dict)) else None
         )
+
+        self.context.logger.info(f"Previous tweets: {previous_tweets_str}")
 
         is_staking_kpi_met = self.synchronized_data.is_staking_kpi_met
         # Here we want to make sure that even if mech response is not deilvered we do not skip the tweet action
@@ -893,7 +684,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Save data for future mech responses
-        yield from self._save_standard_kv_data(tweets, pending_tweets)
+        yield from self._save_standard_kv_data(
+            previous_tweets_for_return, pending_tweets
+        )
 
         return prompt, previous_tweets_for_return
 
@@ -925,7 +718,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         previous_tweets = (
             previous_tweets_data if isinstance(previous_tweets_data, list) else None
         )
-        previous_tweets_str = _format_previous_tweets_str(previous_tweets)
+        previous_tweets_str = self._format_previous_tweets_str(previous_tweets)
 
         # Ensure other_tweets is str (formatted string)
         other_tweets_str = (
@@ -1438,7 +1231,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
     def get_agent_handles(self) -> Generator[None, None, List[str]]:
         """Get the agent handles"""
-        agent_handles = yield from self.mirrordb_helper.get_active_twitter_handles()
+        agent_handles = yield self.context.agents_fun_db.get_active_agents()
         if not agent_handles:
             self.context.logger.info(
                 "No memeooorr handles from MirrorDB , Now trying subgraph"

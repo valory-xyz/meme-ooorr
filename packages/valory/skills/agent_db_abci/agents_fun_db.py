@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -177,6 +176,13 @@ class AgentsFunDatabase(Model):
             self.agents.append(AgentsFunAgent(self.client, agent_instance))
             yield from self.agents[-1].load()
 
+    def get_my_agent_instance(self) -> AgentInstance:
+        """Get my agent instance"""
+        for agent in self.agents:
+            if agent.agent_instance.eth_address == self.client.address:
+                return agent.agent_instance
+        return None
+
     def get_tweet_likes_number(self, tweet_id) -> int:
         """Get all tweet likes"""
         tweet_likes = 0
@@ -244,6 +250,15 @@ class AgentsFunDatabase(Model):
 
             active_agents.append(agent)
         return active_agents
+
+    def get_my_agent_posts(self) -> List[TwitterPost]:
+        """Get all my agent posts"""
+        my_agent_address = self.get_my_agent_instance().eth_address
+
+        for agent in self.agents:
+            if agent.agent_instance.eth_address == my_agent_address:
+                return agent.posts
+        return []
 
     def __str__(self) -> str:
         """String representation of the database"""
