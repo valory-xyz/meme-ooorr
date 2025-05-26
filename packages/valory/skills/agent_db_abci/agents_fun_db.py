@@ -183,6 +183,13 @@ class AgentsFunDatabase(Model):
                 return agent.agent_instance
         return None
 
+    def get_my_agent(self) -> AgentsFunAgent:
+        """Get my agent"""
+        for agent in self.agents:
+            if agent.agent_instance.eth_address == self.client.address:
+                return agent
+        return None
+
     def get_tweet_likes_number(self, tweet_id) -> int:
         """Get all tweet likes"""
         tweet_likes = 0
@@ -230,6 +237,7 @@ class AgentsFunDatabase(Model):
             "retweets": retweets,
             "replies": replies,
         }
+
         return tweet_feedback
 
     def get_active_agents(self) -> List[AgentsFunAgent]:

@@ -23,7 +23,7 @@ import json
 import random
 import secrets
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union
 from uuid import uuid4
 
@@ -51,7 +51,14 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.mech_interact_abci.states.base import MechMetadata
-from packages.valory.skills.agent_db_abci.twitter_models import TwitterPost
+from packages.valory.skills.agent_db_abci.twitter_models import (
+    TwitterPost,
+    TwitterRewtweet,
+    TwitterLike,
+    TwitterFollow,
+    TwitterAction,
+)
+from packages.valory.skills.agent_db_abci.agents_fun_db import AgentsFunAgent
 
 MAX_TWEET_CHARS = 280
 JSON_RESPONSE_REGEXES = [r"json.?({.*})", r"json({.*})", r"\`\`\`json(.*)\`\`\`"]
@@ -79,46 +86,83 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
     matching_round: Type[AbstractRound] = None  # type: ignore
 
-    def store_tweet(
-        self, tweet: Union[dict, List[dict]]
+    def store_agent_action(self, action: TwitterAction):
+        """Store agent action"""
+        # get agent from db
+        my_agent = yield from self.context.agents_fun_db.get_my_agent()
+        if my_agent is None:
+            self.context.logger.error("No agent found in AgentsFunDB")
+            return
+        try:
+            import pdb
+
+            pdb.set_trace()
+            yield from my_agent.add_interaction(action)
+        except Exception as e:
+            self.context.logger.error(f"Error adding interaction: {e}")
+
+    def _write_tweet_to_kv_store(
+        self, tweet_data: Union[dict, List[dict]]
     ) -> Generator[None, None, bool]:
-        """Store tweet"""
+        """Store tweet data in the KV store under the 'tweets' key."""
         tweets = yield from self.get_tweets_from_db()
-        if isinstance(tweet, list):
-            tweets.extend(tweet)
+        if isinstance(tweet_data, list):
+            tweets.extend(tweet_data)
         else:
-            tweets.append(tweet)
+            tweets.append(tweet_data)
         yield from self._write_kv({"tweets": json.dumps(tweets)})
+        self.context.logger.info("Stored/Appended tweet data in KV store.")
         return True
 
     def post_tweet(
-        self, tweet: List[str], store: bool = True
+        self, tweet: Union[str, List[str]], store: bool = True
     ) -> Generator[None, None, Optional[Dict]]:
         """Post a tweet"""
         self.context.logger.info(f"Posting tweet: {tweet}")
 
+        # Determine text for tweepy and for DB logging
+        text_to_post = tweet[0] if isinstance(tweet, list) else tweet
+        tweets_for_api = [{"text": text_to_post}]  # Tweepy expects a list of dicts
+
         # Post the tweet
         tweet_ids = yield from self._call_tweepy(
             method="post",
-            tweets=[{"text": t} for t in tweet],
+            tweets=tweets_for_api,
         )
 
         if not tweet_ids:
             self.context.logger.error("Failed posting to Twitter.")
             return None
 
-        latest_tweet = {
-            "tweet_id": tweet_ids[0],
-            "text": tweet,
+        # Assuming only one tweet is posted at a time by this method based on tweet_ids[0]
+        posted_tweet_id = str(tweet_ids[0])
+
+        latest_tweet_data_for_kv = {
+            "tweet_id": posted_tweet_id,
+            "text": text_to_post,  # Store the actual text that was posted
             "timestamp": self.get_sync_timestamp(),
         }
 
-        # Write latest tweet to the database
         if store:
-            yield from self.store_tweet(latest_tweet)
-            self.context.logger.info("Wrote latest tweet to db")
+            # Write latest tweet to the KV store
+            yield from self._write_tweet_to_kv_store(latest_tweet_data_for_kv)
+            self.context.logger.info("Wrote latest tweet to KV db")
 
-        return latest_tweet
+            # Store in AgentsFunDB
+            try:
+                post_action = TwitterPost(
+                    tweet_id=posted_tweet_id,
+                    text=text_to_post,  # Use the actual text posted
+                    timestamp=datetime.now(timezone.utc),
+                )
+
+                yield from self.store_agent_action(post_action)
+            except Exception as e:
+                self.context.logger.error(
+                    f"Error creating/storing TwitterPost action: {e}"
+                )
+
+        return latest_tweet_data_for_kv  # Return the structured data
 
     def respond_tweet(
         self,
@@ -139,6 +183,22 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             method="post",
             tweets=[tweet],
         )
+        if tweet_ids:
+            # Store in AgentsFunDB
+            try:
+                post_action = TwitterPost(
+                    tweet_id=str(
+                        tweet_ids[0]
+                    ),  # Assuming tweepy returns the new tweet's ID
+                    text=text,
+                    reply_to_tweet_id=str(tweet_id) if not quote else None,
+                    timestamp=datetime.now(timezone.utc),
+                )
+                yield from self._store_agent_action_in_db(post_action)
+            except Exception as e:
+                self.context.logger.error(
+                    f"Error creating/storing TwitterPost (reply/quote) action: {e}"
+                )
         return tweet_ids is not None and tweet_ids
 
     def like_tweet(self, tweet_id: str) -> Generator[None, None, bool]:
@@ -160,6 +220,18 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                     f"Error liking tweet with ID {tweet_id}: {error_message}"
                 )
                 return False
+
+            if response["success"]:
+                # Store in AgentsFunDB
+                try:
+                    like_action = TwitterLike(
+                        tweet_id=str(tweet_id), timestamp=datetime.now(timezone.utc)
+                    )
+                    yield from self._store_agent_action_in_db(like_action)
+                except Exception as e:
+                    self.context.logger.error(
+                        f"Error creating/storing TwitterLike action: {e}"
+                    )
             return response["success"]
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(f"Exception liking tweet with ID {tweet_id}: {e}")
@@ -182,6 +254,18 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                     f"Error retweeting tweet with ID {tweet_id}: {error_message}"
                 )
                 return False
+
+            if response["success"]:
+                # Store in AgentsFunDB
+                try:
+                    retweet_action = TwitterRewtweet(
+                        tweet_id=str(tweet_id), timestamp=datetime.now(timezone.utc)
+                    )
+                    yield from self._store_agent_action_in_db(retweet_action)
+                except Exception as e:
+                    self.context.logger.error(
+                        f"Error creating/storing TwitterRetweet action: {e}"
+                    )
             return response["success"]
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
@@ -208,6 +292,37 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                     f"Error Following user with user_name {user_name}: {error_message}"
                 )
                 return False
+
+            # Store in AgentsFunDB
+            # Assuming response from _call_tweepy contains the followed user's ID
+            # For example: response.get("data", {}).get("id") or response.get("followed_user_id")
+            followed_user_id = response.get("data", {}).get(
+                "id"
+            )  # Placeholder for actual key
+
+            # The TwitterFollow model expects 'username', not 'followed_agent_id'
+            # We will use the 'user_name' parameter that was passed to this method.
+            if response["success"]:
+                try:
+                    follow_obj = TwitterFollow(
+                        username=user_name,  # Use the passed user_name
+                        timestamp=datetime.now(timezone.utc),
+                    )
+                    yield from self._store_agent_action_in_db(follow_obj)
+                    self.context.logger.info(
+                        f"Stored follow action for user {user_name} in AgentsFunDB."
+                    )
+                except Exception as e:
+                    self.context.logger.error(
+                        f"Failed to store follow action in AgentsFunDB for user {user_name}: {e}"
+                    )
+            # The old logging related to followed_user_id can be removed or adjusted if needed.
+            # For now, we focus on storing the action with username.
+            # if not followed_user_id:
+            #     self.context.logger.warning(
+            #         f"Could not extract followed user ID for {user_name} from tweepy response. "
+            #         f"Follow action was successful but AgentsFunDB storage might be incomplete regarding user ID."
+            #     )
             return response["success"]
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
@@ -250,7 +365,11 @@ class CollectFeedbackBehaviour(
 
             payload = CollectFeedbackPayload(
                 sender=self.context.agent_address,
-                feedback=json.dumps(feedback, sort_keys=True),
+                feedback=(
+                    json.dumps(feedback, sort_keys=True)
+                    if feedback is not None
+                    else json.dumps({"likes": 0, "retweets": 0, "replies": []})
+                ),
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
@@ -259,25 +378,111 @@ class CollectFeedbackBehaviour(
 
         self.set_done()
 
-    def get_feedback(self) -> Generator[None, None, Optional[List[Dict[str, Any]]]]:
+    def _twitter_post_to_dict(self, post: TwitterPost) -> Dict[str, Any]:
+        """Converts a TwitterPost object to a JSON-serializable dictionary."""
+        timestamp = getattr(post, "timestamp", None)
+        reply_to_tweet_id_val = getattr(post, "reply_to_tweet_id", None)
+
+        return {
+            "action": getattr(post, "action", None),
+            "timestamp": timestamp.isoformat() if timestamp else None,
+            "tweet_id": str(getattr(post, "tweet_id", None)),
+            "text": getattr(post, "text", None),
+            "reply_to_tweet_id": (
+                str(reply_to_tweet_id_val)
+                if reply_to_tweet_id_val is not None
+                else None
+            ),
+        }
+
+    def get_feedback(self) -> Generator[None, None, Optional[Dict[str, Any]]]:
         """Get the responses to our agent's tweets from MirrorDB."""
 
+        self.context.logger.info("Attempting to get feedback for agent's tweets.")
+
+        last_tweet = self._get_last_agent_tweet()
+        if last_tweet is None:
+            return {"likes": 0, "retweets": 0, "replies": []}
+        # tweet_id_to_query = str(last_tweet.tweet_id)
+        tweet_id_to_query = "1922648217251954876"
+        # The following line is commented out as it seems to be for testing with a hardcoded ID
         self.context.logger.info(
-            "Attempting to get replies to agent's tweets from MirrorDB."
+            f"Last tweet: {last_tweet}, Querying feedback for tweet_id: {tweet_id_to_query}"
         )
-        # fetch the last tweet posted by the agent using agents_db
-        last_tweet = self.context.agents_fun_db.agents[0].posts[-1]
-        self.context.logger.info(f"Last tweet : {last_tweet}")
-        tweet_id = "1922648217251954876"
-        # fetch feedback from agents_db
 
-        feedback = yield from self.context.agents_fun_db.get_tweet_feedback(tweet_id)
-        self.context.logger.info(f"Feedback: {feedback} for tweet_id: {tweet_id}")
+        feedback_from_db = yield from self.context.agents_fun_db.get_tweet_feedback(
+            tweet_id_to_query
+        )
 
-        replies = yield self.context.agents_fun_db.get_tweet_replies(tweet_id)
-        self.context.logger.info(f"Replies: {replies}")
+        if feedback_from_db is None:
+            self.context.logger.warning(
+                f"No feedback received from DB for tweet_id: {tweet_id_to_query}."
+            )
+            return {"likes": 0, "retweets": 0, "replies": []}
 
+        processed_replies = self._process_raw_replies(
+            feedback_from_db.get("replies", [])
+        )
+
+        feedback = {
+            "likes": feedback_from_db.get("likes", 0),
+            "retweets": feedback_from_db.get("retweets", 0),
+            "replies": processed_replies,
+        }
+        self.context.logger.info(
+            f"Processed feedback for tweet_id {tweet_id_to_query}: {feedback}"
+        )
         return feedback
+
+    def _get_last_agent_tweet(self) -> Optional[TwitterPost]:
+        """Fetch and validate the last tweet posted by the agent."""
+        if (
+            not self.context.agents_fun_db.agents
+            or not self.context.agents_fun_db.agents[0].posts
+        ):
+            self.context.logger.warning(
+                "No agents or no posts found for the primary agent."
+            )
+            return None
+
+        last_tweet = self.context.agents_fun_db.agents[0].posts[-1]
+
+        if (
+            not last_tweet
+            or not hasattr(last_tweet, "tweet_id")
+            or last_tweet.tweet_id is None
+        ):
+            self.context.logger.warning("Last tweet or its tweet_id is invalid.")
+            return None
+
+        return last_tweet
+
+    def _process_raw_replies(self, raw_replies_list: Any) -> List[Dict[str, Any]]:
+        """Process raw replies list from DB into a list of dictionaries."""
+        processed_replies: List[Dict[str, Any]] = []
+
+        if not isinstance(raw_replies_list, list):
+            self.context.logger.warning(
+                f"Replies in feedback_from_db is not a list: {type(raw_replies_list)}"
+            )
+            return processed_replies  # Return empty list
+
+        for post_item in raw_replies_list:
+            if isinstance(post_item, TwitterPost):
+                processed_replies.append(self._twitter_post_to_dict(post_item))
+            elif isinstance(post_item, dict):
+                # If it's already a dict, ensure timestamp is ISO format if it's a datetime object
+                if "timestamp" in post_item and isinstance(
+                    post_item["timestamp"], datetime
+                ):
+                    post_item["timestamp"] = post_item["timestamp"].isoformat()
+                processed_replies.append(post_item)
+            else:
+                self.context.logger.warning(
+                    f"Unexpected item type in replies list: {type(post_item)}"
+                )
+
+        return processed_replies
 
 
 class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors
@@ -729,6 +934,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 ENFORCE_ACTION_COMMAND if is_staking_kpi_met is False else ""
             )
             tools_info = (self.generate_mech_tool_info(),)  # type: ignore
+            tools_info = ""
 
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
@@ -1292,7 +1498,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             ]
         )
         self.context.logger.info(tools_info)
-        tools_info = ""
         return tools_info
 
     def get_agent_handles(self) -> Generator[None, None, List["AgentsFunAgent"]]:  # type: ignore
