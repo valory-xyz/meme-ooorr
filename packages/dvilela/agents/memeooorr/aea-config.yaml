@@ -265,6 +265,7 @@ config:
   tweepy_bearer_token: ${str:null}
   tweepy_access_token: ${str:null}
   tweepy_access_token_secret: ${str:null}
+  tweepy_skip_auth: ${bool:false}
 ---
 public_id: dvilela/mirror_db:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection

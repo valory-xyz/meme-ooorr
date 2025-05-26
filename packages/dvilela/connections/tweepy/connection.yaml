@@ -21,6 +21,7 @@ config:
   tweepy_bearer_token: null
   tweepy_access_token: null
   tweepy_access_token_secret: null
+  tweepy_skip_auth: false
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies:

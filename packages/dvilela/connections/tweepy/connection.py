@@ -113,14 +113,21 @@ class TweepyConnection(BaseSyncConnection):
         self.tweepy_access_token_secret: str = self.configuration.config.get(
             "tweepy_access_token_secret", ""
         )
-
-        self.twitter = Twitter(
-            self.tweepy_consumer_api_key,
-            self.tweepy_consumer_api_key_secret,
-            self.tweepy_access_token,
-            self.tweepy_access_token_secret,
-            self.tweepy_bearer_token,
+        self.tweepy_skip_auth: str = self.configuration.config.get(
+            "tweepy_skip_auth", False
         )
+
+        if self.tweepy_skip_auth:
+            self.twitter = None
+            self.logger.info("Tweepy is disabled. Set `tweepy_skip_auth` to False in the configuration to enable it.")
+        else:
+            self.twitter = Twitter(
+                self.tweepy_consumer_api_key,
+                self.tweepy_consumer_api_key_secret,
+                self.tweepy_access_token,
+                self.tweepy_access_token_secret,
+                self.tweepy_bearer_token,
+            )
 
         self.dialogues = SrrDialogues(connection_id=PUBLIC_ID)
 
@@ -223,6 +230,11 @@ class TweepyConnection(BaseSyncConnection):
         if method_name not in AVAILABLE_METHODS:
             return {
                 "error": f"Method {method_name} is not in the list of available methods {AVAILABLE_METHODS}"
+            }
+
+        if self.tweepy_skip_auth:
+            return {
+                "error": "Tweepy is disabled. Set `tweepy_skip_auth` to False in the configuration to enable it."
             }
 
         method = getattr(self, method_name)

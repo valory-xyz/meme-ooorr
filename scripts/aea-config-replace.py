@@ -53,6 +53,7 @@ PATH_TO_VAR = {
     "config/tweepy_bearer_token": "TWEEPY_BEARER_TOKEN",
     "config/tweepy_access_token": "TWEEPY_ACCESS_TOKEN",
     "config/tweepy_access_token_secret": "TWEEPY_ACCESS_TOKEN_SECRET",
+    "config/tweepy_skip_auth": "TWEEPY_SKIP_AUTH",
     # Genai connection
     "config/genai_api_key": "GENAI_API_KEY",
     # Store
