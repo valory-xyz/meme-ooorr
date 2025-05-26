@@ -215,9 +215,24 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             )
             return False
 
-    def _format_previous_tweets_str(self, tweets: List[TwitterPost]) -> str:
+    def _format_previous_tweets_str(
+        self, tweets: Optional[Union[List[TwitterPost], List[Dict[str, Any]]]]
+    ) -> str:
         """Format previous tweets as a string"""
-        return "\n".join([f"{post.text} ({post.timestamp})" for post in tweets])
+        if not tweets:
+            return ""
+
+        formatted_tweets: List[str] = []
+        for post in tweets:
+            if isinstance(post, TwitterPost):
+                text = getattr(post, "text", "")
+                timestamp = getattr(post, "timestamp", "")
+                formatted_tweets.append(f"{text} ({timestamp})")
+            elif isinstance(post, dict):
+                text = post.get("text", "")
+                timestamp = post.get("timestamp", "")
+                formatted_tweets.append(f"{text} ({timestamp})")
+        return "\\n".join(formatted_tweets)
 
 
 class CollectFeedbackBehaviour(
@@ -253,10 +268,14 @@ class CollectFeedbackBehaviour(
         # fetch the last tweet posted by the agent using agents_db
         last_tweet = self.context.agents_fun_db.agents[0].posts[-1]
         self.context.logger.info(f"Last tweet : {last_tweet}")
-        tweet_id = last_tweet.tweet_id
+        tweet_id = "1922648217251954876"
         # fetch feedback from agents_db
-        feedback = yield self.context.agents_fun_db.get_tweet_replies(tweet_id)
-        self.context.logger.info(f"Feedback: {feedback}")
+
+        feedback = yield from self.context.agents_fun_db.get_tweet_feedback(tweet_id)
+        self.context.logger.info(f"Feedback: {feedback} for tweet_id: {tweet_id}")
+
+        replies = yield self.context.agents_fun_db.get_tweet_replies(tweet_id)
+        self.context.logger.info(f"Replies: {replies}")
 
         return feedback
 
@@ -392,20 +411,24 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         Returns:
             Tuple[dict, list]: Pending tweets and interacted tweet IDs.
         """
-        # Get other memeooorr handles
-        agent_handles = yield from self.get_agent_handles()
-        self.context.logger.info(f"Not suspended users: {agent_handles}")
 
-        if not agent_handles:
-            self.context.logger.error("No valid Twitter handles")
+        self.context.logger.info("Entered Regular Engagement in EngageTwitterBehaviour")
+        # Get other memeooorr handles
+        active_agents = yield from self.get_agent_handles()
+        self.context.logger.info(
+            f"Found {len(active_agents) if active_agents else 0} active agents from agents_fun_db (or subgraph fallback)."
+        )
+
+        if not active_agents:
+            self.context.logger.error("No valid Twitter agent data found.")
             return {}, []
 
         # Load previously interacted tweets
         interacted_tweet_ids = yield from self._get_interacted_tweet_ids()
 
-        # Get latest tweets from each agent - CHANGE HERE: convert list to set
+        # Get latest tweets from each agent
         pending_tweets = yield from self._collect_pending_tweets(
-            agent_handles, set(interacted_tweet_ids)
+            active_agents, set(interacted_tweet_ids)
         )
 
         # Store data for mech processing
@@ -424,37 +447,57 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         return json.loads(db_data["interacted_tweet_ids"] or "[]")
 
     def _collect_pending_tweets(
-        self, agent_handles: list[str], interacted_tweet_ids: set[int]
+        self, active_agents: List["AgentsFunAgent"], interacted_tweet_ids: set[int]  # type: ignore
     ) -> Generator[None, None, dict]:
-        """Collect pending tweets from agent handles that haven't been interacted with."""
-        pending_tweets: Dict = {}
+        """Collect pending tweets from active agents that haven't been interacted with."""
+        pending_tweets: Dict[str, Dict[str, str]] = {}
 
-        for agent_handle in agent_handles:
-            # latest_tweets = None  # TODO: get from agent_db
+        self.context.logger.info("Collecting pending tweets from active agents")
 
-            latest_tweets = yield from self.fetch_latest_tweets_from_mirror_db(
-                agent_handle, 1
-            )
+        if not active_agents:
+            self.context.logger.info("No active agents to collect tweets from.")
+            return pending_tweets
 
-            if not latest_tweets:
-                self.context.logger.info(f"Couldn't get any tweets from {agent_handle}")
-                continue
-
-            tweet_data = latest_tweets[0]
-
-            tweet_id = tweet_data["tweet_id"]
-            # Skip previously interacted tweets
-            if int(tweet_id) in interacted_tweet_ids:
+        for agent in active_agents:
+            if not agent.loaded:
+                # Ensure agent data, including posts, is loaded.
+                # The load method in AgentsFunAgent is a generator, so we yield from it.
                 self.context.logger.info(
-                    f"Tweet {tweet_id} was already interacted with"
+                    f"Loading data for agent {agent.agent_instance.agent_id} (@{agent.twitter_username or 'Unknown'})."
+                )
+                yield from agent.load()  # Assuming agent.load() is a generator function
+
+            if not agent.posts:
+                self.context.logger.info(
+                    f"No posts found for agent @{agent.twitter_username or 'Unknown'}."
                 )
                 continue
 
-            pending_tweets[tweet_id] = {
-                "text": tweet_data["text"],
-                "user_name": tweet_data["user_name"],
-            }
+            # Assuming agent.posts is sorted with the latest post last
+            latest_post = agent.posts[-1]
+            tweet_id_str = str(latest_post.tweet_id)
+            tweet_id_int = latest_post.tweet_id  # Keep as int for set comparison
 
+            # Skip previously interacted tweets
+            if tweet_id_int in interacted_tweet_ids:
+                self.context.logger.info(
+                    f"Tweet {tweet_id_str} from @{agent.twitter_username} was already interacted with"
+                )
+                continue
+
+            if not agent.twitter_username:
+                self.context.logger.warning(
+                    f"Agent {agent.agent_instance.agent_id} has a post but no twitter_username. Skipping tweet {tweet_id_str}."
+                )
+                continue
+
+            pending_tweets[tweet_id_str] = {
+                "text": latest_post.text,
+                "user_name": agent.twitter_username,
+            }
+            self.context.logger.info(
+                f"Collected pending tweet {tweet_id_str} from @{agent.twitter_username}"
+            )
         return pending_tweets
 
     def _store_engagement_data(
@@ -645,10 +688,24 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         tweets = tweets[-5:] if tweets else None
         previous_tweets_str = self._format_previous_tweets_str(tweets)
-        # Keep original list/dict structure for return value, if needed later
-        previous_tweets_for_return = (
-            tweets if isinstance(tweets, (list, dict)) else None
-        )
+
+        # Convert TwitterPost objects to dictionaries for storage and return
+        previous_tweets_for_return: Optional[List[Dict[str, Any]]] = None
+        if tweets:
+            if isinstance(tweets[0], TwitterPost):
+                previous_tweets_for_return = [
+                    {
+                        "tweet_id": post.tweet_id,
+                        "text": post.text,
+                        "timestamp": (
+                            post.timestamp.isoformat() if post.timestamp else None
+                        ),
+                    }
+                    for post in tweets
+                ]
+            elif isinstance(tweets[0], dict):  # Already a list of dicts
+                previous_tweets_for_return = tweets
+            # else: handle other unexpected types or log error
 
         self.context.logger.info(f"Previous tweets: {previous_tweets_str}")
 
@@ -691,13 +748,21 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         return prompt, previous_tweets_for_return
 
     def _save_standard_kv_data(
-        self, tweets: Optional[List[Dict]], pending_tweets: dict
+        self, tweets: Optional[List[Dict[str, Any]]], pending_tweets: dict
     ) -> Generator[None, None, None]:
         """Save data to KV store for potential future mech responses."""
         self.context.logger.info(
             "Saving standard prompt data (previous tweets, pending tweets) to KV store for potential future mech use"
         )
-        yield from self._write_kv({"previous_tweets_for_tw_mech": json.dumps(tweets)})
+
+        # Ensure tweets are JSON serializable dictionaries before writing to KV
+        # The `tweets` variable should already be List[Dict] due to prior conversion
+        # in _prepare_standard_prompt_data
+        serializable_tweets = tweets if tweets is not None else []
+
+        yield from self._write_kv(
+            {"previous_tweets_for_tw_mech": json.dumps(serializable_tweets)}
+        )
         yield from self._write_kv(
             {"other_tweets_for_tw_mech": json.dumps(pending_tweets)}
         )
@@ -1129,7 +1194,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, None]:
         """Handle creating a new tweet."""
         # Format the previous tweets list into a string for the prompt
-        previous_tweets_str = _format_previous_tweets_str(previous_tweets)
+        previous_tweets_str = self._format_previous_tweets_str(previous_tweets)
 
         # Optionally, replace the tweet with one generated by the alternative model
         new_text = yield from self.replace_tweet_with_alternative_model(
@@ -1227,19 +1292,22 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             ]
         )
         self.context.logger.info(tools_info)
+        tools_info = ""
         return tools_info
 
-    def get_agent_handles(self) -> Generator[None, None, List[str]]:
-        """Get the agent handles"""
-        agent_handles = yield self.context.agents_fun_db.get_active_agents()
-        if not agent_handles:
+    def get_agent_handles(self) -> Generator[None, None, List["AgentsFunAgent"]]:  # type: ignore
+        """Get the agent handles from agents_fun_db."""
+        # Forward type reference for AgentsFunAgent
+        active_agents = yield self.context.agents_fun_db.get_active_agents()
+        if not active_agents:
             self.context.logger.info(
-                "No memeooorr handles from MirrorDB , Now trying subgraph"
+                "No active memeooorr handles from agents_fun_db Now trying subgraph."
             )
-            agent_handles = yield from self.get_memeooorr_handles_from_subgraph()
+            # fallback to subgraph
+            active_agents = yield from self.get_memeooorr_handles_from_subgraph()
 
-        # TODO: filter out suspended accounts
-        return agent_handles
+        # TODO: filter out suspended accounts (if AgentsFunAgent has a status field)
+        return active_agents
 
 
 class ActionTweetBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors
