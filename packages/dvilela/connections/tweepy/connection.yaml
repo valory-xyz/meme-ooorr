@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeicrwqrdownfmeyvvzu45fllxouiwvtynrzs5fhbpt3wndyyhn66eu
-  connection.py: bafybeieqcatz4rpyd3jhai57uwomegcfvwuqaq5eo65mc6uorledt54kxu
+  connection.py: bafybeihmllm7zccvmxlkpathrom5gpb53abgn5ixunwa3rovxtshc43b3a
   readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
   tweepy_wrapper.py: bafybeidl2ek3mtd3ueuxuxs7gmkgqtfk54g6y2v6ie5azqo6mkm6xxaf5m
 fingerprint_ignore_patterns: []
@@ -21,6 +21,7 @@ config:
   tweepy_bearer_token: null
   tweepy_access_token: null
   tweepy_access_token_secret: null
+  tweepy_skip_auth: false
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies:

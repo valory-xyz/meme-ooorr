@@ -113,14 +113,23 @@ class TweepyConnection(BaseSyncConnection):
         self.tweepy_access_token_secret: str = self.configuration.config.get(
             "tweepy_access_token_secret", ""
         )
-
-        self.twitter = Twitter(
-            self.tweepy_consumer_api_key,
-            self.tweepy_consumer_api_key_secret,
-            self.tweepy_access_token,
-            self.tweepy_access_token_secret,
-            self.tweepy_bearer_token,
+        self.tweepy_skip_auth: str = self.configuration.config.get(
+            "tweepy_skip_auth", False
         )
+
+        if self.tweepy_skip_auth:
+            self.twitter = None
+            self.logger.info(
+                "Tweepy is disabled. Set `tweepy_skip_auth` to False in the configuration to enable it."
+            )
+        else:
+            self.twitter = Twitter(
+                self.tweepy_consumer_api_key,
+                self.tweepy_consumer_api_key_secret,
+                self.tweepy_access_token,
+                self.tweepy_access_token_secret,
+                self.tweepy_bearer_token,
+            )
 
         self.dialogues = SrrDialogues(connection_id=PUBLIC_ID)
 
@@ -225,6 +234,11 @@ class TweepyConnection(BaseSyncConnection):
                 "error": f"Method {method_name} is not in the list of available methods {AVAILABLE_METHODS}"
             }
 
+        if self.tweepy_skip_auth:
+            return {
+                "error": "Tweepy is disabled. Set `tweepy_skip_auth` to False in the configuration to enable it."
+            }
+
         method = getattr(self, method_name)
 
         self.logger.info(f"Calling Tweepy: {payload}")
@@ -247,7 +261,7 @@ class TweepyConnection(BaseSyncConnection):
             if not is_first_tweet:
                 tweet_kwargs["reply_to"] = tweet_ids[-1]
 
-            tweet_id = self.twitter.post_tweet(
+            tweet_id = self.twitter.post_tweet(  # type: ignore
                 text=tweet_kwargs["text"],
                 image_paths=tweet_kwargs.get("image_paths", None),
                 in_reply_to_tweet_id=tweet_kwargs.get("reply_to", None),
@@ -278,7 +292,7 @@ class TweepyConnection(BaseSyncConnection):
         retries = 0
         while retries < MAX_POST_RETRIES:
             self.logger.info(f"Deleting tweet {tweet_id}")
-            success = self.twitter.delete_tweet(tweet_id)
+            success = self.twitter.delete_tweet(tweet_id)  # type: ignore
             if success:
                 break
             else:
@@ -288,39 +302,39 @@ class TweepyConnection(BaseSyncConnection):
 
     def like_tweet(self, tweet_id: str) -> Dict:
         """Like a tweet"""
-        success = self.twitter.like_tweet(tweet_id)
+        success = self.twitter.like_tweet(tweet_id)  # type: ignore
         return {"success": success}
 
     def unlike_tweet(self, tweet_id: str) -> Dict:
         """Unlike a tweet"""
-        success = self.twitter.unlike_tweet(tweet_id)
+        success = self.twitter.unlike_tweet(tweet_id)  # type: ignore
         return {"success": success}
 
     def retweet(self, tweet_id: str) -> Dict:
         """Retweet a tweet"""
-        success = self.twitter.retweet(tweet_id)
+        success = self.twitter.retweet(tweet_id)  # type: ignore
         return {"success": success}
 
     def unretweet(self, tweet_id: str) -> Dict:
         """Unretweet a tweet"""
-        success = self.twitter.unretweet(tweet_id)
+        success = self.twitter.unretweet(tweet_id)  # type: ignore
         return {"success": success}
 
     def follow_by_id(self, user_id: str) -> Dict:
         """Follow a user"""
-        success = self.twitter.follow_by_id(user_id)
+        success = self.twitter.follow_by_id(user_id)  # type: ignore
         return {"success": success}
 
     def follow_by_username(self, username: str) -> Dict:
         """Follow a user"""
-        success = self.twitter.follow_by_username(username)
+        success = self.twitter.follow_by_username(username)  # type: ignore
         return {"success": success}
 
     def unfollow_by_id(self, user_id: str) -> Dict:
         """Unfollow a user"""
-        success = self.twitter.unfollow_by_id(user_id)
+        success = self.twitter.unfollow_by_id(user_id)  # type: ignore
         return {"success": success}
 
     def get_me(self) -> Optional[Dict]:
         """Get own user information"""
-        return self.twitter.get_me()
+        return self.twitter.get_me()  # type: ignore
