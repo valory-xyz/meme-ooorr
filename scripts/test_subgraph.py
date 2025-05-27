@@ -163,12 +163,12 @@ def get_packages(package_type: str):
     return response_json
 
 
-def get_memeooorr_handles_from_subgraph():
-    """Get Memeooorr service handles"""
-    handles = []
+def get_memeooorrs_from_subgraph():
+    """Get Memeooorr services"""
+    memeooorrs = {}
     services = get_packages("service")
     if not services:
-        return handles
+        return {}
 
     for service in services["units"]:
         match = re.match(MEMEOOORR_DESCRIPTION_PATTERN, service["description"])
@@ -177,8 +177,8 @@ def get_memeooorr_handles_from_subgraph():
             continue
 
         handle = match.group(1)
-        handles.append(handle)
-    return handles
+        memeooorrs[service["tokenId"]] = handle
+    return memeooorrs
 
 
 def introspect_subgraph():
