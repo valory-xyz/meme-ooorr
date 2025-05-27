@@ -44,18 +44,14 @@ class AgentDBClient(Model):
         self.address: str = None
         self.signing_func: Callable = None
         self.http_request_func: Callable = None
+        self.logger: Callable = None
 
-    def initialize(self, address: str, http_request_func: Callable, signing_func: Callable):
+    def initialize(self, address: str, http_request_func: Callable, signing_func: Callable, logger: Callable):
         """Inject external functions"""
-
-        if self.address is None:
-            self.address = address
-
-        if self.http_request_func is None:
-            self.http_request_func = http_request_func
-
-        if self.signing_func is None:
-            self.signing_func = signing_func
+        self.address = address
+        self.http_request_func = http_request_func
+        self.signing_func = signing_func
+        self.logger = logger
 
     def _sign_request(self, endpoint):
         """Generate authentication"""
@@ -101,9 +97,15 @@ class AgentDBClient(Model):
             else:
                 payload = payload | auth
 
+        self.logger.info(f"Making {method} request to {url} with payload: {payload} and params: {params}")
+
+        content = json.dumps(payload).encode() if payload else None
+
         response = yield from self.http_request_func(
-            method=method, url=url, content=json.dumps(payload).encode(), headers=headers, parameters=params
+            method=method, url=url, content=content, headers=headers, parameters=params
         )
+
+        self.logger.info(f"Response status: {response.status_code}")
 
         if response.status_code in [200, 201]:
             return json.loads(response.body)

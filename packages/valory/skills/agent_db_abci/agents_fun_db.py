@@ -157,11 +157,12 @@ class AgentsFunDatabase(Model):
         self.client = None
         self.agent_type = None
         self.agents = []
+        self.logger = None
 
     def initialize(self, client: AgentDBClient):
         """Initialize agent"""
-        if self.client is None:
-            self.client = client
+        self.client = client
+        self.logger = self.client.logger
 
     def load(self):
         """Load data"""
