@@ -157,6 +157,7 @@ class AgentsFunDatabase(Model):
         self.client = None
         self.agent_type = None
         self.agents = []
+        self.my_agent = None
         self.logger = None
 
     def initialize(self, client: AgentDBClient):
@@ -175,20 +176,8 @@ class AgentsFunDatabase(Model):
         for agent_instance in agent_instances:
             self.agents.append(AgentsFunAgent(self.client, agent_instance))
             yield from self.agents[-1].load()
-
-    def get_my_agent_instance(self) -> AgentInstance:
-        """Get my agent instance"""
-        for agent in self.agents:
-            if agent.agent_instance.eth_address == self.client.address:
-                return agent.agent_instance
-        return None
-
-    def get_my_agent(self) -> AgentsFunAgent:
-        """Get my agent"""
-        for agent in self.agents:
-            if agent.agent_instance.eth_address == self.client.address:
-                return agent
-        return None
+            if self.agents[-1].agent_instance.eth_address == self.client.address:
+                self.my_agent = self.agents[-1]
 
     def get_tweet_likes_number(self, tweet_id) -> int:
         """Get all tweet likes"""
