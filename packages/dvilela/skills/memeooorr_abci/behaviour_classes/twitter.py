@@ -152,10 +152,8 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                     text=text_to_post,  # Use the actual text posted
                     timestamp=datetime.now(timezone.utc),
                 )
-
-                # @DV here it is getting stuck
+                # @DV here is the problem this here we are trying to store the action in the db
                 yield from self._store_agent_action_in_db(post_action)
-
             except Exception as e:
                 self.context.logger.error(
                     f"Error creating/storing TwitterPost action: {e}"
@@ -378,6 +376,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         self, agent: AgentsFunAgent, action: TwitterAction
     ) -> Generator[None, None, None]:
         """Perform the add_interaction call and log the result."""
+
         # @DV here it is getting stuck this is the last log observed
         self.context.logger.info(
             f"Storing action '{action.action}' for agent {agent.agent_instance.agent_id} (@{agent.twitter_username or 'Unknown'}) in AgentsFunDB."
@@ -385,7 +384,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         try:
             # The add_interaction method in AgentsFunAgent is a generator
             # and handles the API call to store the interaction.
-            attr_instance = yield from self.context.client.agent.add_interaction(action)
+            attr_instance = yield from agent.add_interaction(action)
             if attr_instance:
                 self.context.logger.info(
                     f"Successfully stored action '{action.action}'. Attribute instance ID: {getattr(attr_instance, 'attribute_id', 'N/A')}"
