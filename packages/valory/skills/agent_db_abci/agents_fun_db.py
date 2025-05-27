@@ -249,15 +249,6 @@ class AgentsFunDatabase(Model):
             active_agents.append(agent.twitter_username)
         return active_agents
 
-    def get_my_agent_posts(self) -> List[TwitterPost]:
-        """Get all my agent posts"""
-        my_agent_address = self.get_my_agent_instance().eth_address
-
-        for agent in self.agents:
-            if agent.agent_instance.eth_address == my_agent_address:
-                return agent.posts
-        return []
-
     def __str__(self) -> str:
         """String representation of the database"""
         return f"AgentsFunDatabase with {len(self.agents)} agents"

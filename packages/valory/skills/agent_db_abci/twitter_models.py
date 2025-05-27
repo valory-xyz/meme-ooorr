@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -38,7 +37,7 @@ class TwitterAction(BaseModel):
         return {
             "action": self.action,
             "timestamp": self.timestamp.isoformat().replace("+00:00", "Z"),
-            "details": self.model_dump_json(exclude={"action", "timestamp"}),
+            "details": self.model_dump(exclude={"action", "timestamp"}),
         }
 
 

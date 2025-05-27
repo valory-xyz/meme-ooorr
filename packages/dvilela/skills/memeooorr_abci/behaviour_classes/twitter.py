@@ -58,7 +58,6 @@ from packages.valory.skills.agent_db_abci.twitter_models import (
     TwitterFollow,
     TwitterAction,
 )
-from packages.valory.skills.agent_db_abci.agents_fun_db import AgentsFunAgent
 
 MAX_TWEET_CHARS = 280
 JSON_RESPONSE_REGEXES = [r"json.?({.*})", r"json({.*})", r"\`\`\`json(.*)\`\`\`"]
@@ -86,17 +85,25 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
     matching_round: Type[AbstractRound] = None  # type: ignore
 
-    def store_agent_action(self, action: TwitterAction):
-        """Store agent action"""
-        # get agent from db
+    def store_agent_action(self, action: TwitterAction) -> Generator[None, None, None]:
+        """Store agent action in AgentsFunDB."""
         my_agent = self.context.agents_fun_db.get_my_agent()
         if my_agent is None:
-            self.context.logger.error("No agent found in AgentsFunDB")
+            self.context.logger.error(
+                f"No agent found in AgentsFunDB for storing {type(action).__name__} action."
+            )
             return
+
         try:
+            # Assuming my_agent.add_interaction is a generator function
             yield from my_agent.add_interaction(action)
+            self.context.logger.info(
+                f"Successfully stored {type(action).__name__} action in AgentsFunDB."
+            )
         except Exception as e:
-            self.context.logger.error(f"Error adding interaction: {e}")
+            self.context.logger.error(
+                f"Error adding {type(action).__name__} interaction to AgentsFunDB: {e}"
+            )
 
     def _write_tweet_to_kv_store(
         self, tweet_data: Union[dict, List[dict]]
@@ -111,296 +118,196 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         self.context.logger.info("Stored/Appended tweet data in KV store.")
         return True
 
+    def _handle_simple_twitter_action(
+        self,
+        action_description: str,
+        tweepy_method_name: str,
+        tweepy_kwargs: Dict[str, Any],
+        action_class: Type[TwitterAction],
+        action_constructor_kwargs: Dict[str, Any],
+    ) -> Generator[None, None, bool]:
+        """Handles common logic for simple Twitter actions like like, retweet, follow."""
+        target_identifier = tweepy_kwargs.get("tweet_id") or tweepy_kwargs.get(
+            "username"
+        )
+        self.context.logger.info(f"{action_description}: {target_identifier}")
+        try:
+            response = yield from self._call_tweepy(
+                method=tweepy_method_name, **tweepy_kwargs
+            )
+            if response is None:
+                self.context.logger.error(
+                    f"Tweepy call for {action_description.lower()} failed (returned None). Target: {target_identifier}"
+                )
+                return False
+
+            if not response.get("success", False):
+                error_message = response.get("error", "Unknown error occurred.")
+                self.context.logger.error(
+                    f"Error {action_description.lower()} target {target_identifier}: {error_message}"
+                )
+                return False
+
+            if response["success"]:
+                # Timestamp is added by the action_class constructor or should be passed if needed
+                action_obj_params = {
+                    **action_constructor_kwargs,
+                    "timestamp": datetime.now(timezone.utc),
+                }
+                action_obj = action_class(**action_obj_params)
+                yield from self.store_agent_action(action_obj)
+            return response["success"]
+        except Exception as e:  # pylint: disable=broad-except
+            self.context.logger.error(
+                f"Exception during {action_description.lower()} for target {target_identifier}: {e}"
+            )
+            return False
+
+    def _create_twitter_content(
+        self,
+        log_message_prefix: str,
+        tweet_payload: Dict[str, Any],
+        action_text: str,
+        is_reply_or_quote: bool = False,
+        original_tweet_id_for_reply: Optional[str] = None,
+        is_main_post: bool = False,
+        store_in_kv: bool = True,
+    ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
+        """Helper to post new content (original tweet, reply, quote) to Twitter."""
+        self.context.logger.info(
+            f"{log_message_prefix}: {tweet_payload.get('text', '')[:50]}..."
+        )
+
+        tweet_ids = yield from self._call_tweepy(
+            method="post",
+            tweets=[tweet_payload],
+        )
+
+        if not tweet_ids:
+            self.context.logger.error(
+                f"Failed {log_message_prefix.lower()} to Twitter."
+            )
+            return None if is_main_post else False
+
+        newly_posted_tweet_id = str(tweet_ids[0])
+
+        try:
+            post_action_params = {
+                "tweet_id": newly_posted_tweet_id,
+                "text": action_text,
+                "timestamp": datetime.now(timezone.utc),
+            }
+            if is_reply_or_quote and original_tweet_id_for_reply:
+                post_action_params["reply_to_tweet_id"] = str(
+                    original_tweet_id_for_reply
+                )
+
+            post_action = TwitterPost(**post_action_params)
+            yield from self.store_agent_action(post_action)
+        except Exception as e:
+            self.context.logger.error(
+                f"Error creating/storing TwitterPost action for {log_message_prefix.lower()}: {e}"
+            )
+
+        if is_main_post:
+            latest_tweet_data_for_kv = {
+                "tweet_id": newly_posted_tweet_id,
+                "text": action_text,
+                "timestamp": self.get_sync_timestamp(),
+            }
+            if store_in_kv:
+                yield from self._write_tweet_to_kv_store(latest_tweet_data_for_kv)
+                self.context.logger.info(
+                    f"Wrote latest tweet to KV db for {log_message_prefix.lower()}"
+                )
+            return latest_tweet_data_for_kv
+
+        return True  # For reply/quote, indicates success of posting
+
     def post_tweet(
         self, tweet: Union[str, List[str]], store: bool = True
     ) -> Generator[None, None, Optional[Dict]]:
         """Post a tweet"""
-        self.context.logger.info(f"Posting tweet: {tweet}")
-
-        # Determine text for tweepy and for DB logging
         text_to_post = tweet[0] if isinstance(tweet, list) else tweet
-        tweets_for_api = [{"text": text_to_post}]  # Tweepy expects a list of dicts
+        tweet_payload_for_api = {"text": text_to_post}
 
-        # Post the tweet
-        tweet_ids = yield from self._call_tweepy(
-            method="post",
-            tweets=tweets_for_api,
+        return (
+            yield from self._create_twitter_content(
+                log_message_prefix="Posting tweet",
+                tweet_payload=tweet_payload_for_api,
+                action_text=text_to_post,
+                is_main_post=True,
+                store_in_kv=store,
+            )
         )
-
-        if not tweet_ids:
-            self.context.logger.error("Failed posting to Twitter.")
-            return None
-
-        # Assuming only one tweet is posted at a time by this method based on tweet_ids[0]
-        posted_tweet_id = str(tweet_ids[0])
-
-        latest_tweet_data_for_kv = {
-            "tweet_id": posted_tweet_id,
-            "text": text_to_post,  # Store the actual text that was posted
-            "timestamp": self.get_sync_timestamp(),
-        }
-
-        if store:
-            # Write latest tweet to the KV store
-            yield from self._write_tweet_to_kv_store(latest_tweet_data_for_kv)
-            self.context.logger.info("Wrote latest tweet to KV db")
-
-            # Store in AgentsFunDB
-            try:
-                post_action = TwitterPost(
-                    tweet_id=posted_tweet_id,
-                    text=text_to_post,  # Use the actual text posted
-                    timestamp=datetime.now(timezone.utc),
-                )
-                # @DV here is the problem this here we are trying to store the action in the db
-                yield from self._store_agent_action_in_db(post_action)
-            except Exception as e:
-                self.context.logger.error(
-                    f"Error creating/storing TwitterPost action: {e}"
-                )
-
-        return latest_tweet_data_for_kv  # Return the structured data
 
     def respond_tweet(
         self,
-        tweet_id: str,
+        tweet_id: str,  # ID of the tweet being replied to/quoted
         text: str,
         quote: bool = False,
-        user_name: Optional[str] = None,
+        user_name: Optional[str] = None,  # User name for quote URL
     ) -> Generator[None, None, bool]:
-        """Like a tweet"""
+        """Respond to a tweet (reply or quote)."""
+        log_prefix = "Quoting tweet" if quote else "Replying to tweet"
+        # self.context.logger.info(f"{log_prefix} ID: {tweet_id}, Text: {text[:50]}...") # Covered by _create_twitter_content
 
-        self.context.logger.info(f"Replying to tweet with ID: {tweet_id}")
-        tweet = {"text": text}
+        tweet_payload_for_api = {"text": text}
         if quote:
-            tweet["attachment_url"] = f"https://x.com/{user_name}/status/{tweet_id}"
+            if not user_name:
+                self.context.logger.error("User name is required for quoting a tweet.")
+                return False
+            tweet_payload_for_api["attachment_url"] = (
+                f"https://x.com/{user_name}/status/{tweet_id}"
+            )
         else:
-            tweet["reply_to"] = tweet_id
-        tweet_ids = yield from self._call_tweepy(
-            method="post",
-            tweets=[tweet],
+            tweet_payload_for_api["reply_to"] = tweet_id
+
+        result = yield from self._create_twitter_content(
+            log_message_prefix=log_prefix,
+            tweet_payload=tweet_payload_for_api,
+            action_text=text,
+            is_reply_or_quote=True,
+            original_tweet_id_for_reply=tweet_id if not quote else None,
+            is_main_post=False,
         )
-        if tweet_ids:
-            # Store in AgentsFunDB
-            try:
-                post_action = TwitterPost(
-                    tweet_id=str(
-                        tweet_ids[0]
-                    ),  # Assuming tweepy returns the new tweet's ID
-                    text=text,
-                    reply_to_tweet_id=str(tweet_id) if not quote else None,
-                    timestamp=datetime.now(timezone.utc),
-                )
-                yield from self._store_agent_action_in_db(post_action)
-            except Exception as e:
-                self.context.logger.error(
-                    f"Error creating/storing TwitterPost (reply/quote) action: {e}"
-                )
-        return tweet_ids is not None and tweet_ids
+        return bool(result)
 
     def like_tweet(self, tweet_id: str) -> Generator[None, None, bool]:
         """Like a tweet"""
-        self.context.logger.info(f"Liking tweet with ID: {tweet_id}")
-        try:
-            response = yield from self._call_tweepy(
-                method="like_tweet", tweet_id=tweet_id
+        return (
+            yield from self._handle_simple_twitter_action(
+                action_description="Liking tweet",
+                tweepy_method_name="like_tweet",
+                tweepy_kwargs={"tweet_id": tweet_id},
+                action_class=TwitterLike,
+                action_constructor_kwargs={"tweet_id": str(tweet_id)},
             )
-            if response is None:
-                self.context.logger.error(
-                    f"Tweepy call for like_tweet ID {tweet_id} failed (returned None). See previous logs for details."
-                )
-                return False
-
-            if not response.get("success", False):
-                error_message = response.get("error", "Unknown error occurred.")
-                self.context.logger.error(
-                    f"Error liking tweet with ID {tweet_id}: {error_message}"
-                )
-                return False
-
-            if response["success"]:
-                # Store in AgentsFunDB
-                try:
-                    like_action = TwitterLike(
-                        tweet_id=str(tweet_id), timestamp=datetime.now(timezone.utc)
-                    )
-                    yield from self._store_agent_action_in_db(like_action)
-                except Exception as e:
-                    self.context.logger.error(
-                        f"Error creating/storing TwitterLike action: {e}"
-                    )
-            return response["success"]
-        except Exception as e:  # pylint: disable=broad-except
-            self.context.logger.error(f"Exception liking tweet with ID {tweet_id}: {e}")
-            return False
+        )
 
     def retweet(self, tweet_id: str) -> Generator[None, None, bool]:
         """Retweet"""
-        self.context.logger.info(f"Retweeting tweet with ID: {tweet_id}")
-        try:
-            response = yield from self._call_tweepy(method="retweet", tweet_id=tweet_id)
-            if response is None:
-                self.context.logger.error(
-                    f"Tweepy call for retweet ID {tweet_id} failed (returned None). See previous logs for details."
-                )
-                return False
-
-            if not response.get("success", False):
-                error_message = response.get("error", "Unknown error occurred.")
-                self.context.logger.error(
-                    f"Error retweeting tweet with ID {tweet_id}: {error_message}"
-                )
-                return False
-
-            if response["success"]:
-                # Store in AgentsFunDB
-                try:
-                    retweet_action = TwitterRewtweet(
-                        tweet_id=str(tweet_id), timestamp=datetime.now(timezone.utc)
-                    )
-                    yield from self._store_agent_action_in_db(retweet_action)
-                except Exception as e:
-                    self.context.logger.error(
-                        f"Error creating/storing TwitterRetweet action: {e}"
-                    )
-            return response["success"]
-        except Exception as e:  # pylint: disable=broad-except
-            self.context.logger.error(
-                f"Exception retweeting tweet with ID {tweet_id}: {e}"
+        return (
+            yield from self._handle_simple_twitter_action(
+                action_description="Retweeting tweet",
+                tweepy_method_name="retweet",
+                tweepy_kwargs={"tweet_id": tweet_id},
+                action_class=TwitterRewtweet,
+                action_constructor_kwargs={"tweet_id": str(tweet_id)},
             )
-            return False
+        )
 
     def follow_user(self, user_name: str) -> Generator[None, None, bool]:
         """Follow user"""
-        self.context.logger.info(f"Following user with user_name: {user_name}")
-        try:
-            response = yield from self._call_tweepy(
-                method="follow_by_username", username=user_name
+        return (
+            yield from self._handle_simple_twitter_action(
+                action_description="Following user",
+                tweepy_method_name="follow_by_username",
+                tweepy_kwargs={"username": user_name},
+                action_class=TwitterFollow,
+                action_constructor_kwargs={"username": user_name},
             )
-            if response is None:
-                self.context.logger.error(
-                    f"Tweepy call for follow_user user_name {user_name} failed (returned None). See previous logs for details."
-                )
-                return False
-
-            if not response.get("success", False):
-                error_message = response.get("error", "Unknown error occurred.")
-                self.context.logger.error(
-                    f"Error Following user with user_name {user_name}: {error_message}"
-                )
-                return False
-
-            # Store in AgentsFunDB
-            # Assuming response from _call_tweepy contains the followed user's ID
-            # For example: response.get("data", {}).get("id") or response.get("followed_user_id")
-            followed_user_id = response.get("data", {}).get(
-                "id"
-            )  # Placeholder for actual key
-
-            # The TwitterFollow model expects 'username', not 'followed_agent_id'
-            # We will use the 'user_name' parameter that was passed to this method.
-            if response["success"]:
-                try:
-                    follow_obj = TwitterFollow(
-                        username=user_name,  # Use the passed user_name
-                        timestamp=datetime.now(timezone.utc),
-                    )
-                    yield from self._store_agent_action_in_db(follow_obj)
-                    self.context.logger.info(
-                        f"Stored follow action for user {user_name} in AgentsFunDB."
-                    )
-                except Exception as e:
-                    self.context.logger.error(
-                        f"Failed to store follow action in AgentsFunDB for user {user_name}: {e}"
-                    )
-            # The old logging related to followed_user_id can be removed or adjusted if needed.
-            # For now, we focus on storing the action with username.
-            # if not followed_user_id:
-            #     self.context.logger.warning(
-            #         f"Could not extract followed user ID for {user_name} from tweepy response. "
-            #         f"Follow action was successful but AgentsFunDB storage might be incomplete regarding user ID."
-            #     )
-            return response["success"]
-        except Exception as e:  # pylint: disable=broad-except
-            self.context.logger.error(
-                f"Exception following user with user_name {user_name}: {e}"
-            )
-            return False
-
-    def _store_agent_action_in_db(
-        self, action: TwitterAction
-    ) -> Generator[None, None, None]:
-        """Store agent action in AgentsFunDB"""
-        if not self.context.agents_fun_db:
-            self.context.logger.error(
-                "AgentsFunDB not initialized in context. Cannot store action."
-            )
-            return
-
-        my_agent = yield from self._get_and_load_my_agent(action)
-        if my_agent is None:
-            self.context.logger.error(
-                f"Could not find agent instance for address {self.context.agent_address} in AgentsFunDB. Cannot store action: {action.action}"
-            )
-            return
-
-        yield from self._perform_add_interaction(my_agent, action)
-
-    def _get_and_load_my_agent(
-        self, action: TwitterAction
-    ) -> Generator[None, None, Optional[AgentsFunAgent]]:
-        """Get and load the current agent from AgentsFunDB."""
-        my_agent: Optional[AgentsFunAgent] = self.context.agents_fun_db.get_my_agent()
-
-        if my_agent is None:
-            self.context.logger.error(
-                f"Could not find agent instance for address {self.context.agent_address} in AgentsFunDB. Cannot store action: {action.action}"
-            )
-            return None
-
-        if not my_agent.loaded:
-            self.context.logger.info(
-                f"Agent {my_agent.agent_instance.agent_id} not loaded. Loading now before storing action."
-            )
-            try:
-                yield from my_agent.load()  # Ensure agent data is loaded
-            except Exception as e:
-                self.context.logger.error(
-                    f"Error loading agent {my_agent.agent_instance.agent_id} before storing action {action.action}: {e}"
-                )
-                return None  # Cannot proceed if agent cannot be loaded
-
-        return my_agent
-
-    def _perform_add_interaction(
-        self, agent: AgentsFunAgent, action: TwitterAction
-    ) -> Generator[None, None, None]:
-        """Perform the add_interaction call and log the result."""
-
-        # @DV here it is getting stuck this is the last log observed
-        self.context.logger.info(
-            f"Storing action '{action.action}' for agent {agent.agent_instance.agent_id} (@{agent.twitter_username or 'Unknown'}) in AgentsFunDB."
         )
-        try:
-            # The add_interaction method in AgentsFunAgent is a generator
-            # and handles the API call to store the interaction.
-            attr_instance = yield from agent.add_interaction(action)
-            if attr_instance:
-                self.context.logger.info(
-                    f"Successfully stored action '{action.action}'. Attribute instance ID: {getattr(attr_instance, 'attribute_id', 'N/A')}"
-                )
-            else:
-                self.context.logger.warning(
-                    f"Storing action '{action.action}' in AgentsFunDB did not return an attribute instance (it might have failed or returned None)."
-                )
-        except ValueError as ve:
-            self.context.logger.error(
-                f"ValueError while trying to store action '{action.action}': {ve}"
-            )
-        except Exception as e:
-            self.context.logger.error(
-                f"An unexpected error occurred while storing action '{action.action}' in AgentsFunDB: {e}"
-            )
 
     def _format_previous_tweets_str(
         self, tweets: Optional[Union[List[TwitterPost], List[Dict[str, Any]]]]
@@ -961,7 +868,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Get previous tweets
-        tweets = self.context.agents_fun_db.get_my_agent_posts()
+        tweets = self.context.agents_fun_db.my_agent.posts
 
         tweets = tweets[-5:] if tweets else None
         previous_tweets_str = self._format_previous_tweets_str(tweets)
