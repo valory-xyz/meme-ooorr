@@ -125,7 +125,6 @@ class AgentsFunAgent:
     def add_interaction(self, interaction: TwitterAction):
         """Add interaction to agent"""
 
-        # Check if the interaction is valid
         action_class = self.action_to_class.get(interaction.action, None)
         if not action_class:
             raise ValueError(f"Unknown Twitter action: {interaction.action}")
@@ -240,9 +239,10 @@ class AgentsFunDatabase(Model):
 
         return tweet_feedback
 
-    def get_active_agents(self) -> List[AgentsFunAgent]:
+    def get_active_agents_usernames(self) -> List[str]:
         """Get all active agents"""
         active_agents = []
+
         for agent in self.agents:
             if not agent.loaded:
                 yield from agent.load()
@@ -256,7 +256,7 @@ class AgentsFunDatabase(Model):
             ):
                 continue
 
-            active_agents.append(agent)
+            active_agents.append(agent.twitter_username)
         return active_agents
 
     def get_my_agent_posts(self) -> List[TwitterPost]:

@@ -89,14 +89,11 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     def store_agent_action(self, action: TwitterAction):
         """Store agent action"""
         # get agent from db
-        my_agent = yield from self.context.agents_fun_db.get_my_agent()
+        my_agent = self.context.agents_fun_db.get_my_agent()
         if my_agent is None:
             self.context.logger.error("No agent found in AgentsFunDB")
             return
         try:
-            import pdb
-
-            pdb.set_trace()
             yield from my_agent.add_interaction(action)
         except Exception as e:
             self.context.logger.error(f"Error adding interaction: {e}")
@@ -156,7 +153,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                     timestamp=datetime.now(timezone.utc),
                 )
 
-                yield from self.store_agent_action(post_action)
+                # @DV here it is getting stuck
+                yield from self._store_agent_action_in_db(post_action)
+
             except Exception as e:
                 self.context.logger.error(
                     f"Error creating/storing TwitterPost action: {e}"
@@ -329,6 +328,80 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 f"Exception following user with user_name {user_name}: {e}"
             )
             return False
+
+    def _store_agent_action_in_db(
+        self, action: TwitterAction
+    ) -> Generator[None, None, None]:
+        """Store agent action in AgentsFunDB"""
+        if not self.context.agents_fun_db:
+            self.context.logger.error(
+                "AgentsFunDB not initialized in context. Cannot store action."
+            )
+            return
+
+        my_agent = yield from self._get_and_load_my_agent(action)
+        if my_agent is None:
+            self.context.logger.error(
+                f"Could not find agent instance for address {self.context.agent_address} in AgentsFunDB. Cannot store action: {action.action}"
+            )
+            return
+
+        yield from self._perform_add_interaction(my_agent, action)
+
+    def _get_and_load_my_agent(
+        self, action: TwitterAction
+    ) -> Generator[None, None, Optional[AgentsFunAgent]]:
+        """Get and load the current agent from AgentsFunDB."""
+        my_agent: Optional[AgentsFunAgent] = self.context.agents_fun_db.get_my_agent()
+
+        if my_agent is None:
+            self.context.logger.error(
+                f"Could not find agent instance for address {self.context.agent_address} in AgentsFunDB. Cannot store action: {action.action}"
+            )
+            return None
+
+        if not my_agent.loaded:
+            self.context.logger.info(
+                f"Agent {my_agent.agent_instance.agent_id} not loaded. Loading now before storing action."
+            )
+            try:
+                yield from my_agent.load()  # Ensure agent data is loaded
+            except Exception as e:
+                self.context.logger.error(
+                    f"Error loading agent {my_agent.agent_instance.agent_id} before storing action {action.action}: {e}"
+                )
+                return None  # Cannot proceed if agent cannot be loaded
+
+        return my_agent
+
+    def _perform_add_interaction(
+        self, agent: AgentsFunAgent, action: TwitterAction
+    ) -> Generator[None, None, None]:
+        """Perform the add_interaction call and log the result."""
+        # @DV here it is getting stuck this is the last log observed
+        self.context.logger.info(
+            f"Storing action '{action.action}' for agent {agent.agent_instance.agent_id} (@{agent.twitter_username or 'Unknown'}) in AgentsFunDB."
+        )
+        try:
+            # The add_interaction method in AgentsFunAgent is a generator
+            # and handles the API call to store the interaction.
+            attr_instance = yield from self.context.client.agent.add_interaction(action)
+            if attr_instance:
+                self.context.logger.info(
+                    f"Successfully stored action '{action.action}'. Attribute instance ID: {getattr(attr_instance, 'attribute_id', 'N/A')}"
+                )
+            else:
+                self.context.logger.warning(
+                    f"Storing action '{action.action}' in AgentsFunDB did not return an attribute instance (it might have failed or returned None)."
+                )
+        except ValueError as ve:
+            self.context.logger.error(
+                f"ValueError while trying to store action '{action.action}': {ve}"
+            )
+        except Exception as e:
+            self.context.logger.error(
+                f"An unexpected error occurred while storing action '{action.action}' in AgentsFunDB: {e}"
+            )
 
     def _format_previous_tweets_str(
         self, tweets: Optional[Union[List[TwitterPost], List[Dict[str, Any]]]]
@@ -652,7 +725,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         return json.loads(db_data["interacted_tweet_ids"] or "[]")
 
     def _collect_pending_tweets(
-        self, active_agents: List["AgentsFunAgent"], interacted_tweet_ids: set[int]  # type: ignore
+        self, active_agents: List[str], interacted_tweet_ids: set[int]  # type: ignore
     ) -> Generator[None, None, dict]:
         """Collect pending tweets from active agents that haven't been interacted with."""
         pending_tweets: Dict[str, Dict[str, str]] = {}
@@ -1500,10 +1573,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         self.context.logger.info(tools_info)
         return tools_info
 
-    def get_agent_handles(self) -> Generator[None, None, List["AgentsFunAgent"]]:  # type: ignore
+    def get_agent_handles(self) -> Generator[None, None, List[str]]:  # type: ignore
         """Get the agent handles from agents_fun_db."""
         # Forward type reference for AgentsFunAgent
-        active_agents = yield self.context.agents_fun_db.get_active_agents()
+        active_agents = yield self.context.agents_fun_db.get_active_agents_usernames()
         if not active_agents:
             self.context.logger.info(
                 "No active memeooorr handles from agents_fun_db Now trying subgraph."
