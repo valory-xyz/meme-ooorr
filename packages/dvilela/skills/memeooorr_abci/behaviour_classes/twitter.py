@@ -183,7 +183,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             tweets=[tweet_payload],
         )
 
-        if not tweet_ids:
+        if not tweet_ids or tweet_ids[0] is None:
             self.context.logger.error(
                 f"Failed {log_message_prefix.lower()} to Twitter."
             )
@@ -233,21 +233,27 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
         return True  # For reply/quote, indicates success of Tweepy posting part
 
-    def post_tweet(
-        self, tweet: Union[str, List[str]], store: bool = True
+    def post_tweet(  # pylint: disable=too-many-arguments
+        self,
+        text: Union[str, List[str]],
+        image_paths: Optional[List[str]] = None,
+        store: bool = True,
     ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
-        """Post a tweet"""
-        text_to_post = tweet[0] if isinstance(tweet, list) else tweet
-        tweet_payload_for_api = {"text": text_to_post}
+        """Post a tweet, optionally with media."""
+        text_to_post = text[0] if isinstance(text, list) else text
+        tweet_payload_for_api: Dict[str, Any] = {"text": text_to_post}
+
+        if image_paths:
+            tweet_payload_for_api["image_paths"] = image_paths
 
         return (
             yield from self._create_twitter_content(
                 log_message_prefix="Posting tweet",
                 tweet_payload=tweet_payload_for_api,
-                action_text=text_to_post,
+                action_text=text_to_post,  # The text component for DB/KV
                 original_tweet_id_for_reply=None,
                 quote_url_for_storage=None,
-                store_in_kv=store,  # User controls KV storage for main posts
+                store_in_kv=store,
             )
         )
 
@@ -1317,16 +1323,19 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             self.context.logger.error(f"Invalid media path type: {type(media_path)}")
             return False  # Indicate failure
 
-        # Post tweet with the uploaded media ID
-        tweet_ids = yield from self._call_tweepy(
-            method="post", tweets=[{"text": text, "image_paths": [media_path]}]
+        # Use post_tweet with text and image_paths
+        result = yield from self.post_tweet(
+            text=text, image_paths=[media_path], store=True
         )
 
-        if not tweet_ids:
-            self.context.logger.error("Failed posting tweet with media to Twitter.")
-            return False  # Indicate failure
+        if result is not None:
+            self.context.logger.info(
+                "Successfully posted tweet with media using post_tweet."
+            )
+            return True
 
-        return True  # Indicate success
+        self.context.logger.error("Failed posting tweet with media using post_tweet.")
+        return False
 
     def _validate_interaction(
         self, action: str, tweet_id: str, user_name: str, pending_tweets: dict
@@ -1380,7 +1389,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             self.context.logger.error("The tweet is too long.")
             return
 
-        yield from self.post_tweet(tweet=[text], store=True)
+        yield from self.post_tweet(text=[text], store=True)
 
     def _handle_tweet_interaction(  # pylint: disable=too-many-arguments
         self,
@@ -1515,5 +1524,5 @@ class ActionTweetBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ance
             self.context.logger.info("Post-action tweet is missing")
             return Event.MISSING_TWEET.value
         self.context.logger.info("Sending the action tweet...")
-        latest_tweet = yield from self.post_tweet(tweet=[pending_tweet], store=False)
+        latest_tweet = yield from self.post_tweet(text=[pending_tweet], store=False)
         return Event.DONE.value if latest_tweet else Event.ERROR.value
