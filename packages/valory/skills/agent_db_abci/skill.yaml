@@ -17,7 +17,7 @@ fingerprint:
   models.py: bafybeihdebjnndq6bw4mtoaooqrent2jbb4pwpsgbf66xfhvhcl64kvv6m
   payloads.py: bafybeifjq6sljt33cbdfleab4czsoe66ntlcvqjnxcdhp4rtn6sdiipjy4
   rounds.py: bafybeif4v3ka77zommvf7md7wwxz7ebdvbruhelwz2sviakhbmbtisqr7m
-  twitter_models.py: bafybeiapbjukysfp6jjfrdvanaknmynsum6urlyiciaapcinw3x73q73oq
+  twitter_models.py: bafybeihde3ln32isxwqpcuttddzfernmbvajvlcl5p6no3xjw6n6qtqpzy
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []

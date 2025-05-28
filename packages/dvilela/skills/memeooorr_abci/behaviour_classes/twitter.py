@@ -170,6 +170,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         action_text: str,
         is_reply_or_quote: bool = False,
         original_tweet_id_for_reply: Optional[str] = None,
+        quote_url_for_storage: Optional[str] = None,
         is_main_post: bool = False,
         store_in_kv: bool = True,
     ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
@@ -197,10 +198,13 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 "text": action_text,
                 "timestamp": datetime.now(timezone.utc),
             }
-            if is_reply_or_quote and original_tweet_id_for_reply:
-                post_action_params["reply_to_tweet_id"] = str(
-                    original_tweet_id_for_reply
-                )
+            if is_reply_or_quote:
+                if quote_url_for_storage:
+                    post_action_params["quote_url"] = quote_url_for_storage
+                elif original_tweet_id_for_reply:
+                    post_action_params["reply_to_tweet_id"] = str(
+                        original_tweet_id_for_reply
+                    )
 
             post_action = TwitterPost(**post_action_params)
             yield from self.store_agent_action(post_action)
@@ -250,16 +254,18 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, bool]:
         """Respond to a tweet (reply or quote)."""
         log_prefix = "Quoting tweet" if quote else "Replying to tweet"
-        # self.context.logger.info(f"{log_prefix} ID: {tweet_id}, Text: {text[:50]}...") # Covered by _create_twitter_content
 
         tweet_payload_for_api = {"text": text}
+        quote_url_for_storage_val: Optional[str] = None
+
         if quote:
             if not user_name:
                 self.context.logger.error("User name is required for quoting a tweet.")
                 return False
-            tweet_payload_for_api["attachment_url"] = (
-                f"https://x.com/{user_name}/status/{tweet_id}"
-            )
+            # Construct the quote URL for the API and for storage
+            quote_url = f"https://x.com/{user_name}/status/{tweet_id}"
+            tweet_payload_for_api["attachment_url"] = quote_url
+            quote_url_for_storage_val = quote_url
         else:
             tweet_payload_for_api["reply_to"] = tweet_id
 
@@ -269,6 +275,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             action_text=text,
             is_reply_or_quote=True,
             original_tweet_id_for_reply=tweet_id if not quote else None,
+            quote_url_for_storage=quote_url_for_storage_val,
             is_main_post=False,
         )
         return bool(result)
@@ -382,9 +389,8 @@ class CollectFeedbackBehaviour(
         last_tweet = self._get_last_agent_tweet()
         if last_tweet is None:
             return {"likes": 0, "retweets": 0, "replies": []}
-        # tweet_id_to_query = str(last_tweet.tweet_id)
-        tweet_id_to_query = "1922648217251954876"
-        # The following line is commented out as it seems to be for testing with a hardcoded ID
+        tweet_id_to_query = str(last_tweet.tweet_id)
+
         self.context.logger.info(
             f"Last tweet: {last_tweet}, Querying feedback for tweet_id: {tweet_id_to_query}"
         )

@@ -13,14 +13,14 @@ fingerprint:
   behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
   behaviour_classes/llm.py: bafybeicjfnizdhgzuvdgbcpyqb4jcpebkwjoxdebcoig7hjnvcf3uk6ciq
   behaviour_classes/mech.py: bafybeig5r6w7yjg26tj6m2khikqjtkcva6sojef6pdjrfnpmfwdqgfkavm
-  behaviour_classes/twitter.py: bafybeie557mnhw63ui5rmrqbn7uabh7bwkwn5oggllt6dzpdv2lrkasiue
+  behaviour_classes/twitter.py: bafybeib3eypqcppsjhp3vdzfcq7yki62f7gzoslai6tl2pun6j75o33eui
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
   handlers.py: bafybeicdbw4ayfuifdgmyezncazjabr333ltieaxq5gbgh5s7nkp5llxyi
   models.py: bafybeidhxnp3vnezsapopaeqgwnvdgw7caabwmhnu4s4up2jhvthezkci4
   payloads.py: bafybeiez63hch4jpzeqd6nxrnvgw4mwbd7fdnru3vmbiw3qpdbr4qfm2uu
-  prompts.py: bafybeihp7bs2mf4oqzldudily27j6pycnsxbpun3ketytvyntgasar3xti
+  prompts.py: bafybeiexk4g3z2fyr66hg5ec73r7vgtj6q4bzcrm6tvcq3aqjhril3o7su
   rounds.py: bafybeia2u7qqeh3prazqojd6r3r5rqvvlwrr3kfjfrqnntrsqdx7by7c3e
   rounds_info.py: bafybeib6a5a7bvwvfiscnbhsc6sejloelyglnu6lwbeeileyxrsgkxcb6a
 fingerprint_ignore_patterns: []
@@ -46,7 +46,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeifyvihtmn2tckfev5fpde7ucplcr3sxtexpzak5khi4i6zjzwpffa
+- valory/agent_db_abci:0.1.0:bafybeido7u74nm2qygvuxofosoquczgbmozxjuqsxpgzbkfzejbrlmfycm
 behaviours:
   main:
     args: {}

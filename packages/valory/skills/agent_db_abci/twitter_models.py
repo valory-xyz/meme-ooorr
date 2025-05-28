@@ -48,6 +48,7 @@ class TwitterPost(TwitterAction):
     tweet_id: str
     text: str
     reply_to_tweet_id: Optional[str] = None
+    quote_url: Optional[str] = None
 
     @classmethod
     def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
@@ -62,6 +63,7 @@ class TwitterPost(TwitterAction):
             tweet_id=data["details"]["tweet_id"],
             text=data["details"]["text"],
             reply_to_tweet_id=data["details"].get("reply_to_tweet_id", None),
+            quote_url=data["details"].get("quote_url", None),
         )
 
 
