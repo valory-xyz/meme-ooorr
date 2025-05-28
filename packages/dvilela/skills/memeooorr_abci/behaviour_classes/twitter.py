@@ -50,14 +50,16 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
     Event,
 )
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
-from packages.valory.skills.mech_interact_abci.states.base import MechMetadata
+from packages.valory.skills.agent_db_abci.agents_fun_db import AgentsFunAgent
 from packages.valory.skills.agent_db_abci.twitter_models import (
+    TwitterAction,
+    TwitterFollow,
+    TwitterLike,
     TwitterPost,
     TwitterRewtweet,
-    TwitterLike,
-    TwitterFollow,
-    TwitterAction,
 )
+from packages.valory.skills.mech_interact_abci.states.base import MechMetadata
+
 
 MAX_TWEET_CHARS = 280
 JSON_RESPONSE_REGEXES = [r"json.?({.*})", r"json({.*})", r"\`\`\`json(.*)\`\`\`"]
@@ -84,26 +86,6 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
     """Base behaviour for tweet-related actions."""
 
     matching_round: Type[AbstractRound] = None  # type: ignore
-
-    def store_agent_action(self, action: TwitterAction) -> Generator[None, None, None]:
-        """Store agent action in AgentsFunDB."""
-        my_agent = self.context.agents_fun_db.get_my_agent()
-        if my_agent is None:
-            self.context.logger.error(
-                f"No agent found in AgentsFunDB for storing {type(action).__name__} action."
-            )
-            return
-
-        try:
-            # Assuming my_agent.add_interaction is a generator function
-            yield from my_agent.add_interaction(action)
-            self.context.logger.info(
-                f"Successfully stored {type(action).__name__} action in AgentsFunDB."
-            )
-        except Exception as e:
-            self.context.logger.error(
-                f"Error adding {type(action).__name__} interaction to AgentsFunDB: {e}"
-            )
 
     def _write_tweet_to_kv_store(
         self, tweet_data: Union[dict, List[dict]]
@@ -155,7 +137,12 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                     "timestamp": datetime.now(timezone.utc),
                 }
                 action_obj = action_class(**action_obj_params)
-                yield from self.store_agent_action(action_obj)
+                attribute_id = (
+                    yield from self.context.agents_fun_db.my_agent.add_interaction(
+                        action_obj
+                    )
+                )
+                self.context.logger.info(f"Attribute ID: {attribute_id}")
             return response["success"]
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
@@ -192,22 +179,28 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
         newly_posted_tweet_id = str(tweet_ids[0])
 
-        try:
-            post_action_params = {
-                "tweet_id": newly_posted_tweet_id,
-                "text": action_text,
-                "timestamp": datetime.now(timezone.utc),
-            }
-            if is_reply_or_quote:
-                if quote_url_for_storage:
-                    post_action_params["quote_url"] = quote_url_for_storage
-                elif original_tweet_id_for_reply:
-                    post_action_params["reply_to_tweet_id"] = str(
-                        original_tweet_id_for_reply
-                    )
+        post_action_params = {
+            "tweet_id": newly_posted_tweet_id,
+            "text": action_text,
+            "timestamp": datetime.now(timezone.utc),
+        }
+        if is_reply_or_quote:
+            if quote_url_for_storage:
+                post_action_params["quote_url"] = quote_url_for_storage
+            elif original_tweet_id_for_reply:
+                post_action_params["reply_to_tweet_id"] = str(
+                    original_tweet_id_for_reply
+                )
 
-            post_action = TwitterPost(**post_action_params)
-            yield from self.store_agent_action(post_action)
+        post_action = TwitterPost(**post_action_params)
+
+        try:
+            attribute_id = (
+                yield from self.context.agents_fun_db.my_agent.add_interaction(
+                    post_action
+                )
+            )
+            self.context.logger.info(f"Attribute ID: {attribute_id}")
         except Exception as e:
             self.context.logger.error(
                 f"Error creating/storing TwitterPost action for {log_message_prefix.lower()}: {e}"
@@ -274,7 +267,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             tweet_payload=tweet_payload_for_api,
             action_text=text,
             is_reply_or_quote=True,
-            original_tweet_id_for_reply=tweet_id if not quote else None,
+            original_tweet_id_for_reply=(
+                tweet_id if not quote else None
+            ),  # Pass original_tweet_id if it's a reply contextually, though not used by API for quote
             quote_url_for_storage=quote_url_for_storage_val,
             is_main_post=False,
         )
@@ -386,7 +381,7 @@ class CollectFeedbackBehaviour(
 
         self.context.logger.info("Attempting to get feedback for agent's tweets.")
 
-        last_tweet = self._get_last_agent_tweet()
+        last_tweet = self.context.agents_fun_db.my_agent.posts[-1]
         if last_tweet is None:
             return {"likes": 0, "retweets": 0, "replies": []}
         tweet_id_to_query = str(last_tweet.tweet_id)
@@ -418,29 +413,6 @@ class CollectFeedbackBehaviour(
             f"Processed feedback for tweet_id {tweet_id_to_query}: {feedback}"
         )
         return feedback
-
-    def _get_last_agent_tweet(self) -> Optional[TwitterPost]:
-        """Fetch and validate the last tweet posted by the agent."""
-        if (
-            not self.context.agents_fun_db.agents
-            or not self.context.agents_fun_db.agents[0].posts
-        ):
-            self.context.logger.warning(
-                "No agents or no posts found for the primary agent."
-            )
-            return None
-
-        last_tweet = self.context.agents_fun_db.agents[0].posts[-1]
-
-        if (
-            not last_tweet
-            or not hasattr(last_tweet, "tweet_id")
-            or last_tweet.tweet_id is None
-        ):
-            self.context.logger.warning("Last tweet or its tweet_id is invalid.")
-            return None
-
-        return last_tweet
 
     def _process_raw_replies(self, raw_replies_list: Any) -> List[Dict[str, Any]]:
         """Process raw replies list from DB into a list of dictionaries."""
@@ -637,7 +609,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         return json.loads(db_data["interacted_tweet_ids"] or "[]")
 
     def _collect_pending_tweets(
-        self, active_agents: List[str], interacted_tweet_ids: set[int]  # type: ignore
+        self, active_agents: List[AgentsFunAgent], interacted_tweet_ids: set[int]
     ) -> Generator[None, None, dict]:
         """Collect pending tweets from active agents that haven't been interacted with."""
         pending_tweets: Dict[str, Dict[str, str]] = {}
@@ -650,12 +622,14 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         for agent in active_agents:
             if not agent.loaded:
-                # Ensure agent data, including posts, is loaded.
-                # The load method in AgentsFunAgent is a generator, so we yield from it.
-                self.context.logger.info(
-                    f"Loading data for agent {agent.agent_instance.agent_id} (@{agent.twitter_username or 'Unknown'})."
+                # This should ideally not happen if get_active_agents ensures loaded agents,
+                # or if the main db load sequence is robust.
+                self.context.logger.warning(
+                    f"Agent {agent.agent_instance.agent_id} was not loaded. Attempting to load."
                 )
-                yield from agent.load()  # Assuming agent.load() is a generator function
+                # If agent.load is a generator, it needs to be yielded from.
+                # However, _collect_pending_tweets itself is a generator, so this is okay.
+                yield from agent.load()
 
             if not agent.posts:
                 self.context.logger.info(
@@ -913,13 +887,12 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 ENFORCE_ACTION_COMMAND_FAILED_MECH.format(last_prompt=last_prompt)
             )
             extra_command = ENFORCE_ACTION_COMMAND_FAILED_MECH_SUBPROMPT
-            tools_info = ""
+            tools_info = ""  # this is because the mech failed and we do not want to use tools again
         else:
             extra_command = (
                 ENFORCE_ACTION_COMMAND if is_staking_kpi_met is False else ""
             )
             tools_info = (self.generate_mech_tool_info(),)  # type: ignore
-            tools_info = ""
 
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
@@ -1485,19 +1458,25 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         self.context.logger.info(tools_info)
         return tools_info
 
-    def get_agent_handles(self) -> Generator[None, None, List[str]]:  # type: ignore
-        """Get the agent handles from agents_fun_db."""
+    def get_agent_handles(
+        self,
+    ) -> Generator[None, None, List[AgentsFunAgent]]:  # Update return type hint
+        """Get the active agent objects from agents_fun_db."""  # Update docstring
         # Forward type reference for AgentsFunAgent
-        active_agents = yield self.context.agents_fun_db.get_active_agents_usernames()
-        if not active_agents:
-            self.context.logger.info(
-                "No active memeooorr handles from agents_fun_db Now trying subgraph."
-            )
-            # fallback to subgraph
-            active_agents = yield from self.get_memeooorr_handles_from_subgraph()
+        active_agent_objects = (
+            self.context.agents_fun_db.get_active_agents()
+        )  # Call renamed method
 
-        # TODO: filter out suspended accounts (if AgentsFunAgent has a status field)
-        return active_agents
+        if not active_agent_objects:
+            self.context.logger.info(
+                "No active memeooorr handles from agents_fun_db. Now trying subgraph."
+            )
+
+            active_agent_objects = (
+                yield from self.get_memeooorr_handles_from_subgraph()
+            )  # This might need to change if it returns strings
+
+        return active_agent_objects
 
 
 class ActionTweetBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors

@@ -224,8 +224,6 @@ class MemeooorrBaseBehaviour(
 
         return response_json.get("response")
 
-    
-
     def _call_genai(
         self,
         prompt: str,

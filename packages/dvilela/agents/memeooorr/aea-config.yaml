@@ -13,7 +13,7 @@ connections:
 - valory/http_client:0.23.0:bafybeid5ffvg76ejjoese7brj5ji3lx66cu7p2ixfwflpo6rgofkypfd7y
 - valory/ledger:0.19.0:bafybeibdsjmy4w2eyilbqc7yzutopl65qpeyspxwz7mjvirr52twhjlf5y
 - valory/p2p_libp2p_client:0.1.0:bafybeic6ayusdwy4dks75njwk32ac7ur7salgllwf4fdc34ue5z2k5iz4q
-- dvilela/tweepy:0.1.0:bafybeifq4fjgu7qb4kx7ueixedxwg72dryfrhw7dqevlkp66fzylmtxkre
+- dvilela/tweepy:0.1.0:bafybeicgwjvvlzm536rekiknl4m4mry2ycix7scn45bx32chow5k3hpv7e
 - dvilela/kv_store:0.1.0:bafybeiecnl7yc5qx6x4q7467i66ehmfw4qydnnry7tjs7plqeytb6ueyvu
 - valory/http_server:0.22.0:bafybeic3jpkum7g6qo6x6vdrmvvhj7vqw7ec2op72uc3yfhmnlp5hn3joy
 - dvilela/genai:0.1.0:bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty
@@ -43,10 +43,10 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-- dvilela/memeooorr_abci:0.1.0:bafybeigqohmgepfc6mpyn35vswksj6ijgurxfgmdcve3lgv7maw7fy6hbq
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeiezb2qnllllda7b3qzc2ddyfh4vmgb5vnye2wwoly7zdis4xbu3gm
+- dvilela/memeooorr_abci:0.1.0:bafybeib3je25zpaopo3374vcoejgweyuvldr4qd5hbxmrjrn56zqimazqe
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeictc26buigzrqrnkea7734lsqwt7dlzvpsu3yop5mzuva7vcqdjqa
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeido7u74nm2qygvuxofosoquczgbmozxjuqsxpgzbkfzejbrlmfycm
+- valory/agent_db_abci:0.1.0:bafybeie2z2zvwsykvwykb5g6tryj42lshzuvs7p3ftukjye6wgm3oak4m4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

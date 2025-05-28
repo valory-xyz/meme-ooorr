@@ -229,13 +229,18 @@ class AgentsFunDatabase(Model):
 
         return tweet_feedback
 
-    def get_active_agents_usernames(self) -> List[str]:
-        """Get all active agents"""
-        active_agents = []
+    def get_active_agents(self) -> List[AgentsFunAgent]:
+        """Get all active agent objects"""
+        active_agents_list = []
 
         for agent in self.agents:
             if not agent.loaded:
-                yield from agent.load()
+                if self.logger:
+                    self.logger.warning(
+                        f"Agent {agent.agent_instance.agent_id} ({agent.twitter_username or 'Unknown'}) "
+                        f"was not loaded prior to checking for active status. Skipping."
+                    )
+                continue
 
             # An agent is active if it has posted in the last 7 days
             if not agent.posts:
@@ -246,8 +251,17 @@ class AgentsFunDatabase(Model):
             ):
                 continue
 
-            active_agents.append(agent.twitter_username)
-        return active_agents
+            # Append the whole agent object if it has a twitter_username
+            # If an agent is considered active but has no username, it might indicate an issue,
+            # but we can still include it if that's desired, or filter it out.
+            # For now, let's assume an active agent should ideally have a username.
+            if agent.twitter_username:
+                active_agents_list.append(agent)
+            elif self.logger:
+                self.logger.warning(
+                    f"Agent {agent.agent_instance.agent_id} is active but has no twitter_username. Not including in active list."
+                )
+        return active_agents_list
 
     def __str__(self) -> str:
         """String representation of the database"""
