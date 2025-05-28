@@ -944,79 +944,10 @@ def memeooorr_example(client: AgentDBClient):
     agents_fun_db = AgentsFunDatabase(client=client)
     agents_fun_db.load()
 
-    # print(agents_fun_db)
-    # for agent in agents_fun_db.agents:
-    #     if agent.likes or agent.retweets or agent.posts or agent.follows:
-    #         print(agent)
-
-    # get active agents
-    active_agents = agents_fun_db.get_active_agents()
-    active_agent_names = [
-        agent.twitter_username for agent in active_agents if agent.twitter_username
-    ]
-    print(f"Found {len(active_agents)} active agents. Usernames: {active_agent_names}")
-
-    # Attempt to add a new tweet for the agent associated with the client's credentials
-    # if not client.agent:
-    #     print(
-    #         f"Client's agent instance (for address {client.eth_address}) not found. Cannot add tweet."
-    #     )
-    # elif not client.agent_type or client.agent_type.type_name != MEMEOOORR:
-    #     type_name_str = client.agent_type.type_name if client.agent_type else "Unknown"
-    #     print(
-    #         f"Client's agent (ID: {client.agent.agent_id}) is of type '{type_name_str}', not '{MEMEOOORR}'. This example script targets MEMEOOORR agents for adding tweets."
-    #     )
-    # else:
-    #     agent_to_tweet = None
-    #     for (
-    #         agf_agent
-    #     ) in agents_fun_db.agents:  # agents_fun_db.agents are MEMEOOORR type
-    #         if agf_agent.agent_instance.agent_id == client.agent.agent_id:
-    #             agent_to_tweet = agf_agent
-    #             break
-
-    #     if agent_to_tweet:
-    #         new_post = TwitterPost(
-    #             timestamp=datetime.now(timezone.utc),
-    #             tweet_id=f"test_tweet_{int(time.time())}",  # More unique tweet ID
-    #             text="This is a new tweet added from the example by the client's agent!",
-    #         )
-
-    #         # agent_to_tweet.load() should have been called by agents_fun_db.load()
-    #         # but ensuring critical info like username is present for logging.
-    #         if not agent_to_tweet.loaded:
-    #             agent_to_tweet.load()  # Redundant if AgentsFunDatabase.load() worked as expected
-
-    #         username_to_print = (
-    #             agent_to_tweet.twitter_username
-    #             if agent_to_tweet.twitter_username
-    #             else f"AgentID-{agent_to_tweet.agent_instance.agent_id}"
-    #         )
-    #         print(
-    #             f"Adding a new tweet for agent: {username_to_print} (Agent ID: {agent_to_tweet.agent_instance.agent_id})..."
-    #         )
-
-    #         attr_instance = agent_to_tweet.add_interaction(new_post)
-    #         if attr_instance:
-    #             print(
-    #                 f"Successfully added tweet. Attribute instance ID: {attr_instance.attribute_id}"
-    #             )
-    #             # Optionally, re-load and print the agent's details to see the new tweet
-    #             # print("Reloading agent to show new tweet:")
-    #             # agent_to_tweet.load()
-    #             # print(agent_to_tweet)
-    #         else:
-    #             print(
-    #                 "Failed to add the new tweet (API call might have failed or returned no instance)."
-    #             )
-    #     else:
-    #         # This means client.agent is a MEMEOOORR agent but was not found in agents_fun_db.agents
-    #         print(
-    #             f"The client's agent (ID: {client.agent.agent_id}, Address: {client.eth_address}, Type: {MEMEOOORR}) was not found in the loaded list of MEMEOOORR agents from AgentsFunDatabase."
-    #         )
-    #         print(
-    #             "Cannot add tweet. Ensure this agent exists and is correctly loaded by AgentsFunDatabase."
-    #         )
+    print(agents_fun_db)
+    for agent in agents_fun_db.agents:
+        if agent.likes or agent.retweets or agent.posts or agent.follows:
+            print(agent)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
