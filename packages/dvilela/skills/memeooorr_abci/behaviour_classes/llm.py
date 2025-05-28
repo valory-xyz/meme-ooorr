@@ -21,8 +21,7 @@
 
 import json
 import random
-from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union
-from urllib.parse import urlparse
+from typing import Any, Dict, Generator, List, Optional, Tuple, Type
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
     MemeooorrBaseBehaviour,

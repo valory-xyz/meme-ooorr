@@ -8,12 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeiejhe6za24ewyrguzytcrrjlyxeq5m4hya7qpc6xxhsjiaj6tplui
+  behaviour_classes/base.py: bafybeibkxsxolstavhsk72gb5qnlodntby7wxngqf6ghrfgtuuts5xznvm
   behaviour_classes/chain.py: bafybeibaiaz5sysmrwg2vrpwpsnop2733wyerlm3ntgxcpchbsve2rbbmi
   behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
-  behaviour_classes/llm.py: bafybeicjfnizdhgzuvdgbcpyqb4jcpebkwjoxdebcoig7hjnvcf3uk6ciq
+  behaviour_classes/llm.py: bafybeiaxj6ps53froyqtlogfd3y3z3wbiurhoharuft5xuhkzoxtruukya
   behaviour_classes/mech.py: bafybeig5r6w7yjg26tj6m2khikqjtkcva6sojef6pdjrfnpmfwdqgfkavm
-  behaviour_classes/twitter.py: bafybeiao7gr347bjf2onplila7xyjhyu3fabytexuihrpqzzbocylc4spy
+  behaviour_classes/twitter.py: bafybeicexhbps7lact7hbfk3qt4kw7cgfsb3hvfh53ckwej4s36dftyhk4
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
@@ -21,7 +21,7 @@ fingerprint:
   models.py: bafybeidhxnp3vnezsapopaeqgwnvdgw7caabwmhnu4s4up2jhvthezkci4
   payloads.py: bafybeiez63hch4jpzeqd6nxrnvgw4mwbd7fdnru3vmbiw3qpdbr4qfm2uu
   prompts.py: bafybeiczfejicuwov6przmmnlub27ace7mampuknq5oguaf2vraqfluuem
-  rounds.py: bafybeia2u7qqeh3prazqojd6r3r5rqvvlwrr3kfjfrqnntrsqdx7by7c3e
+  rounds.py: bafybeibcdt7w3jn3mfdurifvn4gfqa3amhg4fufz66kxlh5srjtuxqtame
   rounds_info.py: bafybeib6a5a7bvwvfiscnbhsc6sejloelyglnu6lwbeeileyxrsgkxcb6a
 fingerprint_ignore_patterns: []
 connections:
@@ -46,7 +46,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeie2z2zvwsykvwykb5g6tryj42lshzuvs7p3ftukjye6wgm3oak4m4
+- valory/agent_db_abci:0.1.0:bafybeihvcwz4bz5hcl3ha7gwjk4bkmpdwpc247hrpbdzloqeoksulxngbe
 behaviours:
   main:
     args: {}

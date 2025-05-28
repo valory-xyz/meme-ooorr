@@ -100,7 +100,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         self.context.logger.info("Stored/Appended tweet data in KV store.")
         return True
 
-    def _handle_simple_twitter_action(
+    def _handle_simple_twitter_action(  # pylint: disable=too-many-arguments
         self,
         action_description: str,
         tweepy_method_name: str,
@@ -113,57 +113,69 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             "username"
         )
         self.context.logger.info(f"{action_description}: {target_identifier}")
-        try:
-            response = yield from self._call_tweepy(
-                method=tweepy_method_name, **tweepy_kwargs
-            )
-            if response is None:
-                self.context.logger.error(
-                    f"Tweepy call for {action_description.lower()} failed (returned None). Target: {target_identifier}"
-                )
-                return False
 
-            if not response.get("success", False):
-                error_message = response.get("error", "Unknown error occurred.")
-                self.context.logger.error(
-                    f"Error {action_description.lower()} target {target_identifier}: {error_message}"
-                )
-                return False
+        response = yield from self._call_tweepy(
+            method=tweepy_method_name, **tweepy_kwargs
+        )
 
-            if response["success"]:
-                # Timestamp is added by the action_class constructor or should be passed if needed
-                action_obj_params = {
-                    **action_constructor_kwargs,
-                    "timestamp": datetime.now(timezone.utc),
-                }
-                action_obj = action_class(**action_obj_params)
-                attribute_id = (
-                    yield from self.context.agents_fun_db.my_agent.add_interaction(
-                        action_obj
-                    )
-                )
-                self.context.logger.info(f"Attribute ID: {attribute_id}")
-            return response["success"]
-        except Exception as e:  # pylint: disable=broad-except
+        if response is None:
             self.context.logger.error(
-                f"Exception during {action_description.lower()} for target {target_identifier}: {e}"
+                f"Tweepy call for {action_description.lower()} failed (returned None). Target: {target_identifier}"
             )
             return False
 
-    def _create_twitter_content(
+        if not response.get("success", False):
+            error_message = response.get("error", "Unknown error occurred.")
+            self.context.logger.error(
+                f"Error {action_description.lower()} target {target_identifier}: {error_message}"
+            )
+            return False
+
+        # If Tweepy call was successful, proceed to add interaction to DB
+        if response["success"]:
+            action_obj_params = {
+                **action_constructor_kwargs,
+                "timestamp": datetime.now(timezone.utc),
+            }
+            action_obj = action_class(**action_obj_params)
+
+            # Call the updated add_interaction which now handles its own exceptions
+            db_add_result = (
+                yield from self.context.agents_fun_db.my_agent.add_interaction(
+                    action_obj
+                )
+            )
+
+            if db_add_result is None:  # add_interaction returns None on failure
+                self.context.logger.error(
+                    f"Failed to store {action_description.lower()} action in DB for target: {target_identifier}. Check AgentsFunDB logs."
+                )
+                return False  # Indicate failure to store in DB
+
+            self.context.logger.info(
+                f"Successfully stored {action_description.lower()} action in AgentsFunDB. Attribute ID: {db_add_result.attribute_id}"
+            )
+            return True  # Indicates overall success (Tweepy and DB)
+
+        return False  # Should not be reached if response["success"] is true, but as a fallback
+
+    def _create_twitter_content(  # pylint: disable=too-many-arguments
         self,
         log_message_prefix: str,
         tweet_payload: Dict[str, Any],
         action_text: str,
-        is_reply_or_quote: bool = False,
         original_tweet_id_for_reply: Optional[str] = None,
         quote_url_for_storage: Optional[str] = None,
-        is_main_post: bool = False,
-        store_in_kv: bool = True,
+        store_in_kv: bool = True,  # Default for KV store of main posts
     ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
         """Helper to post new content (original tweet, reply, quote) to Twitter."""
         self.context.logger.info(
             f"{log_message_prefix}: {tweet_payload.get('text', '')[:50]}..."
+        )
+
+        # Determine if this is a reply or quote based on provided parameters
+        is_reply_or_quote_action = bool(
+            original_tweet_id_for_reply or quote_url_for_storage
         )
 
         tweet_ids = yield from self._call_tweepy(
@@ -175,7 +187,8 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             self.context.logger.error(
                 f"Failed {log_message_prefix.lower()} to Twitter."
             )
-            return None if is_main_post else False
+            # Return None if it was intended as a main post (not reply/quote) but failed, else False
+            return None if not is_reply_or_quote_action else False
 
         newly_posted_tweet_id = str(tweet_ids[0])
 
@@ -184,29 +197,28 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             "text": action_text,
             "timestamp": datetime.now(timezone.utc),
         }
-        if is_reply_or_quote:
-            if quote_url_for_storage:
-                post_action_params["quote_url"] = quote_url_for_storage
-            elif original_tweet_id_for_reply:
-                post_action_params["reply_to_tweet_id"] = str(
-                    original_tweet_id_for_reply
-                )
+
+        if quote_url_for_storage:  # Quote takes precedence if both somehow provided
+            post_action_params["quote_url"] = quote_url_for_storage
+        elif original_tweet_id_for_reply:
+            post_action_params["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
 
         post_action = TwitterPost(**post_action_params)
 
-        try:
-            attribute_id = (
-                yield from self.context.agents_fun_db.my_agent.add_interaction(
-                    post_action
-                )
-            )
-            self.context.logger.info(f"Attribute ID: {attribute_id}")
-        except Exception as e:
+        db_add_result = yield from self.context.agents_fun_db.my_agent.add_interaction(
+            post_action
+        )
+
+        if db_add_result is None:
             self.context.logger.error(
-                f"Error creating/storing TwitterPost action for {log_message_prefix.lower()}: {e}"
+                f"Failed to store TwitterPost action in DB for {log_message_prefix.lower()}: {newly_posted_tweet_id}. Check AgentsFunDB logs."
+            )
+        else:
+            self.context.logger.info(
+                f"Successfully stored TwitterPost action in AgentsFunDB. Attribute ID: {db_add_result.attribute_id}"
             )
 
-        if is_main_post:
+        if not is_reply_or_quote_action:  # Logic for main posts
             latest_tweet_data_for_kv = {
                 "tweet_id": newly_posted_tweet_id,
                 "text": action_text,
@@ -219,11 +231,11 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 )
             return latest_tweet_data_for_kv
 
-        return True  # For reply/quote, indicates success of posting
+        return True  # For reply/quote, indicates success of Tweepy posting part
 
     def post_tweet(
         self, tweet: Union[str, List[str]], store: bool = True
-    ) -> Generator[None, None, Optional[Dict]]:
+    ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
         """Post a tweet"""
         text_to_post = tweet[0] if isinstance(tweet, list) else tweet
         tweet_payload_for_api = {"text": text_to_post}
@@ -233,8 +245,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 log_message_prefix="Posting tweet",
                 tweet_payload=tweet_payload_for_api,
                 action_text=text_to_post,
-                is_main_post=True,
-                store_in_kv=store,
+                original_tweet_id_for_reply=None,
+                quote_url_for_storage=None,
+                store_in_kv=store,  # User controls KV storage for main posts
             )
         )
 
@@ -255,10 +268,8 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             if not user_name:
                 self.context.logger.error("User name is required for quoting a tweet.")
                 return False
-            # Construct the quote URL for the API and for storage
-            quote_url = f"https://x.com/{user_name}/status/{tweet_id}"
-            tweet_payload_for_api["attachment_url"] = quote_url
-            quote_url_for_storage_val = quote_url
+            tweet_payload_for_api["quote_tweet_id"] = tweet_id
+            quote_url_for_storage_val = f"https://x.com/{user_name}/status/{tweet_id}"
         else:
             tweet_payload_for_api["reply_to"] = tweet_id
 
@@ -266,12 +277,10 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             log_message_prefix=log_prefix,
             tweet_payload=tweet_payload_for_api,
             action_text=text,
-            is_reply_or_quote=True,
-            original_tweet_id_for_reply=(
-                tweet_id if not quote else None
-            ),  # Pass original_tweet_id if it's a reply contextually, though not used by API for quote
+            original_tweet_id_for_reply=tweet_id if not quote else None,
             quote_url_for_storage=quote_url_for_storage_val,
-            is_main_post=False,
+            # store_in_kv is not passed, defaults to True in _create_twitter_content,
+            # but the 'if not is_reply_or_quote:' block handles it correctly.
         )
         return bool(result)
 
@@ -311,8 +320,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             )
         )
 
+    @staticmethod
     def _format_previous_tweets_str(
-        self, tweets: Optional[Union[List[TwitterPost], List[Dict[str, Any]]]]
+        tweets: Optional[Union[List[TwitterPost], List[Dict[str, Any]]]],
     ) -> str:
         """Format previous tweets as a string"""
         if not tweets:
@@ -359,7 +369,8 @@ class CollectFeedbackBehaviour(
 
         self.set_done()
 
-    def _twitter_post_to_dict(self, post: TwitterPost) -> Dict[str, Any]:
+    @staticmethod
+    def _twitter_post_to_dict(post: TwitterPost) -> Dict[str, Any]:
         """Converts a TwitterPost object to a JSON-serializable dictionary."""
         timestamp = getattr(post, "timestamp", None)
         reply_to_tweet_id_val = getattr(post, "reply_to_tweet_id", None)
@@ -426,7 +437,9 @@ class CollectFeedbackBehaviour(
 
         for post_item in raw_replies_list:
             if isinstance(post_item, TwitterPost):
-                processed_replies.append(self._twitter_post_to_dict(post_item))
+                processed_replies.append(
+                    CollectFeedbackBehaviour._twitter_post_to_dict(post_item)
+                )
             elif isinstance(post_item, dict):
                 # If it's already a dict, ensure timestamp is ISO format if it's a datetime object
                 if "timestamp" in post_item and isinstance(
@@ -851,7 +864,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         tweets = self.context.agents_fun_db.my_agent.posts
 
         tweets = tweets[-5:] if tweets else None
-        previous_tweets_str = self._format_previous_tweets_str(tweets)
+        previous_tweets_str = BaseTweetBehaviour._format_previous_tweets_str(tweets)
 
         # Convert TwitterPost objects to dictionaries for storage and return
         previous_tweets_for_return: Optional[List[Dict[str, Any]]] = None
@@ -947,7 +960,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         previous_tweets = (
             previous_tweets_data if isinstance(previous_tweets_data, list) else None
         )
-        previous_tweets_str = self._format_previous_tweets_str(previous_tweets)
+        previous_tweets_str = BaseTweetBehaviour._format_previous_tweets_str(
+            previous_tweets
+        )
 
         # Ensure other_tweets is str (formatted string)
         other_tweets_str = (
@@ -1311,16 +1326,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             self.context.logger.error("Failed posting tweet with media to Twitter.")
             return False  # Indicate failure
 
-        latest_tweet = {
-            "tweet_id": tweet_ids[0],
-            "text": text,
-            "media_path": media_path,
-            "timestamp": self.get_sync_timestamp(),
-        }
-
-        # Write latest tweet to the database
-        yield from self.store_tweet(latest_tweet)
-        self.context.logger.info("Wrote latest tweet with media to db")
         return True  # Indicate success
 
     def _validate_interaction(
@@ -1358,7 +1363,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, None]:
         """Handle creating a new tweet."""
         # Format the previous tweets list into a string for the prompt
-        previous_tweets_str = self._format_previous_tweets_str(previous_tweets)
+        previous_tweets_str = BaseTweetBehaviour._format_previous_tweets_str(
+            previous_tweets
+        )
 
         # Optionally, replace the tweet with one generated by the alternative model
         new_text = yield from self.replace_tweet_with_alternative_model(

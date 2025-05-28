@@ -123,25 +123,46 @@ class AgentsFunAgent:
         self.loaded = True
 
     def add_interaction(self, interaction: TwitterAction):
-        """Add interaction to agent"""
+        """Add interaction to agent. Returns AttributeInstance on success, None on failure."""
+        try:
+            action_class = self.action_to_class.get(interaction.action, None)
+            if not action_class:
+                # Log this specific error before raising or returning None
+                if self.client and self.client.logger:
+                    self.client.logger.error(
+                        f"Unknown Twitter action type: {interaction.action} for agent {self.agent_instance.agent_id}"
+                    )
+                # Depending on desired strictness, could raise ValueError or return None.
+                # For now, returning None to be caught by the logic below.
+                raise ValueError(f"Unknown Twitter action: {interaction.action}")
 
-        action_class = self.action_to_class.get(interaction.action, None)
-        if not action_class:
-            raise ValueError(f"Unknown Twitter action: {interaction.action}")
+            # Create attribute instance
+            attr_def = yield from self.client.get_attribute_definition_by_name(
+                "twitter_interactions"
+            )
+            if not attr_def:
+                if self.client and self.client.logger:
+                    self.client.logger.error(
+                        f"Attribute definition 'twitter_interactions' not found for agent {self.agent_instance.agent_id}"
+                    )
+                raise ValueError(
+                    "Attribute definition 'twitter_interactions' not found"
+                )
 
-        # Create attribute instance
-        attr_def = yield from self.client.get_attribute_definition_by_name("twitter_interactions")
-        if not attr_def:
-            raise ValueError("Attribute definition not found")
-
-        # Create or update attribute instance
-        attr_instance = yield from self.client.create_attribute_instance(
-            agent_instance=self.agent_instance,
-            attribute_def=attr_def,
-            value=interaction.to_json(),
-            value_type="json",
-        )
-        return attr_instance
+            # Create or update attribute instance
+            attr_instance = yield from self.client.create_attribute_instance(
+                agent_instance=self.agent_instance,
+                attribute_def=attr_def,
+                value=interaction.to_json(),
+                value_type="json",
+            )
+            return attr_instance
+        except Exception as e:
+            if self.client and self.client.logger:
+                self.client.logger.error(
+                    f"Error adding interaction for agent {self.agent_instance.agent_id} ({interaction.action}): {e}"
+                )
+            return None
 
     def __str__(self) -> str:
         """String representation of the agent"""

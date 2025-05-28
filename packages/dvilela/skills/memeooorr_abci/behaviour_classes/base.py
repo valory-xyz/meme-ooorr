@@ -23,22 +23,10 @@ import json
 import re
 from abc import ABC
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from datetime import datetime
+from typing import Any, Dict, Generator, List, Optional, Tuple, cast
 
 from aea.protocols.base import Message
-from aea.skills.base import SkillContext
 from twitter_text import parse_tweet  # type: ignore
 
 from packages.dvilela.connections.genai.connection import (
@@ -144,10 +132,6 @@ class MemeooorrBaseBehaviour(
     This class provides common functionalities and properties used by other behaviours
     in the Memeooorr ABCI skill.
     """
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the base behaviour."""
-        super().__init__(**kwargs)
 
     @property
     def synchronized_data(self) -> SynchronizedData:
