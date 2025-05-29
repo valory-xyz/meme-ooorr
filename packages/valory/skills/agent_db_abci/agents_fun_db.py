@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -126,13 +125,14 @@ class AgentsFunAgent:
     def add_interaction(self, interaction: TwitterAction):
         """Add interaction to agent"""
 
-        # Check if the interaction is valid
         action_class = self.action_to_class.get(interaction.action, None)
         if not action_class:
             raise ValueError(f"Unknown Twitter action: {interaction.action}")
 
         # Create attribute instance
-        attr_def = yield from self.client.get_attribute_definition_by_name("twitter_interactions")
+        attr_def = yield from self.client.get_attribute_definition_by_name(
+            "twitter_interactions"
+        )
         if not attr_def:
             raise ValueError("Attribute definition not found")
 
@@ -159,11 +159,13 @@ class AgentsFunDatabase(Model):
         self.client = None
         self.agent_type = None
         self.agents = []
+        self.my_agent = None
+        self.logger = None
 
     def initialize(self, client: AgentDBClient):
         """Initialize agent"""
-        if self.client is None:
-            self.client = client
+        self.client = client
+        self.logger = self.client.logger
 
     def load(self):
         """Load data"""
@@ -176,6 +178,8 @@ class AgentsFunDatabase(Model):
         for agent_instance in agent_instances:
             self.agents.append(AgentsFunAgent(self.client, agent_instance))
             yield from self.agents[-1].load()
+            if self.agents[-1].agent_instance.eth_address == self.client.address:
+                self.my_agent = self.agents[-1]
 
     def get_tweet_likes_number(self, tweet_id) -> int:
         """Get all tweet likes"""
@@ -224,14 +228,21 @@ class AgentsFunDatabase(Model):
             "retweets": retweets,
             "replies": replies,
         }
+
         return tweet_feedback
 
     def get_active_agents(self) -> List[AgentsFunAgent]:
-        """Get all active agents"""
-        active_agents = []
+        """Get all active agent objects"""
+        active_agents_list = []
+
         for agent in self.agents:
+            if not agent.loaded and self.logger:
+                self.logger.warning(
+                    f"Agent {agent.agent_instance.agent_id} ({agent.twitter_username or 'Unknown'}) "
+                    f"was not loaded prior to checking for active status. Skipping."
+                )
             if not agent.loaded:
-                yield from agent.load()
+                continue
 
             # An agent is active if it has posted in the last 7 days
             if not agent.posts:
@@ -242,8 +253,17 @@ class AgentsFunDatabase(Model):
             ):
                 continue
 
-            active_agents.append(agent)
-        return active_agents
+            # Append the whole agent object if it has a twitter_username
+            # If an agent is considered active but has no username, it might indicate an issue,
+            # but we can still include it if that's desired, or filter it out.
+            # For now, let's assume an active agent should ideally have a username.
+            if agent.twitter_username:
+                active_agents_list.append(agent)
+            elif self.logger:
+                self.logger.warning(
+                    f"Agent {agent.agent_instance.agent_id} is active but has no twitter_username. Not including in active list."
+                )
+        return active_agents_list
 
     def __str__(self) -> str:
         """String representation of the database"""

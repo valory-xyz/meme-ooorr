@@ -25,6 +25,7 @@
 
 import json
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Optional
 
@@ -939,6 +940,7 @@ def reset_agents_fun_db(client: AgentDBClient):
 
 def memeooorr_example(client: AgentDBClient):
     """Example usage of the AgentDBClient class."""
+    start_time = time.time()
     agents_fun_db = AgentsFunDatabase(client=client)
     agents_fun_db.load()
 
@@ -946,6 +948,10 @@ def memeooorr_example(client: AgentDBClient):
     for agent in agents_fun_db.agents:
         if agent.likes or agent.retweets or agent.posts or agent.follows:
             print(agent)
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"memeooorr_example took {elapsed_time:.4f} seconds to execute.")
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@
 
 import json
 import random
-from typing import Generator, Optional, Tuple, Type
+from typing import Any, Dict, Generator, List, Optional, Tuple, Type
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
     MemeooorrBaseBehaviour,
@@ -103,6 +103,60 @@ class ActionDecisionBehaviour(
 
         self.set_done()
 
+    def _parse_feedback_data(self, feedback_data: Any) -> Optional[Dict[str, Any]]:
+        """Parses raw feedback data into a dictionary."""
+        if isinstance(feedback_data, dict):
+            return feedback_data
+
+        if isinstance(feedback_data, str) and feedback_data:
+            try:
+                return json.loads(feedback_data)
+            except json.JSONDecodeError:
+                self.context.logger.error(
+                    f"Failed to parse feedback JSON string: {feedback_data}"
+                )
+                return None
+
+        if feedback_data:  # It's not a dict, not a string, but not None/empty
+            self.context.logger.warning(
+                f"Feedback data is not a dict or JSON string: {type(feedback_data)}"
+            )
+            return None
+
+        # Handle None or empty string case
+        return {}
+
+    def _format_replies(self, parsed_feedback: Optional[Dict[str, Any]]) -> str:
+        """Extracts and formats replies from parsed feedback."""
+        if parsed_feedback is None:
+            return ""
+
+        replies_list = parsed_feedback.get("replies", [])
+        if not isinstance(replies_list, list):
+            self.context.logger.warning(
+                f"Replies list is not a list or not found: {replies_list}"
+            )
+            return ""
+
+        formatted_replies: List[str] = []
+        for reply_item in replies_list:
+            if isinstance(reply_item, dict):
+                reply_text = reply_item.get("text", "")
+                # The key 'replying_agent_id' is not available in the current reply structure.
+                # Using a placeholder.
+                replying_agent_id_placeholder = "Unknown Author"
+                reply_tweet_id_val = reply_item.get("tweet_id", "")
+
+                formatted_replies.append(
+                    f"tweet: {reply_text}\nagent_id: {replying_agent_id_placeholder}\ntweet_id: {reply_tweet_id_val}"
+                )
+            else:
+                self.context.logger.warning(
+                    f"Skipping non-dictionary item in replies list: {reply_item}"
+                )
+
+        return "\n\n".join(formatted_replies)
+
     def get_event(  # pylint: disable=too-many-locals,too-many-return-statements,too-many-statements
         self,
     ) -> Generator[
@@ -145,12 +199,12 @@ class ActionDecisionBehaviour(
         tweets = yield from self.get_tweets_from_db()
         latest_tweet = tweets[-1]["text"] if tweets else "No previous tweet"
 
-        tweet_responses = "\n\n".join(
-            [
-                f"tweet: {t['reply_text']}\nagent_id: {t['replying_agent_id']}\ntweet_id: {t['reply_tweet_id']}"
-                for t in self.synchronized_data.feedback
-            ]
-        )
+        feedback_data_str = self.synchronized_data.feedback
+        # this is to parse all the data from the feedback
+        parsed_feedback = self._parse_feedback_data(feedback_data_str)
+
+        # this is to format the data from the feedback into a string for llm
+        tweet_responses = self._format_replies(parsed_feedback)
 
         # Get last summon timestamp and current persona
         current_persona = yield from self.get_persona()

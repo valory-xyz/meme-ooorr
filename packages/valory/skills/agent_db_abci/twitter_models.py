@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -38,7 +37,7 @@ class TwitterAction(BaseModel):
         return {
             "action": self.action,
             "timestamp": self.timestamp.isoformat().replace("+00:00", "Z"),
-            "details": self.model_dump_json(exclude={"action", "timestamp"}),
+            "details": self.model_dump(exclude={"action", "timestamp"}),
         }
 
 
@@ -49,6 +48,7 @@ class TwitterPost(TwitterAction):
     tweet_id: str
     text: str
     reply_to_tweet_id: Optional[str] = None
+    quote_url: Optional[str] = None
 
     @classmethod
     def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
@@ -63,6 +63,7 @@ class TwitterPost(TwitterAction):
             tweet_id=data["details"]["tweet_id"],
             text=data["details"]["text"],
             reply_to_tweet_id=data["details"].get("reply_to_tweet_id", None),
+            quote_url=data["details"].get("quote_url", None),
         )
 
 
@@ -73,8 +74,8 @@ class TwitterRewtweet(TwitterAction):
     tweet_id: str
 
     @classmethod
-    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
-        """Convert nested JSON to TwitterPost"""
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterRewtweet":
+        """Convert nested JSON to TwitterRewtweet"""
         if isinstance(data["details"], str):
             data["details"] = json.loads(data["details"])
         return cls(
@@ -93,8 +94,8 @@ class TwitterFollow(TwitterAction):
     username: str
 
     @classmethod
-    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
-        """Convert nested JSON to TwitterPost"""
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterFollow":
+        """Convert nested JSON to TwitterFollow"""
         if isinstance(data["details"], str):
             data["details"] = json.loads(data["details"])
         return cls(
@@ -113,8 +114,8 @@ class TwitterLike(TwitterAction):
     tweet_id: str
 
     @classmethod
-    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterPost":
-        """Convert nested JSON to TwitterPost"""
+    def from_nested_json(cls, data: Dict[str, Any]) -> "TwitterLike":
+        """Convert nested JSON to TwitterLike"""
         if isinstance(data["details"], str):
             data["details"] = json.loads(data["details"])
         return cls(

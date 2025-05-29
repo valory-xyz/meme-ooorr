@@ -7,17 +7,17 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeigmk5a3fgwudb2kysbh7ar3sdlunfxxrj76udkj555z5zz6onurdi
-  agent_db_client.py: bafybeif2tf6ba6ec73f7kqzficlkk6r3pwlb2uzl2qxkksa3a3ysl33voa
+  agent_db_client.py: bafybeic7gnqxjeqfq7twsfryes7rntvpraxmq23kpkwaopiu6slvt42cgu
   agent_db_models.py: bafybeieujj532ijrpcqgzgdb5rtvkrzdyv6j6uoz7r7v45kc5t4tgzl7au
-  agents_fun_db.py: bafybeifvilceat6y3hfw57x4ifds662jmdyn6gvdcr6gojul4wngn6zrre
-  behaviours.py: bafybeidf42rpakglcibu4ahdql4bqrpcm7ghffq5gndyqrukz5l3k6a6le
+  agents_fun_db.py: bafybeidmmktdnc3ic2bkjhrqasxkzdjg3kbjf7sysjvprlnqvsapck666m
+  behaviours.py: bafybeify4fujvhgevulgvchkc2s53i3jf3xxwo2el5yoi6xzxfh52f7uj4
   dialogues.py: bafybeihsfzez4dsemudres2je4ksjcngbw5q72ltyucqtv5ytkpverqpry
   fsm_specification.yaml: bafybeigiboab2knxjw7jj7k7bne6osbnhs7rreo3mgtq5nfkrtpw47thze
   handlers.py: bafybeiboaxdq7goafpoedrulb3s46usgqpi646oq5vsevtb2c434eiamxa
   models.py: bafybeihdebjnndq6bw4mtoaooqrent2jbb4pwpsgbf66xfhvhcl64kvv6m
   payloads.py: bafybeifjq6sljt33cbdfleab4czsoe66ntlcvqjnxcdhp4rtn6sdiipjy4
   rounds.py: bafybeif4v3ka77zommvf7md7wwxz7ebdvbruhelwz2sviakhbmbtisqr7m
-  twitter_models.py: bafybeig44bk3x4pdus32djvqa3prj5exo5v2ykqhvzwnex2xcnp2fjygfi
+  twitter_models.py: bafybeid7ze3bn65txsy2ay5446c4vhoqssdxml7fwb5zgydeofxjcqddey
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
