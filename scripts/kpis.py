@@ -306,8 +306,8 @@ def update_agents(chain_config):
 
     token_ids_to_handle = get_memeooorrs_from_subgraph()
 
-    for service_id in range(latest_parsed_service, n_services):
-        print(f"Reading service {service_id} of {n_services}")
+    for service_id in range(latest_parsed_service, n_services + 1):
+        print(f"Reading service {service_id} of {n_services} ", end="")
         (
             security_deposit,  # pylint: disable=unused-variable
             multisig,
@@ -319,8 +319,11 @@ def update_agents(chain_config):
             agent_ids,
         ) = service_registry.functions.getService(service_id).call()
 
-        if agent_ids != [43]:
+        if agent_ids not in [[43], [50], [51]]:
+            print()
             continue
+
+        print("agents.fun")
 
         daa_db.agents[service_id] = AgentsFun(
             service_id=service_id,
@@ -377,7 +380,11 @@ def calculate_daas(chain_config):
 def calculate_follower_avg():
     """Calculate agent follower average."""
 
-    agent_handles = list(get_memeooorrs_from_subgraph().values())
+    agent_handles = [
+        handle
+        for service_id, handle in get_memeooorrs_from_subgraph().items()
+        if is_service_active(int(service_id))
+    ]
     followers = {}
 
     for agent_handle in agent_handles:
@@ -437,7 +444,7 @@ def calculate_engagement_rate_avg():
 
 
 if __name__ == "__main__":
-    # calculate_daas(CHAIN_CONFIGS["BASE"])
+    calculate_daas(CHAIN_CONFIGS["BASE"])
     # calculate_daas(CHAIN_CONFIGS["CELO"])
-    # calculate_follower_avg()
+    calculate_follower_avg()
     calculate_engagement_rate_avg()
