@@ -34,7 +34,7 @@ from pydantic import BaseModel
 from web3 import Web3
 from web3.contract import Contract
 
-from scripts.test_subgraph import get_memeooorr_handles_from_subgraph
+from scripts.test_subgraph import get_memeooorrs_from_subgraph
 from scripts.test_twikit import calculate_user_engagement, get_followers_ids
 
 
@@ -102,6 +102,7 @@ class AgentsFun(BaseModel):
     service_id: int
     multisig: str
     transactions: Dict[str, Transaction] = {}
+    twitter_handle: Optional[str] = None
 
 
 class DAAdatabase(BaseModel):
@@ -245,6 +246,21 @@ def was_service_active(service_id: int, day: datetime.date) -> bool:
     return len(transactions) > 0
 
 
+def is_service_active(service_id: int) -> bool:
+    """Check if the address has made any transactions in the last week."""
+
+    day_end = datetime.now(timezone.utc)
+    day_start = day_end - timedelta(days=7)
+
+    transactions = [
+        tx
+        for tx in daa_db.agents[service_id].transactions.values()
+        if tx.timestamp >= day_start.timestamp() and tx.timestamp <= day_end.timestamp()
+    ]
+
+    return len(transactions) > 0
+
+
 def get_packages(package_type: str):
     """Gets minted packages from the Olas subgraph"""
 
@@ -288,6 +304,8 @@ def update_agents(chain_config):
     if latest_parsed_service >= n_services:
         return
 
+    token_ids_to_handle = get_memeooorrs_from_subgraph()
+
     for service_id in range(latest_parsed_service, n_services):
         print(f"Reading service {service_id} of {n_services}")
         (
@@ -307,6 +325,7 @@ def update_agents(chain_config):
         daa_db.agents[service_id] = AgentsFun(
             service_id=service_id,
             multisig=multisig,
+            twitter_handle=token_ids_to_handle.get(str(service_id), None),
         )
 
     save_daa_db()
@@ -358,7 +377,7 @@ def calculate_daas(chain_config):
 def calculate_follower_avg():
     """Calculate agent follower average."""
 
-    agent_handles = get_memeooorr_handles_from_subgraph()
+    agent_handles = list(get_memeooorrs_from_subgraph().values())
     followers = {}
 
     for agent_handle in agent_handles:
@@ -383,9 +402,18 @@ def calculate_engagement_rate_avg():
     else:
         engagements = {}
 
-    agent_handles = get_memeooorr_handles_from_subgraph()
+    active_agent_handles = [
+        a.twitter_handle
+        for a in list(
+            filter(
+                lambda a: is_service_active(a.service_id), list(daa_db.agents.values())
+            )
+        )
+        if a.twitter_handle is not None
+    ]
+    print(f"Active agents: {active_agent_handles}")
 
-    for agent_handle in agent_handles:
+    for agent_handle in active_agent_handles:
         # Skip already processed agents
         if agent_handle in engagements:
             continue
@@ -411,5 +439,5 @@ def calculate_engagement_rate_avg():
 if __name__ == "__main__":
     # calculate_daas(CHAIN_CONFIGS["BASE"])
     # calculate_daas(CHAIN_CONFIGS["CELO"])
-    calculate_follower_avg()
-    # calculate_engagement_rate_avg()
+    # calculate_follower_avg()
+    calculate_engagement_rate_avg()
