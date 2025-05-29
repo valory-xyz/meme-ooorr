@@ -29,9 +29,3 @@ if test -e $MEMEOOORR_DB; then
   echo "Creating database backup"
   cp $MEMEOOORR_DB $REPO_PATH
 fi
-
-# Backup cookies
-if test -e $TWITTER_COOKIES; then
-  echo "Creating cookies backup"
-  cp $TWITTER_COOKIES $REPO_PATH
-fi
