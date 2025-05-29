@@ -221,7 +221,7 @@ async def calculate_user_engagement(user: str) -> float:
     for tweet in tweets:
         eng_rate = await get_tweet_engagement_rate(tweet, client)
         engagements[tweet.id] = eng_rate
-        print(f"Tweet {tweet.id} engagement rate: {eng_rate}")
+        print(f"Tweet {tweet.id} engagement rate: {eng_rate:.2f}")
         time.sleep(1)
 
     return sum(engagements.values()) / len(engagements) if engagements else 0
