@@ -337,4 +337,7 @@ class TweepyConnection(BaseSyncConnection):
 
     def get_me(self) -> Optional[Dict]:
         """Get own user information"""
-        return self.twitter.get_me()  # type: ignore
+        account_details = self.twitter.get_me()  # type: ignore
+        if account_details is None:
+            return {"error": "Failed to retrieve account details."}
+        return account_details
