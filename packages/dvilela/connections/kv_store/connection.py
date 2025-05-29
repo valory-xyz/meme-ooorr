@@ -100,6 +100,7 @@ class KvStoreConnection(BaseSyncConnection):
         self.db_path = str(  # nosec
             Path(self.configuration.config.get("store_path", "/tmp")) / "memeooorr.db"
         )
+        self.logger.info(f"KV database path: {self.db_path}")
 
     def main(self) -> None:
         """

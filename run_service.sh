@@ -37,11 +37,6 @@ if test -e $MEMEOOORR_DB; then
   cp $MEMEOOORR_DB $deployment_dir/persistent_data/logs
 fi
 
-# Copy the cookies
-if test -e $TWITTER_COOKIES; then
-  echo "Copying Twitter cookies"
-  cp $TWITTER_COOKIES $deployment_dir/persistent_data/logs
-fi
 
 # Run the deployment
 autonomy deploy run --build-dir $deployment_dir --detach
