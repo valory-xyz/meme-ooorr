@@ -20,10 +20,14 @@
 
 """Tweepy wrapper."""
 
+import logging
 import re
 from typing import Dict, List, Optional
 
 import tweepy  # type: ignore[import]
+
+
+DEFAULT_LOGGER = logging.getLogger(__name__)
 
 
 def is_twitter_id(twitter_id: str) -> bool:
@@ -49,6 +53,7 @@ class Twitter:
         access_token: str,
         access_token_secret: str,
         bearer_token: str,
+        logger: Optional[logging.Logger] = None,
     ):
         """Constructor"""
         self.oauth2_bearer_auth = tweepy.OAuth2BearerHandler(bearer_token)
@@ -69,12 +74,14 @@ class Twitter:
             access_token=access_token,
             access_token_secret=access_token_secret,
         )
+        self.logger = logger if logger else DEFAULT_LOGGER
 
     def post_tweet(
         self,
         text: str,
         image_paths: Optional[List[str]] = None,
         in_reply_to_tweet_id: Optional[int] = None,
+        quote_tweet_id: Optional[int] = None,
     ) -> Optional[str]:
         """
         Posts a new tweet with optional media.
@@ -86,165 +93,150 @@ class Twitter:
         try:
             tweet = self.client.create_tweet(
                 text=text,
-                media_ids=[
-                    self.api.media_upload(filename=image_path).media_id
-                    for image_path in image_paths
-                ]
-                if image_paths
-                else None,
+                media_ids=(
+                    [
+                        self.api.media_upload(filename=image_path).media_id
+                        for image_path in image_paths
+                    ]
+                    if image_paths
+                    else None
+                ),
                 in_reply_to_tweet_id=in_reply_to_tweet_id,
+                quote_tweet_id=quote_tweet_id,
             )
             return tweet.data["id"]
-        except tweepy.TweepyException as e:
-            print(e)
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method post_tweet: {type(e).__name__} - {e}"
+            )
             return None
 
     def delete_tweet(self, tweet_id: str) -> bool:
-        """
-        Deletes a specific tweet.
-
-        Args:
-            tweet_id (int): The ID of the tweet to delete.
-        """
+        """Deletes a specific tweet."""
         try:
             self.client.delete_tweet(tweet_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method delete_tweet: {type(e).__name__} - {e}"
+            )
             return False
 
     def like_tweet(self, tweet_id: str) -> bool:
-        """
-        Likes a specific tweet.
-
-        Args:
-            tweet_id (int): The ID of the tweet to like.
-        """
+        """Likes a specific tweet."""
         try:
             self.client.like(tweet_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method like_tweet: {type(e).__name__} - {e}"
+            )
             return False
 
     def unlike_tweet(self, tweet_id: str) -> bool:
-        """
-        Unlikes a specific tweet.
-
-        Args:
-            tweet_id (int): The ID of the tweet to like.
-        """
+        """Unlikes a specific tweet."""
         try:
             self.client.unlike(tweet_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method unlike_tweet: {type(e).__name__} - {e}"
+            )
             return False
 
     def retweet(self, tweet_id: str) -> bool:
-        """
-        Retweets a specific tweet.
-
-        Args:
-            tweet_id (int): The ID of the tweet to retweet.
-        """
+        """Retweets a specific tweet."""
         try:
             self.client.retweet(tweet_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method retweet: {type(e).__name__} - {e}"
+            )
             return False
 
     def unretweet(self, tweet_id: str) -> bool:
-        """
-        Unlikes a specific tweet.
-
-        Args:
-            tweet_id (int): The ID of the tweet to unretweet.
-        """
+        """Unretweets a specific tweet."""
         try:
             self.client.unretweet(tweet_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method unretweet: {type(e).__name__} - {e}"
+            )
             return False
 
     def follow_by_id(self, user_id: str) -> bool:
-        """
-        Follow a specific user.
-
-        Args:
-            user_id (int): The ID of the user to follow.
-        """
+        """Follow a specific user."""
         try:
             self.client.follow(user_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method follow_by_id: {type(e).__name__} - {e}"
+            )
             return False
 
     def follow_by_username(self, username: str) -> bool:
-        """
-        Follow a specific user.
+        """Follow a specific user by username."""
+        user_id = self.get_user_id(username=username)
 
-        Args:user_name
-            user_id (int): The ID of the user to follow.
-        """
-        try:
-            user_id = self.get_user_id(username=username)
-            if not user_id:
-                return False
-            self.follow_by_id(user_id)
-            return True
-        except tweepy.TweepyException:
+        if not user_id:
+            self.logger.error(
+                f"Could not follow user by username {username} because their ID could not be retrieved (get_user_id failed)."
+            )
             return False
 
-    def unfollow_by_id(self, user_id: str) -> bool:
-        """
-        Unfollow a specific tweet.
+        return self.follow_by_id(user_id)
 
-        Args:
-            user_id (int): The ID of the user to unfollow.
-        """
+    def unfollow_by_id(self, user_id: str) -> bool:
+        """Unfollow a specific user."""
         try:
             self.client.unfollow(user_id)
             return True
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method unfollow_by_id: {type(e).__name__} - {e}"
+            )
             return False
 
     def get_user_id(self, username: str) -> Optional[str]:
-        """
-        Get a user id.
-
-        Args:
-            username (str): The username of the user to retrieve.
-        """
+        """Get a user id."""
         try:
             user = self.client.get_user(username=username)
             return user.data.id
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method get_user_id: {type(e).__name__} - {e}"
+            )
             return None
 
     def get_me(self) -> Optional[Dict]:
-        """
-        Get my user.
-
-        Args:
-            user_id (int): The ID of the user to unfollow.
-        """
+        """Get my user."""
         try:
             result = self.client.get_me()
             return {"user_id": result.data.id, "username": result.data.username}
-        except tweepy.TweepyException:
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method get_me: {type(e).__name__} - {e}"
+            )
             return None
 
     def get_follower_ids(self, user: str) -> Optional[List[str]]:
-        """
-        Get a list of follower ids.
-
-        Args:
-            user_id (int): The ID of the user to unfollow.
-        """
+        """Get a list of follower ids."""
 
         user_id = user if is_twitter_id(user) else self.get_user_id(user)
 
+        if not user_id:
+            self.logger.error(
+                f"Could not get follower IDs for {user} because their ID could not be retrieved (get_user_id failed)."
+            )
+            return None
         try:
             result = self.api.get_follower_ids(user_id=user_id)
-            return result.data.ids
-        except tweepy.TweepyException as e:
-            print(e)
+            return result
+        except tweepy.errors.TweepyException as e:
+            self.logger.error(
+                f"TweepyException in method get_follower_ids: {type(e).__name__} - {e}"
+            )
             return None
