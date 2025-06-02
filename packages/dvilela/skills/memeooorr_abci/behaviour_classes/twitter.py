@@ -201,9 +201,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         }
 
         if quote_tweet_id:  # If a quote ID for DB storage is provided
-            post_action_params["quote_url"] = (
-                quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
-            )
+            post_action_params[
+                "quote_url"
+            ] = quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
         elif original_tweet_id_for_reply:
             post_action_params["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
 
