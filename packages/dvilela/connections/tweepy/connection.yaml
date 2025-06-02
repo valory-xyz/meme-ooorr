@@ -9,7 +9,7 @@ fingerprint:
   __init__.py: bafybeicrwqrdownfmeyvvzu45fllxouiwvtynrzs5fhbpt3wndyyhn66eu
   connection.py: bafybeiazpwe742wiicnvju5pkjbvrt77vmnwvrg2cccd7wbg2devy2qg4y
   readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
-  tweepy_wrapper.py: bafybeiak3bgzwau23oxwxt6ud4cougvxqm4thdhqtatwb5ulndr7cyzv6i
+  tweepy_wrapper.py: bafybeidoxonod3w3lpacgxx3fckyefv3ulf435b6tsjtds2v6df4tu2xsu
 fingerprint_ignore_patterns: []
 connections: []
 protocols:

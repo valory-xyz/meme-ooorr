@@ -92,14 +92,12 @@ class Twitter:
         try:
             tweet = self.client.create_tweet(
                 text=text,
-                media_ids=(
-                    [
-                        self.api.media_upload(filename=image_path).media_id
-                        for image_path in image_paths
-                    ]
-                    if image_paths
-                    else None
-                ),
+                media_ids=[
+                    self.api.media_upload(filename=image_path).media_id
+                    for image_path in image_paths
+                ]
+                if image_paths
+                else None,
                 in_reply_to_tweet_id=in_reply_to_tweet_id,
             )
             return tweet.data["id"]
