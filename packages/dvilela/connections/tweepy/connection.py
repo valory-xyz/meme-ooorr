@@ -129,6 +129,7 @@ class TweepyConnection(BaseSyncConnection):
                 self.tweepy_access_token,
                 self.tweepy_access_token_secret,
                 self.tweepy_bearer_token,
+                logger=self.logger,
             )
 
         self.dialogues = SrrDialogues(connection_id=PUBLIC_ID)
