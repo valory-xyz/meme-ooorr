@@ -163,6 +163,19 @@ def get_user_info(
     )
     this_epoch = contract_info[contract_name]["epoch"]
 
+    (
+        multisig,
+        _,
+        _,
+        _,
+        _,
+        _,
+    ) = (
+        contract_info[contract_name]["contract"]
+        .functions.getServiceInfo(service_id)
+        .call()
+    )
+
     user_info = {
         "staked": True,
         "evicted": is_evicted,
@@ -171,6 +184,7 @@ def get_user_info(
         "next_epoch_start": contract_info[contract_name]["next_epoch_start"],
         "this_epoch_rewards": f"{this_epoch_rewards / 1e18:6.2f}",
         "accrued_rewards": f"{accrued_rewards / 1e18:6.2f}",
+        "multisig": multisig,
         "color": GREEN,
     }
 
@@ -198,6 +212,7 @@ def print_table():
         "Epoch",
         "Rewards (this epoch)",
         "Rewards (accrued)",
+        "Multisig",
     ]
 
     for column in columns:
@@ -214,6 +229,7 @@ def print_table():
                 user_info["epoch"],
                 user_info["this_epoch_rewards"],
                 user_info["accrued_rewards"],
+                user_info["multisig"],
             ]
             style = user_info["color"]
 
