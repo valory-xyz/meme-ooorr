@@ -58,7 +58,7 @@ from packages.valory.skills.agent_db_abci.behaviours import AgentDBBehaviour
 BASE_CHAIN_ID = "base"
 CELO_CHAIN_ID = "celo"
 HTTP_OK = 200
-MEMEOOORR_DESCRIPTION_PATTERN = r"^Memeooorr @(\w+)$"
+MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
 MAX_TWEET_CHARS = 280
 AGENT_TYPE_NAME = "memeooorr"
