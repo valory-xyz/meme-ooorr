@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeicrwqrdownfmeyvvzu45fllxouiwvtynrzs5fhbpt3wndyyhn66eu
-  connection.py: bafybeiazpwe742wiicnvju5pkjbvrt77vmnwvrg2cccd7wbg2devy2qg4y
+  connection.py: bafybeienxlo7bkj57niiotqm3zo4sagioygdwk3ewlmzgozpi7bte6sucm
   readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
-  tweepy_wrapper.py: bafybeidoxonod3w3lpacgxx3fckyefv3ulf435b6tsjtds2v6df4tu2xsu
+  tweepy_wrapper.py: bafybeia6a7bfbgwjaick4awzqpe5nahzgqrfnlsnfz2o7rpgsdmb6ymqly
 fingerprint_ignore_patterns: []
 connections: []
 protocols:

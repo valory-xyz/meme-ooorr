@@ -165,7 +165,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         tweet_payload: Dict[str, Any],
         action_text: str,
         original_tweet_id_for_reply: Optional[str] = None,
-        quote_url_for_storage: Optional[str] = None,
+        quote_tweet_id: Optional[str] = None,
         store_in_kv: bool = True,  # Default for KV store of main posts
     ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
         """Helper to post new content (original tweet, reply, quote) to Twitter."""
@@ -174,18 +174,20 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         )
 
         # Determine if this is a reply or quote based on provided parameters
-        is_reply_or_quote_action = bool(
-            original_tweet_id_for_reply or quote_url_for_storage
-        )
+        is_reply_or_quote_action = bool(original_tweet_id_for_reply or quote_tweet_id)
 
         tweet_ids = yield from self._call_tweepy(
             method="post",
             tweets=[tweet_payload],
         )
 
-        if not tweet_ids or tweet_ids[0] is None:
+        # Check if tweet_ids is a list and has at least one valid element.
+        # It can be a dictionary if _call_tweepy returns a structured error from the connection
+        # (placed within the "response" field of the connection's payload).
+        if not isinstance(tweet_ids, list) or not tweet_ids or tweet_ids[0] is None:
             self.context.logger.error(
-                f"Failed {log_message_prefix.lower()} to Twitter."
+                f"Failed {log_message_prefix.lower()} to Twitter. "
+                f"Unexpected or unsuccessful response from Tweepy call: {tweet_ids}"
             )
             # Return None if it was intended as a main post (not reply/quote) but failed, else False
             return None if not is_reply_or_quote_action else False
@@ -198,8 +200,10 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             "timestamp": datetime.now(timezone.utc),
         }
 
-        if quote_url_for_storage:  # Quote takes precedence if both somehow provided
-            post_action_params["quote_url"] = quote_url_for_storage
+        if quote_tweet_id:  # If a quote ID for DB storage is provided
+            post_action_params[
+                "quote_url"
+            ] = quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
         elif original_tweet_id_for_reply:
             post_action_params["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
 
@@ -252,7 +256,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
                 tweet_payload=tweet_payload_for_api,
                 action_text=text_to_post,  # The text component for DB/KV
                 original_tweet_id_for_reply=None,
-                quote_url_for_storage=None,
+                quote_tweet_id=None,
                 store_in_kv=store,
             )
         )
@@ -262,31 +266,34 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         tweet_id: str,  # ID of the tweet being replied to/quoted
         text: str,
         quote: bool = False,
-        user_name: Optional[str] = None,  # User name for quote URL
+        user_name: Optional[
+            str
+        ] = None,  # User name for quote URL (no longer used for URL construction here)
     ) -> Generator[None, None, bool]:
         """Respond to a tweet (reply or quote)."""
         log_prefix = "Quoting tweet" if quote else "Replying to tweet"
 
         tweet_payload_for_api = {"text": text}
-        quote_url_for_storage_val: Optional[str] = None
+        id_of_tweet_being_quoted_for_db: Optional[str] = None
 
         if quote:
             if not user_name:
-                self.context.logger.error("User name is required for quoting a tweet.")
-                return False
+                self.context.logger.error(
+                    "User name is required for quoting a tweet contextually."
+                )
+                # Depending on strictness, could return False. For now, proceed with quote if tweet_id is present.
             tweet_payload_for_api["quote_tweet_id"] = tweet_id
-            quote_url_for_storage_val = f"https://x.com/{user_name}/status/{tweet_id}"
+            id_of_tweet_being_quoted_for_db = tweet_id
         else:
-            tweet_payload_for_api["reply_to"] = tweet_id
+            tweet_payload_for_api["in_reply_to_tweet_id"] = tweet_id
 
         result = yield from self._create_twitter_content(
             log_message_prefix=log_prefix,
             tweet_payload=tweet_payload_for_api,
             action_text=text,
             original_tweet_id_for_reply=tweet_id if not quote else None,
-            quote_url_for_storage=quote_url_for_storage_val,
-            # store_in_kv is not passed, defaults to True in _create_twitter_content,
-            # but the 'if not is_reply_or_quote:' block handles it correctly.
+            quote_tweet_id=id_of_tweet_being_quoted_for_db if quote else None,
+            store_in_kv=True,
         )
         return bool(result)
 

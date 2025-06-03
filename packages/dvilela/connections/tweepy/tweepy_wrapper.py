@@ -81,6 +81,7 @@ class Twitter:
         text: str,
         image_paths: Optional[List[str]] = None,
         in_reply_to_tweet_id: Optional[int] = None,
+        quote_tweet_id: Optional[int] = None,
     ) -> Optional[str]:
         """
         Posts a new tweet with optional media.
@@ -92,13 +93,16 @@ class Twitter:
         try:
             tweet = self.client.create_tweet(
                 text=text,
-                media_ids=[
-                    self.api.media_upload(filename=image_path).media_id
-                    for image_path in image_paths
-                ]
-                if image_paths
-                else None,
+                media_ids=(
+                    [
+                        self.api.media_upload(filename=image_path).media_id
+                        for image_path in image_paths
+                    ]
+                    if image_paths
+                    else None
+                ),
                 in_reply_to_tweet_id=in_reply_to_tweet_id,
+                quote_tweet_id=quote_tweet_id,
             )
             return tweet.data["id"]
         except tweepy.errors.TweepyException as e:
