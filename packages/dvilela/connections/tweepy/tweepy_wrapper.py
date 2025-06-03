@@ -109,7 +109,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method post_tweet: {type(e).__name__} - {e}"
             )
-            return None
+            raise
 
     def delete_tweet(self, tweet_id: str) -> bool:
         """Deletes a specific tweet."""
@@ -120,7 +120,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method delete_tweet: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def like_tweet(self, tweet_id: str) -> bool:
         """Likes a specific tweet."""
@@ -131,7 +131,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method like_tweet: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def unlike_tweet(self, tweet_id: str) -> bool:
         """Unlikes a specific tweet."""
@@ -142,7 +142,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method unlike_tweet: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def retweet(self, tweet_id: str) -> bool:
         """Retweets a specific tweet."""
@@ -153,7 +153,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method retweet: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def unretweet(self, tweet_id: str) -> bool:
         """Unretweets a specific tweet."""
@@ -164,7 +164,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method unretweet: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def follow_by_id(self, user_id: str) -> bool:
         """Follow a specific user."""
@@ -175,7 +175,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method follow_by_id: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def follow_by_username(self, username: str) -> bool:
         """Follow a specific user by username."""
@@ -198,7 +198,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method unfollow_by_id: {type(e).__name__} - {e}"
             )
-            return False
+            raise
 
     def get_user_id(self, username: str) -> Optional[str]:
         """Get a user id."""
@@ -209,7 +209,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method get_user_id: {type(e).__name__} - {e}"
             )
-            return None
+            raise
 
     def get_me(self) -> Optional[Dict]:
         """Get my user."""
@@ -220,7 +220,7 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method get_me: {type(e).__name__} - {e}"
             )
-            return None
+            raise
 
     def get_follower_ids(self, user: str) -> Optional[List[str]]:
         """Get a list of follower ids."""
@@ -239,4 +239,4 @@ class Twitter:
             self.logger.error(
                 f"TweepyException in method get_follower_ids: {type(e).__name__} - {e}"
             )
-            return None
+            raise
