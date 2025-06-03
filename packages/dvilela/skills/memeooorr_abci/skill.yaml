@@ -13,7 +13,7 @@ fingerprint:
   behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
   behaviour_classes/llm.py: bafybeiaxj6ps53froyqtlogfd3y3z3wbiurhoharuft5xuhkzoxtruukya
   behaviour_classes/mech.py: bafybeig5r6w7yjg26tj6m2khikqjtkcva6sojef6pdjrfnpmfwdqgfkavm
-  behaviour_classes/twitter.py: bafybeifdsgnhkq5wnzvbktluuwfjjgkf3fc6pcu4fk7smxrqtahf7364my
+  behaviour_classes/twitter.py: bafybeihzmzf3odhtlwqp5i2ycaudzl5tth6webifp2w65wcstoql5mvtqq
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
@@ -26,7 +26,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeiecnl7yc5qx6x4q7467i66ehmfw4qydnnry7tjs7plqeytb6ueyvu
-- dvilela/tweepy:0.1.0:bafybeiekwzgpnkxfprzqvbhvb3y6l5eovd2r6nem552ipyyjr5tudvphi4
+- dvilela/tweepy:0.1.0:bafybeicf5c2ctlomhkmzh47p3xxrkamparsupbmbgy6nf2bix6xuo4uxeu
 - dvilela/genai:0.1.0:bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty
 - valory/http_server:0.22.0:bafybeic3jpkum7g6qo6x6vdrmvvhj7vqw7ec2op72uc3yfhmnlp5hn3joy
 contracts:

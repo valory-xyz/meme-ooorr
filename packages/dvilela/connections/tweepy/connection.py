@@ -265,6 +265,7 @@ class TweepyConnection(BaseSyncConnection):
                 text=tweet_kwargs["text"],
                 image_paths=tweet_kwargs.get("image_paths", None),
                 in_reply_to_tweet_id=tweet_kwargs.get("reply_to", None),
+                quote_tweet_id=tweet_kwargs.get("quote_tweet_id", None),
             )
             tweet_ids.append(tweet_id)
             is_first_tweet = False
