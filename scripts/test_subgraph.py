@@ -27,7 +27,7 @@ import re
 import requests
 
 
-MEMEOOORR_DESCRIPTION_PATTERN = r"^Memeooorr @(\w+)$"
+MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 
 TOKENS_QUERY = """
 query Tokens($limit: Int, $after: String) {
