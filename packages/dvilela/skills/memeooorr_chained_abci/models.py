@@ -59,7 +59,7 @@ AgentsFunDatabase = BaseAgentsFunDatabase
 
 MARGIN = 5
 MULTIPLIER = 10
-MULTIPLIER_MECH = 50
+MULTIPLIER_MECH = 20
 
 
 class SharedState(BaseSharedState):
@@ -85,7 +85,7 @@ class SharedState(BaseSharedState):
         ] = (self.context.params.reset_pause_duration + MARGIN)
 
         MemeooorrChainedSkillAbciApp.event_to_timeout[MemeooorrEvent.ROUND_TIMEOUT] = (
-            self.context.params.round_timeout_seconds * MULTIPLIER * 2
+            self.context.params.round_timeout_seconds * MULTIPLIER
         )
 
         # adding time for the mech interaction
