@@ -927,10 +927,7 @@ class MemeooorrBaseBehaviour(
             return
         self.context.state.twitter_username = account_details.get("username")
         self.context.state.twitter_id = account_details.get("user_id")
-        
-        
-        
-        
+
         self.context.agents_fun_db.my_agent.twitter_username = (
             self.context.state.twitter_username
         )
