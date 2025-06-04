@@ -1,3 +1,25 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021-2025 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""This package contains code to interact with staking contracts."""
+# pylint: disable=too-many-instance-attributes
+
 import json
 import math
 import os
@@ -194,8 +216,8 @@ class StakingContract:
 
 
 if __name__ == "__main__":
-    for contract_name, contract_data in STAKING_CONTRACTS.items():
-        contract_data["contract"] = StakingContract(
-            contract_data["address"], contract_name
+    for staking_contract_name, staking_contract_data in STAKING_CONTRACTS.items():
+        staking_contract_data["contract"] = StakingContract(
+            staking_contract_data["address"], staking_contract_name
         )
-        contract_data["contract"].run_trigger_thread()
+        staking_contract_data["contract"].run_trigger_thread()
