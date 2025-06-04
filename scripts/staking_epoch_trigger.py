@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This package contains code to interact with staking contracts."""
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes,unused-variable
 
 import json
 import math
@@ -114,7 +114,27 @@ class StakingContract:
 
     def get_service_info(self, service_id: int):
         """Get information about services in the staking contract."""
-        return self.contract.functions.getServiceInfo(service_id).call()
+        (
+            multisig_address,
+            owner_address,
+            nonces_on_last_checkpoint,
+            ts_start,
+            accrued_reward,
+            inactivity,
+        ) = self.contract.functions.getServiceInfo(service_id).call()
+        total_nonces = self.get_multisig_nonces(multisig_address)
+        nonces_since_last_checkpoint = total_nonces[0] - nonces_on_last_checkpoint[0]
+        required_nonces = self.get_required_requests()
+        return {
+            "activity_nonces": nonces_since_last_checkpoint,
+            "multisig_address": multisig_address,
+            "accrued_reward": accrued_reward,
+            "required_nonces": required_nonces,
+            "has_enough_nonces": nonces_since_last_checkpoint >= required_nonces,
+            "remaining_epoch_seconds": (
+                self.get_next_epoch_start() - datetime.now(timezone.utc)
+            ).total_seconds(),
+        }
 
     def get_staking_state(self, service_id: int):
         """Get the staking state for a given service ID."""
