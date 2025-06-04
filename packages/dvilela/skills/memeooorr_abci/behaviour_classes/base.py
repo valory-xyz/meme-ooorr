@@ -198,15 +198,45 @@ class MemeooorrBaseBehaviour(
         )
         srr_message = cast(SrrMessage, srr_message)
         srr_dialogue = cast(SrrDialogue, srr_dialogue)
-        response = yield from self.do_connection_request(srr_message, srr_dialogue)  # type: ignore
+        response_envelope = yield from self.do_connection_request(srr_message, srr_dialogue)  # type: ignore
 
-        response_json = json.loads(response.payload)  # type: ignore
-
-        if "error" in response_json:
-            self.context.logger.error(response_json["error"])
+        if response_envelope.performative != SrrMessage.Performative.RESPONSE:
+            self.context.logger.error(
+                f"Unexpected performative from Tweepy connection: {response_envelope.performative}"
+            )
             return None
 
-        return response_json.get("response")
+        response_payload_dict = json.loads(response_envelope.payload)  # type: ignore
+        actual_tweepy_result = response_payload_dict.get("response")
+
+        if isinstance(actual_tweepy_result, dict) and "error" in actual_tweepy_result:
+            error_str = actual_tweepy_result["error"]
+            self.context.logger.error(f"Error from Tweepy connection: {error_str}")
+
+            # Check for indicators of a Forbidden error in the error string
+            if "Forbidden" in error_str or "403" in error_str:
+                self.context.logger.warning(
+                    f"A Tweepy Forbidden error occurred (detected by string content): {error_str}"
+                )
+                self.context.state.env_var_status["needs_update"] = True
+                self.context.state.env_var_status["env_vars"][
+                    "TWEEPY_CONSUMER_API_KEY"
+                ] = error_str
+                self.context.state.env_var_status["env_vars"][
+                    "TWEEPY_CONSUMER_API_KEY_SECRET"
+                ] = error_str
+                self.context.state.env_var_status["env_vars"][
+                    "TWEEPY_ACCESS_TOKEN"
+                ] = error_str
+                self.context.state.env_var_status["env_vars"][
+                    "TWEEPY_ACCESS_TOKEN_SECRET"
+                ] = error_str
+
+                self.context.state.env_var_status["env_vars"][
+                    "TWEEPY_BEARER_TOKEN"
+                ] = error_str
+
+        return actual_tweepy_result
 
     def _call_genai(
         self,
