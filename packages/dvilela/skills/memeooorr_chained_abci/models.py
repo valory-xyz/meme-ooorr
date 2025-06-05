@@ -59,7 +59,7 @@ AgentsFunDatabase = BaseAgentsFunDatabase
 
 MARGIN = 5
 MULTIPLIER = 10
-MULTIPLIER_MECH = 50
+MULTIPLIER_MECH = 20
 
 
 class SharedState(BaseSharedState):
