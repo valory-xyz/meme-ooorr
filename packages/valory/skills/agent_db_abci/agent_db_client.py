@@ -22,7 +22,7 @@
 from packages.valory.skills.agent_db_abci.agent_db_models import AgentType, AgentInstance, AttributeDefinition, AttributeInstance
 from datetime import datetime, timezone
 import json
-from typing import Any, List, Optional, Callable
+from typing import Any, List, Optional, Callable, cast
 from aea.skills.base import Model
 
 
@@ -328,6 +328,29 @@ class AgentDBClient(Model):
         }
         return parsed_attribute_instance
 
+    def cast_attribute_value(
+        self, attr_value: Any, attribute_definition: AttributeDefinition
+    ):
+
+        # fetch data type from attribute definition
+
+        data_type = attribute_definition.data_type
+
+        if data_type == "date":
+            attr_value = datetime.fromisoformat(attr_value).astimezone(timezone.utc)
+        elif data_type == "json":
+            pass
+        elif data_type == "string":
+            attr_value = str(attr_value)
+        elif data_type == "integer":
+            attr_value = int(attr_value)
+        elif data_type == "float":
+            attr_value = float(attr_value)
+        elif data_type == "boolean":
+            attr_value = bool(attr_value)
+
+        return attr_value
+
     def get_all_agent_instance_attributes_parsed(self, agent_instance: AgentInstance):
         """Get all attributes of an agent by agent ID"""
         attribute_instances = yield from self.get_all_agent_instance_attributes_raw(agent_instance)
@@ -340,10 +363,14 @@ class AgentDBClient(Model):
     def update_or_create_agent_attribute(self, attr_name: str, attr_value: Any):
         """Helper to update or create a single agent attribute."""
         attr_def = yield from self.get_attribute_definition_by_name(attr_name)
-
         attr_instance = yield from self.get_attribute_instance(self.agent, attr_def)
 
+        # casting the attr_value to the correct type from attribute definition data type
+        attr_value = self.cast_attribute_value(attr_value, attr_def)
         if attr_instance:
+
+            self.logger.info(f"Updating attribute {attr_name} with value {attr_value}")
+
             updated = yield from self.update_attribute_instance(
                 agent_instance=self.agent,
                 attribute_def=attr_def,
@@ -354,6 +381,8 @@ class AgentDBClient(Model):
             if not updated:
                 return False
         else:
+            self.logger.info(f"Creating attribute {attr_name} with value {attr_value}")
+
             created = yield from self.create_attribute_instance(
                 agent_instance=self.agent,
                 attribute_def=attr_def,
