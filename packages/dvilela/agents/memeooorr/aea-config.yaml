@@ -43,10 +43,10 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-- dvilela/memeooorr_abci:0.1.0:bafybeigfscsza4p6un35mqisfb4wnzwukmogkpwcahqxxeunbmowy2aowi
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeiarh75o4rwn7unj5rjjubxniruvavp4bvql7zfqzhalb3nc5ivz6i
+- dvilela/memeooorr_abci:0.1.0:bafybeihcevisgc5wgs63c3xgc22ormlpyvi33xt7c445nrjyzfw42wmpde
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeiayxrxsr5kyoig2zhrwww4age6flg3urp34xdvw6tpi3uh6unmpgy
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeidr3udnfofgmrzeogiuxhfz4hlprnyfdhctp6pwm3jufmovir7gom
+- valory/agent_db_abci:0.1.0:bafybeiflqrbpbevteriivevm2uhu5aypcoi3k7p6aipz7nw2hhax77xmai
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -79,6 +79,8 @@ skill_exception_policy: stop_and_exit
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.65.0
+  typing_extensions:
+    version: ==4.13.2
 default_connection: null
 ---
 public_id: dvilela/kv_store:0.1.0

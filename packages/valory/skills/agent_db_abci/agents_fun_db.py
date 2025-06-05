@@ -19,7 +19,7 @@
 
 """This module contains classes to interact with Agents.Fun agent data on AgentDB."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta, timezone
 from packages.valory.skills.agent_db_abci.agent_db_client import AgentDBClient, AgentInstance
 
@@ -144,6 +144,15 @@ class AgentsFunAgent:
             value_type="json",
         )
         return attr_instance
+
+    def update_twitter_details(self):
+        """Update twitter username and user_id in the AgentDB."""
+        yield from self.client.update_or_create_agent_attribute(
+            "twitter_username", self.twitter_username
+        )
+        yield from self.client.update_or_create_agent_attribute(
+            "twitter_user_id", self.twitter_user_id
+        )
 
     def __str__(self) -> str:
         """String representation of the agent"""
