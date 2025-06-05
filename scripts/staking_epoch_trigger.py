@@ -77,7 +77,7 @@ class StakingContract:
             False,
         )
         self.private_key = os.getenv("PRIVATE_KEY")
-        self.account = self.web3.eth.account.from_key(self.private_key).address
+        self.account = self.web3.eth.account.from_key(self.private_key).address if self.private_key else None
         self.activity_checker_address = self.contract.functions.activityChecker().call()
         self.activity_checker = load_contract(
             self.web3.to_checksum_address(self.activity_checker_address),
@@ -169,6 +169,20 @@ class StakingContract:
             + REQUESTS_SAFETY_MARGIN
         )
 
+    def wait_for_no_pending_tx(self, max_wait_seconds: int = 60, poll_interval: float = 2.0):
+        """Wait for no pending transactions for a specified time."""
+        start_time = time.time()
+        while time.time() - start_time < max_wait_seconds:
+            latest_nonce = self.web3.eth.get_transaction_count(self.account, block_identifier="latest")
+            pending_nonce = self.web3.eth.get_transaction_count(self.account, block_identifier="pending")
+
+            if pending_nonce == latest_nonce:
+                return True
+
+            time.sleep(poll_interval)
+
+        return False
+
     def sign_and_send_transaction(self, transaction: dict) -> bool:
         """Sign and send a transaction."""
         signed_txn = self.web3.eth.account.sign_transaction(
@@ -176,7 +190,10 @@ class StakingContract:
         )
         txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
         receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
-        return receipt.status == 1
+        if receipt.status == 1:
+            self.wait_for_no_pending_tx()
+            return True
+        return False
 
     def estimate_gas(self, function_name: str, *args) -> int:
         """Estimate gas for a contract function call."""
@@ -188,16 +205,19 @@ class StakingContract:
             print(f"Could not estimate gas for {function_name}: {e}")
             raise
 
+    def calculate_transaction_params(self, function_name: str) -> dict:
+        """Calculate transaction parameters for a contract function call."""
+        params = {
+            "from": self.account,
+            "nonce": self.web3.eth.get_transaction_count(self.account),
+            "gas": self.estimate_gas(function_name),
+            "gasPrice": self.web3.eth.gas_price,
+        }
+        return params
+
     def trigger_epoch(self) -> bool:
         """Trigger the next epoch in the staking contract."""
-        transaction = self.contract.functions.checkpoint().build_transaction(
-            {
-                "from": self.account,
-                "nonce": self.web3.eth.get_transaction_count(self.account),
-                "gas": self.estimate_gas("checkpoint"),
-                "gasPrice": self.web3.eth.gas_price,
-            }
-        )
+        transaction = self.contract.functions.checkpoint().build_transaction(self.calculate_transaction_params("checkpoint"))
         return self.sign_and_send_transaction(transaction)
 
     def run_trigger_loop(self):
@@ -211,7 +231,8 @@ class StakingContract:
             if next_epoch_start > now:
                 wait_time = int((next_epoch_start - now).total_seconds() + 10)
                 print(
-                    f"[{self.contract_name}] Next epoch starts at {next_epoch_start.astimezone(tzlocal.get_localzone())}. Waiting for {wait_time} seconds."
+                    f"[{self.contract_name}] Next epoch starts at {next_epoch_start.astimezone(tzlocal.get_localzone())}. Waiting for {wait_time} seconds.",
+                    flush=True,
                 )
                 time.sleep(wait_time)
                 continue
