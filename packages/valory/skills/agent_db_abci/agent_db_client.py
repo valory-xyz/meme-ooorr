@@ -309,18 +309,7 @@ class AgentDBClient(Model):
         data_type = attribute_definition.data_type
         attr_value = getattr(attribute_instance, f"{data_type}_value", None)
 
-        if data_type == "date":
-            attr_value = datetime.fromisoformat(attr_value).astimezone(timezone.utc)
-        elif data_type == "json":
-            pass
-        elif data_type == "string":
-            attr_value = str(attr_value)
-        elif data_type == "integer":
-            attr_value = int(attr_value)
-        elif data_type == "float":
-            attr_value = float(attr_value)
-        elif data_type == "boolean":
-            attr_value = bool(attr_value)
+        attr_value = self.cast_attribute_value(attr_value, attribute_definition)
 
         parsed_attribute_instance = {
             "attr_name": attribute_definition.attr_name,
