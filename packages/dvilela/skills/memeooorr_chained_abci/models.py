@@ -76,9 +76,9 @@ class SharedState(BaseSharedState):
         """Set up."""
         super().setup()
 
-        MemeooorrChainedSkillAbciApp.event_to_timeout[ResetPauseEvent.ROUND_TIMEOUT] = (
-            self.context.params.round_timeout_seconds
-        )
+        MemeooorrChainedSkillAbciApp.event_to_timeout[
+            ResetPauseEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
 
         MemeooorrChainedSkillAbciApp.event_to_timeout[
             ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT
