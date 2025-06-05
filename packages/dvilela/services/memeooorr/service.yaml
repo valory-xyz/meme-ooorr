@@ -7,13 +7,15 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiaekcmielp6mb4qvmo2twwkpmoun36bqajrh7wnnkcpdnia45ycl4
 fingerprint_ignore_patterns: []
-agent: dvilela/memeooorr:0.1.0:bafybeiejkdup2uwksgmgdjnw27aey5l3yiofctmnzfbsbgx5a7awteumgu
+agent: dvilela/memeooorr:0.1.0:bafybeia27tawany67n637574xedejzzm3d6232p6ak5vpsjzlzexrbklmm
 number_of_agents: 1
 deployment:
   agent:
     ports:
       0:
         8716: 8716
+    volumes:
+      ./data: /data
 ---
 public_id: dvilela/memeooorr_chained_abci:0.1.0
 type: skill
@@ -179,7 +181,7 @@ config:
 public_id: dvilela/kv_store:0.1.0
 type: connection
 config:
-  store_path: ${STORE_PATH:str:null}
+  store_path: ${STORE_PATH:str:/data/}
 ---
 public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection

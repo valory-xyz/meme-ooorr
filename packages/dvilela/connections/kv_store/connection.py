@@ -97,9 +97,13 @@ class KvStoreConnection(BaseSyncConnection):
         """
         super().__init__(*args, **kwargs)
         self.dialogues = KvStoreDialogues(connection_id=PUBLIC_ID)
-        self.db_path = str(  # nosec
-            Path(self.configuration.config.get("store_path", "/tmp")) / "memeooorr.db"
-        )
+
+        store_path = Path(self.configuration.config.get("store_path", "/tmp"))  # nosec
+
+        if not store_path.exists():
+            store_path.mkdir(parents=True, exist_ok=True)
+
+        self.db_path = str(store_path / "memeooorr.db")  # nosec
 
     def main(self) -> None:
         """
