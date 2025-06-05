@@ -145,106 +145,12 @@ class AgentsFunAgent:
         )
         return attr_instance
 
-    def _get_validated_attribute_definition(
-        self, attr_name: str, attr_value: Optional[str]
-    ):
-        """Validate attribute value and fetch its definition."""
-        if attr_value is None:
-            self.client.logger.warning(
-                f"Skipping {attr_name}: value is None for agent {self.agent_instance.agent_id}"
-            )
-            return None
-
-        attr_def = yield from self.client.get_attribute_definition_by_name(attr_name)
-        if not attr_def:
-            self.client.logger.error(
-                f"Skipping {attr_name}: definition not found for agent {self.agent_instance.agent_id}."
-            )
-            return None
-        return attr_def
-
-    def _update_existing_agent_attribute(
-        self,
-        attr_def: Any,
-        attr_instance: Any,
-        new_value_str: str,
-        attr_name: str,
-        value_type: str = "string",
-    ):
-        """Update an existing agent attribute if its value has changed."""
-        current_value = getattr(attr_instance, f"{value_type}_value", None)
-        if str(current_value) == new_value_str:
-            self.client.logger.info(
-                f"Attribute '{attr_name}' for agent {self.agent_instance.agent_id} is already '{new_value_str}'. No update needed."
-            )
-            return
-
-        self.client.logger.info(
-            f"Updating '{attr_name}' for agent {self.agent_instance.agent_id} from '{current_value}' to '{new_value_str}'."
-        )
-        updated = yield from self.client.update_attribute_instance(
-            agent_instance=self.agent_instance,
-            attribute_def=attr_def,
-            attribute_instance=attr_instance,
-            value=new_value_str,
-            value_type=value_type,
-        )
-        if not updated:
-            self.client.logger.error(
-                f"Failed to update '{attr_name}' for agent {self.agent_instance.agent_id}."
-            )
-
-    def _create_new_agent_attribute(
-        self, attr_def: Any, value_str: str, attr_name: str, value_type: str = "string"
-    ):
-        """Create a new agent attribute."""
-        self.client.logger.info(
-            f"Creating '{attr_name}' with value '{value_str}' for agent {self.agent_instance.agent_id}."
-        )
-        created = yield from self.client.create_attribute_instance(
-            agent_instance=self.agent_instance,
-            attribute_def=attr_def,
-            value=value_str,
-            value_type=value_type,
-        )
-        if not created:
-            self.client.logger.error(
-                f"Failed to create '{attr_name}' for agent {self.agent_instance.agent_id}."
-            )
-
-    def _update_or_create_agent_attribute(
-        self, attr_name: str, attr_value: Optional[str]
-    ):
-        """Helper to update or create a single agent attribute."""
-        attr_def = yield from self._get_validated_attribute_definition(
-            attr_name, attr_value
-        )
-        if not attr_def:
-            return
-
-        str_attr_value = str(
-            attr_value
-        )  # Ensure value is string for comparison and storage
-
-        attr_instance = yield from self.client.get_attribute_instance(
-            self.agent_instance, attr_def
-        )
-
-        if attr_instance:
-            yield from self._update_existing_agent_attribute(
-                attr_def, attr_instance, str_attr_value, attr_name
-            )
-        else:
-            yield from self._create_new_agent_attribute(
-                attr_def, str_attr_value, attr_name
-            )
-
     def update_twitter_details(self):
         """Update twitter username and user_id in the AgentDB."""
-        yield from self._update_or_create_agent_attribute(
+        yield from self.client.update_or_create_agent_attribute(
             "twitter_username", self.twitter_username
         )
-        yield from self._update_or_create_agent_attribute(
+        yield from self.client.update_or_create_agent_attribute(
             "twitter_user_id", self.twitter_user_id
         )
 
