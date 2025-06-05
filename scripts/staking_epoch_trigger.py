@@ -77,7 +77,11 @@ class StakingContract:
             False,
         )
         self.private_key = os.getenv("PRIVATE_KEY")
-        self.account = self.web3.eth.account.from_key(self.private_key).address if self.private_key else None
+        self.account = (
+            self.web3.eth.account.from_key(self.private_key).address
+            if self.private_key
+            else None
+        )
         self.activity_checker_address = self.contract.functions.activityChecker().call()
         self.activity_checker = load_contract(
             self.web3.to_checksum_address(self.activity_checker_address),
@@ -169,12 +173,18 @@ class StakingContract:
             + REQUESTS_SAFETY_MARGIN
         )
 
-    def wait_for_no_pending_tx(self, max_wait_seconds: int = 60, poll_interval: float = 2.0):
+    def wait_for_no_pending_tx(
+        self, max_wait_seconds: int = 60, poll_interval: float = 2.0
+    ):
         """Wait for no pending transactions for a specified time."""
         start_time = time.time()
         while time.time() - start_time < max_wait_seconds:
-            latest_nonce = self.web3.eth.get_transaction_count(self.account, block_identifier="latest")
-            pending_nonce = self.web3.eth.get_transaction_count(self.account, block_identifier="pending")
+            latest_nonce = self.web3.eth.get_transaction_count(
+                self.account, block_identifier="latest"
+            )
+            pending_nonce = self.web3.eth.get_transaction_count(
+                self.account, block_identifier="pending"
+            )
 
             if pending_nonce == latest_nonce:
                 return True
@@ -217,7 +227,9 @@ class StakingContract:
 
     def trigger_epoch(self) -> bool:
         """Trigger the next epoch in the staking contract."""
-        transaction = self.contract.functions.checkpoint().build_transaction(self.calculate_transaction_params("checkpoint"))
+        transaction = self.contract.functions.checkpoint().build_transaction(
+            self.calculate_transaction_params("checkpoint")
+        )
         return self.sign_and_send_transaction(transaction)
 
     def run_trigger_loop(self):

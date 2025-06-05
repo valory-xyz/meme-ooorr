@@ -103,9 +103,7 @@ class KvStoreConnection(BaseSyncConnection):
         if not store_path.exists():
             store_path.mkdir(parents=True, exist_ok=True)
 
-        self.db_path = str(  # nosec
-            store_path / "memeooorr.db"
-        )
+        self.db_path = str(store_path / "memeooorr.db")  # nosec
 
     def main(self) -> None:
         """
