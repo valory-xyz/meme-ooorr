@@ -355,17 +355,16 @@ class AgentDBClient(Model):
                 attribute_def=attr_def,
                 attribute_instance=attr_instance,
                 value=str_attr_value,
-                value_type="string",
+                value_type=attr_def.data_type,
             )
             if not updated:
                 return False
         else:
-
             created = yield from self.create_attribute_instance(
                 agent_instance=self.agent,
                 attribute_def=attr_def,
                 value=str_attr_value,
-                value_type="string",
+                value_type=attr_def.data_type,
             )
             if not created:
                 return False

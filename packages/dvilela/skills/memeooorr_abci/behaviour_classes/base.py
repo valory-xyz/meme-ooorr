@@ -964,4 +964,8 @@ class MemeooorrBaseBehaviour(
         self.context.agents_fun_db.my_agent.twitter_user_id = (
             self.context.state.twitter_id
         )
-        yield from self.context.agents_fun_db.my_agent.update_twitter_details()
+        if (
+            self.context.agents_fun_db.my_agent.twitter_username
+            and self.context.agents_fun_db.my_agent.twitter_user_id
+        ):
+            yield from self.context.agents_fun_db.my_agent.update_twitter_details()
