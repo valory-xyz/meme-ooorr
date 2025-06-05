@@ -22,11 +22,12 @@
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
 import dotenv
+import tzlocal
 from rich.console import Console
 from rich.table import Table
 from web3 import Web3
@@ -109,14 +110,15 @@ def get_contract_info() -> Dict:
         epoch = staking_token_contract.functions.epochCounter().call()
         service_ids = staking_token_contract.functions.getServiceIds().call()
         next_epoch_start = datetime.fromtimestamp(
-            staking_token_contract.functions.getNextRewardCheckpointTimestamp().call()
+            staking_token_contract.functions.getNextRewardCheckpointTimestamp().call(),
+            tz=timezone.utc,
         )
 
         contract_info[contract_name]["contract"] = staking_token_contract
         contract_info[contract_name]["epoch"] = epoch
-        contract_info[contract_name]["next_epoch_start"] = next_epoch_start.strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        contract_info[contract_name]["next_epoch_start"] = next_epoch_start.astimezone(
+            tzlocal.get_localzone()
+        ).strftime("%Y-%m-%d %H:%M:%S")
         contract_info[contract_name]["slots"] = contract_data["slots"]
         contract_info[contract_name]["used_slots"] = len(service_ids)
         contract_info[contract_name]["free_slots"] = contract_data["slots"] - len(
@@ -128,7 +130,9 @@ def get_contract_info() -> Dict:
             contract_name,
             contract_data["address"],
             str(epoch),
-            next_epoch_start.strftime("%Y-%m-%d %H:%M:%S UTC"),
+            next_epoch_start.astimezone(tzlocal.get_localzone()).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
             f"{len(service_ids):3d} / {contract_data['slots']:3d}",
         ]
         table.add_row(*row, style=GREEN)
