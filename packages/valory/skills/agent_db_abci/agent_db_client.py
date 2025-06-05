@@ -337,15 +337,9 @@ class AgentDBClient(Model):
             parsed_attributes.append(result)
         return parsed_attributes
 
-    def update_or_create_agent_attribute(
-        self, attr_name: str, attr_value: Optional[str]
-    ):
+    def update_or_create_agent_attribute(self, attr_name: str, attr_value: Any):
         """Helper to update or create a single agent attribute."""
         attr_def = yield from self.get_attribute_definition_by_name(attr_name)
-
-        str_attr_value = str(
-            attr_value
-        )  # Ensure value is string for comparison and storage
 
         attr_instance = yield from self.get_attribute_instance(self.agent, attr_def)
 
@@ -354,7 +348,7 @@ class AgentDBClient(Model):
                 agent_instance=self.agent,
                 attribute_def=attr_def,
                 attribute_instance=attr_instance,
-                value=str_attr_value,
+                value=attr_value,
                 value_type=attr_def.data_type,
             )
             if not updated:
@@ -363,7 +357,7 @@ class AgentDBClient(Model):
             created = yield from self.create_attribute_instance(
                 agent_instance=self.agent,
                 attribute_def=attr_def,
-                value=str_attr_value,
+                value=attr_value,
                 value_type=attr_def.data_type,
             )
             if not created:
