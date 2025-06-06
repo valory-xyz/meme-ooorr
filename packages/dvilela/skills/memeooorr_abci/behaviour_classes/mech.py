@@ -177,138 +177,139 @@ class PostMechResponseBehaviour(
             self.context.logger.error(traceback.format_exc())
             return False  # Failure
 
-    def _parse_and_validate_ipfs_image_response(self, response: Any) -> Optional[Dict]:
-        """Parse the response from get_from_ipfs for image data and validate its structure."""
-        result_data = None
-        is_valid = False
+    def _download_and_save_image(
+        self, response: requests.Response, ipfs_gateway_url: str
+    ) -> Optional[str]:
+        """Download image stream from response and save to a temporary file."""
+        image_path = None
+        downloaded_size = 0
         try:
-            # Extract 'result' data safely
-            if isinstance(response, dict) and "result" in response:
-                result_data = response["result"]
-            elif isinstance(response, list) and len(response) > 0:
-                first_item = response[0]
-                if isinstance(first_item, dict) and "result" in first_item:
-                    result_data = first_item["result"]
+            # Check Content-Type to ensure it's an image
+            raw_content_type = response.headers.get("content-type")
+            content_type_lower = raw_content_type.lower() if raw_content_type else ""
 
-            if result_data is None:
+            if not content_type_lower.startswith("image/"):
+                try:
+                    response_text_preview = response.text[:200]
+                except Exception:  # pylint: disable=broad-except
+                    response_text_preview = (
+                        "(binary or non-text content preview unavailable)"
+                    )
                 self.context.logger.error(
-                    f"Could not extract 'result' data from IPFS response: {response}"
+                    f"Expected an image content type from {ipfs_gateway_url}, but got '{raw_content_type}'. "
+                    f"Response preview: '{response_text_preview}...' Skipping save."
                 )
-                # Return None below
+                return None
 
-            # Parse if string
-            elif isinstance(result_data, str):
-                result_data = json.loads(result_data)  # Can raise JSONDecodeError
+            # Simplified extension logic, defaulting to .png
+            extension = ".png"  # Default, as uploader often uses png
+            if "jpeg" in content_type_lower or "jpg" in content_type_lower:
+                extension = ".jpg"
+            elif "gif" in content_type_lower:
+                extension = ".gif"
+            # Add more types if needed (retaining placeholder for future)
 
-            # Validate structure (only if result_data is now a dict)
-            if (
-                isinstance(result_data, dict)
-                and "artifacts" in result_data
-                and result_data["artifacts"]
-            ):
-                # Basic validation passed
-                is_valid = True
-            elif (
-                result_data is not None
-            ):  # If parsing didn't fail but structure is wrong
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            with tempfile.NamedTemporaryFile(
+                suffix=f"_{timestamp}{extension}", delete=False
+            ) as temp_file:
+                image_path = temp_file.name  # Assign path *before* writing
+                # Write data in one go as images are usually smaller than videos
+                content = response.content
+                if content:
+                    temp_file.write(content)
+                    downloaded_size = len(content)
+                temp_file.flush()
+                os.fsync(temp_file.fileno())
+
+            if downloaded_size == 0:
                 self.context.logger.error(
-                    f"Invalid structure or missing artifacts in result data: {result_data}"
+                    f"Received empty content (0 bytes downloaded) for image from {ipfs_gateway_url}"
                 )
-                # is_valid remains False
+                # Cleanup is handled by the caller using _cleanup_temp_file
+                return None
 
-        except json.JSONDecodeError as e:
+            self.context.logger.info(
+                f"Successfully fetched image (size: {downloaded_size} bytes) to: {image_path}"
+            )
+            return image_path
+
+        except IOError as e:
             self.context.logger.error(
-                f"Error decoding JSON from IPFS response result: {e}"
+                f"File I/O error during image download/save to {image_path}: {e}"
             )
             self.context.logger.error(traceback.format_exc())
-            # is_valid remains False
-        except (KeyError, IndexError, TypeError) as e:
+            # Cleanup handled by the caller
+            return None
+        except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
-                f"Error accessing expected data in IPFS response structure: {e}"
+                f"Unexpected error during image download/save from {ipfs_gateway_url} to {image_path}: {e}"
             )
             self.context.logger.error(traceback.format_exc())
-            # is_valid remains False
-
-        # Return validated data or None
-        return result_data if is_valid else None
+            # Cleanup handled by the caller
+            return None
 
     def fetch_image_data_from_ipfs(
         self, image_hash: str
     ) -> Generator[None, None, Optional[str]]:
-        """Fetch image from IPFS hash, save to temp file, and return path or None."""
+        """Fetch image from IPFS hash using requests, save to temp file, and return path or None."""
         image_path = None
+        ipfs_gateway_url = f"https://gateway.autonolas.tech/ipfs/{image_hash}"
+        error_reason = "unknown error"
+
         try:
             self.context.logger.info(
-                f"Fetching image data from IPFS hash: {image_hash}"
+                f"Attempting direct image fetch via requests: {image_hash}"
             )
+            self.context.logger.info(f"Using IPFS gateway URL: {ipfs_gateway_url}")
 
-            # Removed IPFS link parsing and hash extraction logic.
-            # The 'image_hash' argument is now the direct IPFS hash.
+            # Using requests directly, similar to video fetching
+            # The method now needs to be a generator if we were to use http_request skill messages.
+            # However, for consistency with fetch_video_data_from_ipfs, we'll keep it synchronous using requests.
+            # If this needs to be async for skill architecture reasons, it would need to be refactored
+            # to use self.context.http_service.make_request similar to other async http calls.
+            # For now, let's proceed with the direct `requests` call for simplicity and consistency.
 
-            # Fetch initial data
-            response = yield from self.get_from_ipfs(
-                ipfs_hash=image_hash, filetype=SupportedFiletype.JSON
-            )
-            if not response:
-                self.context.logger.error(
-                    "Failed to fetch image: Empty response from get_from_ipfs"
-                )
-                return None  # Return None on failure
+            with requests.get(ipfs_gateway_url, timeout=60, stream=True) as response:
+                response.raise_for_status()  # Raises HTTPError for bad responses
 
-            # Parse and validate response structure
-            result_data = self._parse_and_validate_ipfs_image_response(response)
-            if result_data is None:
-                # Error logged in helper
-                return None  # Return None on failure
+                image_path = self._download_and_save_image(response, ipfs_gateway_url)
 
-            # Extract image data
-            image_base64 = result_data["artifacts"][0].get("base64")
-            if not image_base64:
-                self.context.logger.error(
-                    f"No base64 data found in artifact: {result_data['artifacts'][0]}"
-                )
-                return None  # Return None on failure
+                if image_path is None:
+                    # Empty download or error during save, error logged in helper
+                    self._cleanup_temp_file(
+                        image_path,
+                        "empty content or save error",  # image_path might be None
+                    )
+                    return None  # Failure case
 
-            image_data = base64.b64decode(image_base64)
+            return image_path  # Success case
 
-            # Save image to temporary file using 'with'
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            with tempfile.NamedTemporaryFile(
-                suffix=f"_{timestamp}.png", delete=False
-            ) as temp_file:
-                temp_file.write(image_data)
-                image_path = temp_file.name  # Assign path
-
-            self.context.logger.info(
-                f"Successfully saved image to temporary file: {image_path}"
-            )
-
-            return image_path
-
-        except (KeyError, IndexError, TypeError) as e:
+        except requests.exceptions.Timeout as e:
             self.context.logger.error(
-                f"Error accessing expected data during image processing: {e}"
+                f"Timeout occurred while fetching image {ipfs_gateway_url}: {e}"
             )
-            self.context.logger.error(traceback.format_exc())
-        except IOError as e:  # Catch potential file writing errors
+            error_reason = "timeout"
+        except requests.exceptions.HTTPError as e:
             self.context.logger.error(
-                f"Error writing image data to temporary file {image_path}: {e}"
+                f"HTTP error occurred for image {ipfs_gateway_url}: {e.response.status_code} - {e.response.reason}"
             )
-            self.context.logger.error(traceback.format_exc())
-        except (
-            Exception  # pylint: disable=broad-except
-        ) as e:  # catching it here for base64 decode
-            # Catch any other unexpected error during image processing (like base64 decode)
+            error_reason = "http error"
+        except requests.exceptions.RequestException as e:
+            self.context.logger.error(
+                f"HTTP request failed for image {ipfs_gateway_url}: {e}"
+            )
+            error_reason = "request exception"
+        except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
                 f"Unexpected error during image processing for hash {image_hash}: {e}"
             )
             self.context.logger.error(traceback.format_exc())
+            error_reason = f"unexpected error: {str(e)}"
 
-        # Cleanup if error occurred after file creation but before success
-        if image_path and os.path.exists(image_path):
-            self._cleanup_temp_file(image_path, "image processing error")
-
-        return None  # Return None if any exception occurred or checks failed
+        # Centralized cleanup for all error cases
+        self._cleanup_temp_file(image_path, error_reason)  # image_path might be None
+        return None  # Return None on any failure
 
     def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
         """Attempt to remove a temporary file and log the outcome."""
