@@ -112,7 +112,7 @@ class PostMechResponseBehaviour(
 
         # Main fetch/save logic block
         video_hash = result_json.get("video")
-        ipfs_link = result_json.get("ipfs_link")
+        image_hash = result_json.get("image_hash")
 
         # Case 1: Video format (Attempt first if key exists)
         if video_hash:
@@ -137,10 +137,10 @@ class PostMechResponseBehaviour(
                 # Proceed to image check
 
         # Case 2: Image format
-        if ipfs_link:
-            self.context.logger.info(f"Attempting image fetch for link: {ipfs_link}")
+        if image_hash:
+            self.context.logger.info(f"Attempting image fetch for hash: {image_hash}")
             # fetch_image_data_from_ipfs handles its own fetch/IO/parse errors and returns Optional[str]
-            image_path = yield from self.fetch_image_data_from_ipfs(ipfs_link)
+            image_path = yield from self.fetch_image_data_from_ipfs(image_hash)
 
             if image_path:  # Image fetch succeeded
                 self.context.logger.info(
@@ -154,7 +154,7 @@ class PostMechResponseBehaviour(
 
         # If we reach here, neither video nor image processing succeeded.
         self.context.logger.warning(
-            "Could not process mech response: No video/image successfully fetched and saved. Looked for keys 'video' and 'ipfs_link'."
+            "Could not process mech response: No video/image successfully fetched and saved. Looked for keys 'video' and 'image_hash' in the parsed 'result' data."
         )
         return False  # FAILURE
 
@@ -233,24 +233,21 @@ class PostMechResponseBehaviour(
         return result_data if is_valid else None
 
     def fetch_image_data_from_ipfs(
-        self, ipfs_link: str
+        self, image_hash: str
     ) -> Generator[None, None, Optional[str]]:
-        """Fetch image from IPFS link, save to temp file, and return path or None."""
+        """Fetch image from IPFS hash, save to temp file, and return path or None."""
         image_path = None
         try:
-            self.context.logger.info(f"Fetching image from IPFS link: {ipfs_link}")
+            self.context.logger.info(
+                f"Fetching image data from IPFS hash: {image_hash}"
+            )
 
-            # Validate link and extract hash
-            path_parts = ipfs_link.split("/")
-            if len(path_parts) < 5:
-                self.context.logger.error(f"Invalid IPFS link format: {ipfs_link}")
-                return None  # Return None on failure
-            ipfs_hash = path_parts[4]
-            self.context.logger.info(f"Extracted IPFS hash: {ipfs_hash}")
+            # Removed IPFS link parsing and hash extraction logic.
+            # The 'image_hash' argument is now the direct IPFS hash.
 
             # Fetch initial data
             response = yield from self.get_from_ipfs(
-                ipfs_hash=ipfs_hash, filetype=SupportedFiletype.JSON
+                ipfs_hash=image_hash, filetype=SupportedFiletype.JSON
             )
             if not response:
                 self.context.logger.error(
@@ -303,7 +300,7 @@ class PostMechResponseBehaviour(
         ) as e:  # catching it here for base64 decode
             # Catch any other unexpected error during image processing (like base64 decode)
             self.context.logger.error(
-                f"Unexpected error during image processing for {ipfs_link}: {e}"
+                f"Unexpected error during image processing for hash {image_hash}: {e}"
             )
             self.context.logger.error(traceback.format_exc())
 
