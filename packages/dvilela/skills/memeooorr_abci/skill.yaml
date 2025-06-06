@@ -12,7 +12,7 @@ fingerprint:
   behaviour_classes/chain.py: bafybeidvsctiti46qcwrcncodttbm6my2axcm3fu4kzybbew6rasy7qhwa
   behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
   behaviour_classes/llm.py: bafybeiaxj6ps53froyqtlogfd3y3z3wbiurhoharuft5xuhkzoxtruukya
-  behaviour_classes/mech.py: bafybeig5r6w7yjg26tj6m2khikqjtkcva6sojef6pdjrfnpmfwdqgfkavm
+  behaviour_classes/mech.py: bafybeiejqbiskw3mearcs5kjycmr3u675zjrsyviujrwk3dvwopd7czgvu
   behaviour_classes/twitter.py: bafybeihzmzf3odhtlwqp5i2ycaudzl5tth6webifp2w65wcstoql5mvtqq
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
@@ -179,8 +179,8 @@ models:
       activity_checker_contract_address: '0x0000000000000000000000000000000000000000'
       tx_loop_breaker_count: 3
       tools_for_mech:
-        stabilityai-stable-diffusion-v1-6: This tool generates an image based on a
-          given prompt using the StabilityAI Stable Diffusion v1.6 model
+        google_image_gen: This tool generates an image based on a given prompt using
+          the StabilityAI Stable Diffusion v1.6 model
         short_maker: This tool generates a short video based on a given prompt
       multisend_batch_size: 50
       mech_request_price: 100
