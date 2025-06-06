@@ -344,7 +344,7 @@ def calculate_daas(chain_config):
         print("No agents found")
         return
 
-    # Get the latest parsed number
+    # Get the latest parsed block
     latest_parsed_block = max(
         (
             max(tx.block_number for tx in service.transactions.values())
