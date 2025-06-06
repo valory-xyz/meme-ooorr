@@ -21,10 +21,12 @@
 import base64
 import json
 import os
+import re  # Added import for re module
 import tempfile
 import traceback
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional, Type
+from urllib.parse import urlparse
 
 import requests
 
@@ -140,7 +142,7 @@ class PostMechResponseBehaviour(
         if image_hash:
             self.context.logger.info(f"Attempting image fetch for hash: {image_hash}")
             # fetch_image_data_from_ipfs handles its own fetch/IO/parse errors and returns Optional[str]
-            image_path = yield from self.fetch_image_data_from_ipfs(image_hash)
+            image_path = self.fetch_image_data_from_ipfs(image_hash)
 
             if image_path:  # Image fetch succeeded
                 self.context.logger.info(
@@ -177,45 +179,29 @@ class PostMechResponseBehaviour(
             self.context.logger.error(traceback.format_exc())
             return False  # Failure
 
-    def _download_and_save_image(
-        self, response: requests.Response, ipfs_gateway_url: str
+    def _save_image_content(
+        self, response: requests.Response, source_url: str
     ) -> Optional[str]:
-        """Download image stream from response and save to a temporary file."""
+        """Helper to save image content from a response object to a temporary file."""
         image_path = None
         downloaded_size = 0
         try:
-            # Check Content-Type to ensure it's an image
+            # Determine content type and extension
             raw_content_type = response.headers.get("content-type")
             content_type_lower = raw_content_type.lower() if raw_content_type else ""
 
-            if not content_type_lower.startswith("image/"):
-                try:
-                    response_text_preview = response.text[:200]
-                except Exception:  # pylint: disable=broad-except
-                    response_text_preview = (
-                        "(binary or non-text content preview unavailable)"
-                    )
-                self.context.logger.error(
-                    f"Expected an image content type from {ipfs_gateway_url}, but got '{raw_content_type}'. "
-                    f"Response preview: '{response_text_preview}...' Skipping save."
-                )
-                return None
-
-            # Simplified extension logic, defaulting to .png
-            extension = ".png"  # Default, as uploader often uses png
+            extension = ".png"  # Default
             if "jpeg" in content_type_lower or "jpg" in content_type_lower:
                 extension = ".jpg"
             elif "gif" in content_type_lower:
                 extension = ".gif"
-            # Add more types if needed (retaining placeholder for future)
 
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             with tempfile.NamedTemporaryFile(
                 suffix=f"_{timestamp}{extension}", delete=False
             ) as temp_file:
-                image_path = temp_file.name  # Assign path *before* writing
-                # Write data in one go as images are usually smaller than videos
-                content = response.content
+                image_path = temp_file.name
+                content = response.content  # Read all content at once for images
                 if content:
                     temp_file.write(content)
                     downloaded_size = len(content)
@@ -224,92 +210,194 @@ class PostMechResponseBehaviour(
 
             if downloaded_size == 0:
                 self.context.logger.error(
-                    f"Received empty content (0 bytes downloaded) for image from {ipfs_gateway_url}"
+                    f"Received empty content (0 bytes downloaded) for image from {source_url}"
                 )
-                # Cleanup is handled by the caller using _cleanup_temp_file
+                if image_path:  # if file was created before finding out it's empty
+                    self._cleanup_temp_file(image_path, "empty content after creation")
                 return None
 
             self.context.logger.info(
-                f"Successfully fetched image (size: {downloaded_size} bytes) to: {image_path}"
+                f"Successfully saved image (size: {downloaded_size} bytes) from {source_url} to: {image_path}"
             )
             return image_path
 
         except IOError as e:
             self.context.logger.error(
-                f"File I/O error during image download/save to {image_path}: {e}"
+                f"File I/O error during image save to {image_path} (from {source_url}): {e}"
             )
             self.context.logger.error(traceback.format_exc())
-            # Cleanup handled by the caller
+            if image_path:
+                self._cleanup_temp_file(image_path, "IOError during save")
             return None
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
-                f"Unexpected error during image download/save from {ipfs_gateway_url} to {image_path}: {e}"
+                f"Unexpected error during image save to {image_path} (from {source_url}): {e}"
             )
             self.context.logger.error(traceback.format_exc())
-            # Cleanup handled by the caller
+            if image_path:
+                self._cleanup_temp_file(image_path, "Unexpected error during save")
             return None
 
-    def fetch_image_data_from_ipfs(
-        self, image_hash: str
-    ) -> Generator[None, None, Optional[str]]:
+    def _download_and_save_image(
+        self,
+        response: requests.Response,
+        ipfs_gateway_url: str,
+        original_hash_for_html_path: str,
+    ) -> Optional[str]:
+        """Download image stream from response, handle HTML, and save to a temporary file."""
+        try:
+            raw_content_type = response.headers.get("content-type")
+            content_type_lower = raw_content_type.lower() if raw_content_type else ""
+
+            if content_type_lower.startswith("text/html"):
+                self.context.logger.info(
+                    f"Received HTML content from {ipfs_gateway_url}. Will parse for image links."
+                )
+                html_content = response.text
+                # Regex to find href attributes pointing to common image file types
+                image_links = re.findall(
+                    r"href=[\'\"]?([^\'\" >]+\.(?:png|jpe?g|gif))[\'\"]?",
+                    html_content,
+                    re.IGNORECASE,
+                )
+
+                if not image_links:
+                    self.context.logger.warning(
+                        f"No direct image links found in HTML content from {ipfs_gateway_url}."
+                    )
+                    return None
+
+                first_image_relative_path = image_links[0]
+                new_image_url = ""
+
+                if first_image_relative_path.startswith(("http://", "https://")):
+                    new_image_url = first_image_relative_path
+                elif first_image_relative_path.startswith("/ipfs/"):
+                    # Absolute path from gateway root, e.g., /ipfs/QmHash/file.png
+                    parsed_original_url = urlparse(
+                        ipfs_gateway_url
+                    )  # ipfs_gateway_url is the one that returned HTML
+                    new_image_url = f"{parsed_original_url.scheme}://{parsed_original_url.netloc}{first_image_relative_path}"
+                elif first_image_relative_path.startswith("ipfs/"):
+                    # Path like ipfs/QmHash/file.png, treat as relative to gateway root
+                    parsed_original_url = urlparse(ipfs_gateway_url)
+                    new_image_url = f"{parsed_original_url.scheme}://{parsed_original_url.netloc}/{first_image_relative_path}"
+                else:
+                    # Truly relative path like "image.png" or "subdir/image.png"
+                    # Construct the full URL using the original IPFS hash (directory) and the relative image path found.
+                    base_ipfs_dir_url = f"https://gateway.autonolas.tech/ipfs/{original_hash_for_html_path}"
+                    new_image_url = f"{base_ipfs_dir_url.rstrip('/')}/{first_image_relative_path.lstrip('/')}"
+
+                self.context.logger.info(
+                    f"Found image link in HTML: '{first_image_relative_path}'. Constructed new URL: {new_image_url}"
+                )
+
+                with requests.get(
+                    new_image_url, timeout=60, stream=True
+                ) as new_response:
+                    new_response.raise_for_status()
+                    new_raw_content_type = new_response.headers.get("content-type")
+                    new_content_type_lower = (
+                        new_raw_content_type.lower() if new_raw_content_type else ""
+                    )
+                    if not new_content_type_lower.startswith("image/"):
+                        self.context.logger.error(
+                            f"Expected an image from HTML-derived URL {new_image_url}, but got '{new_raw_content_type}'. Preview: {new_response.text[:200]}"
+                        )
+                        return None
+
+                    self.context.logger.info(
+                        f"Successfully fetched image data from HTML-derived URL: {new_image_url}"
+                    )
+                    return self._save_image_content(new_response, new_image_url)
+
+            elif content_type_lower.startswith("image/"):
+                self.context.logger.info(
+                    f"Received direct image content from {ipfs_gateway_url}. Proceeding to save."
+                )
+                return self._save_image_content(response, ipfs_gateway_url)
+
+            else:  # Neither HTML nor a direct image
+                try:
+                    response_text_preview = response.text[:200]
+                except Exception:
+                    response_text_preview = (
+                        "(binary or non-text content preview unavailable)"
+                    )
+                self.context.logger.error(
+                    f"Expected an image or HTML content from {ipfs_gateway_url}, but got '{raw_content_type}'. "
+                    f"Response preview: '{response_text_preview}...' Skipping."
+                )
+                return None
+
+        except requests.exceptions.RequestException as e:
+            # This handles errors from the requests.get(new_image_url, ...) call if HTML was parsed
+            self.context.logger.error(
+                f"Request error during image download processing (URL: {ipfs_gateway_url} or derived HTML link): {e}"
+            )
+            self.context.logger.error(traceback.format_exc())
+            return None
+        # Note: _save_image_content handles its own IO/unexpected errors and associated cleanup.
+        # Errors from the initial response (passed to this function) are handled by the caller (fetch_image_data_from_ipfs).
+
+    def fetch_image_data_from_ipfs(self, image_hash: str) -> Optional[str]:
         """Fetch image from IPFS hash using requests, save to temp file, and return path or None."""
-        image_path = None
+        # image_path is determined by _download_and_save_image and then _save_image_content
+        # This function primarily handles the initial fetch and delegates processing.
         ipfs_gateway_url = f"https://gateway.autonolas.tech/ipfs/{image_hash}"
-        error_reason = "unknown error"
+
+        self.context.logger.info(
+            f"Attempting to fetch content for image_hash: {image_hash} via {ipfs_gateway_url}"
+        )
 
         try:
-            self.context.logger.info(
-                f"Attempting direct image fetch via requests: {image_hash}"
-            )
-            self.context.logger.info(f"Using IPFS gateway URL: {ipfs_gateway_url}")
-
-            # Using requests directly, similar to video fetching
-            # The method now needs to be a generator if we were to use http_request skill messages.
-            # However, for consistency with fetch_video_data_from_ipfs, we'll keep it synchronous using requests.
-            # If this needs to be async for skill architecture reasons, it would need to be refactored
-            # to use self.context.http_service.make_request similar to other async http calls.
-            # For now, let's proceed with the direct `requests` call for simplicity and consistency.
-
             with requests.get(ipfs_gateway_url, timeout=60, stream=True) as response:
-                response.raise_for_status()  # Raises HTTPError for bad responses
+                response.raise_for_status()  # Raises HTTPError for bad responses (4xx or 5xx)
 
-                image_path = self._download_and_save_image(response, ipfs_gateway_url)
+                # Pass image_hash as original_hash_for_html_path for correct URL construction
+                # if the response is an HTML directory listing.
+                image_path = self._download_and_save_image(
+                    response, ipfs_gateway_url, image_hash
+                )
 
-                if image_path is None:
-                    # Empty download or error during save, error logged in helper
-                    self._cleanup_temp_file(
-                        image_path,
-                        "empty content or save error",  # image_path might be None
+                if image_path:
+                    self.context.logger.info(
+                        f"Successfully processed and saved image for hash {image_hash} to {image_path}"
                     )
-                    return None  # Failure case
+                    return image_path  # Success
 
-            return image_path  # Success case
+                # If image_path is None here, it means _download_and_save_image (or its delegate _save_image_content)
+                # encountered an issue (e.g., HTML with no image, non-image content, save error) and logged it.
+                self.context.logger.warning(
+                    f"Failed to obtain a valid image path from _download_and_save_image for hash {image_hash} and URL {ipfs_gateway_url}."
+                )
+                return None  # Failure
 
         except requests.exceptions.Timeout as e:
             self.context.logger.error(
-                f"Timeout occurred while fetching image {ipfs_gateway_url}: {e}"
+                f"Timeout occurred while attempting initial fetch from {ipfs_gateway_url} for hash {image_hash}: {e}"
             )
-            error_reason = "timeout"
         except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code if e.response else "Unknown Status"
+            reason = e.response.reason if e.response else "Unknown Reason"
             self.context.logger.error(
-                f"HTTP error occurred for image {ipfs_gateway_url}: {e.response.status_code} - {e.response.reason}"
+                f"HTTP error {status_code} - {reason} during initial fetch from {ipfs_gateway_url} for hash {image_hash}."
             )
-            error_reason = "http error"
         except requests.exceptions.RequestException as e:
             self.context.logger.error(
-                f"HTTP request failed for image {ipfs_gateway_url}: {e}"
+                f"Request exception during initial fetch from {ipfs_gateway_url} for hash {image_hash}: {e}"
             )
-            error_reason = "request exception"
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(
-                f"Unexpected error during image processing for hash {image_hash}: {e}"
+                f"Unexpected error during initial fetch processing for hash {image_hash} from {ipfs_gateway_url}: {e}"
             )
             self.context.logger.error(traceback.format_exc())
-            error_reason = f"unexpected error: {str(e)}"
 
-        # Centralized cleanup for all error cases
-        self._cleanup_temp_file(image_path, error_reason)  # image_path might be None
-        return None  # Return None on any failure
+        # If any exception occurred above, or if image_path was None from _download_and_save_image.
+        # Temp file cleanup (if a file was partially created before an error) is handled
+        # by _save_image_content or _cleanup_temp_file if called directly.
+        # No explicit cleanup call here as _download_and_save_image and _save_image_content should manage it.
+        return None  # Return None on any failure not resulting in a returned path
 
     def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
         """Attempt to remove a temporary file and log the outcome."""
@@ -323,8 +411,12 @@ class PostMechResponseBehaviour(
                 self.context.logger.warning(
                     f"Could not remove temp file {file_path} ({reason}): {rm_err}"
                 )
-        elif reason == "empty content":
-            self.context.logger.info("No temporary file to remove (empty download).")
+        elif (
+            reason == "empty content"
+        ):  # This specific log might become less common if check moves inside save helper
+            self.context.logger.info(
+                "No temporary file to remove (empty download or not created)."
+            )
         # else: file_path is None and reason is likely an error before file creation
 
     def _download_and_save_video(
