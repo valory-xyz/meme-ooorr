@@ -28,10 +28,9 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-
+import random
 import dotenv
 import twikit
-
 
 dotenv.load_dotenv(override=True)
 
@@ -174,7 +173,7 @@ async def get_tweet_engagement_rate(tweet, client=None) -> Optional[float]:
     return engagements / impressions if impressions > 0 else 0
 
 
-async def get_latest_user_tweets(user: str, client=None) -> List[Dict[str, Any]]:
+async def get_latest_user_tweets(user: str, client=None, count=100, since=None) -> List[Dict[str, Any]]:
     """Get user tweets"""
     if client is None:
         client = await cookie_login()
@@ -190,8 +189,31 @@ async def get_latest_user_tweets(user: str, client=None) -> List[Dict[str, Any]]
 
     try:
         tweets = await client.get_user_tweets(
-            user_id=user_id, tweet_type="Tweets", count=50
+            user_id=user_id, tweet_type="Tweets", count=20
         )
+        tweet_list = [t for t in tweets]
+
+        sleep_time = 5
+
+        while len(tweet_list) < count or (since is not None and datetime.strptime(tweet_list[-1].created_at, "%a %b %d %H:%M:%S %z %Y") > since):
+            print(f"Ealriest tweet is from {tweet_list[-1].created_at}")
+            print(f"Sleeping {sleep_time} seconds...")
+            time.sleep(sleep_time)
+
+            try:
+                more_tweets = await tweets.next()
+            except twikit.errors.TooManyRequests:
+                print("Backing off...")
+                sleep_time *= 2
+                continue
+
+            if not more_tweets:
+                break
+
+            print(f"Adding {len(more_tweets)} tweets")
+            tweet_list += [t for t in more_tweets]
+            tweet_list = list(sorted(tweet_list, key=lambda t: datetime.strptime(t.created_at, "%a %b %d %H:%M:%S %z %Y"), reverse=True))
+
     except KeyError:
         print("User might be restricted or banned")
         return None
@@ -199,7 +221,7 @@ async def get_latest_user_tweets(user: str, client=None) -> List[Dict[str, Any]]
     now = datetime.now(timezone.utc)
     this_week_tweets = [
         tweet
-        for tweet in tweets
+        for tweet in tweet_list
         if now - datetime.strptime(tweet.created_at, "%a %b %d %H:%M:%S %z %Y")
         <= timedelta(days=7)
     ]

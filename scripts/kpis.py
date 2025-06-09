@@ -35,7 +35,12 @@ from web3 import Web3
 from web3.contract import Contract
 
 from scripts.test_subgraph import get_memeooorrs_from_subgraph
-from scripts.test_twikit import calculate_user_engagement, get_followers_ids
+from scripts.test_twikit import (
+    get_followers_ids,
+    get_latest_user_tweets,
+    get_tweet_engagement_rate,
+    tweet_to_json
+)
 
 
 dotenv.load_dotenv(override=True)
@@ -400,51 +405,92 @@ def calculate_follower_avg():
         json.dump(followers, followers_file, indent=4)
 
 
+def tweeted_this_day(tweets, day):
+    """Has the agent tweeted this day?"""
+
+    day_start = datetime.combine(day, time.min, tzinfo=timezone.utc)
+    day_end = datetime.combine(day, time.max, tzinfo=timezone.utc)
+
+    for tweet in tweets:
+        tweet_ts = datetime.strptime(tweet.created_at, "%a %b %d %H:%M:%S %z %Y")
+        if tweet_ts >= day_start and tweet_ts <= day_end:
+            return True
+    return False
+
+
 def calculate_engagement_rate_avg():
     """Calculate agent engagement rate average."""
 
-    if Path("engagement_rate.json").exists():
-        with open("engagement_rate.json", "r", encoding="utf-8") as engagement_file:
-            engagements = json.load(engagement_file)
-    else:
-        engagements = {}
+    # Get agents that have sent at least 1 transaction over the last 7 days
+    today = datetime.utcnow().date()
 
     active_agent_handles = [
         a.twitter_handle
         for a in list(
             filter(
-                lambda a: is_service_active(a.service_id), list(daa_db.agents.values())
+                lambda a: was_service_active(a.service_id, today),
+                list(daa_db.agents.values()),
             )
         )
         if a.twitter_handle is not None
     ]
-    print(f"Active agents: {active_agent_handles}")
+    print(f"Active agents over the last week: {active_agent_handles}")
+
+    # Get latest tweets for all active agents
+    agent_to_tweets = {}
 
     for agent_handle in active_agent_handles:
-        # Skip already processed agents
-        if agent_handle in engagements:
-            continue
+        tweets = asyncio.run(get_latest_user_tweets(user=agent_handle, since=datetime.now(timezone.utc) - timedelta(days=7)))
+        agent_to_tweets[agent_handle] = tweets
+        print(f"Got {len(tweets)} tweets for agent {agent_handle} covering from {tweets[-1].created_at} to {tweets[0].created_at}")
 
-        try:
-            eng_rate_avg = asyncio.run(calculate_user_engagement(agent_handle))
-        except Exception as e:  # pylint: disable=broad-except
-            print(f"Error while calculating engagement rate for {agent_handle}: {e}")
-            continue
+    # Calculate engagement on a per-day basis
+    service_id_to_handle = get_memeooorrs_from_subgraph()
+    handle_to_service_id = {v: int(k) for k, v in service_id_to_handle.items()}
 
-        print(f"Engagement rate average: {eng_rate_avg}")
-        engagements[agent_handle] = eng_rate_avg
+    day_engagement_avgs = []
+    for i in range(7):
+        day = today - timedelta(days=i)
 
-        with open("engagement_rate.json", "w", encoding="utf-8") as engagement_file:
-            json.dump(engagements, engagement_file, indent=4)
+        user_to_engagement_avg = {}
+        for agent_handle, tweets in agent_to_tweets.items():
+            # Skip agents that didnt send any tx this day
+            if not was_service_active(handle_to_service_id[agent_handle], day):
+                continue
 
-    engagements = {k: v for k, v in engagements.items() if v is not None}
-    print(
-        f"Engagement rate average: {sum(engagements.values()) / len(engagements):.2f}"
-    )
+            # Skip agents that didnt tweet this day
+            if not tweeted_this_day(agent_to_tweets[agent_handle], day):
+                continue
+
+            tweet_engagements = {}
+            for tweet in tweets:
+                eng_rate = asyncio.run(get_tweet_engagement_rate(tweet))
+                tweet_engagements[tweet.id] = eng_rate
+
+            user_to_engagement_avg[agent_handle] = (
+                sum(tweet_engagements.values()) / len(tweet_engagements)
+                if tweet_engagements
+                else 0
+            )
+            print(
+                f"Engagement for {agent_handle} on {day} is { user_to_engagement_avg[agent_handle]:.2f}"
+            )
+
+        day_engagement_avg = (
+            sum(user_to_engagement_avg.values()) / len(user_to_engagement_avg)
+            if user_to_engagement_avg
+            else 0
+        )
+        day_engagement_avgs.append(day_engagement_avg)
+        print(f"Average engagement on {day} is {day_engagement_avg:.2f}")
+
+    engagement = sum(day_engagement_avgs) / 7
+    print(f"Engagement is {engagement:.2f}")
+    return engagement
 
 
 if __name__ == "__main__":
-    calculate_daas(CHAIN_CONFIGS["BASE"])
+    # calculate_daas(CHAIN_CONFIGS["BASE"])
     # calculate_daas(CHAIN_CONFIGS["CELO"])
-    calculate_follower_avg()
+    # calculate_follower_avg()
     calculate_engagement_rate_avg()
