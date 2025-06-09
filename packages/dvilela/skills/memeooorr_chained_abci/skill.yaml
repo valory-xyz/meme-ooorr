@@ -107,7 +107,7 @@ models:
       termination_from_block: 0
       init_fallback_gas: 0
       keeper_allowed_retries: 3
-      reset_pause_duration: 900
+      reset_pause_duration: 300
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
