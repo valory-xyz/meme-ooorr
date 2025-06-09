@@ -22,7 +22,7 @@
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -33,6 +33,7 @@ from rich.table import Table
 from web3 import Web3
 from web3.contract import Contract
 
+from scripts.staking_epoch_trigger import StakingContract
 from scripts.test_subgraph import get_memeooorrs_from_subgraph
 
 
@@ -53,18 +54,12 @@ EVICTED = "EVICTED"
 STAKING_CONTRACTS = {
     "Agents.fun 1 (100 OLAS)": {
         "address": "0x2585e63df7bd9de8e058884d496658a030b5c6ce",
-        "slots": 20,
-        "required_updates": 1,
     },
     "Agents.fun 2 (1000 OLAS)": {
         "address": "0x26fa75ef9ccaa60e58260226a71e9d07564c01bf",
-        "slots": 20,
-        "required_updates": 2,
     },
     "Agents.fun 3 (5000 OLAS)": {
         "address": "0x4d4233ebf0473ca8f34d105a6256a2389176f0ce",
-        "slots": 20,
-        "required_updates": 10,
     },
 }
 STAKING_ABI_FILE = Path("scripts", "staking.json")
@@ -94,6 +89,9 @@ def load_contract(
 def get_contract_info() -> Dict:
     """Get staking contract info"""
 
+    local_tz = tzlocal.get_localzone()
+    now = datetime.now(local_tz)
+
     contract_info = STAKING_CONTRACTS
 
     table = Table(title="Agents.fun staking contracts")
@@ -103,37 +101,22 @@ def get_contract_info() -> Dict:
         table.add_column(column)
 
     for contract_name, contract_data in STAKING_CONTRACTS.items():
-        staking_token_contract = load_contract(
-            web3.to_checksum_address(contract_data["address"]), STAKING_ABI_FILE, False
-        )
+        staking_contract = StakingContract(contract_data["address"], contract_name)
 
-        epoch = staking_token_contract.functions.epochCounter().call()
-        service_ids = staking_token_contract.functions.getServiceIds().call()
-        next_epoch_start = datetime.fromtimestamp(
-            staking_token_contract.functions.getNextRewardCheckpointTimestamp().call(),
-            tz=timezone.utc,
-        )
+        contract_info[contract_name]["contract"] = staking_contract
 
-        contract_info[contract_name]["contract"] = staking_token_contract
-        contract_info[contract_name]["epoch"] = epoch
-        contract_info[contract_name]["next_epoch_start"] = next_epoch_start.astimezone(
-            tzlocal.get_localzone()
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        contract_info[contract_name]["slots"] = contract_data["slots"]
-        contract_info[contract_name]["used_slots"] = len(service_ids)
-        contract_info[contract_name]["free_slots"] = contract_data["slots"] - len(
-            service_ids
-        )
-        contract_info[contract_name]["service_ids"] = service_ids
+        epoch_end_time = staking_contract.get_next_epoch_start().astimezone(local_tz)
+        remaining_time_str = ""
+        if now < epoch_end_time:
+            remaining_seconds = int((epoch_end_time - now).total_seconds())
+            remaining_time_str = f" [{remaining_seconds // 3600:02d}h {(remaining_seconds % 3600) // 60:02d}m]"
 
         row = [
             contract_name,
             contract_data["address"],
-            str(epoch),
-            next_epoch_start.astimezone(tzlocal.get_localzone()).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
-            f"{len(service_ids):3d} / {contract_data['slots']:3d}",
+            str(staking_contract.get_epoch_counter()),
+            f"{epoch_end_time.strftime('%Y-%m-%d %H:%M:%S')}{remaining_time_str}",
+            f"{len(staking_contract.get_service_ids()):3d} / {staking_contract.max_num_services:3d}",
         ]
         table.add_row(*row, style=GREEN)
 
@@ -141,58 +124,6 @@ def get_contract_info() -> Dict:
     console.print(table, justify="center")
 
     return contract_info
-
-
-def get_user_info(
-    contract_info: Dict, contract_name: str, service_id: int
-) -> Dict:  # pylint: disable=too-many-locals
-    """Get user info"""
-
-    is_evicted = (
-        contract_info[contract_name]["contract"]
-        .functions.getStakingState(service_id)
-        .call()
-        == 2
-    )
-
-    accrued_rewards = (
-        contract_info[contract_name]["contract"]
-        .functions.calculateStakingReward(service_id)
-        .call()
-    )
-    this_epoch_rewards = (
-        contract_info[contract_name]["contract"]
-        .functions.calculateStakingLastReward(service_id)
-        .call()
-    )
-    this_epoch = contract_info[contract_name]["epoch"]
-
-    (
-        multisig,
-        _,
-        _,
-        _,
-        _,
-        _,
-    ) = (
-        contract_info[contract_name]["contract"]
-        .functions.getServiceInfo(service_id)
-        .call()
-    )
-
-    user_info = {
-        "staked": True,
-        "evicted": is_evicted,
-        "staking_contract_name": contract_name,
-        "epoch": str(this_epoch),
-        "next_epoch_start": contract_info[contract_name]["next_epoch_start"],
-        "this_epoch_rewards": f"{this_epoch_rewards / 1e18:6.2f}",
-        "accrued_rewards": f"{accrued_rewards / 1e18:6.2f}",
-        "multisig": multisig,
-        "color": GREEN,
-    }
-
-    return user_info
 
 
 def shorten_address(address: str) -> str:
@@ -214,7 +145,7 @@ def print_table():
         "Handle",
         "Contract",
         "Epoch",
-        "Rewards (this epoch)",
+        "Activity (this epoch)",
         "Rewards (accrued)",
         "Multisig",
     ]
@@ -223,19 +154,25 @@ def print_table():
         table.add_column(column)
 
     for contract_name, contract_data in contract_info.items():
-        for service_id in contract_data["service_ids"]:
-            user_info = get_user_info(contract_info, contract_name, service_id)
+        epoch = contract_data["contract"].get_epoch_counter()
+
+        for service_id in contract_data["contract"].get_service_ids():
+            service_info = contract_data["contract"].get_service_info(service_id)
 
             row = [
                 str(service_id),
                 service_id_to_handle.get(str(service_id), None),
-                user_info["staking_contract_name"],
-                user_info["epoch"],
-                user_info["this_epoch_rewards"],
-                user_info["accrued_rewards"],
-                user_info["multisig"],
+                contract_name,
+                str(epoch),
+                f"{service_info['activity_nonces']} / {service_info['required_nonces']}",
+                f"{service_info['accrued_reward']/1e18:.2f}",
+                service_info["multisig_address"],
             ]
-            style = user_info["color"]
+            style = (
+                GREEN
+                if service_info["activity_nonces"] >= service_info["required_nonces"]
+                else YELLOW
+            )
 
             table.add_row(*row, style=style)
 
