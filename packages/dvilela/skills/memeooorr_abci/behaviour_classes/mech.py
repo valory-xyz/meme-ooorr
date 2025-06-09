@@ -235,6 +235,8 @@ class PostMechResponseBehaviour(
     def _fetch_media_from_ipfs_hash(
         self, ipfs_hash: str, media_type: str, suffix: str
     ) -> Optional[str]:
+        """Fetch media data from IPFS hash using requests library, save locally, and return the path."""
+
         # Synchronous function using requests, ONLY downloads and returns path or None
 
         # ****************************************************************************
@@ -258,7 +260,6 @@ class PostMechResponseBehaviour(
         # plan to revisit this and figure out what's wrong with the built-in methods
         # ****************************************************************************
 
-        """Fetch media data from IPFS hash using requests library, save locally, and return the path."""
         media_path = None  # Initialize path for potential cleanup
         ipfs_gateway_url = f"https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
         error_reason = "unknown error"  # Default error reason
