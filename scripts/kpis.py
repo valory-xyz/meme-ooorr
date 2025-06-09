@@ -39,7 +39,6 @@ from scripts.test_twikit import (
     get_followers_ids,
     get_latest_user_tweets,
     get_tweet_engagement_rate,
-    tweet_to_json,
 )
 
 
@@ -413,12 +412,12 @@ def tweeted_this_day(tweets, day):
 
     for tweet in tweets:
         tweet_ts = datetime.strptime(tweet.created_at, "%a %b %d %H:%M:%S %z %Y")
-        if tweet_ts >= day_start and tweet_ts <= day_end:
+        if day_start <= tweet_ts <= day_end:
             return True
     return False
 
 
-def calculate_engagement_rate_avg():
+def calculate_engagement_rate_avg():  # pylint: disable=too-many-locals
     """Calculate agent engagement rate average."""
 
     # Get agents that have sent at least 1 transaction over the last 7 days
@@ -465,7 +464,7 @@ def calculate_engagement_rate_avg():
                 continue
 
             # Skip agents that didnt tweet this day
-            if not tweeted_this_day(agent_to_tweets[agent_handle], day):
+            if not tweeted_this_day(tweets, day):
                 continue
 
             tweet_engagements = {}

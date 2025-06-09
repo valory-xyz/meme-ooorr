@@ -194,7 +194,7 @@ async def get_latest_user_tweets(
         tweets = await client.get_user_tweets(
             user_id=user_id, tweet_type="Tweets", count=20
         )
-        tweet_list = [t for t in tweets]
+        tweet_list = list(tweets)
 
         sleep_time = 5
 
@@ -217,7 +217,7 @@ async def get_latest_user_tweets(
                 break
 
             tweets = more_tweets
-            tweet_list += [t for t in more_tweets]
+            tweet_list += list(more_tweets)
             tweet_list = list(
                 sorted(
                     tweet_list,
