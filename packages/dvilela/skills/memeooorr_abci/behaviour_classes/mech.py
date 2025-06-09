@@ -117,8 +117,8 @@ class PostMechResponseBehaviour(
         # Case 1: Video format (Attempt first if key exists)
         if video_hash:
             self.context.logger.info(f"Attempting video fetch for hash: {video_hash}")
-            # fetch_video_data_from_ipfs handles its own network/IO errors and returns Optional[str]
-            video_path = self.fetch_video_data_from_ipfs(video_hash)
+            # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
+            video_path = self._fetch_media_from_ipfs_hash(video_hash, "video", ".mp4")
 
             if video_path:  # Video fetch succeeded
                 self.context.logger.info(
@@ -139,8 +139,8 @@ class PostMechResponseBehaviour(
         # Case 2: Image hash format
         if image_hash:
             self.context.logger.info(f"Attempting image fetch for hash: {image_hash}")
-            # fetch_image_data_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
-            image_path = self.fetch_image_data_from_ipfs_hash(image_hash)
+            # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
+            image_path = self._fetch_media_from_ipfs_hash(image_hash, "image", ".png")
 
             if image_path:  # Image fetch succeeded
                 self.context.logger.info(
@@ -176,10 +176,6 @@ class PostMechResponseBehaviour(
             )
             self.context.logger.error(traceback.format_exc())
             return False  # Failure
-
-    def fetch_image_data_from_ipfs_hash(self, ipfs_hash: str) -> Optional[str]:
-        """Fetch image data from IPFS hash using requests library, save locally, and return the path."""
-        return self._fetch_media_from_ipfs_hash(ipfs_hash, "image", ".png")
 
     def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
         """Attempt to remove a temporary file and log the outcome."""
@@ -311,11 +307,6 @@ class PostMechResponseBehaviour(
 
     # plan to revisit this and figure out what's wrong with the built-in methods
     # ****************************************************************************
-    def fetch_video_data_from_ipfs(  # pylint: disable=too-many-locals
-        self, ipfs_hash: str
-    ) -> Optional[str]:  # Returns Optional[str], not bool or Generator
-        """Fetch video data from IPFS hash using requests library, save locally, and return the path."""
-        return self._fetch_media_from_ipfs_hash(ipfs_hash, "video", ".mp4")
 
 
 class FailedMechRequestBehaviour(
