@@ -43,8 +43,8 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-- dvilela/memeooorr_abci:0.1.0:bafybeigh4x5y26h5qikl5kv5uxaqpqe5fyrntnhweyoc7l6k3lsgwqrewy
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeihery4pxlxd35nypdnneas25l4szngzipvbzzjurvvz7g4swxkwvm
+- dvilela/memeooorr_abci:0.1.0:bafybeibilde35xlbp6z5xjvqgqhqarcwnwieuaxpshndyqrhcdo7q2wiky
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeid25vswlhcohbpknufsg3esmn73awmsh5jf6azqkaqpsdt4ea6d5a
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
 - valory/agent_db_abci:0.1.0:bafybeiflqrbpbevteriivevm2uhu5aypcoi3k7p6aipz7nw2hhax77xmai
 default_ledger: ethereum
@@ -175,7 +175,7 @@ models:
       multisend_address: ${str:0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761}
       init_fallback_gas: 0
       keeper_allowed_retries: 3
-      reset_pause_duration: ${int:900}
+      reset_pause_duration: ${int:300}
       on_chain_service_id: ${int:null}
       reset_tendermint_after: ${int:2}
       retry_attempts: 400
