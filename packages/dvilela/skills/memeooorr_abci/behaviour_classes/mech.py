@@ -18,13 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """This package contains round behaviours of MemeooorrAbciApp."""
-import base64
 import json
 import os
 import tempfile
 import traceback
 from datetime import datetime
-from typing import Any, Dict, Generator, List, Optional, Type
+from typing import Generator, List, Optional, Type
 
 import requests
 
@@ -38,7 +37,6 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
     PostMechResponseRound,
 )
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
-from packages.valory.skills.abstract_round_abci.io_.store import SupportedFiletype
 from packages.valory.skills.mech_interact_abci.states.base import (
     MechInteractionResponse,
 )
