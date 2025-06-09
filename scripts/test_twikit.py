@@ -28,9 +28,10 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-import random
+
 import dotenv
 import twikit
+
 
 dotenv.load_dotenv(override=True)
 
@@ -173,7 +174,9 @@ async def get_tweet_engagement_rate(tweet, client=None) -> Optional[float]:
     return engagements / impressions if impressions > 0 else 0
 
 
-async def get_latest_user_tweets(user: str, client=None, count=100, since=None) -> List[Dict[str, Any]]:
+async def get_latest_user_tweets(
+    user: str, client=None, count=100, since=None
+) -> List[Dict[str, Any]]:
     """Get user tweets"""
     if client is None:
         client = await cookie_login()
@@ -195,8 +198,11 @@ async def get_latest_user_tweets(user: str, client=None, count=100, since=None) 
 
         sleep_time = 5
 
-        while len(tweet_list) < count or (since is not None and datetime.strptime(tweet_list[-1].created_at, "%a %b %d %H:%M:%S %z %Y") > since):
-            print(f"Ealriest tweet is from {tweet_list[-1].created_at}")
+        while (count is not None and len(tweet_list) < count) or (
+            since is not None
+            and datetime.strptime(tweet_list[-1].created_at, "%a %b %d %H:%M:%S %z %Y")
+            > since
+        ):
             print(f"Sleeping {sleep_time} seconds...")
             time.sleep(sleep_time)
 
@@ -210,9 +216,17 @@ async def get_latest_user_tweets(user: str, client=None, count=100, since=None) 
             if not more_tweets:
                 break
 
-            print(f"Adding {len(more_tweets)} tweets")
+            tweets = more_tweets
             tweet_list += [t for t in more_tweets]
-            tweet_list = list(sorted(tweet_list, key=lambda t: datetime.strptime(t.created_at, "%a %b %d %H:%M:%S %z %Y"), reverse=True))
+            tweet_list = list(
+                sorted(
+                    tweet_list,
+                    key=lambda t: datetime.strptime(
+                        t.created_at, "%a %b %d %H:%M:%S %z %Y"
+                    ),
+                    reverse=True,
+                )
+            )
 
     except KeyError:
         print("User might be restricted or banned")

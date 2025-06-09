@@ -39,7 +39,7 @@ from scripts.test_twikit import (
     get_followers_ids,
     get_latest_user_tweets,
     get_tweet_engagement_rate,
-    tweet_to_json
+    tweet_to_json,
 )
 
 
@@ -440,9 +440,15 @@ def calculate_engagement_rate_avg():
     agent_to_tweets = {}
 
     for agent_handle in active_agent_handles:
-        tweets = asyncio.run(get_latest_user_tweets(user=agent_handle, since=datetime.now(timezone.utc) - timedelta(days=7)))
+        tweets = asyncio.run(
+            get_latest_user_tweets(
+                user=agent_handle, since=datetime.now(timezone.utc) - timedelta(days=7)
+            )
+        )
         agent_to_tweets[agent_handle] = tweets
-        print(f"Got {len(tweets)} tweets for agent {agent_handle} covering from {tweets[-1].created_at} to {tweets[0].created_at}")
+        print(
+            f"Got {len(tweets)} tweets for agent {agent_handle} covering from {tweets[-1].created_at} to {tweets[0].created_at}"
+        )
 
     # Calculate engagement on a per-day basis
     service_id_to_handle = get_memeooorrs_from_subgraph()
@@ -471,9 +477,6 @@ def calculate_engagement_rate_avg():
                 sum(tweet_engagements.values()) / len(tweet_engagements)
                 if tweet_engagements
                 else 0
-            )
-            print(
-                f"Engagement for {agent_handle} on {day} is { user_to_engagement_avg[agent_handle]:.2f}"
             )
 
         day_engagement_avg = (
