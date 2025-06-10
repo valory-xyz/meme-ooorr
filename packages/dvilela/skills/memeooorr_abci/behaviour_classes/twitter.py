@@ -920,6 +920,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             )
             tools_info = (self.generate_mech_tool_info(),)  # type: ignore
 
+        # get the latest actions from the KV store
+        tweet_actions = yield from self.get_latest_agent_actions("tweet_action")
+        tool_actions = yield from self.get_latest_agent_actions("tool_action")
+
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
             previous_tweets=previous_tweets_str,
@@ -928,6 +932,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             tools=tools_info,
             time=self.get_sync_time_str(),
             extra_command=extra_command,
+            tweet_actions=tweet_actions,
+            tool_actions=tool_actions,
         )
 
         # Save data for future mech responses
