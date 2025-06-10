@@ -979,7 +979,7 @@ class MemeooorrBaseBehaviour(
         :param action_type: The type of action, e.g., "tool_action", "tweet_action".
         :param action_data: The dictionary containing the action data to store.
         """
-        current_agent_actions = yield from self._get_stored_kv_data("agent_actions", {})
+        current_agent_actions = yield from self._read_json_from_kv("agent_actions", {})
 
         # Ensure all action types are initialized as lists
         for key in ["tool_action", "tweet_action", "token_action"]:
@@ -1008,7 +1008,7 @@ class MemeooorrBaseBehaviour(
         :param limit: The maximum number of actions to return.
         :return: A list of the latest actions.
         """
-        agent_actions = yield from self._get_stored_kv_data("agent_actions", {})
+        agent_actions = yield from self._read_json_from_kv("agent_actions", {})
         action_list = agent_actions.get(action_type, [])
 
         if not isinstance(action_list, list):
@@ -1020,7 +1020,7 @@ class MemeooorrBaseBehaviour(
         # Return the last 'limit' items
         return action_list[-limit:]
 
-    def _get_stored_kv_data(
+    def _read_json_from_kv(
         self, key: str, default_value: Any
     ) -> Generator[None, None, Any]:
         """Helper to get and parse stored KV data."""
