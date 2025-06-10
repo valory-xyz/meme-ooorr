@@ -809,9 +809,11 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 return Event.ERROR.value, new_interacted_tweet_ids, []
 
             # Handle the tool action normally
-            event, new_interacted_tweet_id, mech_request = self._handle_tool_action(
-                json_response
-            )
+            (
+                event,
+                new_interacted_tweet_id,
+                mech_request,
+            ) = yield from self._handle_tool_action(json_response)
             return event, new_interacted_tweet_id, mech_request
 
         # Handle tweet actions if present
