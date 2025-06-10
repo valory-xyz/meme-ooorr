@@ -33,6 +33,7 @@ import google.generativeai as genai  # type: ignore
 
 from packages.dvilela.skills.memeooorr_abci.prompts import (
     MECH_RESPONSE_SUBPROMPT,
+    SUMMON_TOKEN_ACTION,
     TOKEN_DECISION_PROMPT,
     TWITTER_DECISION_PROMPT,
     build_token_action_schema,
@@ -54,42 +55,30 @@ timestamp: 2025-01-17 15:29:00
 OTHER_TWEETS = [
     {
         "tweet_id": 2,
-        "user_id": 20,
-        "tweet_text": "Hahahaha!",
-        "view_count": 1000000,
-        "quote_count": 1000000,
-        "retweet_count": 1000000,
+        "user_name": "user20",
+        "text": "Hahahaha!",
     },
     {
         "tweet_id": 3,
-        "user_id": 30,
-        "tweet_text": "Pizza is the best food ever!",
-        "view_count": 1000000,
-        "quote_count": 1000000,
-        "retweet_count": 1000000,
+        "user_name": "user30",
+        "text": "Pizza is the best food ever!",
     },
     {
         "tweet_id": 4,
-        "user_id": 40,
-        "tweet_text": "Stop coding! AI is the future :)",
-        "view_count": 1000000,
-        "quote_count": 1000000,
-        "retweet_count": 1000000,
+        "user_name": "user40",
+        "text": "Stop coding! AI is the future :)",
     },
     {
         "tweet_id": 5,
-        "user_id": 50,
-        "tweet_text": "memecoins! memecoins everywhere!",
-        "view_count": 1000000,
-        "quote_count": 1000000,
-        "retweet_count": 1000000,
+        "user_name": "user50",
+        "text": "memecoins! memecoins everywhere!",
     },
 ]
 
 
-tweet_responses_str = "\n\n".join(
+other_tweets_str = "\n\n".join(
     [
-        f"tweet_id: {t['tweet_id']}\ntweet_text: {t['tweet_text']}\nuser_id: {t['user_id']}\nviews: {t['view_count']}\nquotes: {t['quote_count']}\nretweets: {t['retweet_count']}"
+        f"tweet_id: {t['tweet_id']}\ntweet_text: {t['text']}\nuser_name: {t['user_name']}"
         for t in OTHER_TWEETS
     ]
 )
@@ -167,9 +156,10 @@ schema = build_token_action_schema()
 schema_class = pickle.loads(bytes.fromhex(schema["class"]))  # nosec
 
 prompt = TOKEN_DECISION_PROMPT.format(
+    summon_token_action=SUMMON_TOKEN_ACTION,
     meme_coins=meme_coins,
     latest_tweet=PREVIOUS_TWEETS,
-    tweet_responses=tweet_responses_str,
+    tweet_responses=other_tweets_str,
     balance=0.1,
     extra_command="",
     ticker="ETH",
@@ -261,16 +251,33 @@ MECH_RESPONSE_SUBPROMPT = MECH_RESPONSE_SUBPROMPT.format(
 )
 
 TEMP_TOOLS_LIST = """
-openai-gpt-3.5-turbo: This tool generates a tweet based on a given prompt using the OpenAI GPT-3.5-turbo model.
+google_image_gen: This tool generates an image based on a given prompt using the Google Image Generation model.
+short_maker: This tool generates a short text based on a given prompt using the Short Maker model.
 """
+
+twitter_actions_list = [
+    "Tweet",
+    "Tweet With Media",
+    "Reply",
+    "Quote",
+    "Like",
+    "Retweet",
+    "Follow",
+]
+random.shuffle(twitter_actions_list)
+twitter_actions_str = "\n".join(f"- {action}" for action in twitter_actions_list)
 
 twitter_prompt = TWITTER_DECISION_PROMPT.format(
     persona=PERSONA,
     previous_tweets=PREVIOUS_TWEETS,
-    other_tweets=tweet_responses_str,
+    other_tweets=other_tweets_str,
     mech_response=MECH_RESPONSE_SUBPROMPT,
     time=TIME,
     tools=TEMP_TOOLS_LIST,
+    twitter_actions=twitter_actions_str,
+    extra_command="",
+    tweet_actions="",
+    tool_actions="",
 )
 
 
