@@ -1213,6 +1213,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             )
         )
 
+        yield from self._store_agent_action("tool_action", tool_name)
+
         return Event.MECH.value, [], new_mech_requests
 
     def _handle_tweet_actions(  # pylint: disable=too-many-arguments
@@ -1270,6 +1272,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             action, tweet_id, user_name, context.pending_tweets
         ):
             return
+
+        yield from self._store_agent_action("tweet_action", interaction)
 
         # Add random delay to avoid rate limiting
         delay = secrets.randbelow(5)
