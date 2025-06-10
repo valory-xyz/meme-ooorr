@@ -991,6 +991,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             tools=self.generate_mech_tool_info(),
             time=self.get_sync_time_str(),
             extra_command="",
+            tweet_actions="",
+            tool_actions="",
         )
 
         # Clear stored data
