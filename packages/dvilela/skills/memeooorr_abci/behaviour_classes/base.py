@@ -971,7 +971,7 @@ class MemeooorrBaseBehaviour(
             yield from self.context.agents_fun_db.my_agent.update_twitter_details()
 
     def _store_agent_action(
-        self, action_type: str, action_data: dict
+        self, action_type: str, action_data: Any
     ) -> Generator[None, None, None]:
         """
         Stores an agent action (tool, tweet, or token) in the KV store.
@@ -997,3 +997,41 @@ class MemeooorrBaseBehaviour(
         current_agent_actions[action_type] = action_list[-10:]
 
         yield from self._write_kv({"agent_actions": json.dumps(current_agent_actions)})
+
+    def get_latest_agent_actions(
+        self, action_type: str, limit: int = 5
+    ) -> Generator[None, None, List[Any]]:
+        """
+        Retrieves the latest agent actions of a specific type from the KV store.
+
+        :param action_type: The type of action to retrieve, e.g., "tool_action", "tweet_action".
+        :param limit: The maximum number of actions to return.
+        :return: A list of the latest actions.
+        """
+        agent_actions = yield from self._get_stored_kv_data("agent_actions", {})
+        action_list = agent_actions.get(action_type, [])
+
+        if not isinstance(action_list, list):
+            self.context.logger.warning(
+                f"Expected '{action_type}' to be a list, but found {type(action_list)}. Resetting to empty list."
+            )
+            return []
+
+        # Return the last 'limit' items
+        return action_list[-limit:]
+
+    def _get_stored_kv_data(
+        self, key: str, default_value: Any
+    ) -> Generator[None, None, Any]:
+        """Helper to get and parse stored KV data."""
+        data = yield from self._read_kv(keys=(key,))
+        if not data or not data.get(key):
+            self.context.logger.info(f"No {key} found in KV store, returning default.")
+            return default_value
+        try:
+            return json.loads(data[key])
+        except (json.JSONDecodeError, TypeError):
+            self.context.logger.warning(
+                f"Could not decode JSON for key {key}, returning default."
+            )
+            return default_value
