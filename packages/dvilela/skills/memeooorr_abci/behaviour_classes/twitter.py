@@ -897,11 +897,13 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             extra_command = (
                 ENFORCE_ACTION_COMMAND if is_staking_kpi_met is False else ""
             )
-            tools_info = (self.generate_mech_tool_info(),)  # type: ignore
+            tools_info = self.generate_mech_tool_info()
 
         # get the latest actions from the KV store
         tweet_actions = yield from self.get_latest_agent_actions("tweet_action")
         tool_actions = yield from self.get_latest_agent_actions("tool_action")
+
+        twitter_actions_str = self._get_shuffled_twitter_actions()
 
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
@@ -913,6 +915,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             extra_command=extra_command,
             tweet_actions=tweet_actions,
             tool_actions=tool_actions,
+            twitter_actions=twitter_actions_str,
         )
 
         # Save data for future mech responses
@@ -983,6 +986,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             mech_response=mech_summary
         )
 
+        twitter_actions_str = self._get_shuffled_twitter_actions()
+
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
             previous_tweets=previous_tweets_str,
@@ -993,6 +998,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             extra_command="",
             tweet_actions="",
             tool_actions="",
+            twitter_actions=twitter_actions_str,
         )
 
         # Clear stored data
@@ -1446,11 +1452,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """Generate tool info"""
 
         tools_dict = self.params.tools_for_mech
-        tools_info = "\n" + "\n".join(
-            [
-                f"- {tool_name}: {tool_description}"
-                for tool_name, tool_description in tools_dict.items()
-            ]
+        tools_info = "\n".join(
+            f"- {tool_name}: {tool_description}"
+            for tool_name, tool_description in tools_dict.items()
         )
         self.context.logger.info(tools_info)
         return tools_info
@@ -1474,6 +1478,21 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             )  # This might need to change if it returns strings
 
         return active_agent_objects
+
+    @staticmethod
+    def _get_shuffled_twitter_actions() -> str:
+        """Get shuffled twitter actions as a formatted string."""
+        twitter_actions_list = [
+            "Tweet",
+            "Tweet With Media",
+            "Reply",
+            "Quote",
+            "Like",
+            "Retweet",
+            "Follow",
+        ]
+        random.shuffle(twitter_actions_list)
+        return "\n".join(f"- {action}" for action in twitter_actions_list)
 
 
 class ActionTweetBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ancestors
