@@ -989,7 +989,7 @@ class MemeooorrBaseBehaviour(
 
         if not isinstance(action_list, list):
             self.context.logger.warning(
-                f"Expected '{action_type}' to be a list, but found {type(action_list)}. Resetting to empty list."
+                f"Expected {action_type} to be a list, but found {type(action_list)}. Resetting to empty list."
             )
             action_list = []
 
@@ -1013,7 +1013,7 @@ class MemeooorrBaseBehaviour(
 
         if not isinstance(action_list, list):
             self.context.logger.warning(
-                f"Expected '{action_type}' to be a list, but found {type(action_list)}. Resetting to empty list."
+                f"Expected {action_type} to be a list, but found {type(action_list)}. Resetting to empty list."
             )
             return []
 
