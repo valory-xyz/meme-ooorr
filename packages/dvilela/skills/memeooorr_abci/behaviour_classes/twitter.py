@@ -1072,16 +1072,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         return mech_summary
 
-    def _get_stored_kv_data(
-        self, key: str, default_value: Any
-    ) -> Generator[None, None, Any]:
-        """Helper to get and parse stored KV data."""
-        data = yield from self._read_kv(keys=(key,))
-        if not data:
-            self.context.logger.error(f"No {key} found in KV store")
-            return default_value
-        return json.loads(data[key])
-
     def _get_llm_decision(self, prompt: str) -> Generator[None, None, Optional[str]]:
         """Get decision from LLM."""
         self.context.logger.info(f"Prompting the LLM for a decision: {prompt}")
