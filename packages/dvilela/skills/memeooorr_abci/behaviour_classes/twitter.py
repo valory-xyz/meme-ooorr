@@ -1180,7 +1180,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         return self._validate_non_mech_llm_response(json_response)
 
-    def _handle_tool_action(self, json_response: dict) -> Tuple[str, List, List]:
+    def _handle_tool_action(
+        self, json_response: dict
+    ) -> Generator[None, None, Tuple[str, List, List]]:
         """Handle tool action from LLM response."""
         self.context.logger.info("Tool action detected")
 
