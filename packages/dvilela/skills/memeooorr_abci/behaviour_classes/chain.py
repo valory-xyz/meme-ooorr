@@ -683,6 +683,11 @@ class ActionPreparationBehaviour(ChainBehaviour):  # pylint: disable=too-many-an
 
         # Action finished if we already have a final_tx_hash at this point
         if self.synchronized_data.final_tx_hash is not None:
+            # wrting action to the KV store inside agent_actions
+            yield from self._store_agent_action(
+                action_type="token_action",
+                action_data=token_action,
+            )
             yield from self.post_action()
             return ""
 

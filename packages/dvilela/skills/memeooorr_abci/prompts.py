@@ -71,6 +71,15 @@ You must choose **either** a Twitter action **or** a Tool action, but not both.
 
 {extra_command}
 
+Please do not repeat the same action many times. try to do different actions
+Here are some of your previous:
+
+Tweet actions:
+{tweet_actions}
+
+Tool actions:
+{tool_actions}
+
 Your task is to decide what actions to do, if any. Some recommenadations:
 - Do not invent or assume any details. Use only the information provided. as we do not want to spread misinformation.
 - If you decide to tweet, make sure it is significantly different from previous tweets in both topic and wording.

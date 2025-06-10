@@ -559,33 +559,19 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         )
 
         # Fetch pending tweets from db
-        pending_tweets_data = yield from self._read_kv(
-            keys=("pending_tweets_for_tw_mech",)
+        pending_tweets = yield from self._read_json_from_kv(
+            "pending_tweets_for_tw_mech", {}
         )
-        pending_tweets = {}
-        if pending_tweets_data and pending_tweets_data.get(
-            "pending_tweets_for_tw_mech"
-        ):
-            pending_tweets = json.loads(
-                pending_tweets_data["pending_tweets_for_tw_mech"]
-            )
-        else:
+        if not pending_tweets:
             self.context.logger.warning(
                 "No pending tweets found in KV store or value is empty."
             )
 
         # Fetch previously interacted tweets
-        interacted_ids_data = yield from self._read_kv(
-            keys=("interacted_tweet_ids_for_tw_mech",)
+        interacted_tweet_ids = yield from self._read_json_from_kv(
+            "interacted_tweet_ids_for_tw_mech", []
         )
-        interacted_tweet_ids = []
-        if interacted_ids_data and interacted_ids_data.get(
-            "interacted_tweet_ids_for_tw_mech"
-        ):
-            interacted_tweet_ids = json.loads(
-                interacted_ids_data["interacted_tweet_ids_for_tw_mech"]
-            )
-        else:
+        if not interacted_tweet_ids:
             self.context.logger.warning(
                 "No interacted tweets found in KV store or value is empty."
             )
@@ -626,13 +612,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
     def _get_interacted_tweet_ids(self) -> Generator[None, None, list]:
         """Get previously interacted tweet IDs from the database."""
-        db_data = yield from self._read_kv(keys=("interacted_tweet_ids",))
-
-        if db_data is None:
-            self.context.logger.error("Error while loading the database")
-            return []
-
-        return json.loads(db_data["interacted_tweet_ids"] or "[]")
+        return (yield from self._read_json_from_kv("interacted_tweet_ids", []))
 
     def _collect_pending_tweets(
         self, active_agents: List[AgentsFunAgent], interacted_tweet_ids: set[int]
@@ -732,18 +712,15 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         json_response = None
 
         # Try to get the previously stored prompt first
-        stored_prompt_data = yield from self._read_kv(keys=("last_prompt",))
-        stored_prompt = (
-            stored_prompt_data.get("last_prompt") if stored_prompt_data else None
-        )
+        stored_prompt = yield from self._read_json_from_kv("last_prompt", None)
 
         # Check if we should use a stored prompt or generate a new one
         if stored_prompt and retry_count > 0:
             self.context.logger.info("Using previously stored prompt")
             prompt = stored_prompt
             # We still need previous_tweets for potential media handling
-            previous_tweets = yield from self._get_stored_kv_data(
-                "previous_tweets_for_tw_mech", {}
+            previous_tweets = yield from self._read_json_from_kv(
+                "previous_tweets_for_tw_mech", []
             )
         else:
             # Generate a new prompt and store it
@@ -809,9 +786,11 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 return Event.ERROR.value, new_interacted_tweet_ids, []
 
             # Handle the tool action normally
-            event, new_interacted_tweet_id, mech_request = self._handle_tool_action(
-                json_response
-            )
+            (
+                event,
+                new_interacted_tweet_id,
+                mech_request,
+            ) = yield from self._handle_tool_action(json_response)
             return event, new_interacted_tweet_id, mech_request
 
         # Handle tweet actions if present
@@ -849,7 +828,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         return prompt, previous_tweets
 
-    def _prepare_standard_prompt_data(
+    def _prepare_standard_prompt_data(  # pylint: disable=too-many-locals
         self, pending_tweets: dict, persona: str
     ) -> Generator[None, None, Tuple[str, Optional[List[Dict]]]]:
         """Prepare prompt data when mech_for_twitter is False."""
@@ -908,7 +887,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             self.context.logger.info(
                 "It seems like the mech failed to deliver the response forcing agent to create a normal tweet"
             )
-            last_prompt = yield from self._read_kv(keys=("last_prompt",))
+            last_prompt = yield from self._read_json_from_kv("last_prompt", None)
             ENFORCE_ACTION_COMMAND_FAILED_MECH_SUBPROMPT = (
                 ENFORCE_ACTION_COMMAND_FAILED_MECH.format(last_prompt=last_prompt)
             )
@@ -920,6 +899,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             )
             tools_info = (self.generate_mech_tool_info(),)  # type: ignore
 
+        # get the latest actions from the KV store
+        tweet_actions = yield from self.get_latest_agent_actions("tweet_action")
+        tool_actions = yield from self.get_latest_agent_actions("tool_action")
+
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
             previous_tweets=previous_tweets_str,
@@ -928,6 +911,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             tools=tools_info,
             time=self.get_sync_time_str(),
             extra_command=extra_command,
+            tweet_actions=tweet_actions,
+            tool_actions=tool_actions,
         )
 
         # Save data for future mech responses
@@ -962,17 +947,14 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
     ) -> Generator[None, None, Tuple[str, Optional[List[Dict]]]]:
         """Prepare prompt data when mech_for_twitter is True."""
         # Read saved data for mech response
-        previous_tweets_data = yield from self._get_stored_kv_data(
+        previous_tweets = yield from self._read_json_from_kv(
             "previous_tweets_for_tw_mech", []
         )
-        other_tweets_data = yield from self._get_stored_kv_data(
+        other_tweets_data = yield from self._read_json_from_kv(
             "other_tweets_for_tw_mech", {}
         )
 
         # Ensure previous_tweets is Optional[List[Dict]]
-        previous_tweets = (
-            previous_tweets_data if isinstance(previous_tweets_data, list) else None
-        )
         previous_tweets_str = BaseTweetBehaviour._format_previous_tweets_str(
             previous_tweets
         )
@@ -1009,6 +991,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             tools=self.generate_mech_tool_info(),
             time=self.get_sync_time_str(),
             extra_command="",
+            tweet_actions="",
+            tool_actions="",
         )
 
         # Clear stored data
@@ -1029,18 +1013,12 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
     def _get_latest_media_info(self) -> Generator[None, None, Optional[Dict]]:
         """Reads and parses the 'latest_media_info' from the KV store."""
         try:
-            media_info_data = yield from self._read_kv(keys=("latest_media_info",))
-            if (
-                not media_info_data
-                or "latest_media_info" not in media_info_data
-                or not media_info_data["latest_media_info"]
-            ):
+            media_info = yield from self._read_json_from_kv("latest_media_info", None)
+            if not media_info:
                 self.context.logger.warning(
                     "Could not find valid 'latest_media_info' in KV store."
                 )
                 return None
-
-            media_info = json.loads(media_info_data["latest_media_info"])
             return media_info
         except json.JSONDecodeError:
             self.context.logger.error(
@@ -1071,16 +1049,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         # If media_info is None, the error/warning is already logged by _get_latest_media_info
 
         return mech_summary
-
-    def _get_stored_kv_data(
-        self, key: str, default_value: Any
-    ) -> Generator[None, None, Any]:
-        """Helper to get and parse stored KV data."""
-        data = yield from self._read_kv(keys=(key,))
-        if not data:
-            self.context.logger.error(f"No {key} found in KV store")
-            return default_value
-        return json.loads(data[key])
 
     def _get_llm_decision(self, prompt: str) -> Generator[None, None, Optional[str]]:
         """Get decision from LLM."""
@@ -1182,7 +1150,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         return self._validate_non_mech_llm_response(json_response)
 
-    def _handle_tool_action(self, json_response: dict) -> Tuple[str, List, List]:
+    def _handle_tool_action(
+        self, json_response: dict
+    ) -> Generator[None, None, Tuple[str, List, List]]:
         """Handle tool action from LLM response."""
         self.context.logger.info("Tool action detected")
 
@@ -1212,6 +1182,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 )
             )
         )
+
+        yield from self._store_agent_action("tool_action", tool_name)
 
         return Event.MECH.value, [], new_mech_requests
 
@@ -1270,6 +1242,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             action, tweet_id, user_name, context.pending_tweets
         ):
             return
+
+        yield from self._store_agent_action("tweet_action", interaction)
 
         # Add random delay to avoid rate limiting
         delay = secrets.randbelow(5)
