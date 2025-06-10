@@ -89,6 +89,7 @@ class StakingContract:
             Path("scripts", "activity_checker.json"),
             False,
         )
+        self.max_num_services = self.contract.functions.maxNumServices().call()
         self.available_rewards = self.contract.functions.availableRewards().call()
         self.balance = self.contract.functions.balance().call()
         self.liveness_period = self.contract.functions.livenessPeriod().call()
@@ -96,6 +97,10 @@ class StakingContract:
         self.rewards_per_second = self.contract.functions.rewardsPerSecond().call()
         self.stop_thread = False
         self.trigger_thread = None
+
+    def get_service_ids(self):
+        """Get the satked service ids"""
+        return self.contract.functions.getServiceIds().call()
 
     def calculate_accrued_staking_reward(self, service_id: int) -> int:
         """Calculate the accrued staking reward for a given service ID."""
