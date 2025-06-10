@@ -969,3 +969,31 @@ class MemeooorrBaseBehaviour(
             and self.context.agents_fun_db.my_agent.twitter_user_id
         ):
             yield from self.context.agents_fun_db.my_agent.update_twitter_details()
+
+    def _store_agent_action(
+        self, action_type: str, action_data: dict
+    ) -> Generator[None, None, None]:
+        """
+        Stores an agent action (tool, tweet, or token) in the KV store.
+
+        :param action_type: The type of action, e.g., "tool_action", "tweet_action".
+        :param action_data: The dictionary containing the action data to store.
+        """
+        current_agent_actions = yield from self._get_stored_kv_data("agent_actions", {})
+
+        # Ensure all action types are initialized as lists
+        for key in ["tool_action", "tweet_action", "token_action"]:
+            current_agent_actions.setdefault(key, [])
+
+        action_list = current_agent_actions.get(action_type)
+
+        if not isinstance(action_list, list):
+            self.context.logger.warning(
+                f"Expected '{action_type}' to be a list, but found {type(action_list)}. Resetting to empty list."
+            )
+            action_list = []
+
+        action_list.append(action_data)
+        current_agent_actions[action_type] = action_list[-10:]
+
+        yield from self._write_kv({"agent_actions": json.dumps(current_agent_actions)})
