@@ -52,13 +52,7 @@ Available Tool actions are:
 {mech_response}
 
 Available Twitter actions are:
-- Tweet
-- Tweet With Media
-- Reply
-- Quote
-- Like
-- Retweet
-- Follow
+{twitter_actions}
 
 Here are some of your previous tweets:
 {previous_tweets}
