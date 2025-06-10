@@ -851,7 +851,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         return prompt, previous_tweets
 
-    def _prepare_standard_prompt_data(
+    def _prepare_standard_prompt_data(  # pylint: disable=too-many-locals
         self, pending_tweets: dict, persona: str
     ) -> Generator[None, None, Tuple[str, Optional[List[Dict]]]]:
         """Prepare prompt data when mech_for_twitter is False."""
