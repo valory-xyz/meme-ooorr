@@ -30,6 +30,7 @@ class LoadDatabasePayload(BaseTxPayload):
     """Represent a transaction payload for the LoadDatabaseRound."""
 
     persona: str
+    agent_details: str
 
 
 @dataclass(frozen=True)
