@@ -81,7 +81,7 @@ class LoadDatabaseBehaviour(
                 {"last_summon_timestamp": str(self.get_sync_timestamp())}
             )
 
-    def gather_agent_details(self, persona: str) -> Generator[None, None, str]:
+    def gather_agent_details(self, persona: str) -> str:
         """Write the agent details to the db."""
         agent_details = {
             "twitter_username": self.context.agents_fun_db.my_agent.twitter_username,

@@ -202,7 +202,7 @@ class SynchronizedData(BaseSynchronizedData):
     @property
     def agent_details(self) -> Dict[str, Any]:
         """Get the agent details."""
-        serialized_details = self.db.get("agent_details", "{}")
+        serialized_details = cast(str, self.db.get("agent_details", "{}"))
         return json.loads(serialized_details)
 
 
