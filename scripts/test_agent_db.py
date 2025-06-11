@@ -107,6 +107,7 @@ class AgentDBClient:
         self.base_url = base_url.rstrip("/")
         self.eth_address = eth_address
         self.private_key = private_key
+        self.stats = {}
         self.agent = self.get_agent_instance_by_address(self.eth_address)
         self.agent_type = (
             self.get_agent_type_by_type_id(self.agent.type_id) if self.agent else None
@@ -135,6 +136,8 @@ class AgentDBClient:
         self, method, endpoint, payload=None, params=None, auth=False, nested_auth=True
     ):
         """Make the request"""
+        start_time = time.time()
+        endpoint_key = f"{method} {endpoint}"
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
         if auth:
@@ -146,6 +149,14 @@ class AgentDBClient:
         response = requests.request(
             method, url, headers=headers, json=payload, params=params
         )
+
+        duration = time.time() - start_time
+        if endpoint_key not in self.stats:
+            self.stats[endpoint_key] = {"calls": 0, "total_time": 0.0, "durations": []}
+        self.stats[endpoint_key]["calls"] += 1
+        self.stats[endpoint_key]["total_time"] += duration
+        self.stats[endpoint_key]["durations"].append(duration)
+
         if response.status_code in [200, 201]:
             return response.json()
         if response.status_code == 404:
@@ -373,6 +384,34 @@ class AgentDBClient:
             for attr in attribute_instances
         ]
         return parsed_attributes
+
+    def print_stats(self):
+        """Prints the stats of the requests."""
+        table = Table(title="AgentDBClient Request Statistics", show_lines=True)
+        table.add_column("Endpoint", style="cyan", no_wrap=False)
+        table.add_column("Calls", style="magenta", justify="center")
+        table.add_column("Total Time (s)", style="green", justify="right")
+        table.add_column("Avg Time (s)", style="yellow", justify="right")
+        table.add_column("Min Time (s)", style="blue", justify="right")
+        table.add_column("Max Time (s)", style="red", justify="right")
+
+        for endpoint, data in sorted(self.stats.items()):
+            calls = data["calls"]
+            total_time = data["total_time"]
+            avg_time = total_time / calls
+            min_time = min(data["durations"])
+            max_time = max(data["durations"])
+            table.add_row(
+                endpoint,
+                str(calls),
+                f"{total_time:.4f}",
+                f"{avg_time:.4f}",
+                f"{min_time:.4f}",
+                f"{max_time:.4f}",
+            )
+
+        console = Console()
+        console.print(Align.center(table))
 
 
 class TwitterAction(BaseModel):
@@ -944,10 +983,11 @@ def memeooorr_example(client: AgentDBClient):
     agents_fun_db = AgentsFunDatabase(client=client)
     agents_fun_db.load()
 
-    print(agents_fun_db)
+    # print(agents_fun_db)
     for agent in agents_fun_db.agents:
         if agent.likes or agent.retweets or agent.posts or agent.follows:
-            print(agent)
+            # print(agent)
+            pass
 
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -966,3 +1006,4 @@ if __name__ == "__main__":
     # init_memeooorr_db(db_client)
     # basic_example(db_client)
     memeooorr_example(db_client)
+    db_client.print_stats()
