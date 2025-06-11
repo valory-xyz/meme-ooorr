@@ -199,6 +199,12 @@ class SynchronizedData(BaseSynchronizedData):
         """Get the check funds count."""
         return int(self.db.get("check_funds_count", 0))  # type: ignore
 
+    @property
+    def agent_details(self) -> Dict[str, Any]:
+        """Get the agent details."""
+        serialized_details = self.db.get("agent_details", "{}")
+        return json.loads(serialized_details)
+
 
 class EventRoundBase(CollectSameUntilThresholdRound):
     """EventRoundBase"""
@@ -245,12 +251,15 @@ class LoadDatabaseRound(CollectSameUntilThresholdRound):
         # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT
 
         if self.threshold_reached:
-            payload = dict(zip(self.selection_key, self.most_voted_payload_values))
+            payload = LoadDatabasePayload(
+                *(("dummy_sender",) + self.most_voted_payload_values)
+            )
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
                 **{
-                    get_name(SynchronizedData.persona): payload["persona"],
+                    get_name(SynchronizedData.persona): payload.persona,
+                    get_name(SynchronizedData.agent_details): payload.agent_details,
                 },
             )
 
