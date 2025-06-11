@@ -99,7 +99,7 @@ class AgentsFunAgentType(BaseModel):
     attribute_definitions: List[AttributeDefinition]
 
 
-class AgentDBClient:
+class AgentDBClient:  # pylint: disable=too-many-public-methods
     """AgentDBClient"""
 
     def __init__(self, base_url, eth_address, private_key):
