@@ -201,9 +201,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         }
 
         if quote_tweet_id:  # If a quote ID for DB storage is provided
-            post_action_params[
-                "quote_url"
-            ] = quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
+            post_action_params["quote_url"] = (
+                quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
+            )
         elif original_tweet_id_for_reply:
             post_action_params["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
 
@@ -1249,13 +1249,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         ):
             return
 
-        media_info = None
-        if action == "tweet_with_media":
-            media_info = yield from self._get_latest_media_info()
-            if media_info:
-                interaction["media_path"] = media_info.get("path")
-                interaction["media_type"] = media_info.get("type")
-
         yield from self._store_agent_action("tweet_action", interaction)
 
         # Add random delay to avoid rate limiting
@@ -1270,16 +1263,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             )
         elif action == "tweet_with_media":
             # Delegate to the new handler
-            if media_info:
-                success = yield from self._handle_media_tweet(text, media_info)
-                if not success:
-                    self.context.logger.error(
-                        "Failed to handle tweet_with_media action."
-                    )
-            else:
-                self.context.logger.error(
-                    "Could not handle tweet_with_media action because media_info is missing."
-                )
+            success = yield from self._handle_media_tweet(text)
+            if not success:
+                self.context.logger.error("Failed to handle tweet_with_media action.")
+                # Potentially return or handle error differently if needed
         else:
             yield from self._handle_tweet_interaction(
                 action,
@@ -1290,14 +1277,13 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 context.new_interacted_tweet_ids,
             )
 
-    def _handle_media_tweet(
-        self, text: str, media_info: Dict
-    ) -> Generator[None, None, bool]:
+    def _handle_media_tweet(self, text: str) -> Generator[None, None, bool]:
         """Handles the 'tweet_with_media' action, including fetching, uploading, posting, and clearing KV."""
+        # Read the combined media info from kv store
+        media_info = yield from self._get_latest_media_info()
+
         if not media_info:
-            self.context.logger.error(
-                "Media info is missing, cannot handle tweet with media."
-            )
+            # Error already logged by helper
             return False  # Indicate failure
 
         media_path = media_info.get("path")
