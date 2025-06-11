@@ -218,7 +218,6 @@ class Twitter:
             return {
                 "user_id": result.data.id,
                 "username": result.data.username,
-                "name": result.data.name,
             }
         except tweepy.errors.TweepyException as e:
             self.logger.error(
