@@ -108,6 +108,7 @@ class AgentDBClient:
         self.eth_address = eth_address
         self.private_key = private_key
         self.stats = {}
+        self._attribute_definition_cache: Dict[int, AttributeDefinition] = {}
         self.agent = self.get_agent_instance_by_address(self.eth_address)
         self.agent_type = (
             self.get_agent_type_by_type_id(self.agent.type_id) if self.agent else None
@@ -263,9 +264,15 @@ class AgentDBClient:
         self, attr_id: int
     ) -> Optional[AttributeDefinition]:
         """Get attribute definition by id"""
+        if attr_id in self._attribute_definition_cache:
+            return self._attribute_definition_cache[attr_id]
         endpoint = f"/api/attributes/{attr_id}"
         result = self._request("GET", endpoint)
-        return AttributeDefinition.model_validate(result) if result else None
+        if result:
+            definition = AttributeDefinition.model_validate(result)
+            self._attribute_definition_cache[attr_id] = definition
+            return definition
+        return None
 
     def get_attribute_definitions_by_agent_type(self, agent_type: AgentType):
         """Get attributes by agent type"""
