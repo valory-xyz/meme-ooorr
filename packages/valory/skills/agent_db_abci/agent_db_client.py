@@ -22,7 +22,7 @@
 from packages.valory.skills.agent_db_abci.agent_db_models import AgentType, AgentInstance, AttributeDefinition, AttributeInstance
 from datetime import datetime, timezone
 import json
-from typing import Any, List, Optional, Callable, cast
+from typing import Any, Dict, List, Optional, Callable, cast
 from aea.skills.base import Model
 
 
@@ -38,6 +38,7 @@ class AgentDBClient(Model):
         """Constructor"""
         super().__init__(**kwargs)
         self.base_url: str = base_url.rstrip("/")
+        self._attribute_definition_cache: Dict[int, AttributeDefinition] = {}
         self.agent: AgentInstance = None
         self.agent_type = None
         self.address: str = None
@@ -214,9 +215,15 @@ class AgentDBClient(Model):
         self, attr_id: int
     ) -> Optional[AttributeDefinition]:
         """Get attribute definition by id"""
+        if attr_id in self._attribute_definition_cache:
+            return self._attribute_definition_cache[attr_id]
         endpoint = f"/api/attributes/{attr_id}"
         result = yield from self._request("GET", endpoint)
-        return AttributeDefinition.model_validate(result) if result else None
+        if result:
+            definition = AttributeDefinition.model_validate(result)
+            self._attribute_definition_cache[attr_id] = definition
+            return definition
+        return None
 
     def get_attribute_definitions_by_agent_type(self, agent_type: AgentType):
         """Get attributes by agent type"""

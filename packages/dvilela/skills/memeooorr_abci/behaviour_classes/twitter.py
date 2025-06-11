@@ -986,7 +986,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
             mech_response=mech_summary
         )
 
-        twitter_actions_str = self._get_shuffled_twitter_actions()
+        twitter_actions_str = "- Tweet With Media"  # this is to make sure that the LLM can only use this action
 
         prompt = TWITTER_DECISION_PROMPT.format(
             persona=persona,
@@ -1484,7 +1484,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """Get shuffled twitter actions as a formatted string."""
         twitter_actions_list = [
             "Tweet",
-            "Tweet With Media",
             "Reply",
             "Quote",
             "Like",

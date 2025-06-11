@@ -58,7 +58,7 @@ AgentDBClient = BaseAgentDBClient
 AgentsFunDatabase = BaseAgentsFunDatabase
 
 MARGIN = 5
-MULTIPLIER = 40
+MULTIPLIER = 10
 MULTIPLIER_MECH = 20
 
 
