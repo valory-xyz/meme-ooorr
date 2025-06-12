@@ -192,25 +192,34 @@ class PostMechResponseBehaviour(
         # else: file_path is None and reason is likely an error before file creation
 
     def _download_and_save_media(
-        self, response: requests.Response, ipfs_gateway_url: str, suffix: str
+        self,
+        response: requests.Response,
+        ipfs_gateway_url: str,
+        suffix: str,
+        ipfs_hash: str,
     ) -> Optional[str]:
-        """Download media stream from response and save to a temporary file."""
+        """Download media stream from response and save to a designated media directory."""
         media_path = None
         downloaded_size = 0
         chunk_count = 0
         try:
+            # Get storage path from params and ensure it exists
+            storage_path = os.path.join(self.params.store_path, "media")
+            os.makedirs(storage_path, exist_ok=True)
+
+            # Create a unique filename
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            with tempfile.NamedTemporaryFile(
-                suffix=f"_{timestamp}{suffix}", delete=False
-            ) as temp_file:
-                media_path = temp_file.name  # Assign path *before* writing
+            filename = f"{timestamp}_{ipfs_hash}{suffix}"
+            media_path = os.path.join(storage_path, filename)
+
+            with open(media_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
-                        temp_file.write(chunk)
+                        f.write(chunk)
                         downloaded_size += len(chunk)
                         chunk_count += 1
-                temp_file.flush()
-                os.fsync(temp_file.fileno())
+                f.flush()
+                os.fsync(f.fileno())
 
             if downloaded_size == 0:
                 self.context.logger.error(
@@ -274,7 +283,7 @@ class PostMechResponseBehaviour(
 
                 # Use helper to download and save
                 media_path = self._download_and_save_media(
-                    response, ipfs_gateway_url, suffix
+                    response, ipfs_gateway_url, suffix, ipfs_hash
                 )
 
                 if media_path is None:
