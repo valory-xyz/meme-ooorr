@@ -20,7 +20,6 @@
 """This package contains round behaviours of MemeooorrAbciApp."""
 import json
 import os
-import tempfile
 import traceback
 from datetime import datetime
 from typing import Generator, List, Optional, Type
