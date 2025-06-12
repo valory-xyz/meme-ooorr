@@ -249,18 +249,22 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         if quote_tweet_id:
             action_type = "quote"
             action_data["quote_tweet_id"] = quote_tweet_id
+            action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
         elif original_tweet_id_for_reply:
             action_type = "reply"
             action_data["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
+            action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
         elif media_type and tweet_payload.get("image_paths", None):
             action_type = "tweet_with_media"
             action_data["media_path"] = tweet_payload.get("image_paths", None)[0]
             action_data["media_type"] = media_type  # type: ignore
+            action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
         else:
             action_type = "tweet"
+            action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
         # stroing the action in the kv store in the agent_actions key
         yield from self._store_agent_action(
