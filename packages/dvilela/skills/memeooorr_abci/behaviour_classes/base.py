@@ -1042,7 +1042,7 @@ class MemeooorrBaseBehaviour(
 
     def _store_media_info_list(self, media_info: Dict) -> Generator[None, None, None]:
         """Store media info in the key-value store"""
-        media_store_list = yield from self._read_json_from_kv("media-store-list", [])
+        media_store_list = yield from self._read_media_info_list()
         media_store_list.append(media_info)
 
         # Enforce retention policy: keep only the latest 20 media files
@@ -1058,6 +1058,11 @@ class MemeooorrBaseBehaviour(
             media_store_list = media_store_list[num_to_remove:]
 
         yield from self._write_kv({"media-store-list": json.dumps(media_store_list)})
+
+    def _read_media_info_list(self) -> Generator[None, None, List[Dict]]:
+        """Read media info from the key-value store"""
+        media_store_list = yield from self._read_json_from_kv("media-store-list", [])
+        return media_store_list
 
     def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
         """Attempt to remove a temporary file and log the outcome."""
