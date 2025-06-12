@@ -1060,9 +1060,28 @@ class MemeooorrBaseBehaviour(
         yield from self._write_kv({"media-store-list": json.dumps(media_store_list)})
 
     def _read_media_info_list(self) -> Generator[None, None, List[Dict]]:
-        """Read media info from the key-value store"""
-        media_store_list = yield from self._read_json_from_kv("media-store-list", [])
-        return media_store_list
+        """
+        Read media info from the key-value store.
+
+        This method also sanitizes the data by flattening any nested lists that may exist
+        due to previous data corruption issues.
+        """
+        raw_list = yield from self._read_json_from_kv("media-store-list", [])
+
+        if not isinstance(raw_list, list):
+            # If the stored data is not a list, return a default empty list.
+            return []
+
+        flattened_list = []
+        for item in raw_list:
+            if isinstance(item, list):
+                # If a nested list is found, extend the flattened list with its contents
+                flattened_list.extend(item)
+            elif isinstance(item, dict):
+                # If it's a dictionary, append it directly
+                flattened_list.append(item)
+
+        return flattened_list
 
     def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
         """Attempt to remove a temporary file and log the outcome."""
