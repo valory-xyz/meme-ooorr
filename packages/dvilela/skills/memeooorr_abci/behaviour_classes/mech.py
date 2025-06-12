@@ -162,6 +162,9 @@ class PostMechResponseBehaviour(
         """Helper method to save media information to the key-value store. Returns True on success, False on failure."""
         media_info = {"path": media_path, "type": media_type}
         try:
+            yield from self._store_media_info_list(media_info)
+
+            # this is for backwards compatibility as we are using this in many places inside twitter.py
             yield from self._write_kv({"latest_media_info": json.dumps(media_info)})
             self.context.logger.info(
                 f"Stored media info ({media_type}) via _write_kv: {media_info}"
@@ -174,22 +177,6 @@ class PostMechResponseBehaviour(
             )
             self.context.logger.error(traceback.format_exc())
             return False  # Failure
-
-    def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
-        """Attempt to remove a temporary file and log the outcome."""
-        if file_path and os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-                self.context.logger.info(
-                    f"Removed temporary file ({reason}): {file_path}"
-                )
-            except OSError as rm_err:
-                self.context.logger.warning(
-                    f"Could not remove temp file {file_path} ({reason}): {rm_err}"
-                )
-        elif reason == "empty content":
-            self.context.logger.info("No temporary file to remove (empty download).")
-        # else: file_path is None and reason is likely an error before file creation
 
     def _download_and_save_media(
         self,
