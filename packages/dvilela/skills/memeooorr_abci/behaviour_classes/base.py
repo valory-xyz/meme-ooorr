@@ -20,6 +20,7 @@
 """This package contains round behaviours of MemeooorrAbciApp."""
 
 import json
+import os
 import re
 from abc import ABC
 from dataclasses import dataclass
@@ -1038,3 +1039,38 @@ class MemeooorrBaseBehaviour(
                 f"Could not decode JSON for key {key}, returning default."
             )
             return default_value
+
+    def _store_media_info_list(self, media_info: Dict) -> Generator[None, None, None]:
+        """Store media info in the key-value store"""
+        media_store_list = yield from self._read_json_from_kv("media-store-list", [])
+        media_store_list.append(media_info)
+
+        # Enforce retention policy: keep only the latest 20 media files
+        if len(media_store_list) > 20:
+            num_to_remove = len(media_store_list) - 20
+            old_media_entries = media_store_list[:num_to_remove]
+
+            for entry in old_media_entries:
+                old_path = entry.get("path")
+                if old_path:
+                    self._cleanup_temp_file(old_path, "old media file")
+
+            media_store_list = media_store_list[num_to_remove:]
+
+        yield from self._write_kv({"media-store-list": json.dumps(media_store_list)})
+
+    def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
+        """Attempt to remove a temporary file and log the outcome."""
+        if file_path and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                self.context.logger.info(
+                    f"Removed temporary file ({reason}): {file_path}"
+                )
+            except OSError as rm_err:
+                self.context.logger.warning(
+                    f"Could not remove temp file {file_path} ({reason}): {rm_err}"
+                )
+        elif reason == "empty content":
+            self.context.logger.info("No temporary file to remove (empty download).")
+        # else: file_path is None and reason is likely an error before file creation
