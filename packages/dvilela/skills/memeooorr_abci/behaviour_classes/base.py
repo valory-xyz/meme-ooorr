@@ -993,6 +993,9 @@ class MemeooorrBaseBehaviour(
             )
             action_list = []
 
+        if isinstance(action_data, dict):
+            action_data["timestamp"] = self.get_sync_timestamp()
+
         action_list.append(action_data)
         current_agent_actions[action_type] = action_list[-10:]
 

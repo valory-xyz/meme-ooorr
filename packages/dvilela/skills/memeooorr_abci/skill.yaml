@@ -8,12 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeidhtokakpjflbpjnvezglmzh4rvqbt44zv3e4dapuwujujacl447e
+  behaviour_classes/base.py: bafybeifiq2czlhp3pzldgoulsu2ys2maqztsjzwm4l4is3ltfp3jyf5hgm
   behaviour_classes/chain.py: bafybeig2qifmzybweuff6j5e35opqq6ownq6aosxd2vnt7tc266dfpicam
   behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
   behaviour_classes/llm.py: bafybeiaxj6ps53froyqtlogfd3y3z3wbiurhoharuft5xuhkzoxtruukya
   behaviour_classes/mech.py: bafybeiaqpjmuvki42kmhgelm4kgk2z5o2s3i2xtrttwhyu6273padrma5y
-  behaviour_classes/twitter.py: bafybeigd6pepfql4awhetmpzemzzhlnwyqekpmr4tubhq6i4cukqajmbb4
+  behaviour_classes/twitter.py: bafybeihanw5wpcegrhrnaff3tpaffyh6sgby3exroreaywohloxd3oi2nm
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
