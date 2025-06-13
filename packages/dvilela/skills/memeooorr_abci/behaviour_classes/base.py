@@ -20,11 +20,11 @@
 """This package contains round behaviours of MemeooorrAbciApp."""
 
 import json
-from pathlib import Path
 import re
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Tuple, cast
 
 from aea.protocols.base import Message
