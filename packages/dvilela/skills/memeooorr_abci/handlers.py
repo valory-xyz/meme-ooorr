@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
+import peewee
 import yaml
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -132,11 +133,31 @@ class HttpMethod(Enum):
     POST = "post"
 
 
+# Create a DatabaseProxy instance at the module level
+db = peewee.DatabaseProxy()
+
+
+class BaseModel(peewee.Model):
+    """Base model for peewee"""
+
+    class Meta:
+        """Meta class for peewee"""
+
+        database = db  # Use the proxy here
+
+
+class Store(BaseModel):
+    """Database Store table"""
+
+    key = peewee.CharField(unique=True)
+    value = peewee.CharField()
+
+
 class HttpHandler(BaseHttpHandler):
     """This implements the echo handler."""
 
     SUPPORTED_PROTOCOL = HttpMessage.protocol_id
-
+    
     def setup(self) -> None:
         """Implement the setup."""
         config_uri_base_hostname = urlparse(
@@ -179,6 +200,24 @@ class HttpHandler(BaseHttpHandler):
             self.rounds_info[source_round]["transitions"][  # type: ignore
                 event.lower()
             ] = camel_to_snake(target_round)
+
+    def db_connect(self, store_path_prefix: str) -> None:
+        # Database setup
+        # store_path_prefix = self.context.params.store_path
+
+        # TODO: THIS NEEDS TO BE CHANGED TO THE ACTUAL PATH OF THE DATABASE from store_path from params
+        store_path_prefix = "/data"  # User's hardcoded path
+
+        db.init(store_path_prefix)
+        self.context.logger.info(f"KV database initialized in {store_path_prefix}")
+        db.connect()
+        self.context.logger.info("KV database connection established")
+        # We assume the table is created by KvStoreConnection
+
+    def db_disconnect(self) -> None:
+        """Teardown the handler."""
+        if hasattr(self, "db") and self.db and not self.db.is_closed():
+            self.db.close()
 
     @property
     def synchronized_data(self) -> SynchronizedData:
@@ -356,6 +395,7 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
+
         agent_details = self.synchronized_data.agent_details
         data = {
             "address": agent_details.get("safe_address"),
