@@ -20,7 +20,7 @@
 """This package contains round behaviours of MemeooorrAbciApp."""
 
 import json
-import os
+from pathlib import Path
 import re
 from abc import ABC
 from dataclasses import dataclass
@@ -63,6 +63,7 @@ MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
 MAX_TWEET_CHARS = 280
 AGENT_TYPE_NAME = "memeooorr"
+LIST_COUNT_TO_KEEP = 20
 
 
 TOKENS_QUERY = """
@@ -1046,14 +1047,13 @@ class MemeooorrBaseBehaviour(
         media_store_list.append(media_info)
 
         # Enforce retention policy: keep only the latest 20 media files
-        if len(media_store_list) > 20:
-            num_to_remove = len(media_store_list) - 20
+        if len(media_store_list) > LIST_COUNT_TO_KEEP:
+            num_to_remove = len(media_store_list) - LIST_COUNT_TO_KEEP
             old_media_entries = media_store_list[:num_to_remove]
 
             for entry in old_media_entries:
-                old_path = entry.get("path")
-                if old_path:
-                    self._cleanup_temp_file(old_path, "old media file")
+                file_path = entry.get("path")
+                self._cleanup_temp_file(file_path, "old media file")
 
             media_store_list = media_store_list[num_to_remove:]
 
@@ -1062,39 +1062,22 @@ class MemeooorrBaseBehaviour(
     def _read_media_info_list(self) -> Generator[None, None, List[Dict]]:
         """
         Read media info from the key-value store.
-
-        This method also sanitizes the data by flattening any nested lists that may exist
-        due to previous data corruption issues.
         """
         raw_list = yield from self._read_json_from_kv("media-store-list", [])
 
         if not isinstance(raw_list, list):
-            # If the stored data is not a list, return a default empty list.
+            self.context.logger.error(
+                f"Expected media-store-list to be a list, but found {type(raw_list)}. Returning empty list."
+            )
             return []
 
-        flattened_list = []
-        for item in raw_list:
-            if isinstance(item, list):
-                # If a nested list is found, extend the flattened list with its contents
-                flattened_list.extend(item)
-            elif isinstance(item, dict):
-                # If it's a dictionary, append it directly
-                flattened_list.append(item)
-
-        return flattened_list
+        return raw_list
 
     def _cleanup_temp_file(self, file_path: Optional[str], reason: str) -> None:
         """Attempt to remove a temporary file and log the outcome."""
-        if file_path and os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-                self.context.logger.info(
-                    f"Removed temporary file ({reason}): {file_path}"
-                )
-            except OSError as rm_err:
-                self.context.logger.warning(
-                    f"Could not remove temp file {file_path} ({reason}): {rm_err}"
-                )
-        elif reason == "empty content":
-            self.context.logger.info("No temporary file to remove (empty download).")
-        # else: file_path is None and reason is likely an error before file creation
+        if file_path:
+            path = Path(file_path)
+            path.unlink()
+            self.context.logger.info(f"Removed temporary file ({reason}): {file_path}")
+        else:
+            self.context.logger.warning(f"No file to remove ({reason})")
