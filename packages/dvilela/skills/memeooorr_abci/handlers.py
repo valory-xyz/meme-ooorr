@@ -151,11 +151,15 @@ class HttpHandler(BaseHttpHandler):
             rf"{hostname_regex}\/.*"
         )
         health_url_regex = rf"{hostname_regex}\/healthcheck"
+        agent_details_url_regex = rf"{hostname_regex}\/agent-info"
 
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
                 (health_url_regex, self._handle_get_health)
+            ],
+            (HttpMethod.GET.value, HttpMethod.HEAD.value): [
+                (agent_details_url_regex, self._handle_get_agent_details)
             ],
         }
 
@@ -344,6 +348,20 @@ class HttpHandler(BaseHttpHandler):
             "is_transitioning_fast": is_transitioning_fast,
             "rounds_info": self.rounds_info,
             "env_var_status": self.context.state.env_var_status,
+        }
+
+        self._send_ok_response(http_msg, http_dialogue, data)
+
+    def _handle_get_agent_details(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+        agent_details = self.synchronized_data.agent_details
+        data = {
+            "address": agent_details.get("safe_address"),
+            "username": agent_details.get("twitter_username"),
+            "name": agent_details.get("twitter_display_name"),
+            "personaDescription": agent_details.get("persona"),
         }
 
         self._send_ok_response(http_msg, http_dialogue, data)
