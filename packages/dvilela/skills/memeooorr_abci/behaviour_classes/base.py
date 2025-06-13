@@ -1060,9 +1060,7 @@ class MemeooorrBaseBehaviour(
         yield from self._write_kv({"media-store-list": json.dumps(media_store_list)})
 
     def _read_media_info_list(self) -> Generator[None, None, List[Dict]]:
-        """
-        Read media info from the key-value store.
-        """
+        """Read media info from the key-value store"""
         raw_list = yield from self._read_json_from_kv("media-store-list", [])
 
         if not isinstance(raw_list, list):
