@@ -157,9 +157,10 @@ class HttpHandler(BaseHttpHandler):
     """This implements the echo handler."""
 
     SUPPORTED_PROTOCOL = HttpMessage.protocol_id
-    
+
     def setup(self) -> None:
         """Implement the setup."""
+
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
         ).hostname
@@ -173,7 +174,7 @@ class HttpHandler(BaseHttpHandler):
         )
         health_url_regex = rf"{hostname_regex}\/healthcheck"
         agent_details_url_regex = rf"{hostname_regex}\/agent-info"
-
+        x_activity_url_regex = rf"{hostname_regex}\/x-activity"
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
@@ -181,6 +182,9 @@ class HttpHandler(BaseHttpHandler):
             ],
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
                 (agent_details_url_regex, self._handle_get_agent_details)
+            ],
+            (HttpMethod.GET.value, HttpMethod.HEAD.value): [
+                (x_activity_url_regex, self._handle_get_recent_x_activity)
             ],
         }
 
@@ -201,17 +205,18 @@ class HttpHandler(BaseHttpHandler):
                 event.lower()
             ] = camel_to_snake(target_round)
 
-    def db_connect(self, store_path_prefix: str) -> None:
+    def db_connect(self) -> None:
         # Database setup
         # store_path_prefix = self.context.params.store_path
 
         # TODO: THIS NEEDS TO BE CHANGED TO THE ACTUAL PATH OF THE DATABASE from store_path from params
         store_path_prefix = "/data"  # User's hardcoded path
 
-        db.init(store_path_prefix)
-        self.context.logger.info(f"KV database initialized in {store_path_prefix}")
-        db.connect()
-        self.context.logger.info("KV database connection established")
+        db_path = Path(store_path_prefix) / "memeooorr.db"  # nosec
+        self.db = peewee.SqliteDatabase(db_path)
+        db.initialize(self.db)  # Initialize the proxy with the concrete db instance
+        # The previous incorrect call to Store._meta.database.initialize(self.db) is now correctly handled by the proxy.
+        self.db.connect()
         # We assume the table is created by KvStoreConnection
 
     def db_disconnect(self) -> None:
@@ -405,6 +410,48 @@ class HttpHandler(BaseHttpHandler):
         }
 
         self._send_ok_response(http_msg, http_dialogue, data)
+
+    def _handle_get_recent_x_activity(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+
+        self.db_connect()
+        with self.db.atomic():
+            recent_x_activity = Store.get_or_none(Store.key == "agent_actions")
+
+            recent_x_activity_value = (
+                recent_x_activity.value if recent_x_activity else None
+            )
+
+            recent_x_activity_json = json.loads(recent_x_activity_value)
+
+            self.context.logger.info(f"Recent X activity: {recent_x_activity_json}")
+
+        self.db_disconnect()
+
+        # fetch the latest action from tweet_action json according to timestamp
+        tweet_actions = recent_x_activity_json.get("tweet_action", [])
+        latest_tweet_action = tweet_actions[-1]
+
+        action_data = latest_tweet_action.get("action_data", {})
+        action_type = latest_tweet_action.get("action_type")
+
+        # if the latest tweet actoin is follow then we fetch user_id as postId
+        if action_type == "follow":
+            postId = action_data.get("user_id")
+        else:
+            postId = action_data.get("tweet_id")
+
+        activity = {
+            "postId": postId,
+            "type": action_type,
+            "timestamp": latest_tweet_action.get("timestamp"),
+            "text": action_data.get("text"),
+            "media": action_data.get("media_path", None),
+        }
+
+        self._send_ok_response(http_msg, http_dialogue, activity)
 
     def _send_ok_response(
         self,
