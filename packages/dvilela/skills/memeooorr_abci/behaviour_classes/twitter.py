@@ -1591,7 +1591,7 @@ class ActionTweetBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ance
                 action_data["tweet_id"] = latest_tweet_id
             else:
                 self.context.logger.error(
-                    "Latest action type is not tweet after token action not storing tweet_id in token_action"
+                    "Tweet action is not tweet in ActionTweetBehaviour , cannot store tweet_id in token_action"
                 )
 
         yield from self._store_agent_action(
