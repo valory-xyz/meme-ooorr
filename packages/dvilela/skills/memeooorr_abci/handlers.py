@@ -25,7 +25,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, Generator, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
 import peewee
@@ -161,7 +161,6 @@ class HttpHandler(BaseHttpHandler):
 
     def setup(self) -> None:
         """Implement the setup."""
-        self.db = None
 
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
@@ -204,7 +203,7 @@ class HttpHandler(BaseHttpHandler):
             ] = camel_to_snake(target_round)
 
     @contextmanager
-    def _db_connection_context(self):
+    def _db_connection_context(self) -> Generator:
         """A context manager for database connections."""
         self.db_connect()
         try:
@@ -218,11 +217,12 @@ class HttpHandler(BaseHttpHandler):
         store_path_prefix = self.context.params.store_path
 
         db_path = Path(store_path_prefix) / "memeooorr.db"  # nosec
-        self.db = peewee.SqliteDatabase(db_path)
+        self.db = (  # pylint: disable=attribute-defined-outside-init
+            peewee.SqliteDatabase(db_path)
+        )
         db.initialize(self.db)  # Initialize the proxy with the concrete db instance
-        # The previous incorrect call to Store._meta.database.initialize(self.db) is now correctly handled by the proxy.
         self.db.connect()
-        # We assume the table is created by KvStoreConnection
+        # We know the table is created by KvStoreConnection
 
     def db_disconnect(self) -> None:
         """Teardown the handler."""
