@@ -176,12 +176,14 @@ class HttpHandler(BaseHttpHandler):
         health_url_regex = rf"{hostname_regex}\/healthcheck"
         agent_details_url_regex = rf"{hostname_regex}\/agent-info"
         x_activity_url_regex = rf"{hostname_regex}\/x-activity"
+        meme_coins_url_regex = rf"{hostname_regex}\/memecoin-activity"
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
                 (health_url_regex, self._handle_get_health),
                 (agent_details_url_regex, self._handle_get_agent_details),
                 (x_activity_url_regex, self._handle_get_recent_x_activity),
+                (meme_coins_url_regex, self._handle_get_meme_coins),
             ],
         }
 
@@ -455,6 +457,41 @@ class HttpHandler(BaseHttpHandler):
 
         self._send_ok_response(http_msg, http_dialogue, activity)
 
+    def _handle_get_meme_coins(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+
+        with self._db_connection_context():
+            with self.db.atomic():
+                agent_actions = Store.get_or_none(Store.key == "agent_actions")
+                agent_actions_value = agent_actions.value if agent_actions else None
+
+                agent_actions_json = json.loads(agent_actions_value)
+                token_actions = agent_actions_json.get("token_action", {})
+                token_action = token_actions[-1]
+                action_type = token_action.get("action")
+                token_address = (
+                    token_action.get("token_address")
+                    if token_action.get("token_address") != ""
+                    else None
+                )
+                token_ticker = token_action.get("token_ticker")
+                token_nonce = token_action.get("token_nonce")
+                timestamp = token_action.get("timestamp")
+
+        activity = {
+            "type": action_type,
+            "timestamp": timestamp,
+            "token": {
+                "address": token_address,
+                "nonce": token_nonce,
+                "symbol": token_ticker,
+            },
+        }
+
+        self._send_ok_response(http_msg, http_dialogue, activity)
+
     def _send_ok_response(
         self,
         http_msg: HttpMessage,
@@ -468,9 +505,11 @@ class HttpHandler(BaseHttpHandler):
             version=http_msg.version,
             status_code=OK_CODE,
             status_text="Success",
-            headers=f"{self.html_content_header}{http_msg.headers}"
-            if isinstance(data, str)
-            else f"{self.json_content_header}{http_msg.headers}",
+            headers=(
+                f"{self.html_content_header}{http_msg.headers}"
+                if isinstance(data, str)
+                else f"{self.json_content_header}{http_msg.headers}"
+            ),
             body=(data if isinstance(data, str) else json.dumps(data)).encode("utf-8"),
         )
 
