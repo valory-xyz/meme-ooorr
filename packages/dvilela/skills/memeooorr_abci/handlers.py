@@ -144,7 +144,7 @@ class BaseModel(peewee.Model):
     class Meta:  # pylint: disable=too-few-public-methods
         """Meta class for peewee"""
 
-        database = db  # Use the proxy here
+        database = db
 
 
 class Store(BaseModel):
