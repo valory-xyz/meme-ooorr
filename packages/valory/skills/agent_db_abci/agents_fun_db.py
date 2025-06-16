@@ -176,6 +176,10 @@ class AgentsFunDatabase(Model):
         self.client = client
         self.logger = self.client.logger
 
+        # Set registration details on the client to register new agents
+        self.client.agent_type_name = MEMEOOORR
+        self.client.agent_name_template = "memeooorr-agent-{address}"
+
     def load(self):
         """Load data"""
         if self.agent_type is None:
