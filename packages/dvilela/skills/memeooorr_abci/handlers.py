@@ -21,6 +21,7 @@
 
 import json
 import re
+from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -140,7 +141,7 @@ db = peewee.DatabaseProxy()
 class BaseModel(peewee.Model):
     """Base model for peewee"""
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         """Meta class for peewee"""
 
         database = db  # Use the proxy here
@@ -160,6 +161,7 @@ class HttpHandler(BaseHttpHandler):
 
     def setup(self) -> None:
         """Implement the setup."""
+        self.db = None
 
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
@@ -201,8 +203,17 @@ class HttpHandler(BaseHttpHandler):
                 event.lower()
             ] = camel_to_snake(target_round)
 
+    @contextmanager
+    def _db_connection_context(self):
+        """A context manager for database connections."""
+        self.db_connect()
+        try:
+            yield
+        finally:
+            self.db_disconnect()
+
     def db_connect(self) -> None:
-        # Database setup
+        """Connect to the database."""
 
         store_path_prefix = self.context.params.store_path
 
@@ -409,19 +420,17 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
-        self.db_connect()
-        with self.db.atomic():
-            recent_x_activity = Store.get_or_none(Store.key == "agent_actions")
+        with self._db_connection_context():
+            with self.db.atomic():
+                recent_x_activity = Store.get_or_none(Store.key == "agent_actions")
 
-            recent_x_activity_value = (
-                recent_x_activity.value if recent_x_activity else None
-            )
+                recent_x_activity_value = (
+                    recent_x_activity.value if recent_x_activity else None
+                )
 
-            recent_x_activity_json = json.loads(recent_x_activity_value)
+                recent_x_activity_json = json.loads(recent_x_activity_value)
 
-            self.context.logger.info(f"Recent X activity: {recent_x_activity_json}")
-
-        self.db_disconnect()
+                self.context.logger.info(f"Recent X activity: {recent_x_activity_json}")
 
         # fetch the latest action from tweet_action json according to timestamp
         tweet_actions = recent_x_activity_json.get("tweet_action", [])
