@@ -178,13 +178,9 @@ class HttpHandler(BaseHttpHandler):
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
-                (health_url_regex, self._handle_get_health)
-            ],
-            (HttpMethod.GET.value, HttpMethod.HEAD.value): [
-                (agent_details_url_regex, self._handle_get_agent_details)
-            ],
-            (HttpMethod.GET.value, HttpMethod.HEAD.value): [
-                (x_activity_url_regex, self._handle_get_recent_x_activity)
+                (health_url_regex, self._handle_get_health),
+                (agent_details_url_regex, self._handle_get_agent_details),
+                (x_activity_url_regex, self._handle_get_recent_x_activity),
             ],
         }
 
@@ -207,10 +203,8 @@ class HttpHandler(BaseHttpHandler):
 
     def db_connect(self) -> None:
         # Database setup
-        # store_path_prefix = self.context.params.store_path
 
-        # TODO: THIS NEEDS TO BE CHANGED TO THE ACTUAL PATH OF THE DATABASE from store_path from params
-        store_path_prefix = "/data"  # User's hardcoded path
+        store_path_prefix = self.context.params.store_path
 
         db_path = Path(store_path_prefix) / "memeooorr.db"  # nosec
         self.db = peewee.SqliteDatabase(db_path)
@@ -415,9 +409,6 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
-
-        # NOTE : we need to test the follow actoin here
-
         self.db_connect()
         with self.db.atomic():
             recent_x_activity = Store.get_or_none(Store.key == "agent_actions")
