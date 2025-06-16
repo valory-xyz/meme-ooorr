@@ -522,8 +522,7 @@ class HttpHandler(BaseHttpHandler):
 
         for media_item in media_list:
             path = media_item.get("path")
-            if path and path in media_path_to_tweet_id:
-                media_item["tweet_id"] = media_path_to_tweet_id[path]
+            media_item["tweet_id"] = media_path_to_tweet_id[path]
 
         data = {
             "media": media_list,
