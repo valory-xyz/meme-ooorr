@@ -1577,4 +1577,26 @@ class ActionTweetBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-ance
             return Event.MISSING_TWEET.value
         self.context.logger.info("Sending the action tweet...")
         latest_tweet = yield from self.post_tweet(text=[pending_tweet])
+
+        action_data = self.synchronized_data.token_action
+
+        if latest_tweet:
+            agent_actions = yield from self._read_json_from_kv("agent_actions", {})
+            # load list of tweet_actions from agent_actions
+            tweet_actions = agent_actions.get("tweet_action", [])
+            latest_tweet_action = tweet_actions[-1]
+            latest_tweet_id = latest_tweet_action["action_data"]["tweet_id"]
+            latest_action_type = latest_tweet_action.get("action_type")
+            if latest_action_type == "tweet":
+                action_data["tweet_id"] = latest_tweet_id
+            else:
+                self.context.logger.error(
+                    "Tweet action is not tweet in ActionTweetBehaviour , cannot store tweet_id in token_action"
+                )
+
+        yield from self._store_agent_action(
+            action_type="token_action",
+            action_data=action_data,
+        )
+
         return Event.DONE.value if latest_tweet else Event.ERROR.value
