@@ -308,22 +308,12 @@ class ActionDecisionBehaviour(
                 token_nonce = int(token_nonce)
 
             # we need to get the token_name, token_ticker, token_supply, token_address from the meme_coins list by matching the token_nonce from the action
-            token_name = None
-            token_ticker = None
-            token_supply = None
-            token_address = None
-
-            if action_name == "summon":
-                token_name = action.get("token_name")
-                token_ticker = action.get("token_ticker")
-                token_supply = action.get("token_supply")
-            elif token_nonce is not None:
-                for meme_coin in self.synchronized_data.meme_coins:
-                    if meme_coin["token_nonce"] == token_nonce:
-                        token_name = meme_coin.get("token_name")
-                        token_ticker = meme_coin.get("token_ticker")
-                        token_address = meme_coin.get("token_address")
-                        break
+            (
+                token_name,
+                token_ticker,
+                token_supply,
+                token_address,
+            ) = self._get_token_details(action_name, action, token_nonce)
 
             if isinstance(token_nonce, str) and token_nonce.isdigit():
                 token_nonce = int(token_nonce)
@@ -461,3 +451,28 @@ class ActionDecisionBehaviour(
                 None,
                 current_timestamp,
             )
+
+    def _get_token_details(
+        self,
+        action_name: str,
+        action: Dict[str, Any],
+        token_nonce: Optional[int],
+    ) -> Tuple[Optional[str], Optional[str], Optional[Any], Optional[str]]:
+        """Get token details based on the action."""
+        token_name = None
+        token_ticker = None
+        token_supply = None
+        token_address = None
+
+        if action_name == "summon":
+            token_name = action.get("token_name")
+            token_ticker = action.get("token_ticker")
+            token_supply = action.get("token_supply")
+        elif token_nonce is not None:
+            for meme_coin in self.synchronized_data.meme_coins:
+                if meme_coin["token_nonce"] == token_nonce:
+                    token_name = meme_coin.get("token_name")
+                    token_ticker = meme_coin.get("token_ticker")
+                    token_address = meme_coin.get("token_address")
+                    break
+        return token_name, token_ticker, token_supply, token_address
