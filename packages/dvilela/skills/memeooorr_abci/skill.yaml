@@ -17,7 +17,7 @@ fingerprint:
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
-  handlers.py: bafybeifbxtnrc4775q2asgh2nnbidfgalzkqscozirbtwtii2dkqtwxivu
+  handlers.py: bafybeifjljd23eblrgtjyqmv2ocwj4one6isfcmtdssggblnbuqjemg7re
   models.py: bafybeiaocuchblmjnp3k5fp372pejigfekicylyxxiffplkqbhao27pltm
   payloads.py: bafybeibkyns7pplvrfcimq4umyufvvk6of4pbqqkqzmxpqwbwmmshcf6xe
   prompts.py: bafybeihbz456kigtnmlmjsraykxkjnnrgmhgpksfgrphm7nqi2a6fkqvky
@@ -256,6 +256,8 @@ models:
     args: {}
     class_name: AgentsFunDatabase
 dependencies:
+  peewee:
+    version: ==3.17.5
   twitter_text_parser:
     version: ==3.0.0
   textblob:
