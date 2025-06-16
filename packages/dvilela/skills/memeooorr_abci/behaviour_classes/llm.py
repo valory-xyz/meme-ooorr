@@ -404,7 +404,14 @@ class ActionDecisionBehaviour(
                     int(getattr(self.params, f"max_summon_amount_{chain_id}") * 1e18),
                 )
 
-                if token_name.lower() in ["olas"] or token_ticker.lower() in ["olas"]:
+                if (
+                    token_name
+                    and token_ticker
+                    and (
+                        token_name.lower() in ["olas"]
+                        or token_ticker.lower() in ["olas"]
+                    )
+                ):
                     raise ValueError(
                         f"Cannot summon token with name/ticker {token_name}/{token_ticker}. Invalid name or ticker."
                     )
