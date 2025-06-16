@@ -415,8 +415,8 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
-        
-        #NOTE : we need to test the follow actoin here 
+
+        # NOTE : we need to test the follow actoin here
 
         self.db_connect()
         with self.db.atomic():
@@ -441,7 +441,7 @@ class HttpHandler(BaseHttpHandler):
 
         # if the latest tweet actoin is follow then we fetch user_id as postId
         if action_type == "follow":
-            postId = action_data.get("user_id")
+            postId = action_data.get("username")
         else:
             postId = action_data.get("tweet_id")
 
