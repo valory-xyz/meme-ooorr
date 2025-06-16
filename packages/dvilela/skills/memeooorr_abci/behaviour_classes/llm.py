@@ -301,12 +301,29 @@ class ActionDecisionBehaviour(
             )
             tweet = new_tweet or tweet
 
-            token_name = action.get("token_name", None)
-            token_ticker = action.get("token_ticker", None)
-            token_supply = action.get("token_supply", None)
             amount = int(action.get("amount", 0))
             token_nonce = action.get("token_nonce", None)
-            token_address = action.get("token_address", None)
+
+            if isinstance(token_nonce, str) and token_nonce.isdigit():
+                token_nonce = int(token_nonce)
+
+            # we need to get the token_name, token_ticker, token_supply, token_address from the meme_coins list by matching the token_nonce from the action
+            token_name = None
+            token_ticker = None
+            token_supply = None
+            token_address = None
+
+            if action_name == "summon":
+                token_name = action.get("token_name")
+                token_ticker = action.get("token_ticker")
+                token_supply = action.get("token_supply")
+            elif token_nonce is not None:
+                for meme_coin in self.synchronized_data.meme_coins:
+                    if meme_coin["token_nonce"] == token_nonce:
+                        token_name = meme_coin.get("token_name")
+                        token_ticker = meme_coin.get("token_ticker")
+                        token_address = meme_coin.get("token_address")
+                        break
 
             if isinstance(token_nonce, str) and token_nonce.isdigit():
                 token_nonce = int(token_nonce)
