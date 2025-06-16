@@ -43,10 +43,10 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-- dvilela/memeooorr_abci:0.1.0:bafybeiclkfjfkvzceojcgyzezhbi6qaao6qtnzsayscxv4xwmnsdtzggga
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeihbzj2cyul6p5qt7cnev5pfwrwdee7b6nhwiptktjrhszigguhwji
+- dvilela/memeooorr_abci:0.1.0:bafybeielbx3oj3gn7iculai475bdrd65xfjjuo34t7yt4mk56hba3oe7pe
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeidgtfkbnrfvpywryvo57rra6t4stmbutgatlqf3aa6zmszym4xyby
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeidyojmjei4ltywtrrgdwem6makkigf7qm3kl5p65dsfb3xphddihy
+- valory/agent_db_abci:0.1.0:bafybeib2uee647wngc663d5drltj4ze6dkffeht2rtl7d5rcvmhzca7sim
 default_ledger: ethereum
 required_ledgers:
 - ethereum
