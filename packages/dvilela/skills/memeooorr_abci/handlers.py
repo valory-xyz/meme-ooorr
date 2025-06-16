@@ -21,12 +21,14 @@
 
 import json
 import re
+from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, Generator, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
+import peewee
 import yaml
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -132,6 +134,26 @@ class HttpMethod(Enum):
     POST = "post"
 
 
+# Create a DatabaseProxy instance at the module level
+db = peewee.DatabaseProxy()
+
+
+class BaseModel(peewee.Model):
+    """Base model for peewee"""
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for peewee"""
+
+        database = db
+
+
+class Store(BaseModel):
+    """Database Store table"""
+
+    key = peewee.CharField(unique=True)
+    value = peewee.CharField()
+
+
 class HttpHandler(BaseHttpHandler):
     """This implements the echo handler."""
 
@@ -139,6 +161,7 @@ class HttpHandler(BaseHttpHandler):
 
     def setup(self) -> None:
         """Implement the setup."""
+
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
         ).hostname
@@ -152,14 +175,13 @@ class HttpHandler(BaseHttpHandler):
         )
         health_url_regex = rf"{hostname_regex}\/healthcheck"
         agent_details_url_regex = rf"{hostname_regex}\/agent-info"
-
+        x_activity_url_regex = rf"{hostname_regex}\/x-activity"
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
-                (health_url_regex, self._handle_get_health)
-            ],
-            (HttpMethod.GET.value, HttpMethod.HEAD.value): [
-                (agent_details_url_regex, self._handle_get_agent_details)
+                (health_url_regex, self._handle_get_health),
+                (agent_details_url_regex, self._handle_get_agent_details),
+                (x_activity_url_regex, self._handle_get_recent_x_activity),
             ],
         }
 
@@ -179,6 +201,33 @@ class HttpHandler(BaseHttpHandler):
             self.rounds_info[source_round]["transitions"][  # type: ignore
                 event.lower()
             ] = camel_to_snake(target_round)
+
+    @contextmanager
+    def _db_connection_context(self) -> Generator:
+        """A context manager for database connections."""
+        self.db_connect()
+        try:
+            yield
+        finally:
+            self.db_disconnect()
+
+    def db_connect(self) -> None:
+        """Connect to the database."""
+
+        store_path_prefix = self.context.params.store_path
+
+        db_path = Path(store_path_prefix) / "memeooorr.db"  # nosec
+        self.db = (  # pylint: disable=attribute-defined-outside-init
+            peewee.SqliteDatabase(db_path)
+        )
+        db.initialize(self.db)  # Initialize the proxy with the concrete db instance
+        self.db.connect()
+        # We know the table is created by KvStoreConnection
+
+    def db_disconnect(self) -> None:
+        """Teardown the handler."""
+        if hasattr(self, "db") and self.db and not self.db.is_closed():
+            self.db.close()
 
     @property
     def synchronized_data(self) -> SynchronizedData:
@@ -356,6 +405,7 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
+
         agent_details = self.synchronized_data.agent_details
         data = {
             "address": agent_details.get("safe_address"),
@@ -365,6 +415,45 @@ class HttpHandler(BaseHttpHandler):
         }
 
         self._send_ok_response(http_msg, http_dialogue, data)
+
+    def _handle_get_recent_x_activity(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+        with self._db_connection_context():
+            with self.db.atomic():
+                recent_x_activity = Store.get_or_none(Store.key == "agent_actions")
+
+                recent_x_activity_value = (
+                    recent_x_activity.value if recent_x_activity else None
+                )
+
+                recent_x_activity_json = json.loads(recent_x_activity_value)
+
+                self.context.logger.info(f"Recent X activity: {recent_x_activity_json}")
+
+        # fetch the latest action from tweet_action json according to timestamp
+        tweet_actions = recent_x_activity_json.get("tweet_action", [])
+        latest_tweet_action = tweet_actions[-1]
+
+        action_data = latest_tweet_action.get("action_data", {})
+        action_type = latest_tweet_action.get("action_type")
+
+        # if the latest tweet actoin is follow then we fetch user_id as postId
+        if action_type == "follow":
+            postId = action_data.get("username")
+        else:
+            postId = action_data.get("tweet_id")
+
+        activity = {
+            "postId": postId,
+            "type": action_type,
+            "timestamp": latest_tweet_action.get("timestamp"),
+            "text": action_data.get("text"),
+            "media": action_data.get("media_path", None),
+        }
+
+        self._send_ok_response(http_msg, http_dialogue, activity)
 
     def _send_ok_response(
         self,
