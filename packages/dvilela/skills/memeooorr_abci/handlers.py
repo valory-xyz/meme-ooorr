@@ -177,6 +177,7 @@ class HttpHandler(BaseHttpHandler):
         agent_details_url_regex = rf"{hostname_regex}\/agent-info"
         x_activity_url_regex = rf"{hostname_regex}\/x-activity"
         meme_coins_url_regex = rf"{hostname_regex}\/memecoin-activity"
+        media_url_regex = rf"{hostname_regex}\/media"
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
@@ -184,6 +185,7 @@ class HttpHandler(BaseHttpHandler):
                 (agent_details_url_regex, self._handle_get_agent_details),
                 (x_activity_url_regex, self._handle_get_recent_x_activity),
                 (meme_coins_url_regex, self._handle_get_meme_coins),
+                (media_url_regex, self._handle_get_media),
             ],
         }
 
@@ -496,6 +498,16 @@ class HttpHandler(BaseHttpHandler):
                     }
                     activities.append(activity)
                 return activities
+
+    def _handle_get_media(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+        with self._db_connection_context():
+            with self.db.atomic():
+                media_record = Store.get_or_none(Store.key == "media-store-list")
+                media_value = media_record.value if media_record else None
+                media_json = json.loads(media_value)
 
     def _send_ok_response(
         self,
