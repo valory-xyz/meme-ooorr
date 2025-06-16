@@ -405,6 +405,18 @@ class HttpHandler(BaseHttpHandler):
 
         self._send_ok_response(http_msg, http_dialogue, data)
 
+    def _get_json_from_db(self, key: str, default: str = "{}") -> Union[Dict, List]:
+        """Get a JSON value from the database."""
+        record = Store.get_or_none(Store.key == key)
+        value = record.value if record and record.value else default
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            self.context.logger.warning(
+                f"Could not decode JSON for key {key}, value: {value}"
+            )
+            return json.loads(default)
+
     def _handle_get_agent_details(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
@@ -426,18 +438,13 @@ class HttpHandler(BaseHttpHandler):
         """Handle a Http request of verb GET."""
         with self._db_connection_context():
             with self.db.atomic():
-                recent_x_activity = Store.get_or_none(Store.key == "agent_actions")
+                agent_actions = self._get_json_from_db("agent_actions", "{}")
 
-                recent_x_activity_value = (
-                    recent_x_activity.value if recent_x_activity else None
-                )
+        tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
+        if not tweet_actions:
+            self._send_ok_response(http_msg, http_dialogue, {})
+            return
 
-                recent_x_activity_json = json.loads(recent_x_activity_value)
-
-                self.context.logger.info(f"Recent X activity: {recent_x_activity_json}")
-
-        # fetch the latest action from tweet_action json according to timestamp
-        tweet_actions = recent_x_activity_json.get("tweet_action", [])
         latest_tweet_action = tweet_actions[-1]
 
         action_data = latest_tweet_action.get("action_data", {})
@@ -470,44 +477,58 @@ class HttpHandler(BaseHttpHandler):
         """Get the latest token activities from the database."""
         with self._db_connection_context():
             with self.db.atomic():
-                agent_actions_record = Store.get_or_none(Store.key == "agent_actions")
+                agent_actions = self._get_json_from_db("agent_actions", "{}")
 
-                if not agent_actions_record or not agent_actions_record.value:
-                    return []
+        token_actions = agent_actions.get("token_action", [])  # type: ignore
 
-                agent_actions_json = json.loads(agent_actions_record.value)
-                token_actions = agent_actions_json.get("token_action", [])
+        if not token_actions:
+            return []
 
-                if not token_actions:
-                    return []
-
-                activities = []
-                # Get the last action, or fewer if not that many exist
-                for token_action in token_actions[-limit:]:
-                    token_address = token_action.get("token_address")
-                    tweet_id = token_action.get("tweet_id")
-                    activity = {
-                        "type": token_action.get("action"),
-                        "timestamp": token_action.get("timestamp"),
-                        "postId": tweet_id if tweet_id else None,
-                        "token": {
-                            "address": token_address if token_address else None,
-                            "nonce": token_action.get("token_nonce"),
-                            "symbol": token_action.get("token_ticker"),
-                        },
-                    }
-                    activities.append(activity)
-                return activities
+        activities = []
+        # Get the last action, or fewer if not that many exist
+        for token_action in token_actions[-limit:]:
+            token_address = token_action.get("token_address")
+            tweet_id = token_action.get("tweet_id")
+            activity = {
+                "type": token_action.get("action"),
+                "timestamp": token_action.get("timestamp"),
+                "postId": tweet_id if tweet_id else None,
+                "token": {
+                    "address": token_address if token_address else None,
+                    "nonce": token_action.get("token_nonce"),
+                    "symbol": token_action.get("token_ticker"),
+                },
+            }
+            activities.append(activity)
+        return activities
 
     def _handle_get_media(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
-        """Handle a Http request of verb GET."""
+        """Fetch and process media data from the database."""
         with self._db_connection_context():
             with self.db.atomic():
-                media_record = Store.get_or_none(Store.key == "media-store-list")
-                media_value = media_record.value if media_record else None
-                media_json = json.loads(media_value)
+                media_list = self._get_json_from_db("media-store-list", "[]")
+                agent_actions = self._get_json_from_db("agent_actions", "{}")
+
+        tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
+        media_path_to_tweet_id = {}
+        for tweet_action in tweet_actions:
+            action_data = tweet_action.get("action_data", {})
+            media_path = action_data.get("media_path")
+            tweet_id = action_data.get("tweet_id")
+            if media_path and tweet_id:
+                media_path_to_tweet_id[media_path] = tweet_id
+
+        for media_item in media_list:
+            path = media_item.get("path")
+            if path and path in media_path_to_tweet_id:
+                media_item["tweet_id"] = media_path_to_tweet_id[path]
+
+        data = {
+            "media": media_list,
+        }
+        self._send_ok_response(http_msg, http_dialogue, data)
 
     def _send_ok_response(
         self,
