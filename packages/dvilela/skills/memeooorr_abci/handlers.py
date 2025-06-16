@@ -461,36 +461,41 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
+        activities = self._get_latest_token_activities()
+        self._send_ok_response(http_msg, http_dialogue, activities)
 
+    def _get_latest_token_activities(self, limit: int = 1) -> List[Dict]:
+        """Get the latest token activities from the database."""
         with self._db_connection_context():
             with self.db.atomic():
-                agent_actions = Store.get_or_none(Store.key == "agent_actions")
-                agent_actions_value = agent_actions.value if agent_actions else None
+                agent_actions_record = Store.get_or_none(Store.key == "agent_actions")
 
-                agent_actions_json = json.loads(agent_actions_value)
-                token_actions = agent_actions_json.get("token_action", {})
-                token_action = token_actions[-1]
-                action_type = token_action.get("action")
-                token_address = (
-                    token_action.get("token_address")
-                    if token_action.get("token_address") != ""
-                    else None
-                )
-                token_ticker = token_action.get("token_ticker")
-                token_nonce = token_action.get("token_nonce")
-                timestamp = token_action.get("timestamp")
+                if not agent_actions_record or not agent_actions_record.value:
+                    return []
 
-        activity = {
-            "type": action_type,
-            "timestamp": timestamp,
-            "token": {
-                "address": token_address,
-                "nonce": token_nonce,
-                "symbol": token_ticker,
-            },
-        }
+                agent_actions_json = json.loads(agent_actions_record.value)
+                token_actions = agent_actions_json.get("token_action", [])
 
-        self._send_ok_response(http_msg, http_dialogue, activity)
+                if not token_actions:
+                    return []
+
+                activities = []
+                # Get the last action, or fewer if not that many exist
+                for token_action in token_actions[-limit:]:
+                    token_address = token_action.get("token_address")
+                    tweet_id = token_action.get("tweet_id")
+                    activity = {
+                        "type": token_action.get("action"),
+                        "timestamp": token_action.get("timestamp"),
+                        "postId": tweet_id if tweet_id else None,
+                        "token": {
+                            "address": token_address if token_address else None,
+                            "nonce": token_action.get("token_nonce"),
+                            "symbol": token_action.get("token_ticker"),
+                        },
+                    }
+                    activities.append(activity)
+                return activities
 
     def _send_ok_response(
         self,
