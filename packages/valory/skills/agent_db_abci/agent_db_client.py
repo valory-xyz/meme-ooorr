@@ -65,6 +65,31 @@ class AgentDBClient(Model):
         self.agent_type_name = agent_type_name
         self.agent_name_template = agent_name_template
 
+    def _ensure_agent_instance(self):
+        """Fetch or create the agent instance if it doesn't exist."""
+        if self.agent is not None:
+            return
+
+        self.agent = yield from self.get_agent_instance_by_address(self.address)
+        if self.agent:
+            self.agent_type = yield from self.get_agent_type_by_type_id(
+                self.agent.type_id
+            )
+        elif self.agent_type_name and self.agent_name_template:
+            self.logger.info(
+                f"Agent with address {self.address} not found. Registering..."
+            )
+            agent_name = self.agent_name_template.format(address=self.address)
+            agent_type = yield from self.get_agent_type_by_type_name(
+                self.agent_type_name
+            )
+            self.agent = yield from self.create_agent_instance(
+                agent_name=agent_name,
+                agent_type=agent_type,
+                eth_address=self.address,
+            )
+            self.agent_type = agent_type
+
     def _sign_request(self, endpoint):
         """Generate authentication"""
 
@@ -73,26 +98,7 @@ class AgentDBClient(Model):
                 "Signing function not set. Use set_external_funcs to set it."
             )
 
-        if self.agent is None:
-            self.agent = yield from self.get_agent_instance_by_address(self.address)
-            if self.agent:
-                self.agent_type = yield from self.get_agent_type_by_type_id(
-                    self.agent.type_id
-                )
-            elif self.agent_type_name and self.agent_name_template:
-                self.logger.info(
-                    f"Agent with address {self.address} not found. Registering..."
-                )
-                agent_name = self.agent_name_template.format(address=self.address)
-                agent_type = yield from self.get_agent_type_by_type_name(
-                    self.agent_type_name
-                )
-                self.agent = yield from self.create_agent_instance(
-                    agent_name=agent_name,
-                    agent_type=agent_type,
-                    eth_address=self.address,
-                )
-                self.agent_type = agent_type
+        yield from self._ensure_agent_instance()
 
         if self.agent is None:
             raise ValueError(
