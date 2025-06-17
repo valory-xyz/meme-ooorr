@@ -20,6 +20,7 @@
 """This module contains the handlers for the skill of MemeooorrAbciApp."""
 
 import json
+import mimetypes
 import re
 from contextlib import contextmanager
 from datetime import datetime
@@ -73,6 +74,9 @@ LedgerApiHandler = BaseLedgerApiHandler
 ContractApiHandler = BaseContractApiHandler
 TendermintHandler = BaseTendermintHandler
 IpfsHandler = BaseIpfsHandler
+
+# TODO : Modify it according to agents.fun it is currently from optimus
+AGENT_PROFILE_PATH = "optimus-ui-build"
 
 
 def camel_to_snake(camel_str: str) -> str:
@@ -178,6 +182,7 @@ class HttpHandler(BaseHttpHandler):
         x_activity_url_regex = rf"{hostname_regex}\/x-activity"
         meme_coins_url_regex = rf"{hostname_regex}\/memecoin-activity"
         media_url_regex = rf"{hostname_regex}\/media"
+        static_files_regex = rf"{hostname_regex}\/(.*)"
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
@@ -186,6 +191,7 @@ class HttpHandler(BaseHttpHandler):
                 (x_activity_url_regex, self._handle_get_recent_x_activity),
                 (meme_coins_url_regex, self._handle_get_meme_coins),
                 (media_url_regex, self._handle_get_media),
+                (static_files_regex, self._handle_get_static_file),
             ],
         }
 
@@ -205,6 +211,10 @@ class HttpHandler(BaseHttpHandler):
             self.rounds_info[source_round]["transitions"][  # type: ignore
                 event.lower()
             ] = camel_to_snake(target_round)
+        # TODO : Modify it according to agents.fun it is currently from optimus
+        self.agent_profile_path = (  # pylint: disable=attribute-defined-outside-init
+            AGENT_PROFILE_PATH
+        )
 
     @contextmanager
     def _db_connection_context(self) -> Generator:
@@ -529,25 +539,94 @@ class HttpHandler(BaseHttpHandler):
         }
         self._send_ok_response(http_msg, http_dialogue, data)
 
+    def _handle_get_static_file(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """
+        Handle a HTTP GET request for a static file.
+
+        :param http_msg: the HTTP message
+        :param http_dialogue: the HTTP dialogue
+        """
+        try:
+            # Extract the requested path from the URL
+            requested_path = urlparse(http_msg.url).path.lstrip("/")
+
+            # Construct the file path
+            file_path = Path(
+                Path(__file__).parent, self.agent_profile_path, requested_path
+            )
+            # If the file exists and is a file, send it as a response
+            if file_path.exists() and file_path.is_file():
+                with open(file_path, "rb") as file:
+                    file_content = file.read()
+
+                # Determine the content type based on the file extension
+                content_type, _ = mimetypes.guess_type(file_path)
+                if content_type is None:
+                    content_type = "application/octet-stream"
+
+                # Send the file content as a response
+                self._send_ok_response(
+                    http_msg, http_dialogue, file_content, content_type
+                )
+            else:
+                # If the file doesn't exist or is not a file, return the index.html file
+                index_path = Path(
+                    Path(__file__).parent, self.agent_profile_path, "index.html"
+                )
+                with open(
+                    index_path,
+                    "r",
+                    encoding="utf-8",
+                ) as file:
+                    index_html = file.read()
+
+                # Send the HTML response
+                self._send_ok_response(http_msg, http_dialogue, index_html, "text/html")
+        except FileNotFoundError:
+            self._send_not_found_response(http_msg, http_dialogue)
+
     def _send_ok_response(
         self,
         http_msg: HttpMessage,
         http_dialogue: HttpDialogue,
-        data: Union[Dict, List, str],
+        data: Union[Dict, List, str, bytes],
+        content_type: Optional[str] = None,
     ) -> None:
         """Send an OK response with the provided data"""
+
+        body_bytes: bytes
+        headers: str
+
+        if isinstance(data, bytes):
+            body_bytes = data
+            header_content_type = (
+                f"Content-Type: {content_type}\n"
+                if content_type
+                else self.json_content_header
+            )
+            headers = f"{header_content_type}{http_msg.headers}"
+        elif isinstance(data, str):
+            body_bytes = data.encode("utf-8")
+            header_content_type = (
+                f"Content-Type: {content_type}\n"
+                if content_type
+                else self.html_content_header
+            )
+            headers = f"{header_content_type}{http_msg.headers}"
+        else:
+            body_bytes = json.dumps(data).encode("utf-8")
+            headers = f"{self.json_content_header}{http_msg.headers}"
+
         http_response = http_dialogue.reply(
             performative=HttpMessage.Performative.RESPONSE,
             target_message=http_msg,
             version=http_msg.version,
             status_code=OK_CODE,
             status_text="Success",
-            headers=(
-                f"{self.html_content_header}{http_msg.headers}"
-                if isinstance(data, str)
-                else f"{self.json_content_header}{http_msg.headers}"
-            ),
-            body=(data if isinstance(data, str) else json.dumps(data)).encode("utf-8"),
+            headers=headers,
+            body=body_bytes,
         )
 
         # Send response
