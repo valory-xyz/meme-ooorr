@@ -404,6 +404,11 @@ class ActionDecisionBehaviour(
                     int(getattr(self.params, f"max_heart_amount_{chain_id}") * 1e18),
                 )
 
+                # stroing this in KV as last heart timestamp
+                yield from self._write_kv(
+                    {"last_heart_timestamp": str(self.get_sync_timestamp())}
+                )
+
             self.context.logger.info("The LLM returned a valid response")
             if new_persona:
                 yield from self._write_kv({"persona": new_persona})
