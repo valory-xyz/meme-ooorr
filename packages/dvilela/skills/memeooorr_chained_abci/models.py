@@ -23,10 +23,17 @@ from typing import Any
 
 from aea.skills.base import SkillContext
 
+from packages.dvilela.skills.memeooorr_abci.models import (
+    AgentDBClient as BaseAgentDBClient,
+)
+from packages.dvilela.skills.memeooorr_abci.models import (
+    AgentsFunDatabase as BaseAgentsFunDatabase,
+)
 from packages.dvilela.skills.memeooorr_abci.models import Params as MemeooorrParams
 from packages.dvilela.skills.memeooorr_abci.models import (
     RandomnessApi as MemeooorrRandomnessApi,
 )
+from packages.dvilela.skills.memeooorr_abci.models import SharedState as BaseSharedState
 from packages.dvilela.skills.memeooorr_abci.rounds import Event as MemeooorrEvent
 from packages.dvilela.skills.memeooorr_chained_abci.composition import (
     MemeooorrChainedSkillAbciApp,
@@ -35,9 +42,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
 from packages.valory.skills.mech_interact_abci.models import (
     MechResponseSpecs as BaseMechResponseSpecs,
 )
@@ -50,16 +54,18 @@ Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = MemeooorrRandomnessApi
 MechResponseSpecs = BaseMechResponseSpecs
+AgentDBClient = BaseAgentDBClient
+AgentsFunDatabase = BaseAgentsFunDatabase
 
 MARGIN = 5
-MULTIPLIER = 100
-MULTIPLIER_2 = 50
+MULTIPLIER = 10
+MULTIPLIER_MECH = 20
 
 
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    abci_app_cls = MemeooorrChainedSkillAbciApp
+    abci_app_cls = MemeooorrChainedSkillAbciApp  # type: ignore[assignment]
 
     def __init__(self, *args: Any, skill_context: SkillContext, **kwargs: Any) -> None:
         """Init"""
@@ -86,7 +92,7 @@ class SharedState(BaseSharedState):
         MemeooorrChainedSkillAbciApp.event_to_timeout[
             MechInteractEvent.ROUND_TIMEOUT
         ] = (
-            self.context.params.round_timeout_seconds * MULTIPLIER_2
+            self.context.params.round_timeout_seconds * MULTIPLIER_MECH
         )  # need to introduce a parameter for this
 
 

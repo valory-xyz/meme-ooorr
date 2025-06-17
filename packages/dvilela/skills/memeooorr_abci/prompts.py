@@ -28,6 +28,15 @@ from dataclasses import dataclass
 ENFORCE_ACTION_COMMAND = "Please use tools, as you are required to meet some action KPIs and you have not met them yet."
 
 
+ENFORCE_ACTION_COMMAND_FAILED_MECH = """
+Your previous request from mech was successfull but the mech failed to deliver the response, please procees without using use tweet action
+
+Here is the latest Prompt you sent for mech use it to create a normal tweet
+
+{last_prompt}
+
+"""
+
 TWITTER_DECISION_PROMPT = """
 You are a user on Twitter with a specific persona. You create tweets and also analyze tweets from other users and decide whether to interact with them or not.
 
@@ -43,13 +52,7 @@ Available Tool actions are:
 {mech_response}
 
 Available Twitter actions are:
-- Tweet
-- Tweet With Media
-- Reply
-- Quote
-- Like
-- Retweet
-- Follow
+{twitter_actions}
 
 Here are some of your previous tweets:
 {previous_tweets}
@@ -62,6 +65,15 @@ You must choose **either** a Twitter action **or** a Tool action, but not both.
 
 {extra_command}
 
+Please do not repeat the same action many times. try to do different actions
+Here are some of your previous:
+
+Tweet actions:
+{tweet_actions}
+
+Tool actions:
+{tool_actions}
+
 Your task is to decide what actions to do, if any. Some recommenadations:
 - Do not invent or assume any details. Use only the information provided. as we do not want to spread misinformation.
 - If you decide to tweet, make sure it is significantly different from previous tweets in both topic and wording.
@@ -71,7 +83,6 @@ Your task is to decide what actions to do, if any. Some recommenadations:
 - If you decide to reply or quote, make sure it is relevant to the tweet you are replying to.
 - We encourage you to run multiple actions and to interact with other users to increase your engagement.
 - Pay attention to the time of creation of your previous tweets. You should not create new tweets too frequently. The time now is {time}.
-
 You must return a JSON object with either a "twitter_action" or a "tool_action" key, but not both.
 """
 
@@ -115,7 +126,7 @@ class TwitterActionName(enum.Enum):
 class ToolActionName(enum.Enum):
     """ToolActionName"""
 
-    STABLE_DIFFUSION = "stabilityai-stable-diffusion-v1-6"
+    GOOGLE_IMAGE_GEN = "google_image_gen"
     SHORT_MAKER = "short_maker"
 
 
@@ -125,7 +136,7 @@ class TwitterAction:
 
     action: TwitterActionName
     selected_tweet_id: str
-    user_id: str
+    user_name: str
     text: str
 
 
@@ -213,7 +224,7 @@ TOKEN_DECISION_PROMPT = (  # nosec
     Here's your latest tweet:
     "{latest_tweet}"
 
-    Here's a list of tweets that you received as a response to your latest tweet and some engagement metrics.
+    Here's a list of tweets that you received as a response to your latest tweet.
     You can use this information to update your persona if you think that will improve engagement.
     "{tweet_responses}"
 
@@ -272,6 +283,7 @@ ALTERNATIVE_MODEL_TOKEN_PROMPT = (  # nosec
     {action}
 
     Create a tweet to announce it. Respond only with the tweet, nothing else, and keep your tweets short.
+
     """
 )
 

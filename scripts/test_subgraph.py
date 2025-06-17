@@ -27,7 +27,7 @@ import re
 import requests
 
 
-MEMEOOORR_DESCRIPTION_PATTERN = r"^Memeooorr @(\w+)$"
+MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 
 TOKENS_QUERY = """
 query Tokens($limit: Int, $after: String) {
@@ -56,8 +56,8 @@ query Tokens($limit: Int, $after: String) {
 """
 
 PACKAGE_QUERY = """
-query getPackages($package_type: String!) {
-    units(where: {packageType: $package_type}) {
+query getPackages($package_type: String!, $first: Int, $skip: Int) {
+    units(where: {packageType: $package_type}, first: $first, skip: $skip) {
         id,
         packageType,
         publicId,
@@ -143,18 +143,16 @@ def get_meme_coins_from_subgraph():
 def get_packages(package_type: str):
     """Gets minted packages from the Olas subgraph"""
 
-    url = "https://subgraph.staging.autonolas.tech/subgraphs/name/autonolas-base/"
+    url = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-base/"
 
     headers = {"Content-Type": "application/json"}
 
     query = {
         "query": PACKAGE_QUERY,
-        "variables": {
-            "package_type": package_type,
-        },
+        "variables": {"package_type": package_type, "first": 1000, "skip": None},
     }
 
-    response = requests.post(url=url, json=query, headers=headers)
+    response = requests.post(url=url, json=query, headers=headers, timeout=60)
 
     # Handle HTTP errors
     if response.status_code != HTTP_OK:
@@ -165,12 +163,12 @@ def get_packages(package_type: str):
     return response_json
 
 
-def get_memeooorr_handles_from_subgraph():
-    """Get Memeooorr service handles"""
-    handles = []
+def get_memeooorrs_from_subgraph():
+    """Get Memeooorr services"""
+    memeooorrs = {}
     services = get_packages("service")
     if not services:
-        return handles
+        return {}
 
     for service in services["units"]:
         match = re.match(MEMEOOORR_DESCRIPTION_PATTERN, service["description"])
@@ -179,8 +177,8 @@ def get_memeooorr_handles_from_subgraph():
             continue
 
         handle = match.group(1)
-        handles.append(handle)
-    return handles
+        memeooorrs[service["tokenId"]] = handle
+    return memeooorrs
 
 
 def introspect_subgraph():
@@ -194,9 +192,10 @@ def introspect_subgraph():
             print(f)
 
 
-# introspect_subgraph()
+if __name__ == "__main__":
+    # introspect_subgraph()
 
-meme_coin_data = get_meme_coins_from_subgraph()
+    meme_coin_data = get_meme_coins_from_subgraph()
 
-# Print the meme coin data in a formatted JSON output
-print(json.dumps(meme_coin_data, indent=4))
+    # Print the meme coin data in a formatted JSON output
+    print(json.dumps(meme_coin_data, indent=4))

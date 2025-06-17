@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeiacqbub377oj2uvkw3lu2u43zv5rpdd2z4jx7dailiffqttksds24
   behaviours.py: bafybeiabl3v5527rgeyehgexmfbfvya5gipr6buurvjr7rh5mhu67dwnwq
-  composition.py: bafybeid5bpa7wkwo4zlhoheelactdqddb7iad7bsjraudnw2prlwusvo7u
+  composition.py: bafybeicwsdzp2whgfct4vlfp6xqdnn7dydqjeajnqqajofcttaydgtreua
   dialogues.py: bafybeiawrgmlra5f6o63nhv5kc77wvzoqmcareub3lf4qceuwpjso4pjbe
-  fsm_specification.yaml: bafybeiahfitqf3u5oiqzxnjq5fgxexqdtuvqpvcd45u6pyzrzjh3qtzue4
+  fsm_specification.yaml: bafybeibakfvloqbh5nbotrfo6vi3xrl24kq3ewdle5t4c3vkkosfik2t7y
   handlers.py: bafybeibw5nfno2scl5qzly3fpvodgoovikl6h3hoiiu6e4sqpbbczbzfim
-  models.py: bafybeig4zaatchwdftcb6vo2yuiikwxjqwmjtvwmdri7yyavilh7bztmhm
+  models.py: bafybeieba4edhzcxg45wmgdaalvnvnawfc3pmff7faqf4d35flgxxni6qm
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
@@ -23,7 +23,7 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/termination_abci:0.1.0:bafybeianygjbwmt4xrq77pfl3yzcokbjfzxmuru6j2k7a3boqc2qfb7shi
-- dvilela/memeooorr_abci:0.1.0:bafybeie72dk52rimtwkcmyf753aqgf2y7v2bnn2vttnuuaoazoiqai4fpy
+- dvilela/memeooorr_abci:0.1.0:bafybeiclkfjfkvzceojcgyzezhbi6qaao6qtnzsayscxv4xwmnsdtzggga
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
 behaviours:
   main:
@@ -107,7 +107,7 @@ models:
       termination_from_block: 0
       init_fallback_gas: 0
       keeper_allowed_retries: 3
-      reset_pause_duration: 10
+      reset_pause_duration: 300
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
@@ -152,7 +152,6 @@ models:
       olas_token_address_celo: '0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51'
       persona: a cat lover that is crazy about all-things cats.
       home_chain_id: BASE
-      twitter_username: dummy_twitter_name
       service_registry_address_base: '0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE'
       service_registry_address_celo: '0xE3607b00E75f6405248323A9417ff6b39B244b50'
       meme_subgraph_url: https://agentsfun-indexer-production.up.railway.app
@@ -167,8 +166,8 @@ models:
       activity_checker_contract_address: '0x0000000000000000000000000000000000000000'
       tx_loop_breaker_count: 3
       tools_for_mech:
-        stabilityai-stable-diffusion-v1-6: This tool generates an image based on a
-          given prompt using the StabilityAI Stable Diffusion v1.6 model
+        google_image_gen: This tool generates an image based on a given prompt using
+          the StabilityAI Stable Diffusion v1.6 model
         short_maker: This tool generates a short video based on a given prompt
       mech_request_price: 100
       mech_contract_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
@@ -236,5 +235,12 @@ models:
   kv_store_dialogues:
     args: {}
     class_name: KvStoreDialogues
+  agent_db_client:
+    args:
+      base_url: https://afmdb.autonolas.tech
+    class_name: AgentDBClient
+  agents_fun_db:
+    args: {}
+    class_name: AgentsFunDatabase
 dependencies: {}
 is_abstract: false

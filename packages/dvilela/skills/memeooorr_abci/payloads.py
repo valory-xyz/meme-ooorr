@@ -60,6 +60,7 @@ class EngageTwitterPayload(BaseTxPayload):
     event: str
     mech_request: Optional[str]
     tx_submitter: str
+    failed_mech: Optional[bool] = False
 
 
 @dataclass(frozen=True)
@@ -101,6 +102,7 @@ class CheckFundsPayload(BaseTxPayload):
     """Represent a transaction payload for the CheckFundsRound."""
 
     event: str
+    check_funds_count: int
 
 
 @dataclass(frozen=True)
@@ -126,6 +128,7 @@ class MechPayload(BaseTxPayload):
     """
 
     mech_for_twitter: bool
+    failed_mech: Optional[bool] = False
 
 
 @dataclass(frozen=True)
