@@ -186,7 +186,7 @@ build-agent-runner:
 	--hidden-import tweepy \
 	--onefile pyinstaller/memeooorr_bin.py \
 	--name agent_runner_bin
-	./dist/agent_runner_bin 1>/dev/null
+	./dist/agent_runner_bin --version
 
 
 .PHONY: build-agent-runner-mac
