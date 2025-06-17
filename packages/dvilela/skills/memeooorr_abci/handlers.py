@@ -542,50 +542,46 @@ class HttpHandler(BaseHttpHandler):
     def _handle_get_static_file(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
-        """
-        Handle a HTTP GET request for a static file.
+        """Handle a HTTP GET request for a static file.
+
+        This handler also serves the `index.html` file for any path that does not
+        correspond to an existing static file, which is a common pattern for
+        Single Page Applications (SPAs).
 
         :param http_msg: the HTTP message
         :param http_dialogue: the HTTP dialogue
         """
-        try:
-            # Extract the requested path from the URL
-            requested_path = urlparse(http_msg.url).path.lstrip("/")
+        requested_path = urlparse(http_msg.url).path.lstrip("/")
+        file_path = Path(Path(__file__).parent, self.agent_profile_path, requested_path)
 
-            # Construct the file path
-            file_path = Path(
-                Path(__file__).parent, self.agent_profile_path, requested_path
-            )
-            # If the file exists and is a file, send it as a response
-            if file_path.exists() and file_path.is_file():
-                with open(file_path, "rb") as file:
-                    file_content = file.read()
+        # Check if the requested path points to an existing file.
+        if file_path.is_file():
+            # If it's a file, serve it directly.
+            with open(file_path, "rb") as file:
+                file_content = file.read()
 
-                # Determine the content type based on the file extension
-                content_type, _ = mimetypes.guess_type(file_path)
-                if content_type is None:
-                    content_type = "application/octet-stream"
+            # Determine the content type based on the file extension
+            content_type, _ = mimetypes.guess_type(file_path)
+            if content_type is None:
+                content_type = "application/octet-stream"
 
-                # Send the file content as a response
-                self._send_ok_response(
-                    http_msg, http_dialogue, file_content, content_type
-                )
-            else:
-                # If the file doesn't exist or is not a file, return the index.html file
-                index_path = Path(
-                    Path(__file__).parent, self.agent_profile_path, "index.html"
-                )
-                with open(
-                    index_path,
-                    "r",
-                    encoding="utf-8",
-                ) as file:
-                    index_html = file.read()
+            # Send the file content as a response
+            self._send_ok_response(http_msg, http_dialogue, file_content, content_type)
+            return
 
-                # Send the HTML response
-                self._send_ok_response(http_msg, http_dialogue, index_html, "text/html")
-        except FileNotFoundError:
+        #    and fall back to serving `index.html`.
+        index_path = Path(Path(__file__).parent, self.agent_profile_path, "index.html")
+
+        # Check if `index.html` exists before trying to serve it.
+        if not index_path.is_file():
+            # If `index.html` is missing, the application is misconfigured.
             self._send_not_found_response(http_msg, http_dialogue)
+            return
+
+        # Serve the `index.html` file.
+        with open(index_path, "r", encoding="utf-8") as file:
+            index_html = file.read()
+        self._send_ok_response(http_msg, http_dialogue, index_html, "text/html")
 
     def _send_ok_response(
         self,
