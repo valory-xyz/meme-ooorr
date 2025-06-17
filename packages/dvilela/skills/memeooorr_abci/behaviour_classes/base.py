@@ -510,7 +510,6 @@ class MemeooorrBaseBehaviour(
             and time_since_last_heart.total_seconds()
             > (self.params.heart_cooldown_hours * HOUR_TO_SECONDS)
         ):
-            self.context.logger.info(f"added heart action to available actions")
             available_actions.append("heart")
 
         # Unleash
