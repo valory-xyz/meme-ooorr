@@ -11,7 +11,8 @@ packages/valory/contracts/*
 !packages/valory/contracts/staking_token
 !packages/valory/contracts/staking_activity_checker
 packages/valory/protocols/
-packages/valory/skills/
+packages/valory/skills/*
+!packages/valory/skills/agent_db_abci
 packages/valory/connections/*
 !packages/valory/connections/twitter
 leak_report
@@ -47,3 +48,14 @@ logs/
 globals.json
 gitleaks_ignore.py
 agent_log.txt
+agent_log.log
+
+daa_base.json
+
+daa_celo.json
+
+engagement_rate.json
+
+followers.json
+
+agent_to_tweets.json

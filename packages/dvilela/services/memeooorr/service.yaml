@@ -7,13 +7,15 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiaekcmielp6mb4qvmo2twwkpmoun36bqajrh7wnnkcpdnia45ycl4
 fingerprint_ignore_patterns: []
-agent: dvilela/memeooorr:0.1.0:bafybeigxd7kkkxbl223hldi3mszae3pio5u3de4uu75n33m7wfyyhvtek4
+agent: dvilela/memeooorr:0.1.0:bafybeibwt5kqnsetvo7wolsnon6lhelqoidfx24rvt6qy2omvyxf3eri3u
 number_of_agents: 1
 deployment:
   agent:
     ports:
       0:
         8716: 8716
+    volumes:
+      ./data: /data
 ---
 public_id: dvilela/memeooorr_chained_abci:0.1.0
 type: skill
@@ -58,7 +60,7 @@ extra:
         max_healthcheck: 120
         multisend_address: ${MULTISEND_ADDRESS:str:0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761}
         termination_sleep: ${TERMINATION_SLEEP:int:900}
-        reset_pause_duration: ${RESET_PAUSE_DURATION:int:3600}
+        reset_pause_duration: ${RESET_PAUSE_DURATION:int:300}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
         reset_tendermint_after: ${RESET_TENDERMINT_AFTER:int:1}
         retry_attempts: 400
@@ -92,7 +94,6 @@ extra:
         olas_token_address_celo: ${OLAS_TOKEN_ADDRESS_CELO:str:0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51}
         persona: ${PERSONA:str:a cat lover that is crazy about all-things cats.}
         home_chain_id: ${HOME_CHAIN_ID:str:BASE}
-        twitter_username: ${TWIKIT_USERNAME:str:null}
         service_registry_address_base: ${SERVICE_REGISTRY_ADDRESS_BASE:str:0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE}
         service_registry_address_celo: ${SERVICE_REGISTRY_ADDRESS_CELO:str:0xE3607b00E75f6405248323A9417ff6b39B244b50}
         meme_subgraph_url: ${MEME_SUBGRAPH_URL:str:https://agentsfun-indexer-production.up.railway.app}
@@ -167,21 +168,20 @@ type: connection
 config:
   genai_api_key: ${GENAI_API_KEY:str:null}
 ---
-public_id: dvilela/twikit:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+public_id: dvilela/tweepy:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
-  twikit_username: ${TWIKIT_USERNAME:str:null}
-  twikit_email: ${TWIKIT_EMAIL:str:null}
-  twikit_password: ${TWIKIT_PASSWORD:str:null}
-  twikit_cookies: ${TWIKIT_COOKIES:str:null}
-  twikit_disable_tweets: ${TWIKIT_DISABLE_TWEETS:bool:false}
-  twikit_skip_connection: ${TWIKIT_SKIP_CONNECTION:bool:false}
-  store_path: ${STORE_PATH:str:null}
+  tweepy_consumer_api_key: ${TWEEPY_CONSUMER_API_KEY:str:null}
+  tweepy_consumer_api_key_secret: ${TWEEPY_CONSUMER_API_KEY_SECRET:str:null}
+  tweepy_bearer_token: ${TWEEPY_BEARER_TOKEN:str:null}
+  tweepy_access_token: ${TWEEPY_ACCESS_TOKEN:str:null}
+  tweepy_access_token_secret: ${TWEEPY_ACCESS_TOKEN_SECRET:str:null}
+  tweepy_skip_auth: ${TWEEPY_SKIP_AUTH:bool:false}
 ---
 public_id: dvilela/kv_store:0.1.0
 type: connection
 config:
-  store_path: ${STORE_PATH:str:null}
+  store_path: ${STORE_PATH:str:/data/}
 ---
 public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
@@ -189,8 +189,3 @@ config:
   host: ${HTTP_SERVER_HOST:str:0.0.0.0}
   port: ${HTTP_SERVER_PORT:int:8716}
   target_skill_id: dvilela/memeooorr_chained_abci:0.1.0
----
-public_id: dvilela/mirror_db:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
-type: connection
-config:
-  mirror_db_base_url: ${MIRROR_DB_BASE_URL:str:https://afmdb.autonolas.tech}

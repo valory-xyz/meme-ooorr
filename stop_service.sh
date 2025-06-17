@@ -20,7 +20,6 @@
 
 REPO_PATH=$PWD
 MEMEOOORR_DB=$REPO_PATH/memeooorr/abci_build/persistent_data/logs/memeooorr.db
-TWITTER_COOKIES=$REPO_PATH/memeooorr/abci_build/persistent_data/logs/twikit_cookies.json
 
 BUILD_DIR=$(ls -d memeooorr/abci_build*/)
 poetry run autonomy deploy stop --build-dir "$BUILD_DIR"; cd ..
@@ -29,10 +28,4 @@ poetry run autonomy deploy stop --build-dir "$BUILD_DIR"; cd ..
 if test -e $MEMEOOORR_DB; then
   echo "Creating database backup"
   cp $MEMEOOORR_DB $REPO_PATH
-fi
-
-# Backup cookies
-if test -e $TWITTER_COOKIES; then
-  echo "Creating cookies backup"
-  cp $TWITTER_COOKIES $REPO_PATH
 fi

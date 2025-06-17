@@ -8,26 +8,25 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeicz2m7wgiyyvma3pyxonf6l5giodsjqjdn3gmabkee2jjm46do5ee
-  behaviour_classes/chain.py: bafybeifcfmdro2oebny3n3sp6xvalnpg5xjqztexyc24z4sca3h2jecjbu
-  behaviour_classes/db.py: bafybeifiufhjk2vgeoxd7fsl7bskpxx6rtkvayq6vx6yzb5d66wa2sjnxi
-  behaviour_classes/llm.py: bafybeihtv5g2gtvkiorgijmmoukxdrvkyweoqucsuwexuxc32bg6bazyai
-  behaviour_classes/mech.py: bafybeih6o6zs27wreoeu4ol5bbhnp33bj7sibvsn7symo63q77v3kbts4q
-  behaviour_classes/twitter.py: bafybeigvndrxpkei65ppunintttvise75d2ttoewv3rud7hjkxtjkm4qdy
+  behaviour_classes/base.py: bafybeidhtokakpjflbpjnvezglmzh4rvqbt44zv3e4dapuwujujacl447e
+  behaviour_classes/chain.py: bafybeig2qifmzybweuff6j5e35opqq6ownq6aosxd2vnt7tc266dfpicam
+  behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
+  behaviour_classes/llm.py: bafybeiaxj6ps53froyqtlogfd3y3z3wbiurhoharuft5xuhkzoxtruukya
+  behaviour_classes/mech.py: bafybeiaqpjmuvki42kmhgelm4kgk2z5o2s3i2xtrttwhyu6273padrma5y
+  behaviour_classes/twitter.py: bafybeifgujif3cg4iflgkkt5w7y2db4gya4xjz3c7hdqrhjycgh7bs2ple
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
-  fsm_specification.yaml: bafybeid7eyay5wtutduxyovq6kuofbigozlnuahjyjrcuszwdhicvcoes4
+  fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
   handlers.py: bafybeicdbw4ayfuifdgmyezncazjabr333ltieaxq5gbgh5s7nkp5llxyi
-  models.py: bafybeibahq7p7p2dkbyl5capozrwfqdpwjkugpyg6jwwfocoa4mqz6jem4
-  payloads.py: bafybeibitehqtl4mydt7e7qdestsrvxdj5klclqu2dackckp5f2sazmlcm
-  prompts.py: bafybeicgezsc5zx5nmcft43qphjrdfcajzofbtupff3evnhsbdxtllri3e
-  rounds.py: bafybeia3ep7ackjwes5jx36akbtp5cdiozwsoiyrf3yf35u5ysfjr2htwq
+  models.py: bafybeidhxnp3vnezsapopaeqgwnvdgw7caabwmhnu4s4up2jhvthezkci4
+  payloads.py: bafybeiez63hch4jpzeqd6nxrnvgw4mwbd7fdnru3vmbiw3qpdbr4qfm2uu
+  prompts.py: bafybeihbz456kigtnmlmjsraykxkjnnrgmhgpksfgrphm7nqi2a6fkqvky
+  rounds.py: bafybeibcdt7w3jn3mfdurifvn4gfqa3amhg4fufz66kxlh5srjtuxqtame
   rounds_info.py: bafybeib6a5a7bvwvfiscnbhsc6sejloelyglnu6lwbeeileyxrsgkxcb6a
 fingerprint_ignore_patterns: []
 connections:
-- dvilela/kv_store:0.1.0:bafybeiecnl7yc5qx6x4q7467i66ehmfw4qydnnry7tjs7plqeytb6ueyvu
-- dvilela/twikit:0.1.0:bafybeie7on3y3yzdwivz5wnsp64xq3ak3mn2hcgpw74q4hcop2tw7pur4e
-- dvilela/mirror_db:0.1.0:bafybeifgjuwvqpjafwkdqjt4223i7jdm6ppyijdx2knox4md7tfbhpvmbq
+- dvilela/kv_store:0.1.0:bafybeidsmswryxifxmkichzwsm2bvongcei2tlz3tcs45rabvm7eu5g5ai
+- dvilela/tweepy:0.1.0:bafybeig5uthh7e3jliec5poawflbtkdhuen5c33hzsejz5wvbweg4bcvva
 - dvilela/genai:0.1.0:bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty
 - valory/http_server:0.22.0:bafybeic3jpkum7g6qo6x6vdrmvvhj7vqw7ec2op72uc3yfhmnlp5hn3joy
 contracts:
@@ -47,6 +46,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
+- valory/agent_db_abci:0.1.0:bafybeidyojmjei4ltywtrrgdwem6makkigf7qm3kl5p65dsfb3xphddihy
 behaviours:
   main:
     args: {}
@@ -131,7 +131,7 @@ models:
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
-      reset_pause_duration: 10
+      reset_pause_duration: 300
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -165,7 +165,6 @@ models:
       olas_token_address_celo: '0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51'
       persona: a cat lover that is crazy about all-things cats.
       home_chain_id: BASE
-      twitter_username: dummy_twitter_name
       service_registry_address_base: '0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE'
       service_registry_address_celo: '0xE3607b00E75f6405248323A9417ff6b39B244b50'
       meme_subgraph_url: https://agentsfun-indexer-production.up.railway.app
@@ -180,8 +179,8 @@ models:
       activity_checker_contract_address: '0x0000000000000000000000000000000000000000'
       tx_loop_breaker_count: 3
       tools_for_mech:
-        stabilityai-stable-diffusion-v1-6: This tool generates an image based on a
-          given prompt using the StabilityAI Stable Diffusion v1.6 model
+        google_image_gen: This tool generates an image based on a given prompt using
+          the StabilityAI Stable Diffusion v1.6 model
         short_maker: This tool generates a short video based on a given prompt
       multisend_batch_size: 50
       mech_request_price: 100
@@ -248,6 +247,13 @@ models:
   kv_store_dialogues:
     args: {}
     class_name: KvStoreDialogues
+  agent_db_client:
+    args:
+      base_url: https://afmdb.autonolas.tech
+    class_name: AgentDBClient
+  agents_fun_db:
+    args: {}
+    class_name: AgentsFunDatabase
 dependencies:
   twitter_text_parser:
     version: ==3.0.0

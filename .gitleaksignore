@@ -427,3 +427,16 @@ e5259d57fec65a14578fd02437e5c86eedf10b6a:scripts/test_prompts_tools.py:generic-a
 3eb8af0d9d4fd473bdb669742cbaa63de8f24f3a:packages/dvilela/services/agents_fun/service.yaml:generic-api-key:55
 3eb8af0d9d4fd473bdb669742cbaa63de8f24f3a:packages/dvilela/agents/agents_fun/aea-config.yaml:generic-api-key:153
 3eb8af0d9d4fd473bdb669742cbaa63de8f24f3a:packages/dvilela/skills/engage_twitter_abci/skill.yaml:generic-api-key:83
+fe30474b95b7815b4021d4f670b1f4509e19bc48:docs/twitter_dev_account.md:generic-api-key:27
+76aa8af6cef136f109d1b0efdb2cd8b285c01152:packages/dvilela/skills/base_abci/skill.yaml:generic-api-key:82
+c5da25e95bdb29a6201260d3d57461e0fde06e1c:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+fd52b2f62d6e925104ec8bb519e9a885e933c0df:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+7178b7fb5323557e3448592c1ca211e9fb626b93:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:75
+9e08dc85ada582c2eb50dfa7a83e266a39732c6e:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+e9ebe1c47e25bba17711d3cb9c7051ad12a6b210:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+72197759f09f902bdec479e604bf8f0359aaf2fd:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+b3809cbd13511e5fc123c28d31c07d3608b98677:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+ea259a85027dfe048dcd93d4ae78997207715dbd:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+11a0bb8eb7686f5f0a1ce461ca86b818c102be17:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+4dfd32f6065de3520eb0f68c362ea8eac092cff6:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
+22b53e740d938c487213faaeda6d0fdf98dbbfe1:packages/valory/skills/agent_db_abci/skill.yaml:generic-api-key:10
