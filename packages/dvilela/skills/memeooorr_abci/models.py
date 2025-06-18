@@ -184,5 +184,6 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
         self.summon_cooldown_seconds = self._ensure(
             "summon_cooldown_seconds", kwargs, int
         )
+        self.heart_cooldown_hours = self._ensure("heart_cooldown_hours", kwargs, int)
 
         super().__init__(*args, **kwargs)

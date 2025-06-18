@@ -43,8 +43,8 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-- dvilela/memeooorr_abci:0.1.0:bafybeibeyk7i4cm4cjwi2j5atqya2qmdpeno5ewlz35me465p2g7djjl4u
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeiabvs4nlmdbmofdmhgzl4ghojwfoi73qqpd5ykejlbgmnuydylphi
+- dvilela/memeooorr_abci:0.1.0:bafybeidxmipejo23ruw6jwzaihd32ldwc67r5ev6fn5mjwq5hmeg7or5za
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeibjoylbpwygpplagdhqzliw27ntfhg3bu452m5oozovejtd7w3eue
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
 - valory/agent_db_abci:0.1.0:bafybeiffsljyu4vhhkdclmymmpndlw42bqeuouahluwk7k7r3djvo4rgpy
 default_ledger: ethereum
@@ -248,6 +248,7 @@ models:
         response_timeout: 300
       use_acn_for_delivers: false
       summon_cooldown_seconds: ${int:2592000}
+      heart_cooldown_hours: ${int:48}
 ---
 public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection

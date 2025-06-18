@@ -8,17 +8,17 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeidhtokakpjflbpjnvezglmzh4rvqbt44zv3e4dapuwujujacl447e
+  behaviour_classes/base.py: bafybeigweoxukw5zxwe5dtl4sp24dra5pxaymyqdnre2cptxt57ithojzq
   behaviour_classes/chain.py: bafybeig2qifmzybweuff6j5e35opqq6ownq6aosxd2vnt7tc266dfpicam
-  behaviour_classes/db.py: bafybeiftxdcytgujoneieqhlfv5udjcrc4uyreeic662z5lmhwuskimxam
-  behaviour_classes/llm.py: bafybeiaxj6ps53froyqtlogfd3y3z3wbiurhoharuft5xuhkzoxtruukya
+  behaviour_classes/db.py: bafybeibmwsyqcvy524vwqzmcyk7ghqhk75sbnyk4yt5eqvez775qvubf3i
+  behaviour_classes/llm.py: bafybeif2kzc2pwme6fkaneswnw4b6pk56xbwqsqbe5ljvw4vt4iylnb7dm
   behaviour_classes/mech.py: bafybeiaqpjmuvki42kmhgelm4kgk2z5o2s3i2xtrttwhyu6273padrma5y
   behaviour_classes/twitter.py: bafybeifgujif3cg4iflgkkt5w7y2db4gya4xjz3c7hdqrhjycgh7bs2ple
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
   handlers.py: bafybeicdbw4ayfuifdgmyezncazjabr333ltieaxq5gbgh5s7nkp5llxyi
-  models.py: bafybeidhxnp3vnezsapopaeqgwnvdgw7caabwmhnu4s4up2jhvthezkci4
+  models.py: bafybeice62vhvsxeevrnnwzzria4ksmdkrecqc34w7gbdg6g4muredt3si
   payloads.py: bafybeiez63hch4jpzeqd6nxrnvgw4mwbd7fdnru3vmbiw3qpdbr4qfm2uu
   prompts.py: bafybeihbz456kigtnmlmjsraykxkjnnrgmhgpksfgrphm7nqi2a6fkqvky
   rounds.py: bafybeibcdt7w3jn3mfdurifvn4gfqa3amhg4fufz66kxlh5srjtuxqtame
@@ -189,6 +189,7 @@ models:
       mech_interaction_sleep_time: 10
       use_acn_for_delivers: false
       use_mech_marketplace: true
+      heart_cooldown_hours: 48
       mech_marketplace_config:
         mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
         priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
