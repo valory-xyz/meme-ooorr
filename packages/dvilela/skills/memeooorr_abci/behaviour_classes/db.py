@@ -22,6 +22,7 @@
 from typing import Generator, Type
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
+    HOUR_TO_SECONDS,
     MemeooorrBaseBehaviour,
 )
 from packages.dvilela.skills.memeooorr_abci.rounds import (
@@ -76,4 +77,16 @@ class LoadDatabaseBehaviour(
         if db_data is None or db_data.get("last_summon_timestamp", None) is None:
             yield from self._write_kv(
                 {"last_summon_timestamp": str(self.get_sync_timestamp())}
+            )
+
+        # Initialize last heart if not present then set it to 48 hours ago to make sure the agent can heart first time it is deployed
+        db_data = yield from self._read_kv(keys=("last_heart_timestamp",))
+        if db_data is None or db_data.get("last_heart_timestamp", None) is None:
+            yield from self._write_kv(
+                {
+                    "last_heart_timestamp": str(
+                        self.get_sync_timestamp()
+                        - self.params.heart_cooldown_hours * HOUR_TO_SECONDS
+                    )
+                }
             )

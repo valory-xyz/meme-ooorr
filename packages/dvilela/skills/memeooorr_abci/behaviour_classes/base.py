@@ -62,6 +62,7 @@ MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
 MAX_TWEET_CHARS = 280
 AGENT_TYPE_NAME = "memeooorr"
+HOUR_TO_SECONDS = 3600
 
 
 TOKENS_QUERY = """
@@ -497,7 +498,18 @@ class MemeooorrBaseBehaviour(
         available_actions: List[str] = []
 
         # Heart
-        if not is_unleashed and meme_data.get("token_nonce", None) != 1:
+        last_heart_timestamp = yield from self._read_json_from_kv(
+            key="last_heart_timestamp", default_value=0
+        )
+        time_since_last_heart = now - datetime.fromtimestamp(
+            float(last_heart_timestamp)
+        )
+        if (
+            not is_unleashed
+            and meme_data.get("token_nonce", None) != 1
+            and time_since_last_heart.total_seconds()
+            > (self.params.heart_cooldown_hours * HOUR_TO_SECONDS)
+        ):
             available_actions.append("heart")
 
         # Unleash
