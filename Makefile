@@ -184,6 +184,14 @@ build-agent-runner:
 	--hidden-import py_ecc \
 	--hidden-import pytz \
 	--hidden-import tweepy \
+	--hidden-import google.generativeai \
+	--hidden-import js2py \
+	--hidden-import peewee \
+	--hidden-import textblob \
+	--hidden-import twikit \
+	--hidden-import twitter_text \
+	--hidden-import twitter_text_parser \
+	--hidden-import tweepy \
 	--onefile pyinstaller/memeooorr_bin.py \
 	--name agent_runner_bin
 	./dist/agent_runner_bin --version
@@ -220,6 +228,14 @@ build-agent-runner-mac:
 	--hidden-import openapi_core \
 	--hidden-import py_ecc \
 	--hidden-import pytz \
+	--hidden-import tweepy \
+	--hidden-import google.generativeai \
+	--hidden-import js2py \
+	--hidden-import peewee \
+	--hidden-import textblob \
+	--hidden-import twikit \
+	--hidden-import twitter_text \
+	--hidden-import twitter_text_parser \
 	--hidden-import tweepy \
 	--onefile pyinstaller/memeooorr_bin.py \
 	--codesign-identity "${SIGN_ID}" \
