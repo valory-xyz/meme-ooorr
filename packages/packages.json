@@ -8,12 +8,12 @@
         "connection/dvilela/mirror_db/0.1.0": "bafybeifgjuwvqpjafwkdqjt4223i7jdm6ppyijdx2knox4md7tfbhpvmbq",
         "connection/dvilela/genai/0.1.0": "bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty",
         "connection/dvilela/kv_store/0.1.0": "bafybeidsmswryxifxmkichzwsm2bvongcei2tlz3tcs45rabvm7eu5g5ai",
-        "connection/dvilela/tweepy/0.1.0": "bafybeig5uthh7e3jliec5poawflbtkdhuen5c33hzsejz5wvbweg4bcvva",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeidfr5pjyvydtcbvfh3ip7htmeyt5y3mp7g2ng7hwyucshspi73i5i",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeia7sjqrs37q4bl3zqfu6q6f3ctsiuy2gc747nshzgev63f3p56jve",
+        "connection/dvilela/tweepy/0.1.0": "bafybeiduyb342noofhd3e323ixpqh52aqkryh3wqnqcw2scigiun2whjfq",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeihif77kh7uw7le4p6637zsv6lrujzq7klkk2iwe6wqlkpcd2ilnrq",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeiarssd6un53ufcfutbjrkux5p76gjelyqh4fjbqr6kt3ybt2dtzlu",
         "skill/valory/agent_db_abci/0.1.0": "bafybeiffsljyu4vhhkdclmymmpndlw42bqeuouahluwk7k7r3djvo4rgpy",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeicveqdhfa77hw2hu5uiaq6im2a2ebup2r42ydt5v57ji5kjlawi5e",
-        "service/dvilela/memeooorr/0.1.0": "bafybeiaxotvxbiyuulzc7kbtpa735qerjdlhqqyeoqyrqpc4qm2b7eoyay"
+        "agent/dvilela/memeooorr/0.1.0": "bafybeifkpybfjel7ppvol4kfln44fjrcaejqtyvji2qxzrfevinibjv74y",
+        "service/dvilela/memeooorr/0.1.0": "bafybeidrifmky3bynqwv3ibnipm2pzmsqwgwv5szybjy333dtypmnekdtq"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeig2d36zxy65vd7fwhs7scotuktydcarm74aprmrb5nioiymr3yixm",
