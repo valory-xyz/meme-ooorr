@@ -433,6 +433,11 @@ class HttpHandler(BaseHttpHandler):
         """Handle a Http request of verb GET."""
 
         agent_details = self.synchronized_data.agent_details
+        self.context.logger.info(f"Agent details: {agent_details}")
+        if not agent_details:
+            self._send_ok_response(http_msg, http_dialogue, {"agent-info": None})
+            return
+
         data = {
             "address": agent_details.get("safe_address"),
             "username": agent_details.get("twitter_username"),
@@ -440,7 +445,7 @@ class HttpHandler(BaseHttpHandler):
             "personaDescription": agent_details.get("persona"),
         }
 
-        self._send_ok_response(http_msg, http_dialogue, data)
+        self._send_ok_response(http_msg, http_dialogue, {"agent-info": data})
 
     def _handle_get_recent_x_activity(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
@@ -452,7 +457,7 @@ class HttpHandler(BaseHttpHandler):
 
         tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
         if not tweet_actions:
-            self._send_ok_response(http_msg, http_dialogue, {})
+            self._send_ok_response(http_msg, http_dialogue, {"activity": None})
             return
 
         latest_tweet_action = tweet_actions[-1]
@@ -474,16 +479,16 @@ class HttpHandler(BaseHttpHandler):
             "media": action_data.get("media_path", None),
         }
 
-        self._send_ok_response(http_msg, http_dialogue, activity)
+        self._send_ok_response(http_msg, http_dialogue, {"activity": activity})
 
     def _handle_get_meme_coins(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
         activities = self._get_latest_token_activities()
-        self._send_ok_response(http_msg, http_dialogue, activities)
+        self._send_ok_response(http_msg, http_dialogue, {"activity": activities})
 
-    def _get_latest_token_activities(self, limit: int = 1) -> List[Dict]:
+    def _get_latest_token_activities(self, limit: int = 1) -> Optional[List[Dict]]:
         """Get the latest token activities from the database."""
         with self._db_connection_context():
             with self.db.atomic():
@@ -492,7 +497,7 @@ class HttpHandler(BaseHttpHandler):
         token_actions = agent_actions.get("token_action", [])  # type: ignore
 
         if not token_actions:
-            return []
+            return None
 
         activities = []
         # Get the last action, or fewer if not that many exist
@@ -519,6 +524,9 @@ class HttpHandler(BaseHttpHandler):
         with self._db_connection_context():
             with self.db.atomic():
                 media_list = self._get_json_from_db("media-store-list", "[]")
+                if not media_list:
+                    self._send_ok_response(http_msg, http_dialogue, {"media": None})
+                    return
                 agent_actions = self._get_json_from_db("agent_actions", "{}")
 
         tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
@@ -532,7 +540,7 @@ class HttpHandler(BaseHttpHandler):
 
         for media_item in media_list:
             path = media_item.get("path")
-            media_item["tweet_id"] = media_path_to_tweet_id[path]
+            media_item["tweet_id"] = media_path_to_tweet_id.get(path)
 
         data = {
             "media": media_list,
