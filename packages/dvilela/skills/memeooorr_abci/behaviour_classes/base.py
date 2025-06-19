@@ -217,12 +217,12 @@ class MemeooorrBaseBehaviour(
             # Check for indicators of different error types
             needs_update = False
             if "Forbidden" in error_str or "403" in error_str:
-                self.context.logger.warning(
+                self.context.logger.error(
                     f"A Tweepy Forbidden error occurred: {error_str}"
                 )
                 needs_update = True
             elif "credentials" in error_str.lower():
-                self.context.logger.warning(
+                self.context.logger.error(
                     f"A Tweepy error occurred due to incomplete credentials: {error_str}"
                 )
                 needs_update = True
