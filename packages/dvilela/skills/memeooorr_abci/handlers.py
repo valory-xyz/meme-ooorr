@@ -435,7 +435,7 @@ class HttpHandler(BaseHttpHandler):
         agent_details = self.synchronized_data.agent_details
         self.context.logger.info(f"Agent details: {agent_details}")
         if not agent_details:
-            self._send_ok_response(http_msg, http_dialogue, None)
+            self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
             return
 
         data = {
@@ -457,7 +457,7 @@ class HttpHandler(BaseHttpHandler):
 
         tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
         if not tweet_actions:
-            self._send_ok_response(http_msg, http_dialogue, None)
+            self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
             return
 
         latest_tweet_action = tweet_actions[-1]
@@ -486,7 +486,7 @@ class HttpHandler(BaseHttpHandler):
     ) -> None:
         """Handle a Http request of verb GET."""
         activities = self._get_latest_token_activities()
-        self._send_ok_response(http_msg, http_dialogue, activities)
+        self._send_ok_response(http_msg, http_dialogue, activities)  # type: ignore
 
     def _get_latest_token_activities(self, limit: int = 1) -> Optional[List[Dict]]:
         """Get the latest token activities from the database."""
@@ -525,7 +525,7 @@ class HttpHandler(BaseHttpHandler):
             with self.db.atomic():
                 media_list = self._get_json_from_db("media-store-list", "[]")
                 if not media_list:
-                    self._send_ok_response(http_msg, http_dialogue, None)
+                    self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
                     return
                 agent_actions = self._get_json_from_db("agent_actions", "{}")
 
@@ -542,7 +542,7 @@ class HttpHandler(BaseHttpHandler):
             path = media_item.get("path")
             media_item["tweet_id"] = media_path_to_tweet_id.get(path)
 
-        self._send_ok_response(http_msg, http_dialogue, media_list)
+        self._send_ok_response(http_msg, http_dialogue, media_list)  # type: ignore
 
     def _handle_get_static_file(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
