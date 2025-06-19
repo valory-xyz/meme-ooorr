@@ -76,7 +76,7 @@ TendermintHandler = BaseTendermintHandler
 IpfsHandler = BaseIpfsHandler
 
 # TODO : Modify it according to agents.fun it is currently from optimus
-AGENT_PROFILE_PATH = "optimus-ui-build"
+AGENT_PROFILE_PATH = "agentsfun-ui"
 
 
 def camel_to_snake(camel_str: str) -> str:
@@ -435,7 +435,7 @@ class HttpHandler(BaseHttpHandler):
         agent_details = self.synchronized_data.agent_details
         self.context.logger.info(f"Agent details: {agent_details}")
         if not agent_details:
-            self._send_ok_response(http_msg, http_dialogue, {"agent-info": None})
+            self._send_ok_response(http_msg, http_dialogue, None)
             return
 
         data = {
@@ -445,7 +445,7 @@ class HttpHandler(BaseHttpHandler):
             "personaDescription": agent_details.get("persona"),
         }
 
-        self._send_ok_response(http_msg, http_dialogue, {"agent-info": data})
+        self._send_ok_response(http_msg, http_dialogue, data)
 
     def _handle_get_recent_x_activity(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
@@ -457,7 +457,7 @@ class HttpHandler(BaseHttpHandler):
 
         tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
         if not tweet_actions:
-            self._send_ok_response(http_msg, http_dialogue, {"activity": None})
+            self._send_ok_response(http_msg, http_dialogue, None)
             return
 
         latest_tweet_action = tweet_actions[-1]
@@ -479,14 +479,14 @@ class HttpHandler(BaseHttpHandler):
             "media": action_data.get("media_path", None),
         }
 
-        self._send_ok_response(http_msg, http_dialogue, {"activity": activity})
+        self._send_ok_response(http_msg, http_dialogue, activity)
 
     def _handle_get_meme_coins(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a Http request of verb GET."""
         activities = self._get_latest_token_activities()
-        self._send_ok_response(http_msg, http_dialogue, {"activity": activities})
+        self._send_ok_response(http_msg, http_dialogue, activities)
 
     def _get_latest_token_activities(self, limit: int = 1) -> Optional[List[Dict]]:
         """Get the latest token activities from the database."""
@@ -525,7 +525,7 @@ class HttpHandler(BaseHttpHandler):
             with self.db.atomic():
                 media_list = self._get_json_from_db("media-store-list", "[]")
                 if not media_list:
-                    self._send_ok_response(http_msg, http_dialogue, {"media": None})
+                    self._send_ok_response(http_msg, http_dialogue, None)
                     return
                 agent_actions = self._get_json_from_db("agent_actions", "{}")
 
@@ -542,10 +542,7 @@ class HttpHandler(BaseHttpHandler):
             path = media_item.get("path")
             media_item["tweet_id"] = media_path_to_tweet_id.get(path)
 
-        data = {
-            "media": media_list,
-        }
-        self._send_ok_response(http_msg, http_dialogue, data)
+        self._send_ok_response(http_msg, http_dialogue, media_list)
 
     def _handle_get_static_file(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
