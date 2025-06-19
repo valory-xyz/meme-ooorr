@@ -214,15 +214,20 @@ class MemeooorrBaseBehaviour(
             error_str = actual_tweepy_result["error"]
             self.context.logger.error(f"Error from Tweepy connection: {error_str}")
 
-            # Check for indicators of a Forbidden error in the error string
-            if (
-                "Forbidden" in error_str
-                or "403" in error_str
-                or "credentials" in error_str.lower()
-            ):
+            # Check for indicators of different error types
+            needs_update = False
+            if "Forbidden" in error_str or "403" in error_str:
                 self.context.logger.warning(
-                    f"A Tweepy Forbidden error occurred (detected by string content): {error_str}"
+                    f"A Tweepy Forbidden error occurred: {error_str}"
                 )
+                needs_update = True
+            elif "credentials" in error_str.lower():
+                self.context.logger.warning(
+                    f"A Tweepy error occurred due to incomplete credentials: {error_str}"
+                )
+                needs_update = True
+
+            if needs_update:
                 self.context.state.env_var_status["needs_update"] = True
                 self.context.state.env_var_status["env_vars"][
                     "TWEEPY_CONSUMER_API_KEY"
@@ -236,7 +241,6 @@ class MemeooorrBaseBehaviour(
                 self.context.state.env_var_status["env_vars"][
                     "TWEEPY_ACCESS_TOKEN_SECRET"
                 ] = error_str
-
                 self.context.state.env_var_status["env_vars"][
                     "TWEEPY_BEARER_TOKEN"
                 ] = error_str
