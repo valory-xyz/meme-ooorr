@@ -215,7 +215,11 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(f"Error from Tweepy connection: {error_str}")
 
             # Check for indicators of a Forbidden error in the error string
-            if "Forbidden" in error_str or "403" in error_str:
+            if (
+                "Forbidden" in error_str
+                or "403" in error_str
+                or "credentials" in error_str.lower()
+            ):
                 self.context.logger.warning(
                     f"A Tweepy Forbidden error occurred (detected by string content): {error_str}"
                 )
