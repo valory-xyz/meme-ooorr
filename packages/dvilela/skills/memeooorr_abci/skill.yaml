@@ -7,6 +7,13 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
+  agentsfun-ui/README.md: bafybeicfwnupegrlzawlzavtpmrwhk7hwtofc4swcnt3f7c2v5t37wzcpm
+  agentsfun-ui/assets/agent-agentsfun-logo-Cl82UKSm.png: bafybeia3nla5pruiurpwvzex6bbsgset4k2foerma2iwy5zxmtjidur454
+  agentsfun-ui/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
+  agentsfun-ui/assets/index-B6Sx5Uuh.js: bafybeibc74m26f3aibnbei4f62jx7mexuhyrevnp3yclv42vrnn6rmxodm
+  agentsfun-ui/assets/x-activity-empty-eVudZvXV.png: bafybeidv76vrjgsi2xdhie76gqwr2p6t42egap4en4ko7wyumavyrrkify
+  agentsfun-ui/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
+  agentsfun-ui/index.html: bafybeiexl4jcztgtwtbyvv37qljuldaem4bpgnpsk6lohtg5xighffneei
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeianl7bst27pouwbpegeexasmdbbgkmaqkugee6b754lv7r2nldwfi
   behaviour_classes/chain.py: bafybeihp6wqa4yqviwrrlkcoi7p62aoz66gie7wdwhnm7usynwk53hvyy4
@@ -17,7 +24,7 @@ fingerprint:
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
-  handlers.py: bafybeie2slsmtqdjsa7p6p3nf4cywsoh5wgyy2boxzph4vl3xzxapk44ci
+  handlers.py: bafybeicoq22mtcdmykhj4ou3oj6wsdsavhlm3lokplqc6oe4nklvziwcka
   models.py: bafybeiaocuchblmjnp3k5fp372pejigfekicylyxxiffplkqbhao27pltm
   payloads.py: bafybeibkyns7pplvrfcimq4umyufvvk6of4pbqqkqzmxpqwbwmmshcf6xe
   prompts.py: bafybeihbz456kigtnmlmjsraykxkjnnrgmhgpksfgrphm7nqi2a6fkqvky
