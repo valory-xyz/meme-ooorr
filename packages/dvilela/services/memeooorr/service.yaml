@@ -117,7 +117,7 @@ extra:
         tools_for_mech: ${dict:{}}
         use_acn_for_delivers: false
         summon_cooldown_seconds: ${SUMMON_COOLDOWN_SECONDS:int:2592000}
-        heart_cooldown_hours: ${heart_cooldown_hours:int:48}
+        heart_cooldown_hours: ${HEART_COOLDOWN_HOURS:int:48}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
