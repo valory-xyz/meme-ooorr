@@ -22,7 +22,7 @@ import json
 import os
 import traceback
 from datetime import datetime
-from typing import Generator, List, Optional, Tuple, Type
+from typing import Generator, List, Optional, Type
 
 import requests
 
@@ -114,17 +114,16 @@ class PostMechResponseBehaviour(
         # Case 1: Video format (Attempt first if key exists)
         if video_hash:
             self.context.logger.info(f"Attempting video fetch for hash: {video_hash}")
-            # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[Tuple[str, str]]
-            fetch_result = self._fetch_media_from_ipfs_hash(video_hash, "video", ".mp4")
+            # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
+            video_path = self._fetch_media_from_ipfs_hash(video_hash, "video", ".mp4")
 
-            if fetch_result:  # Video fetch succeeded
-                video_path, ipfs_gateway_url = fetch_result
+            if video_path:  # Video fetch succeeded
                 self.context.logger.info(
-                    f"Video downloaded to: {video_path}. Saving metadata... IPFS URL: {ipfs_gateway_url}"
+                    f"Video downloaded to: {video_path}. Saving metadata..."
                 )
                 # Attempt to save metadata. _save_media_info handles errors and returns True/False
                 save_success = yield from self._save_media_info(
-                    video_hash, video_path, "video", ipfs_gateway_url
+                    video_path, "video", video_hash
                 )
                 if save_success:
                     self.context.logger.info("Video metadata saved successfully.")
@@ -139,17 +138,16 @@ class PostMechResponseBehaviour(
         # Case 2: Image hash format
         if image_hash:
             self.context.logger.info(f"Attempting image fetch for hash: {image_hash}")
-            # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[Tuple[str, str]]
-            fetch_result = self._fetch_media_from_ipfs_hash(image_hash, "image", ".png")
+            # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
+            image_path = self._fetch_media_from_ipfs_hash(image_hash, "image", ".png")
 
-            if fetch_result:  # Image fetch succeeded
-                image_path, ipfs_gateway_url = fetch_result
+            if image_path:  # Image fetch succeeded
                 self.context.logger.info(
-                    f"Image downloaded to: {image_path}. Saving metadata... IPFS URL: {ipfs_gateway_url}"
+                    f"Image downloaded to: {image_path}. Saving metadata..."
                 )
                 # Attempt to save metadata. _save_media_info handles errors and returns True/False
                 save_success = yield from self._save_media_info(
-                    image_hash, image_path, "image", ipfs_gateway_url
+                    image_path, "image", image_hash
                 )
                 if save_success:
                     self.context.logger.info("Image metadata saved successfully.")
@@ -162,15 +160,10 @@ class PostMechResponseBehaviour(
         return False  # FAILURE
 
     def _save_media_info(
-        self, media_hash: str, media_path: str, media_type: str, ipfs_gateway_url: str
+        self, media_path: str, media_type: str, ipfs_hash: str
     ) -> Generator[None, None, bool]:
         """Helper method to save media information to the key-value store. Returns True on success, False on failure."""
-        media_info = {
-            "path": media_path,
-            "type": media_type,
-            "hash": media_hash,
-            "ipfs_gateway_url": ipfs_gateway_url,
-        }
+        media_info = {"path": media_path, "type": media_type, "ipfs_hash": ipfs_hash}
         try:
             yield from self._store_media_info_list(media_info)
 
@@ -240,7 +233,7 @@ class PostMechResponseBehaviour(
 
     def _fetch_media_from_ipfs_hash(
         self, ipfs_hash: str, media_type: str, suffix: str
-    ) -> Optional[Tuple[str, str]]:
+    ) -> Optional[str]:
         """Fetch media data from IPFS hash using requests library, save locally, and return the path."""
 
         # Synchronous function using requests, ONLY downloads and returns path or None
@@ -290,7 +283,7 @@ class PostMechResponseBehaviour(
                     )  # media_path will be None here
                     return None
 
-            return media_path, ipfs_gateway_url  # Return path on success
+            return media_path  # Return path on success
 
         except requests.exceptions.Timeout as e:
             self.context.logger.error(
