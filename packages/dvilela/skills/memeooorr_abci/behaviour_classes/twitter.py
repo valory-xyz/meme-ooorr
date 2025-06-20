@@ -259,7 +259,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         elif media_type and tweet_payload.get("image_paths", None):
             action_type = "tweet_with_media"
             action_data["media_path"] = tweet_payload.get("image_paths", None)[0]
-            action_data["media_ipfs_url"] = tweet_payload.get("image_ipfs_urls", None)[0]
+            action_data["media_ipfs_url"] = tweet_payload.get("image_ipfs_urls", None)[
+                0
+            ]
             action_data["media_type"] = media_type  # type: ignore
             action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
