@@ -1348,9 +1348,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         media_path = media_info.get("path")
         media_type = media_info.get("type")
         media_ipfs_url = media_info.get("ipfs_gateway_url")
-        if not media_path or not media_type:
+        if not media_path or not media_type or not media_ipfs_url:
             self.context.logger.error(
-                "Media info from KV store is missing 'path' or 'type'."
+                "Media info from KV store is missing 'path', 'type', or 'ipfs_gateway_url'."
             )
             # Clear potentially incomplete info? Or leave it? Let's clear it for safety.
             yield from self._write_kv({"latest_media_info": ""})
