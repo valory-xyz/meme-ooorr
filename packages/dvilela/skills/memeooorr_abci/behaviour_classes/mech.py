@@ -115,14 +115,18 @@ class PostMechResponseBehaviour(
         if video_hash:
             self.context.logger.info(f"Attempting video fetch for hash: {video_hash}")
             # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
-            video_path = self._fetch_media_from_ipfs_hash(video_hash, "video", ".mp4")
+            video_path, ipfs_gateway_url = self._fetch_media_from_ipfs_hash(
+                video_hash, "video", ".mp4"
+            )
 
             if video_path:  # Video fetch succeeded
                 self.context.logger.info(
-                    f"Video downloaded to: {video_path}. Saving metadata..."
+                    f"Video downloaded to: {video_path}. Saving metadata... IPFS URL: {ipfs_gateway_url}"
                 )
                 # Attempt to save metadata. _save_media_info handles errors and returns True/False
-                save_success = yield from self._save_media_info(video_path, "video")
+                save_success = yield from self._save_media_info(
+                    video_hash, video_path, "video", ipfs_gateway_url
+                )
                 if save_success:
                     self.context.logger.info("Video metadata saved successfully.")
                     return True
@@ -137,14 +141,18 @@ class PostMechResponseBehaviour(
         if image_hash:
             self.context.logger.info(f"Attempting image fetch for hash: {image_hash}")
             # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
-            image_path = self._fetch_media_from_ipfs_hash(image_hash, "image", ".png")
+            image_path, ipfs_gateway_url = self._fetch_media_from_ipfs_hash(
+                image_hash, "image", ".png"
+            )
 
             if image_path:  # Image fetch succeeded
                 self.context.logger.info(
-                    f"Image downloaded to: {image_path}. Saving metadata..."
+                    f"Image downloaded to: {image_path}. Saving metadata... IPFS URL: {ipfs_gateway_url}"
                 )
                 # Attempt to save metadata. _save_media_info handles errors and returns True/False
-                save_success = yield from self._save_media_info(image_path, "image")
+                save_success = yield from self._save_media_info(
+                    image_hash, image_path, "image", ipfs_gateway_url
+                )
                 if save_success:
                     self.context.logger.info("Image metadata saved successfully.")
                     return True  # SUCCESS
@@ -156,10 +164,15 @@ class PostMechResponseBehaviour(
         return False  # FAILURE
 
     def _save_media_info(
-        self, media_path: str, media_type: str
+        self, media_hash: str, media_path: str, media_type: str, ipfs_gateway_url: str
     ) -> Generator[None, None, bool]:
         """Helper method to save media information to the key-value store. Returns True on success, False on failure."""
-        media_info = {"path": media_path, "type": media_type}
+        media_info = {
+            "path": media_path,
+            "type": media_type,
+            "hash": media_hash,
+            "ipfs_gateway_url": ipfs_gateway_url,
+        }
         try:
             yield from self._store_media_info_list(media_info)
 
@@ -279,7 +292,7 @@ class PostMechResponseBehaviour(
                     )  # media_path will be None here
                     return None
 
-            return media_path  # Return path on success
+            return media_path, ipfs_gateway_url  # Return path on success
 
         except requests.exceptions.Timeout as e:
             self.context.logger.error(
