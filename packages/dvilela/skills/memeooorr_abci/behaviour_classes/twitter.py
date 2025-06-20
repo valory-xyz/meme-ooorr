@@ -444,6 +444,9 @@ class CollectFeedbackBehaviour(
 
         self.context.logger.info("Attempting to get feedback for agent's tweets.")
 
+        if not self.context.agents_fun_db.my_agent.posts:
+            return {"likes": 0, "retweets": 0, "replies": []}
+
         last_tweet = self.context.agents_fun_db.my_agent.posts[-1]
         if last_tweet is None:
             return {"likes": 0, "retweets": 0, "replies": []}

@@ -13,7 +13,7 @@ connections:
 - valory/http_client:0.23.0:bafybeid5ffvg76ejjoese7brj5ji3lx66cu7p2ixfwflpo6rgofkypfd7y
 - valory/ledger:0.19.0:bafybeibdsjmy4w2eyilbqc7yzutopl65qpeyspxwz7mjvirr52twhjlf5y
 - valory/p2p_libp2p_client:0.1.0:bafybeic6ayusdwy4dks75njwk32ac7ur7salgllwf4fdc34ue5z2k5iz4q
-- dvilela/tweepy:0.1.0:bafybeibuaj2odbn666yvbuzfg4nmzpm2abptnxa2jnbkryhbdx5vla6b64
+- dvilela/tweepy:0.1.0:bafybeicxb4kdudg2eysq2kbopgss23smwoccujfpaar6td6egqkw5ovau4
 - dvilela/kv_store:0.1.0:bafybeieufzdojxahh3ejagdbzroqredi5uvkfgjiwsfod7l7whn2octmmi
 - valory/http_server:0.22.0:bafybeic3jpkum7g6qo6x6vdrmvvhj7vqw7ec2op72uc3yfhmnlp5hn3joy
 - dvilela/genai:0.1.0:bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty
@@ -43,10 +43,10 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
 - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-- dvilela/memeooorr_abci:0.1.0:bafybeif6x6tvmf33b43chjtaijtjikjitlkamqt6dcrho3hapbqh4hue5q
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeifr3w4qntfs3iubx7ulmgrxknzfjxmhxi4qxnffkerhuy7yzn5qwa
+- dvilela/memeooorr_abci:0.1.0:bafybeifbbmtyeez5arhcprcdzp35pnmtag2ineo3i4rf3vu4zesz2alx2u
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeialqzzljb24thof36crhcdtsjb6g46qsls3e56rxpisn4bnia735e
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeidyojmjei4ltywtrrgdwem6makkigf7qm3kl5p65dsfb3xphddihy
+- valory/agent_db_abci:0.1.0:bafybeiffsljyu4vhhkdclmymmpndlw42bqeuouahluwk7k7r3djvo4rgpy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -61,10 +61,12 @@ logging_config:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
     logfile:
-      class: logging.FileHandler
+      class: logging.handlers.RotatingFileHandler
       formatter: standard
       filename: ${LOG_FILE:str:log.txt}
       level: ${LOG_LEVEL:str:INFO}
+      maxBytes: ${LOG_MAX_BYTES:int:52428800}
+      backupCount: ${LOG_BACKUP_COUNT:int:1}
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -247,6 +249,7 @@ models:
         response_timeout: 300
       use_acn_for_delivers: false
       summon_cooldown_seconds: ${int:2592000}
+      heart_cooldown_hours: ${int:48}
 ---
 public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection

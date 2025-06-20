@@ -427,7 +427,7 @@ def calculate_engagement_rate_avg():  # pylint: disable=too-many-locals
         a.twitter_handle
         for a in list(
             filter(
-                lambda a: was_service_active(a.service_id, today),
+                lambda a: is_service_active(a.service_id),
                 list(daa_db.agents.values()),
             )
         )
@@ -445,9 +445,12 @@ def calculate_engagement_rate_avg():  # pylint: disable=too-many-locals
             )
         )
         agent_to_tweets[agent_handle] = tweets
-        print(
-            f"Got {len(tweets)} tweets for agent {agent_handle} covering from {tweets[-1].created_at} to {tweets[0].created_at}"
-        )
+        if tweets:
+            print(
+                f"Got {len(tweets)} tweets for agent {agent_handle} covering from {tweets[-1].created_at} to {tweets[0].created_at}"
+            )
+        else:
+            print(f"No tweets found for agent {agent_handle}")
 
     # Calculate engagement on a per-day basis
     service_id_to_handle = get_memeooorrs_from_subgraph()

@@ -15,17 +15,17 @@ fingerprint:
   agentsfun-ui/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui/index.html: bafybeiexl4jcztgtwtbyvv37qljuldaem4bpgnpsk6lohtg5xighffneei
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeianl7bst27pouwbpegeexasmdbbgkmaqkugee6b754lv7r2nldwfi
+  behaviour_classes/base.py: bafybeiblfmgpqc2um65vwiugnhnudxk6jt25rrdy2trxwgtnzuiowlfof4
   behaviour_classes/chain.py: bafybeihp6wqa4yqviwrrlkcoi7p62aoz66gie7wdwhnm7usynwk53hvyy4
-  behaviour_classes/db.py: bafybeiem7ik2a3jxvqpwujkpead5vjjf2rwxhptacwmebwzibhvgczlg5e
-  behaviour_classes/llm.py: bafybeihrt6gbkxfsg6lth3fqpfyroeouhqfahpmo6ywtdh6roflnvqbfnq
+  behaviour_classes/db.py: bafybeiffxamy66l6ms52pqq3mlsft55oxoxpsqeavci4dpgtbung5nc3e4
+  behaviour_classes/llm.py: bafybeid62q6eitihkmfcpwhbsxjdhmvdvyog6hteulluhsplpe77mpjrpe
   behaviour_classes/mech.py: bafybeiahlqunxnzpci5hjda5dulxjohnqm3lrox3quu2rmupda7tujyodi
-  behaviour_classes/twitter.py: bafybeihmz6ixm5wsthj4k4njgnj4segcjmloggrlbviczqckbovyky73hq
+  behaviour_classes/twitter.py: bafybeicipex7n5mbyqcqsh5pxhbldwwzwxuqqri2sernxe7amfx2tpin4m
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
   handlers.py: bafybeicoq22mtcdmykhj4ou3oj6wsdsavhlm3lokplqc6oe4nklvziwcka
-  models.py: bafybeiaocuchblmjnp3k5fp372pejigfekicylyxxiffplkqbhao27pltm
+  models.py: bafybeihttpkqc4tzsttf3c24tz5327ixazteu7gtfulvgdsl42zwvbdelq
   payloads.py: bafybeibkyns7pplvrfcimq4umyufvvk6of4pbqqkqzmxpqwbwmmshcf6xe
   prompts.py: bafybeihbz456kigtnmlmjsraykxkjnnrgmhgpksfgrphm7nqi2a6fkqvky
   rounds.py: bafybeidqbu2vzfvgozi7ey24iyj2hubrvzjak6udh4gr2udlvfvggozjcu
@@ -33,7 +33,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeieufzdojxahh3ejagdbzroqredi5uvkfgjiwsfod7l7whn2octmmi
-- dvilela/tweepy:0.1.0:bafybeibuaj2odbn666yvbuzfg4nmzpm2abptnxa2jnbkryhbdx5vla6b64
+- dvilela/tweepy:0.1.0:bafybeicxb4kdudg2eysq2kbopgss23smwoccujfpaar6td6egqkw5ovau4
 - dvilela/genai:0.1.0:bafybeihp6t4y7mynitwj3afwet2lr5ittrqmk4hop7ycmgyyx3nqkc5sty
 - valory/http_server:0.22.0:bafybeic3jpkum7g6qo6x6vdrmvvhj7vqw7ec2op72uc3yfhmnlp5hn3joy
 contracts:
@@ -53,7 +53,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
 - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
 - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
-- valory/agent_db_abci:0.1.0:bafybeidyojmjei4ltywtrrgdwem6makkigf7qm3kl5p65dsfb3xphddihy
+- valory/agent_db_abci:0.1.0:bafybeiffsljyu4vhhkdclmymmpndlw42bqeuouahluwk7k7r3djvo4rgpy
 behaviours:
   main:
     args: {}
@@ -197,6 +197,7 @@ models:
       mech_interaction_sleep_time: 10
       use_acn_for_delivers: false
       use_mech_marketplace: true
+      heart_cooldown_hours: 48
       mech_marketplace_config:
         mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
         priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
