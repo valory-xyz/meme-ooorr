@@ -520,6 +520,8 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Fetch and process media data from the database."""
+        ipfs_gateway_url = self.context.params.ipfs_address
+
         with self._db_connection_context():
             with self.db.atomic():
                 media_list = self._get_json_from_db("media-store-list", "[]")
@@ -544,10 +546,10 @@ class HttpHandler(BaseHttpHandler):
 
             if post_id:
                 media_item["postId"] = post_id
-                media_item["path"] = media_item.get("ipfs_gateway_url")
+                media_item["path"] = f"{ipfs_gateway_url}/{media_item.get('ipfs_hash')}"
                 media_item.pop("hash", None)
                 media_item.pop("media_path", None)
-                media_item.pop("ipfs_gateway_url", None)
+                media_item.pop("ipfs_hash", None)
                 processed_media_list.append(media_item)
 
         media_list[:] = processed_media_list
