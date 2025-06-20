@@ -63,6 +63,7 @@ MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
 MAX_TWEET_CHARS = 280
 AGENT_TYPE_NAME = "memeooorr"
+HOUR_TO_SECONDS = 3600
 LIST_COUNT_TO_KEEP = 20
 
 
@@ -215,11 +216,20 @@ class MemeooorrBaseBehaviour(
             error_str = actual_tweepy_result["error"]
             self.context.logger.error(f"Error from Tweepy connection: {error_str}")
 
-            # Check for indicators of a Forbidden error in the error string
+            # Check for indicators of different error types
+            needs_update = False
             if "Forbidden" in error_str or "403" in error_str:
-                self.context.logger.warning(
-                    f"A Tweepy Forbidden error occurred (detected by string content): {error_str}"
+                self.context.logger.error(
+                    f"A Tweepy Forbidden error occurred: {error_str}"
                 )
+                needs_update = True
+            elif "credentials" in error_str.lower():
+                self.context.logger.error(
+                    f"A Tweepy error occurred due to incomplete credentials: {error_str}"
+                )
+                needs_update = True
+
+            if needs_update:
                 self.context.state.env_var_status["needs_update"] = True
                 self.context.state.env_var_status["env_vars"][
                     "TWEEPY_CONSUMER_API_KEY"
@@ -233,7 +243,6 @@ class MemeooorrBaseBehaviour(
                 self.context.state.env_var_status["env_vars"][
                     "TWEEPY_ACCESS_TOKEN_SECRET"
                 ] = error_str
-
                 self.context.state.env_var_status["env_vars"][
                     "TWEEPY_BEARER_TOKEN"
                 ] = error_str
@@ -499,7 +508,18 @@ class MemeooorrBaseBehaviour(
         available_actions: List[str] = []
 
         # Heart
-        if not is_unleashed and meme_data.get("token_nonce", None) != 1:
+        last_heart_timestamp = yield from self._read_json_from_kv(
+            key="last_heart_timestamp", default_value=0
+        )
+        time_since_last_heart = now - datetime.fromtimestamp(
+            float(last_heart_timestamp)
+        )
+        if (
+            not is_unleashed
+            and meme_data.get("token_nonce", None) != 1
+            and time_since_last_heart.total_seconds()
+            > (self.params.heart_cooldown_hours * HOUR_TO_SECONDS)
+        ):
             available_actions.append("heart")
 
         # Unleash
