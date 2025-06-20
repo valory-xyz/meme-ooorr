@@ -516,7 +516,7 @@ class HttpHandler(BaseHttpHandler):
             activities.append(activity)
         return activities
 
-    def _handle_get_media(
+    def _handle_get_media(  # pylint: disable=too-many-locals
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Fetch and process media data from the database."""
