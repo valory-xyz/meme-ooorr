@@ -7,6 +7,14 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
+  agentsfun-ui-build/README.md: bafybeicfwnupegrlzawlzavtpmrwhk7hwtofc4swcnt3f7c2v5t37wzcpm
+  agentsfun-ui-build/assets/agent-agentsfun-logo-Cl82UKSm.png: bafybeia3nla5pruiurpwvzex6bbsgset4k2foerma2iwy5zxmtjidur454
+  agentsfun-ui-build/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
+  agentsfun-ui-build/assets/index-Bcf6Hhk4.js: bafybeidvtjdnkc4nakza3kplvhr3gmsrxa4qkn4j6tyxzrw7b62uo6kvfi
+  agentsfun-ui-build/assets/memecoin-activity-empty-D-dtAKwT.png: bafybeihig5vgaoarjqzcbdoavinqzxkjjlccxnnzfx5275n42kc65gnrzm
+  agentsfun-ui-build/assets/x-activity-empty-eVudZvXV.png: bafybeidv76vrjgsi2xdhie76gqwr2p6t42egap4en4ko7wyumavyrrkify
+  agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
+  agentsfun-ui-build/index.html: bafybeihdstwajhgmnojuq66gwe24yipmc24xrtbddh2ytb5vxqfkn6ehmq
   agentsfun-ui/README.md: bafybeicfwnupegrlzawlzavtpmrwhk7hwtofc4swcnt3f7c2v5t37wzcpm
   agentsfun-ui/assets/agent-agentsfun-logo-Cl82UKSm.png: bafybeia3nla5pruiurpwvzex6bbsgset4k2foerma2iwy5zxmtjidur454
   agentsfun-ui/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
