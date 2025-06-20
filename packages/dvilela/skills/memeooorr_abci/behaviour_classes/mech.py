@@ -122,7 +122,9 @@ class PostMechResponseBehaviour(
                     f"Video downloaded to: {video_path}. Saving metadata..."
                 )
                 # Attempt to save metadata. _save_media_info handles errors and returns True/False
-                save_success = yield from self._save_media_info(video_path, "video")
+                save_success = yield from self._save_media_info(
+                    video_path, "video", video_hash
+                )
                 if save_success:
                     self.context.logger.info("Video metadata saved successfully.")
                     return True
@@ -144,7 +146,9 @@ class PostMechResponseBehaviour(
                     f"Image downloaded to: {image_path}. Saving metadata..."
                 )
                 # Attempt to save metadata. _save_media_info handles errors and returns True/False
-                save_success = yield from self._save_media_info(image_path, "image")
+                save_success = yield from self._save_media_info(
+                    image_path, "image", image_hash
+                )
                 if save_success:
                     self.context.logger.info("Image metadata saved successfully.")
                     return True  # SUCCESS
@@ -156,10 +160,10 @@ class PostMechResponseBehaviour(
         return False  # FAILURE
 
     def _save_media_info(
-        self, media_path: str, media_type: str
+        self, media_path: str, media_type: str, ipfs_hash: str
     ) -> Generator[None, None, bool]:
         """Helper method to save media information to the key-value store. Returns True on success, False on failure."""
-        media_info = {"path": media_path, "type": media_type}
+        media_info = {"path": media_path, "type": media_type, "ipfs_hash": ipfs_hash}
         try:
             yield from self._store_media_info_list(media_info)
 

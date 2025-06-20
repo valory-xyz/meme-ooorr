@@ -75,8 +75,7 @@ ContractApiHandler = BaseContractApiHandler
 TendermintHandler = BaseTendermintHandler
 IpfsHandler = BaseIpfsHandler
 
-# TODO : Modify it according to agents.fun it is currently from optimus
-AGENT_PROFILE_PATH = "agentsfun-ui"
+AGENT_PROFILE_PATH = "agentsfun-ui-build"
 
 
 def camel_to_snake(camel_str: str) -> str:
@@ -476,7 +475,7 @@ class HttpHandler(BaseHttpHandler):
             "type": action_type,
             "timestamp": latest_tweet_action.get("timestamp"),
             "text": action_data.get("text"),
-            "media": action_data.get("media_path", None),
+            "media": [action_data.get("media_ipfs_url", None)],
         }
 
         self._send_ok_response(http_msg, http_dialogue, activity)
@@ -517,10 +516,12 @@ class HttpHandler(BaseHttpHandler):
             activities.append(activity)
         return activities
 
-    def _handle_get_media(
+    def _handle_get_media(  # pylint: disable=too-many-locals
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Fetch and process media data from the database."""
+        ipfs_gateway_url = self.context.params.ipfs_address
+
         with self._db_connection_context():
             with self.db.atomic():
                 media_list = self._get_json_from_db("media-store-list", "[]")
@@ -538,9 +539,20 @@ class HttpHandler(BaseHttpHandler):
             if media_path and tweet_id:
                 media_path_to_tweet_id[media_path] = tweet_id
 
+        processed_media_list = []
         for media_item in media_list:
             path = media_item.get("path")
-            media_item["tweet_id"] = media_path_to_tweet_id.get(path)
+            post_id = media_path_to_tweet_id.get(path)
+
+            if post_id:
+                media_item["postId"] = post_id
+                media_item["path"] = f"{ipfs_gateway_url}/{media_item.get('ipfs_hash')}"
+                media_item.pop("hash", None)
+                media_item.pop("media_path", None)
+                media_item.pop("ipfs_hash", None)
+                processed_media_list.append(media_item)
+
+        media_list[:] = processed_media_list
 
         self._send_ok_response(http_msg, http_dialogue, media_list)  # type: ignore
 

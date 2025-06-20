@@ -259,6 +259,9 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         elif media_type and tweet_payload.get("image_paths", None):
             action_type = "tweet_with_media"
             action_data["media_path"] = tweet_payload.get("image_paths", None)[0]
+            action_data["media_ipfs_hash"] = tweet_payload.get(
+                "image_ipfs_hashes", None
+            )[0]
             action_data["media_type"] = media_type  # type: ignore
             action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
@@ -281,6 +284,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         self,
         text: Union[str, List[str]],
         image_paths: Optional[List[str]] = None,
+        image_ipfs_hashes: Optional[List[str]] = None,
         media_type: Optional[str] = None,
     ) -> Generator[None, None, Optional[Union[Dict, bool]]]:
         """Post a tweet, optionally with media."""
@@ -289,6 +293,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
         if image_paths:
             tweet_payload_for_api["image_paths"] = image_paths
+            tweet_payload_for_api["image_ipfs_hashes"] = image_ipfs_hashes
 
         return (
             yield from self._create_twitter_content(
@@ -1342,10 +1347,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         media_path = media_info.get("path")
         media_type = media_info.get("type")
-
-        if not media_path or not media_type:
+        media_ipfs_hash = media_info.get("ipfs_hash")
+        if not media_path or not media_type or not media_ipfs_hash:
             self.context.logger.error(
-                "Media info from KV store is missing 'path' or 'type'."
+                "Media info from KV store is missing 'path', 'type', or 'ipfs_hash'."
             )
             # Clear potentially incomplete info? Or leave it? Let's clear it for safety.
             yield from self._write_kv({"latest_media_info": ""})
@@ -1368,6 +1373,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         result = yield from self.post_tweet(
             text=text,
             image_paths=[media_path],
+            image_ipfs_hashes=[media_ipfs_hash],
             media_type=media_type,
         )
 

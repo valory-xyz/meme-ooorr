@@ -63,8 +63,8 @@ MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
 MAX_TWEET_CHARS = 280
 AGENT_TYPE_NAME = "memeooorr"
-HOUR_TO_SECONDS = 3600
 LIST_COUNT_TO_KEEP = 20
+HOUR_TO_SECONDS = 3600
 
 
 TOKENS_QUERY = """
