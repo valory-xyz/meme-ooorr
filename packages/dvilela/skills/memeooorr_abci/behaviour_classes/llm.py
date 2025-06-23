@@ -301,12 +301,19 @@ class ActionDecisionBehaviour(
             )
             tweet = new_tweet or tweet
 
-            token_name = action.get("token_name", None)
-            token_ticker = action.get("token_ticker", None)
-            token_supply = action.get("token_supply", None)
             amount = int(action.get("amount", 0))
             token_nonce = action.get("token_nonce", None)
-            token_address = action.get("token_address", None)
+
+            if isinstance(token_nonce, str) and token_nonce.isdigit():
+                token_nonce = int(token_nonce)
+
+            # we need to get the token_name, token_ticker, token_supply, token_address from the meme_coins list by matching the token_nonce from the action
+            (
+                token_name,
+                token_ticker,
+                token_supply,
+                token_address,
+            ) = self._get_token_details(action_name, action, token_nonce)
 
             if isinstance(token_nonce, str) and token_nonce.isdigit():
                 token_nonce = int(token_nonce)
@@ -387,7 +394,14 @@ class ActionDecisionBehaviour(
                     int(getattr(self.params, f"max_summon_amount_{chain_id}") * 1e18),
                 )
 
-                if token_name.lower() in ["olas"] or token_ticker.lower() in ["olas"]:
+                if (
+                    token_name
+                    and token_ticker
+                    and (
+                        token_name.lower() in ["olas"]
+                        or token_ticker.lower() in ["olas"]
+                    )
+                ):
                     raise ValueError(
                         f"Cannot summon token with name/ticker {token_name}/{token_ticker}. Invalid name or ticker."
                     )
@@ -442,3 +456,28 @@ class ActionDecisionBehaviour(
                 None,
                 current_timestamp,
             )
+
+    def _get_token_details(
+        self,
+        action_name: str,
+        action: Dict[str, Any],
+        token_nonce: Optional[int],
+    ) -> Tuple[Optional[str], Optional[str], Optional[Any], Optional[str]]:
+        """Get token details based on the action."""
+        token_name = None
+        token_ticker = None
+        token_supply = None
+        token_address = None
+
+        if action_name == "summon":
+            token_name = action.get("token_name")
+            token_ticker = action.get("token_ticker")
+            token_supply = action.get("token_supply")
+        elif token_nonce is not None:
+            for meme_coin in self.synchronized_data.meme_coins:
+                if meme_coin["token_nonce"] == token_nonce:
+                    token_name = meme_coin.get("token_name")
+                    token_ticker = meme_coin.get("token_ticker")
+                    token_address = meme_coin.get("token_address")
+                    break
+        return token_name, token_ticker, token_supply, token_address

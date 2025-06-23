@@ -20,13 +20,16 @@
 """This module contains the handlers for the skill of MemeooorrAbciApp."""
 
 import json
+import mimetypes
 import re
+from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, Generator, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
+import peewee
 import yaml
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -71,6 +74,8 @@ LedgerApiHandler = BaseLedgerApiHandler
 ContractApiHandler = BaseContractApiHandler
 TendermintHandler = BaseTendermintHandler
 IpfsHandler = BaseIpfsHandler
+
+AGENT_PROFILE_PATH = "agentsfun-ui-build"
 
 
 def camel_to_snake(camel_str: str) -> str:
@@ -132,6 +137,26 @@ class HttpMethod(Enum):
     POST = "post"
 
 
+# Create a DatabaseProxy instance at the module level
+db = peewee.DatabaseProxy()
+
+
+class BaseModel(peewee.Model):
+    """Base model for peewee"""
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for peewee"""
+
+        database = db
+
+
+class Store(BaseModel):
+    """Database Store table"""
+
+    key = peewee.CharField(unique=True)
+    value = peewee.CharField()
+
+
 class HttpHandler(BaseHttpHandler):
     """This implements the echo handler."""
 
@@ -139,6 +164,7 @@ class HttpHandler(BaseHttpHandler):
 
     def setup(self) -> None:
         """Implement the setup."""
+
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
         ).hostname
@@ -151,11 +177,20 @@ class HttpHandler(BaseHttpHandler):
             rf"{hostname_regex}\/.*"
         )
         health_url_regex = rf"{hostname_regex}\/healthcheck"
-
+        agent_details_url_regex = rf"{hostname_regex}\/agent-info"
+        x_activity_url_regex = rf"{hostname_regex}\/x-activity"
+        meme_coins_url_regex = rf"{hostname_regex}\/memecoin-activity"
+        media_url_regex = rf"{hostname_regex}\/media"
+        static_files_regex = rf"{hostname_regex}\/(.*)"
         # Routes
         self.routes = {  # pylint: disable=attribute-defined-outside-init
             (HttpMethod.GET.value, HttpMethod.HEAD.value): [
-                (health_url_regex, self._handle_get_health)
+                (health_url_regex, self._handle_get_health),
+                (agent_details_url_regex, self._handle_get_agent_details),
+                (x_activity_url_regex, self._handle_get_recent_x_activity),
+                (meme_coins_url_regex, self._handle_get_meme_coins),
+                (media_url_regex, self._handle_get_media),
+                (static_files_regex, self._handle_get_static_file),
             ],
         }
 
@@ -175,6 +210,37 @@ class HttpHandler(BaseHttpHandler):
             self.rounds_info[source_round]["transitions"][  # type: ignore
                 event.lower()
             ] = camel_to_snake(target_round)
+        # TODO : Modify it according to agents.fun it is currently from optimus
+        self.agent_profile_path = (  # pylint: disable=attribute-defined-outside-init
+            AGENT_PROFILE_PATH
+        )
+
+    @contextmanager
+    def _db_connection_context(self) -> Generator:
+        """A context manager for database connections."""
+        self.db_connect()
+        try:
+            yield
+        finally:
+            self.db_disconnect()
+
+    def db_connect(self) -> None:
+        """Connect to the database."""
+
+        store_path_prefix = self.context.params.store_path
+
+        db_path = Path(store_path_prefix) / "memeooorr.db"  # nosec
+        self.db = (  # pylint: disable=attribute-defined-outside-init
+            peewee.SqliteDatabase(db_path)
+        )
+        db.initialize(self.db)  # Initialize the proxy with the concrete db instance
+        self.db.connect()
+        # We know the table is created by KvStoreConnection
+
+    def db_disconnect(self) -> None:
+        """Teardown the handler."""
+        if hasattr(self, "db") and self.db and not self.db.is_closed():
+            self.db.close()
 
     @property
     def synchronized_data(self) -> SynchronizedData:
@@ -348,23 +414,235 @@ class HttpHandler(BaseHttpHandler):
 
         self._send_ok_response(http_msg, http_dialogue, data)
 
+    def _get_json_from_db(self, key: str, default: str = "{}") -> Union[Dict, List]:
+        """Get a JSON value from the database."""
+        record = Store.get_or_none(Store.key == key)
+        value = record.value if record and record.value else default
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            self.context.logger.warning(
+                f"Could not decode JSON for key {key}, value: {value}"
+            )
+            return json.loads(default)
+
+    def _handle_get_agent_details(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+
+        agent_details = self.synchronized_data.agent_details
+        self.context.logger.info(f"Agent details: {agent_details}")
+        if not agent_details:
+            self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
+            return
+
+        data = {
+            "address": agent_details.get("safe_address"),
+            "username": agent_details.get("twitter_username"),
+            "name": agent_details.get("twitter_display_name"),
+            "personaDescription": agent_details.get("persona"),
+        }
+
+        self._send_ok_response(http_msg, http_dialogue, data)
+
+    def _handle_get_recent_x_activity(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+
+        ipfs_gateway_url = self.context.params.ipfs_address
+
+        with self._db_connection_context():
+            with self.db.atomic():
+                agent_actions = self._get_json_from_db("agent_actions", "{}")
+
+        tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
+        if not tweet_actions:
+            self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
+            return
+
+        latest_tweet_action = tweet_actions[-1]
+
+        action_data = latest_tweet_action.get("action_data", {})
+        action_type = latest_tweet_action.get("action_type")
+
+        # if the latest tweet actoin is follow then we fetch user_id as postId
+        if action_type == "follow":
+            postId = action_data.get("username")
+        else:
+            postId = action_data.get("tweet_id")
+
+        activity = {
+            "postId": postId,
+            "type": action_type,
+            "timestamp": latest_tweet_action.get("timestamp"),
+            "text": action_data.get("text"),
+            "media": [f"{ipfs_gateway_url}/{action_data.get('media_ipfs_hash', None)}"],
+        }
+
+        self._send_ok_response(http_msg, http_dialogue, activity)
+
+    def _handle_get_meme_coins(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a Http request of verb GET."""
+        activities = self._get_latest_token_activities()
+        self._send_ok_response(http_msg, http_dialogue, activities)  # type: ignore
+
+    def _get_latest_token_activities(self, limit: int = 1) -> Optional[List[Dict]]:
+        """Get the latest token activities from the database."""
+        with self._db_connection_context():
+            with self.db.atomic():
+                agent_actions = self._get_json_from_db("agent_actions", "{}")
+
+        token_actions = agent_actions.get("token_action", [])  # type: ignore
+
+        if not token_actions:
+            return None
+
+        activities = []
+        # Get the last action, or fewer if not that many exist
+        for token_action in token_actions[-limit:]:
+            token_address = token_action.get("token_address")
+            tweet_id = token_action.get("tweet_id")
+            activity = {
+                "type": token_action.get("action"),
+                "timestamp": token_action.get("timestamp"),
+                "postId": tweet_id if tweet_id else None,
+                "token": {
+                    "address": token_address if token_address else None,
+                    "nonce": token_action.get("token_nonce"),
+                    "symbol": token_action.get("token_ticker"),
+                },
+            }
+            activities.append(activity)
+        return activities
+
+    def _handle_get_media(  # pylint: disable=too-many-locals
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Fetch and process media data from the database."""
+        ipfs_gateway_url = self.context.params.ipfs_address
+
+        with self._db_connection_context():
+            with self.db.atomic():
+                media_list = self._get_json_from_db("media-store-list", "[]")
+                if not media_list:
+                    self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
+                    return
+                agent_actions = self._get_json_from_db("agent_actions", "{}")
+
+        tweet_actions = agent_actions.get("tweet_action", [])  # type: ignore
+        media_path_to_tweet_id = {}
+        for tweet_action in tweet_actions:
+            action_data = tweet_action.get("action_data", {})
+            media_path = action_data.get("media_path")
+            tweet_id = action_data.get("tweet_id")
+            if media_path and tweet_id:
+                media_path_to_tweet_id[media_path] = tweet_id
+
+        processed_media_list = []
+        for media_item in media_list:
+            path = media_item.get("path")
+            post_id = media_path_to_tweet_id.get(path)
+
+            if post_id:
+                media_item["postId"] = post_id
+                media_item["path"] = f"{ipfs_gateway_url}/{media_item.get('ipfs_hash')}"
+                media_item.pop("hash", None)
+                media_item.pop("media_path", None)
+                media_item.pop("ipfs_hash", None)
+                processed_media_list.append(media_item)
+
+        media_list[:] = processed_media_list
+
+        self._send_ok_response(http_msg, http_dialogue, media_list)  # type: ignore
+
+    def _handle_get_static_file(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a HTTP GET request for a static file.
+
+        This handler also serves the `index.html` file for any path that does not
+        correspond to an existing static file, which is a common pattern for
+        Single Page Applications (SPAs).
+
+        :param http_msg: the HTTP message
+        :param http_dialogue: the HTTP dialogue
+        """
+        requested_path = urlparse(http_msg.url).path.lstrip("/")
+        file_path = Path(Path(__file__).parent, self.agent_profile_path, requested_path)
+
+        # Check if the requested path points to an existing file.
+        if file_path.is_file():
+            # If it's a file, serve it directly.
+            with open(file_path, "rb") as file:
+                file_content = file.read()
+
+            # Determine the content type based on the file extension
+            content_type, _ = mimetypes.guess_type(file_path)
+            if content_type is None:
+                content_type = "application/octet-stream"
+
+            # Send the file content as a response
+            self._send_ok_response(http_msg, http_dialogue, file_content, content_type)
+            return
+
+        #    and fall back to serving `index.html`.
+        index_path = Path(Path(__file__).parent, self.agent_profile_path, "index.html")
+
+        # Check if `index.html` exists before trying to serve it.
+        if not index_path.is_file():
+            # If `index.html` is missing, the application is misconfigured.
+            self._send_not_found_response(http_msg, http_dialogue)
+            return
+
+        # Serve the `index.html` file.
+        with open(index_path, "r", encoding="utf-8") as file:
+            index_html = file.read()
+        self._send_ok_response(http_msg, http_dialogue, index_html, "text/html")
+
     def _send_ok_response(
         self,
         http_msg: HttpMessage,
         http_dialogue: HttpDialogue,
-        data: Union[Dict, List, str],
+        data: Union[Dict, List, str, bytes],
+        content_type: Optional[str] = None,
     ) -> None:
         """Send an OK response with the provided data"""
+
+        body_bytes: bytes
+        headers: str
+
+        if isinstance(data, bytes):
+            body_bytes = data
+            header_content_type = (
+                f"Content-Type: {content_type}\n"
+                if content_type
+                else self.json_content_header
+            )
+            headers = f"{header_content_type}{http_msg.headers}"
+        elif isinstance(data, str):
+            body_bytes = data.encode("utf-8")
+            header_content_type = (
+                f"Content-Type: {content_type}\n"
+                if content_type
+                else self.html_content_header
+            )
+            headers = f"{header_content_type}{http_msg.headers}"
+        else:
+            body_bytes = json.dumps(data).encode("utf-8")
+            headers = f"{self.json_content_header}{http_msg.headers}"
+
         http_response = http_dialogue.reply(
             performative=HttpMessage.Performative.RESPONSE,
             target_message=http_msg,
             version=http_msg.version,
             status_code=OK_CODE,
             status_text="Success",
-            headers=f"{self.html_content_header}{http_msg.headers}"
-            if isinstance(data, str)
-            else f"{self.json_content_header}{http_msg.headers}",
-            body=(data if isinstance(data, str) else json.dumps(data)).encode("utf-8"),
+            headers=headers,
+            body=body_bytes,
         )
 
         # Send response

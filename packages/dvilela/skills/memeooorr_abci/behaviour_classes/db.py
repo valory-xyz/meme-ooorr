@@ -19,6 +19,7 @@
 
 """This package contains round behaviours of MemeooorrAbciApp."""
 
+import json
 from typing import Generator, Type
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
@@ -46,10 +47,12 @@ class LoadDatabaseBehaviour(
             persona = yield from self.load_db()
             yield from self.populate_keys_in_kv()
             yield from self.init_own_twitter_details()
+            agent_details = self.gather_agent_details(persona)
 
             payload = LoadDatabasePayload(
                 sender=self.context.agent_address,
                 persona=persona,
+                agent_details=agent_details,
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
@@ -90,3 +93,15 @@ class LoadDatabaseBehaviour(
                     )
                 }
             )
+
+    def gather_agent_details(self, persona: str) -> str:
+        """Write the agent details to the db."""
+        agent_details = {
+            "twitter_username": self.context.agents_fun_db.my_agent.twitter_username,
+            "twitter_user_id": self.context.agents_fun_db.my_agent.twitter_user_id,
+            "safe_address": self.synchronized_data.safe_contract_address,
+            "persona": persona,
+            "twitter_display_name": self.context.state.twitter_display_name,
+        }
+        agent_details_str = json.dumps(agent_details)
+        return agent_details_str
