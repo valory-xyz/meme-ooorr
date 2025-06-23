@@ -360,13 +360,17 @@ def build_token_action_schema() -> dict:
     return {"class": pickle.dumps(TokenAction).hex(), "is_list": False}
 
 
-# TODO: Make this generic, not just for persona
 CHATUI_PROMPT = """
-You are an assistant tasked with refining the persona of an autonomous agent based on user input.
+You are an expert assistant responsible for updating the configuration of an agent based on user input.
 
-- The agent's current persona is: "{current_persona}"
+The agent's current configuration is:
+- persona: "{current_persona}"
+    (Note: Enhance or refine the persona to better align with the user's intent, but preserve the agent's core identity. Avoid completely replacing it unless explicitly requested.)
+- heart_cooldown_hours: {current_heart_cooldown_hours}
+    (Note: Replace this value fully if the user specifies a new heart cooldown.)
+    (Threshold: >=24. If the user requests a value below 24, set it to 24.)
 
-Carefully review the following user prompt and determine the most appropriate updated persona for the agent. The updated persona should reflect the user's intent and be clearly expressed. If the user prompt does not provide enough information to adjust the persona, or if it is simply a greeting or unrelated, return an empty persona. When updating, aim to enhance or adjust the existing persona rather than completely replacing it, so the agent maintains its core identity.
+Carefully analyze the following user prompt and determine the most appropriate updates for the agent. If the prompt lacks sufficient information to make a meaningful change (e.g., it is a greeting or off-topic), return empty values for all fields. Empty values signify no change to that field. If only one field has changed, keep the other field empty.
 
 User prompt: "{user_prompt}"
 """
@@ -376,7 +380,8 @@ User prompt: "{user_prompt}"
 class UpdatedAgentConfig:
     """UpdatedAgentConfig"""
 
-    agent_persona: str
+    agent_persona: typing.Optional[str]
+    heart_cooldown_hours: typing.Optional[int]
 
 
 def build_updated_agent_config_schema() -> dict:

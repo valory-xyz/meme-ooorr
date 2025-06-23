@@ -116,6 +116,11 @@ class SynchronizedData(BaseSynchronizedData):
         return cast(str, self.db.get("persona", None))
 
     @property
+    def heart_cooldown_hours(self) -> Optional[int]:
+        """Get the heart cooldown hours."""
+        return cast(int, self.db.get("heart_cooldown_hours", None))
+
+    @property
     def meme_coins(self) -> List[Dict]:
         """Get the meme_coins."""
         return cast(list, json.loads(cast(str, self.db.get("meme_coins", "[]"))))
@@ -242,7 +247,10 @@ class LoadDatabaseRound(CollectSameUntilThresholdRound):
     payload_class = LoadDatabasePayload
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participants_to_db)
-    selection_key = (get_name(SynchronizedData.persona),)
+    selection_key = (
+        get_name(SynchronizedData.persona),
+        get_name(SynchronizedData.heart_cooldown_hours),
+    )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -259,6 +267,9 @@ class LoadDatabaseRound(CollectSameUntilThresholdRound):
                 synchronized_data_class=SynchronizedData,
                 **{
                     get_name(SynchronizedData.persona): payload.persona,
+                    get_name(
+                        SynchronizedData.heart_cooldown_hours
+                    ): payload.heart_cooldown_hours,
                     get_name(SynchronizedData.agent_details): payload.agent_details,
                 },
             )

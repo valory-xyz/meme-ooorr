@@ -379,50 +379,76 @@ class MemeooorrBaseBehaviour(
         """Get the synchronized time from Tendermint's last block."""
         return self.get_sync_datetime().strftime("%Y-%m-%d %H:%M:%S")
 
-    def get_persona(self) -> Generator[None, None, str]:
-        """Get the agent persona"""
+    def _get_configurable_param(
+        self,
+        param_name: str,
+        initial_param_name: str,
+    ) -> Generator[None, None, Any]:
+        """
+        Generic helper to get a configurable parameter from synchronized data, DB, or config.
 
-        # If the persona is already in the synchronized data, return it
-        if self.synchronized_data.persona:
-            return self.synchronized_data.persona
+        :param param_name: The name of the parameter in the DB.
+        :param initial_param_name: The name of the initial parameter in the DB.
+        :return: The resolved parameter value.
+        """
+        # Try synchronized data first
+        if hasattr(self.synchronized_data, param_name):
+            value = getattr(self.synchronized_data, param_name)
+            if value:
+                return value
 
         # If we reach this point, the agent has just started
-        persona_config = self.params.persona
+        config_value = getattr(self.params, param_name)
 
-        # Try getting the persona from the db
-        db_data = yield from self.read_kv(keys=("persona", "initial_persona"))
-
+        # Try getting from DB
+        db_data = yield from self.read_kv(keys=(param_name, initial_param_name))
         if not db_data:
             self.context.logger.error(
-                "Error while loading the database. Falling back to the config."
+                f"Error while loading the database for {param_name}. Falling back to the config."
             )
-            return persona_config
+            return config_value
 
-        # Load values from the config and database
-        initial_persona_db = db_data.get("initial_persona", None)
-        persona_db = db_data.get("persona", None)
+        initial_db = db_data.get(initial_param_name, None)
+        param_db = db_data.get(param_name, None)
 
-        # If the initial persona is not in the db, we need to store it
-        if initial_persona_db is None:
-            yield from self.write_kv({"initial_persona": persona_config})
-            initial_persona_db = persona_config
+        # If the initial value is not in the db, store it
+        if initial_db is None:
+            yield from self.write_kv({initial_param_name: config_value})
+            initial_db = config_value
 
-        # If the persona is not in the db, this is the first run
-        if persona_db is None:
-            yield from self.write_kv({"persona": persona_config})
-            persona_db = persona_config
+        # If the param is not in the db, store it
+        if param_db is None:
+            yield from self.write_kv({param_name: config_value})
+            param_db = config_value
 
-        # If the configured persona does not match the initial persona in the db,
+        # If the configured value does not match the initial value in the db,
         # the user has reconfigured it and we need to update it:
-        if persona_config != initial_persona_db:
+        if config_value != initial_db:
             yield from self.write_kv(
-                {"persona": persona_config, "initial_persona": persona_config}
+                {param_name: config_value, initial_param_name: config_value}
             )
-            initial_persona_db = persona_config
-            persona_db = persona_config
+            initial_db = config_value
+            param_db = config_value
 
-        # At this point, the db in the persona is the correct one
-        return persona_db
+        # At this point, the param in the db is the correct one
+        return param_db
+
+    def get_persona(self) -> Generator[None, None, str]:
+        """Get the agent persona"""
+        return (
+            yield from self._get_configurable_param(
+                param_name="persona", initial_param_name="initial_persona"
+            )
+        )
+
+    def get_heart_cooldown_hours(self) -> Generator[None, None, int]:
+        """Get the cooldown hours for hearting"""
+        return (
+            yield from self._get_configurable_param(
+                param_name="heart_cooldown_hours",
+                initial_param_name="initial_heart_cooldown_hours",
+            )
+        )
 
     def get_native_balance(self) -> Generator[None, None, dict]:
         """Get the native balance"""

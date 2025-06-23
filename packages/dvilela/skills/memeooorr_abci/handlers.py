@@ -26,7 +26,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Dict, Generator, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
 import peewee
@@ -473,8 +473,8 @@ class HttpHandler(BaseHttpHandler):
             return json.loads(default)
 
     @staticmethod
-    def _get_value_from_db(key: str, default: str = "") -> str:
-        """Get a JSON value from the database."""
+    def _get_value_from_db(key: str, default: Any = "") -> Any:
+        """Get a value from the database."""
         record = Store.get_or_none(Store.key == key)
         value = record.value if record and record.value else default
         return value
@@ -708,11 +708,15 @@ class HttpHandler(BaseHttpHandler):
         with self._db_connection_context():
             with self.db.atomic():
                 current_persona = self._get_value_from_db("persona", "")
+                current_heart_cooldown_hours = self._get_value_from_db(
+                    "heart_cooldown_hours", None
+                )
 
         # Format the prompt
         prompt_template = CHATUI_PROMPT.format(
             user_prompt=user_prompt,
             current_persona=current_persona,
+            current_heart_cooldown_hours=current_heart_cooldown_hours,
         )
 
         # Prepare payload data
@@ -762,27 +766,46 @@ class HttpHandler(BaseHttpHandler):
 
         llm_response = json.loads(llm_response_message.payload).get("response", "{}")
         updated_persona = json.loads(llm_response).get("agent_persona", None)
+        updated_heart_cooldown_hours = json.loads(llm_response).get(
+            "heart_cooldown_hours", None
+        )
+
+        updated_params = {}
 
         if updated_persona:
-            self.context.logger.info(f"Updated persona: {updated_persona}")
             # Update the persona in the database
             with self._db_connection_context():
                 with self.db.atomic():
                     self._set_value_to_db("persona", updated_persona)
-            self._send_ok_response(
-                http_msg,
-                http_dialogue,
-                {
-                    "updated_persona": updated_persona,
-                    "message": "Persona updated successfully",
-                },
+            updated_params.update({"persona": updated_persona})
+            self.context.logger.info(f"Updated persona: {updated_persona}")
+
+        if updated_heart_cooldown_hours:
+            # Update the persona in the database
+            with self._db_connection_context():
+                with self.db.atomic():
+                    self._set_value_to_db(
+                        "heart_cooldown_hours", updated_heart_cooldown_hours
+                    )
+            updated_params.update(
+                {"heart_cooldown_hours": updated_heart_cooldown_hours}
             )
-        else:
-            self._send_ok_response(
-                http_msg,
-                http_dialogue,
-                {"updated_persona": "", "message": "Persona not updated"},
+            self.context.logger.info(
+                f"Updated heart_cooldown_hours: {updated_heart_cooldown_hours}"
             )
+
+        self._send_ok_response(
+            http_msg,
+            http_dialogue,
+            {
+                "updated_params": updated_params,
+                "message": (
+                    "Params successfully updated"
+                    if updated_params
+                    else "No Params updated"
+                ),
+            },
+        )
 
     def _send_ok_response(
         self,

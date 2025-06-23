@@ -30,6 +30,7 @@ class LoadDatabasePayload(BaseTxPayload):
     """Represent a transaction payload for the LoadDatabaseRound."""
 
     persona: str
+    heart_cooldown_hours: int
     agent_details: str
 
 
