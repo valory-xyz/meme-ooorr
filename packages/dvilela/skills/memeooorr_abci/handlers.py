@@ -473,12 +473,16 @@ class HttpHandler(BaseHttpHandler):
         else:
             postId = action_data.get("tweet_id")
 
+        if action_type == "tweet_with_media":
+            action_data["media"] = [
+                f"{ipfs_gateway_url}/{action_data.get('media_ipfs_hash', None)}"
+            ]
+
         activity = {
             "postId": postId,
             "type": action_type,
             "timestamp": latest_tweet_action.get("timestamp"),
             "text": action_data.get("text"),
-            "media": [f"{ipfs_gateway_url}/{action_data.get('media_ipfs_hash', None)}"],
         }
 
         self._send_ok_response(http_msg, http_dialogue, activity)
