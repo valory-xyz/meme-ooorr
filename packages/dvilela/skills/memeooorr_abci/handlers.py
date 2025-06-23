@@ -695,9 +695,6 @@ class HttpHandler(BaseHttpHandler):
         :param http_dialogue: the HttpDialogue instance
         """
 
-        request_id = http_dialogue.dialogue_label.dialogue_reference[0]
-        self.context.state.request_queue.append(request_id)
-
         # Parse incoming data
         data = json.loads(http_msg.body.decode("utf-8"))
         user_prompt = data.get("prompt", "")
