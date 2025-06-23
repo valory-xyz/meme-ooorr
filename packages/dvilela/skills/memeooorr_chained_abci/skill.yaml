@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: The chained abci for the memeooorr skill.
 license: Apache-2.0
-aea_version: ">=1.0.0, <2.0.0"
+aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeiacqbub377oj2uvkw3lu2u43zv5rpdd2z4jx7dailiffqttksds24
   behaviours.py: bafybeiabl3v5527rgeyehgexmfbfvya5gipr6buurvjr7rh5mhu67dwnwq
@@ -18,13 +18,13 @@ connections: []
 contracts: []
 protocols: []
 skills:
-  - valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
-  - valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
-  - valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
-  - valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
-  - valory/termination_abci:0.1.0:bafybeianygjbwmt4xrq77pfl3yzcokbjfzxmuru6j2k7a3boqc2qfb7shi
-  - dvilela/memeooorr_abci:0.1.0:bafybeib2eqynra4hry4jreyysvb263owprcmwwag7ownspfvsfiu6lpydq
-  - valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
+- valory/abstract_round_abci:0.1.0:bafybeifclzgoyulkyyigcwrqzmydyrj6c5d26xu7jk6cjbsed3pkls4pba
+- valory/registration_abci:0.1.0:bafybeigt7bmrfhet7fyafqojl2i5uhzvpaz5wfv6kuk5ojwhhnhmg3qihu
+- valory/reset_pause_abci:0.1.0:bafybeicskv7u3mtfhi7nnoyw3bppwjof63izs4jgqdddtxicoea26t2n7i
+- valory/transaction_settlement_abci:0.1.0:bafybeid4alawv3oz4gdyom5uevrgzfsahbwabi37r7gomsetwqiq66g6cm
+- valory/termination_abci:0.1.0:bafybeianygjbwmt4xrq77pfl3yzcokbjfzxmuru6j2k7a3boqc2qfb7shi
+- dvilela/memeooorr_abci:0.1.0:bafybeibdv5n3do4wsvaicfeszojq6dr6fkcbi7ow4hi2uvwtn57nflkrpu
+- valory/mech_interact_abci:0.1.0:bafybeibhigcn46vxrqwcmygin4v442qknyklmuaufyre2npca26sbmkdvu
 behaviours:
   main:
     args: {}
@@ -83,22 +83,22 @@ models:
       cleanup_history_depth_current: null
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       genesis_config:
-        genesis_time: "2022-09-26T00:00:00.000000000Z"
+        genesis_time: '2022-09-26T00:00:00.000000000Z'
         chain_id: chain-c4daS1
         consensus_params:
           block:
-            max_bytes: "22020096"
-            max_gas: "-1"
-            time_iota_ms: "1000"
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
           evidence:
-            max_age_num_blocks: "100000"
-            max_age_duration: "172800000000000"
-            max_bytes: "1048576"
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
           validator:
             pub_key_types:
-              - ed25519
+            - ed25519
           version: {}
-        voting_power: "10"
+        voting_power: '10'
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120
@@ -119,7 +119,7 @@ models:
       service_registry_address: null
       setup:
         all_participants: []
-        safe_contract_address: "0x0000000000000000000000000000000000000000"
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
         consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 1
@@ -144,17 +144,17 @@ models:
       service_endpoint: memeooorr.dummy.com/
       minimum_gas_balance: 0.001
       min_feedback_replies: 10
-      meme_factory_address_base: "0x82a9c823332518c32a0c0edc050ef00934cf04d4"
-      meme_factory_address_celo: "0xeea5f1e202dc43607273d54101ff8b58fb008a99"
+      meme_factory_address_base: '0x82a9c823332518c32a0c0edc050ef00934cf04d4'
+      meme_factory_address_celo: '0xeea5f1e202dc43607273d54101ff8b58fb008a99'
       meme_factory_deployment_block_base: 23540622
       meme_factory_deployment_block_celo: 29323752
-      olas_token_address_base: "0x54330d28ca3357F294334BDC454a032e7f353416"
-      olas_token_address_celo: "0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51"
+      olas_token_address_base: '0x54330d28ca3357F294334BDC454a032e7f353416'
+      olas_token_address_celo: '0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51'
       persona: a cat lover that is crazy about all-things cats.
       store_path: /data
       home_chain_id: BASE
-      service_registry_address_base: "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE"
-      service_registry_address_celo: "0xE3607b00E75f6405248323A9417ff6b39B244b50"
+      service_registry_address_base: '0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE'
+      service_registry_address_celo: '0xE3607b00E75f6405248323A9417ff6b39B244b50'
       meme_subgraph_url: https://agentsfun-indexer-production.up.railway.app
       skip_engagement: false
       min_summon_amount_base: 0.01
@@ -163,23 +163,22 @@ models:
       min_summon_amount_celo: 10.0
       max_summon_amount_celo: 20.0
       max_heart_amount_celo: 0.2
-      staking_token_contract_address: "0x0000000000000000000000000000000000000000"
-      activity_checker_contract_address: "0x0000000000000000000000000000000000000000"
+      staking_token_contract_address: '0x0000000000000000000000000000000000000000'
+      activity_checker_contract_address: '0x0000000000000000000000000000000000000000'
       tx_loop_breaker_count: 3
       tools_for_mech:
-        google_image_gen:
-          This tool generates an image based on a given prompt using
+        google_image_gen: This tool generates an image based on a given prompt using
           the StabilityAI Stable Diffusion v1.6 model
         short_maker: This tool generates a short video based on a given prompt
       mech_request_price: 100
-      mech_contract_address: "0xe535D7AcDEeD905dddcb5443f41980436833cA2B"
+      mech_contract_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
       mech_chain_id: base
       mech_interaction_sleep_time: 10
       agent_registry_address: ${AGENT_REGISTRY_ADDRESS:str:0x0000000000000000000000000000000000000000}
       use_mech_marketplace: true
       mech_marketplace_config:
-        mech_marketplace_address: "0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020"
-        priority_mech_address: "0xe535D7AcDEeD905dddcb5443f41980436833cA2B"
+        mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
+        priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
         response_timeout: 300
       use_acn_for_delivers: false
       summon_cooldown_seconds: 2592000
@@ -218,7 +217,7 @@ models:
       response_key: result
       response_type: str
       retries: 5
-      url: ""
+      url: ''
     class_name: MechResponseSpecs
   requests:
     args: {}
