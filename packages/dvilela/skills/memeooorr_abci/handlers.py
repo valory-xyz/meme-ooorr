@@ -132,7 +132,6 @@ class SrrHandler(AbstractResponseHandler):
             self.context.logger.warning(
                 f"SRR performative not recognized: {srr_msg.performative}"
             )
-            self.context.state.in_flight_req = False
             return
 
         nonce = srr_msg.dialogue_reference[
@@ -145,7 +144,6 @@ class SrrHandler(AbstractResponseHandler):
         else:
             dialogue = self.context.srr_dialogues.update(srr_msg)
             callback(srr_msg, dialogue, **kwargs)
-            self.context.state.in_flight_req = False
 
 
 class KvStoreHandler(AbstractResponseHandler):
@@ -683,7 +681,6 @@ class HttpHandler(BaseHttpHandler):
         self.context.outbox.put_message(message=message)
         nonce = dialogue.dialogue_label.dialogue_reference[0]
         self.context.state.req_to_callback[nonce] = (callback, callback_kwargs or {})
-        self.context.state.in_flight_req = True
 
     def _handle_post_process_prompt(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue

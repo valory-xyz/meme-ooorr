@@ -53,7 +53,6 @@ class SharedState(BaseSharedState):
         self.twitter_username: Optional[str] = None
         self.twitter_id: Optional[str] = None
 
-        self.in_flight_req: bool = False
         self.req_to_callback: Dict[str, Tuple[Callable, Dict[str, Any]]] = {}
 
 
