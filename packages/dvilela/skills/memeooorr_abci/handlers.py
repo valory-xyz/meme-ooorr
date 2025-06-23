@@ -561,6 +561,10 @@ class HttpHandler(BaseHttpHandler):
 
         media_list[:] = processed_media_list
 
+        if not media_list:
+            self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
+            return
+
         self._send_ok_response(http_msg, http_dialogue, media_list)  # type: ignore
 
     def _handle_get_static_file(
