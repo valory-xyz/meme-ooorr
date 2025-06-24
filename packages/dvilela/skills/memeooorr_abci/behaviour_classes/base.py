@@ -450,6 +450,16 @@ class MemeooorrBaseBehaviour(
             )
         )
 
+    def get_summon_cooldown_seconds(self) -> Generator[None, None, int]:
+        """Get the cooldown seconds for summoning"""
+        return (
+            yield from self._get_configurable_param(
+                param_name="summon_cooldown_seconds",
+                initial_param_name="initial_summon_cooldown_seconds",
+                param_type=int,
+            )
+        )
+
     def get_native_balance(self) -> Generator[None, None, dict]:
         """Get the native balance"""
 

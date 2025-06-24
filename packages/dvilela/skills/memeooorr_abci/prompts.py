@@ -370,6 +370,9 @@ The agent's current configuration is:
 - heart_cooldown_hours: {current_heart_cooldown_hours}
     (Note: Replace this value fully if the user specifies a new heart cooldown.)
     (Threshold: >=24. If the user requests a value below 24, set it to 24.)
+- summon_cooldown_seconds: {current_summon_cooldown_seconds}
+    (Note: Replace this value fully if the user specifies a new summon cooldown.)
+    (Threshold: >=2592000. This equates to 48 hours. If the user requests a value below 22592000, set it to 2592000.)
 
 Carefully analyze the following user prompt and determine the most appropriate updates for the agent. If the prompt lacks sufficient information to make a meaningful change (e.g., it is a greeting or off-topic), return empty values for all fields. Empty values signify no change to that field. If only one field has changed, keep the other field empty.
 
@@ -383,6 +386,7 @@ class UpdatedAgentConfig:
 
     agent_persona: typing.Optional[str]
     heart_cooldown_hours: typing.Optional[int]
+    summon_cooldown_seconds: typing.Optional[int]
 
 
 def build_updated_agent_config_schema() -> dict:

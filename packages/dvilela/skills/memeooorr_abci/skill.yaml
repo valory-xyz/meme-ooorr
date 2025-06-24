@@ -17,20 +17,20 @@ fingerprint:
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui-build/index.html: bafybeiha3kqus3i3d45npqt4bzpxybkxqlaqev7sid5h34k5cygcm2xsmy
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeibimennz4auotesumeezgmy5du75kykx26liuaedo4helaxbardry
+  behaviour_classes/base.py: bafybeih7wio6xeqy3x6bm3bjmo4jqjreakhhtwysehkndyf57t6ewpx5jq
   behaviour_classes/chain.py: bafybeihp6wqa4yqviwrrlkcoi7p62aoz66gie7wdwhnm7usynwk53hvyy4
-  behaviour_classes/db.py: bafybeig6f5mwi6ilmgcrukez26p7xrwnplx67xct4nckbv7rkdtum4v5ha
-  behaviour_classes/llm.py: bafybeigcsrcpb3qolm37fewbifhkrtlapgeunnoeq7pdjlnk5sk5a3allq
+  behaviour_classes/db.py: bafybeicda6iahhnovbvdatje5hji5wan7qdjn3zbsli7wmtt4no6exa3oa
+  behaviour_classes/llm.py: bafybeig4ucsdma3i4tggzupysrx7wklsxyfdsilghjjnoi5nfinhcfvgsy
   behaviour_classes/mech.py: bafybeiaopwxnj3c4xdyqh73fssieofvx2e3qitfpcie5r4lcjznlxkjgbi
   behaviour_classes/twitter.py: bafybeigynuqq2lla5es3gwbabtoyba4qwyjqkbeweqxy3eshzkyzen66ji
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
-  handlers.py: bafybeib3x3rubfuzonz64ckcqwanwluksm6dekin5mhgh62wc6xkrn42zu
-  models.py: bafybeihttpkqc4tzsttf3c24tz5327ixazteu7gtfulvgdsl42zwvbdelq
-  payloads.py: bafybeibkyns7pplvrfcimq4umyufvvk6of4pbqqkqzmxpqwbwmmshcf6xe
-  prompts.py: bafybeid6dxm6jbn6ebiy62s56edfahivwsxge4grdlexen6lbnz3mctbvi
-  rounds.py: bafybeidqbu2vzfvgozi7ey24iyj2hubrvzjak6udh4gr2udlvfvggozjcu
+  handlers.py: bafybeia5gsn2va7kbx6sokkodnbn3kkmvywosmn4wn6r3rhibzbuaqgezu
+  models.py: bafybeien5myrhv2z6yrhiyltf3wihfqziygvvc6c5qdikbatskwszyqodi
+  payloads.py: bafybeidc7y6bh7sjx33b36ywapoe3q2fr3ejbmwxrzcckcffu2xatu7yb4
+  prompts.py: bafybeibe4qboqejoj5wrp5tgdrenx4xngt4soy7er3lty4xlzgoh6jwmdi
+  rounds.py: bafybeif6slwydi24bgi4jks6x6ivfkqjsp3tk3ehbimk5jexxglxpfvdum
   rounds_info.py: bafybeib6a5a7bvwvfiscnbhsc6sejloelyglnu6lwbeeileyxrsgkxcb6a
 fingerprint_ignore_patterns: []
 connections:
@@ -200,6 +200,7 @@ models:
       use_acn_for_delivers: false
       use_mech_marketplace: true
       heart_cooldown_hours: 48
+      summon_cooldown_seconds: 2592000
       mech_marketplace_config:
         mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
         priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
