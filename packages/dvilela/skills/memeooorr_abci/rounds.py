@@ -916,7 +916,9 @@ class MemeooorrAbciApp(AbciApp[Event]):
         FinishedForMechResponseRound,
     }
     event_to_timeout: EventToTimeout = {Event.ROUND_TIMEOUT: 30}
-    cross_period_persisted_keys: FrozenSet[str] = frozenset(["persona"])
+    cross_period_persisted_keys: FrozenSet[str] = frozenset(
+        ["persona", "heart_cooldown_hours"]
+    )
     db_pre_conditions: Dict[AppState, Set[str]] = {
         LoadDatabaseRound: set(),
         CheckStakingRound: set(),

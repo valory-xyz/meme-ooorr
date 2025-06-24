@@ -383,19 +383,21 @@ class MemeooorrBaseBehaviour(
         self,
         param_name: str,
         initial_param_name: str,
+        param_type: type = str,
     ) -> Generator[None, None, Any]:
         """
         Generic helper to get a configurable parameter from synchronized data, DB, or config.
 
         :param param_name: The name of the parameter in the DB.
         :param initial_param_name: The name of the initial parameter in the DB.
+        :param type: The type to cast the parameter value to.
         :return: The resolved parameter value.
         """
         # Try synchronized data first
         if hasattr(self.synchronized_data, param_name):
             value = getattr(self.synchronized_data, param_name)
-            if value:
-                return value
+            if value is not None:
+                return param_type(value)
 
         # If we reach this point, the agent has just started
         config_value = getattr(self.params, param_name)
@@ -406,7 +408,7 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(
                 f"Error while loading the database for {param_name}. Falling back to the config."
             )
-            return config_value
+            return param_type(config_value)
 
         initial_db = db_data.get(initial_param_name, None)
         param_db = db_data.get(param_name, None)
@@ -423,7 +425,7 @@ class MemeooorrBaseBehaviour(
 
         # If the configured value does not match the initial value in the db,
         # the user has reconfigured it and we need to update it:
-        if config_value != initial_db:
+        if param_type(config_value) != param_type(initial_db):
             yield from self.write_kv(
                 {param_name: config_value, initial_param_name: config_value}
             )
@@ -431,13 +433,15 @@ class MemeooorrBaseBehaviour(
             param_db = config_value
 
         # At this point, the param in the db is the correct one
-        return param_db
+        return param_type(param_db)
 
     def get_persona(self) -> Generator[None, None, str]:
         """Get the agent persona"""
         return (
             yield from self._get_configurable_param(
-                param_name="persona", initial_param_name="initial_persona"
+                param_name="persona",
+                initial_param_name="initial_persona",
+                param_type=str,
             )
         )
 
@@ -447,6 +451,7 @@ class MemeooorrBaseBehaviour(
             yield from self._get_configurable_param(
                 param_name="heart_cooldown_hours",
                 initial_param_name="initial_heart_cooldown_hours",
+                param_type=int,
             )
         )
 
@@ -540,11 +545,14 @@ class MemeooorrBaseBehaviour(
         time_since_last_heart = now - datetime.fromtimestamp(
             float(last_heart_timestamp)
         )
+
+        heart_cooldown_hours = yield from self.get_heart_cooldown_hours()
+
         if (
             not is_unleashed
             and meme_data.get("token_nonce", None) != 1
             and time_since_last_heart.total_seconds()
-            > (self.params.heart_cooldown_hours * HOUR_TO_SECONDS)
+            > (heart_cooldown_hours * HOUR_TO_SECONDS)
         ):
             available_actions.append("heart")
 
