@@ -473,17 +473,17 @@ class HttpHandler(BaseHttpHandler):
         else:
             postId = action_data.get("tweet_id")
 
-        if action_type == "tweet_with_media":
-            action_data["media"] = [
-                f"{ipfs_gateway_url}/{action_data.get('media_ipfs_hash', None)}"
-            ]
-
         activity = {
             "postId": postId,
             "type": action_type,
             "timestamp": latest_tweet_action.get("timestamp"),
             "text": action_data.get("text"),
         }
+
+        if action_type == "tweet_with_media":
+            activity["media"] = [
+                f"{ipfs_gateway_url}{action_data.get('media_ipfs_hash', None)}"
+            ]
 
         self._send_ok_response(http_msg, http_dialogue, activity)
 
@@ -553,17 +553,13 @@ class HttpHandler(BaseHttpHandler):
 
             if post_id:
                 media_item["postId"] = post_id
-                media_item["path"] = f"{ipfs_gateway_url}/{media_item.get('ipfs_hash')}"
+                media_item["path"] = f"{ipfs_gateway_url}{media_item.get('ipfs_hash')}"
                 media_item.pop("hash", None)
                 media_item.pop("media_path", None)
                 media_item.pop("ipfs_hash", None)
                 processed_media_list.append(media_item)
 
         media_list[:] = processed_media_list
-
-        if not media_list:
-            self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
-            return
 
         self._send_ok_response(http_msg, http_dialogue, media_list)  # type: ignore
 
