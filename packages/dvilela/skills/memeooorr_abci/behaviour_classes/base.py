@@ -393,13 +393,8 @@ class MemeooorrBaseBehaviour(
         :param type: The type to cast the parameter value to.
         :return: The resolved parameter value.
         """
-        # Try synchronized data first
-        if hasattr(self.synchronized_data, param_name):
-            value = getattr(self.synchronized_data, param_name)
-            if value is not None:
-                return param_type(value)
 
-        # If we reach this point, the agent has just started
+        # Never read synchronized data, always read from db
         config_value = getattr(self.params, param_name)
 
         # Try getting from DB
