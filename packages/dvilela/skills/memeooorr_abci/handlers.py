@@ -797,6 +797,10 @@ class HttpHandler(BaseHttpHandler):
             self.context.logger.info(f"Updated persona: {updated_persona}")
 
         if updated_heart_cooldown_hours:
+            # One more check just in case the llm allows it through
+            if int(updated_heart_cooldown_hours) < 24:
+                updated_heart_cooldown_hours = 24
+
             # Update the heart_cooldown_hours in the database
             with self._db_connection_context():
                 with self.db.atomic():
@@ -810,6 +814,10 @@ class HttpHandler(BaseHttpHandler):
                 f"Updated heart_cooldown_hours: {updated_heart_cooldown_hours}"
             )
         if updated_summon_cooldown_seconds:
+            # One more check just in case the llm allows it through
+            if int(updated_summon_cooldown_seconds) < 2592000:
+                updated_summon_cooldown_seconds = 2592000
+
             # Update the summon_cooldown_seconds in the database
             with self._db_connection_context():
                 with self.db.atomic():

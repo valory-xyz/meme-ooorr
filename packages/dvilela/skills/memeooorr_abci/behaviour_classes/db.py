@@ -44,9 +44,11 @@ class LoadDatabaseBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            persona, hearting_cooldown_hours, summon_cooldown_seconds = (
-                yield from self.load_db()
-            )
+            (
+                persona,
+                hearting_cooldown_hours,
+                summon_cooldown_seconds,
+            ) = yield from self.load_db()
             yield from self.populate_keys_in_kv()
             yield from self.init_own_twitter_details()
             agent_details = self.gather_agent_details(persona)
