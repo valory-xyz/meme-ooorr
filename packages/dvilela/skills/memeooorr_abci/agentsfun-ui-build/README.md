@@ -16,6 +16,3 @@ To mock, update the `IS_MOCK_ENABLED` in `.env` and the app will use the mock da
 1. Bump the version in `package.json`
 2. Push a new tag to the repository, (e.g., `v1.0.0-agentsfun`)
 3. The CI will build and release the contents of the `dist/apps/agentsfun-ui` directory to a zip file.
-
-## 🪪 License
-![MIT](https://img.shields.io/badge/License-MIT-yellow.svg)

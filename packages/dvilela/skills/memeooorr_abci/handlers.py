@@ -431,8 +431,12 @@ class HttpHandler(BaseHttpHandler):
     ) -> None:
         """Handle a Http request of verb GET."""
 
-        agent_details = self.synchronized_data.agent_details
-        self.context.logger.info(f"Agent details: {agent_details}")
+        with self._db_connection_context():
+            with self.db.atomic():
+                agent_details = cast(
+                    Dict, self._get_json_from_db("agent_details", "{}")
+                )
+
         if not agent_details:
             self._send_ok_response(http_msg, http_dialogue, None)  # type: ignore
             return
@@ -478,8 +482,12 @@ class HttpHandler(BaseHttpHandler):
             "type": action_type,
             "timestamp": latest_tweet_action.get("timestamp"),
             "text": action_data.get("text"),
-            "media": [f"{ipfs_gateway_url}/{action_data.get('media_ipfs_hash', None)}"],
         }
+
+        if action_type == "tweet_with_media":
+            activity["media"] = [
+                f"{ipfs_gateway_url}{action_data.get('media_ipfs_hash', None)}"
+            ]
 
         self._send_ok_response(http_msg, http_dialogue, activity)
 
@@ -545,11 +553,12 @@ class HttpHandler(BaseHttpHandler):
         processed_media_list = []
         for media_item in media_list:
             path = media_item.get("path")
+            ipfs_hash = media_item.get("ipfs_hash")
             post_id = media_path_to_tweet_id.get(path)
 
-            if post_id:
+            if post_id and ipfs_hash:
                 media_item["postId"] = post_id
-                media_item["path"] = f"{ipfs_gateway_url}/{media_item.get('ipfs_hash')}"
+                media_item["path"] = f"{ipfs_gateway_url}{ipfs_hash}"
                 media_item.pop("hash", None)
                 media_item.pop("media_path", None)
                 media_item.pop("ipfs_hash", None)

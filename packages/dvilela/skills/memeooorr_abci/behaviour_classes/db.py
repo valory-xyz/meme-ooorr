@@ -49,6 +49,8 @@ class LoadDatabaseBehaviour(
             yield from self.init_own_twitter_details()
             agent_details = self.gather_agent_details(persona)
 
+            yield from self._write_kv({"agent_details": agent_details})
+
             payload = LoadDatabasePayload(
                 sender=self.context.agent_address,
                 persona=persona,

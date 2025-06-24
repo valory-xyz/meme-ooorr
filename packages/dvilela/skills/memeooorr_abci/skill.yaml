@@ -7,30 +7,29 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
-  agentsfun-ui-build/README.md: bafybeicfwnupegrlzawlzavtpmrwhk7hwtofc4swcnt3f7c2v5t37wzcpm
+  agentsfun-ui-build/README.md: bafybeiebyyjv6tno6vofnakcycovsbvm2zggfpplk4af3ng6vuilpksi7e
   agentsfun-ui-build/assets/agent-agentsfun-logo-Cl82UKSm.png: bafybeia3nla5pruiurpwvzex6bbsgset4k2foerma2iwy5zxmtjidur454
   agentsfun-ui-build/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
-  agentsfun-ui-build/assets/index-0_ZeIEhz.js: bafybeihgwi6xzua4ugszemtxu764omgvtrdsfnsbdg6cigq5knejh3lnnm
-  agentsfun-ui-build/assets/index-CGLejpzc.js: bafybeihywjdylyysdytgor63h5mmhgan4j54bixbcv4yhgkykhsuojasue
+  agentsfun-ui-build/assets/index-BgHN1q0w.js: bafybeihcikdbln7x7vwdxwagut5tr4avj7wzd7mitmpsnmu3kgpru2gnpu
   agentsfun-ui-build/assets/media-empty-B-lyiAtK.png: bafybeihuag4bulfk7vvoiycjyycvrmpb5k25nizofy6wa5f5v5a3hv7344
   agentsfun-ui-build/assets/memecoin-activity-empty-D-dtAKwT.png: bafybeihig5vgaoarjqzcbdoavinqzxkjjlccxnnzfx5275n42kc65gnrzm
   agentsfun-ui-build/assets/x-activity-empty-eVudZvXV.png: bafybeidv76vrjgsi2xdhie76gqwr2p6t42egap4en4ko7wyumavyrrkify
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
-  agentsfun-ui-build/index.html: bafybeifc2ju5e4fk34mvwqehd3sc3acqz4a464vtibxd4446y24hbdslha
+  agentsfun-ui-build/index.html: bafybeiha3kqus3i3d45npqt4bzpxybkxqlaqev7sid5h34k5cygcm2xsmy
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeiblfmgpqc2um65vwiugnhnudxk6jt25rrdy2trxwgtnzuiowlfof4
   behaviour_classes/chain.py: bafybeihp6wqa4yqviwrrlkcoi7p62aoz66gie7wdwhnm7usynwk53hvyy4
-  behaviour_classes/db.py: bafybeiffxamy66l6ms52pqq3mlsft55oxoxpsqeavci4dpgtbung5nc3e4
+  behaviour_classes/db.py: bafybeig6f5mwi6ilmgcrukez26p7xrwnplx67xct4nckbv7rkdtum4v5ha
   behaviour_classes/llm.py: bafybeid62q6eitihkmfcpwhbsxjdhmvdvyog6hteulluhsplpe77mpjrpe
   behaviour_classes/mech.py: bafybeiaopwxnj3c4xdyqh73fssieofvx2e3qitfpcie5r4lcjznlxkjgbi
-  behaviour_classes/twitter.py: bafybeieae2l3uzenj67o7xhqbkpim7rdmt4ehkedhk2vjo5qrkubbdnaxm
+  behaviour_classes/twitter.py: bafybeigynuqq2lla5es3gwbabtoyba4qwyjqkbeweqxy3eshzkyzen66ji
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeicjoerr5nakbcpvk5ygoxqdrassyo6qxym6and6blfebvrhuy7ld4
-  handlers.py: bafybeidoxkqbyjdpgari3q6kgceir5sskvgatxhwn35vwrzedj5h7lhxbm
+  handlers.py: bafybeib3x3rubfuzonz64ckcqwanwluksm6dekin5mhgh62wc6xkrn42zu
   models.py: bafybeihttpkqc4tzsttf3c24tz5327ixazteu7gtfulvgdsl42zwvbdelq
   payloads.py: bafybeibkyns7pplvrfcimq4umyufvvk6of4pbqqkqzmxpqwbwmmshcf6xe
-  prompts.py: bafybeihbz456kigtnmlmjsraykxkjnnrgmhgpksfgrphm7nqi2a6fkqvky
+  prompts.py: bafybeid6dxm6jbn6ebiy62s56edfahivwsxge4grdlexen6lbnz3mctbvi
   rounds.py: bafybeidqbu2vzfvgozi7ey24iyj2hubrvzjak6udh4gr2udlvfvggozjcu
   rounds_info.py: bafybeib6a5a7bvwvfiscnbhsc6sejloelyglnu6lwbeeileyxrsgkxcb6a
 fingerprint_ignore_patterns: []
