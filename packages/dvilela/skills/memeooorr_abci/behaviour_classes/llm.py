@@ -385,25 +385,48 @@ class ActionDecisionBehaviour(
             if action_name == "summon":
                 chain_id = self.get_chain_id()
 
-                amount = max(
-                    amount,
-                    int(getattr(self.params, f"min_summon_amount_{chain_id}") * 1e18),
-                )
-                amount = min(
-                    amount,
-                    int(getattr(self.params, f"max_summon_amount_{chain_id}") * 1e18),
-                )
-
-                if (
-                    token_name
-                    and token_ticker
-                    and (
-                        token_name.lower() in ["olas"]
-                        or token_ticker.lower() in ["olas"]
+                if is_summon_available:
+                    amount = max(
+                        amount,
+                        int(
+                            getattr(self.params, f"min_summon_amount_{chain_id}") * 1e18
+                        ),
                     )
-                ):
-                    raise ValueError(
-                        f"Cannot summon token with name/ticker {token_name}/{token_ticker}. Invalid name or ticker."
+                    amount = min(
+                        amount,
+                        int(
+                            getattr(self.params, f"max_summon_amount_{chain_id}") * 1e18
+                        ),
+                    )
+
+                    if (
+                        token_name
+                        and token_ticker
+                        and (
+                            token_name.lower() in ["olas"]
+                            or token_ticker.lower() in ["olas"]
+                        )
+                    ):
+                        raise ValueError(
+                            f"Cannot summon token with name/ticker {token_name}/{token_ticker}. Invalid name or ticker."
+                        )
+                else:
+                    self.context.logger.info(
+                        f"Summon action is NOT available because time since last summon ({seconds_since_last_summon}) is < summon cooldown ({summon_cooldown_seconds}) but the llm still wants to summon setting it to none"
+                    )
+
+                    return (
+                        Event.WAIT.value,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        current_timestamp,
                     )
 
             if action_name == "heart":
