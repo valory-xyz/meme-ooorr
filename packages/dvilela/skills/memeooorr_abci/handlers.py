@@ -509,15 +509,20 @@ class HttpHandler(BaseHttpHandler):
         if not token_actions:
             return None
 
-        activities = []
-        # Get the last action, or fewer if not that many exist
-        for token_action in token_actions[-limit:]:
-            token_address = token_action.get("token_address")
+        activities = []  # type: ignore
+        for token_action in reversed(token_actions):
+            if len(activities) == limit:
+                break
+
             tweet_id = token_action.get("tweet_id")
+            if not tweet_id:
+                continue
+
+            token_address = token_action.get("token_address")
             activity = {
                 "type": token_action.get("action"),
                 "timestamp": token_action.get("timestamp"),
-                "postId": tweet_id if tweet_id else None,
+                "postId": tweet_id,
                 "token": {
                     "address": token_address if token_address else None,
                     "nonce": token_action.get("token_nonce"),
@@ -525,6 +530,11 @@ class HttpHandler(BaseHttpHandler):
                 },
             }
             activities.append(activity)
+
+        if not activities:
+            return None
+
+        activities.reverse()
         return activities
 
     def _handle_get_media(  # pylint: disable=too-many-locals
