@@ -31,6 +31,7 @@ class LoadDatabasePayload(BaseTxPayload):
 
     persona: str
     heart_cooldown_hours: int
+    summon_cooldown_seconds: int
     agent_details: str
 
 

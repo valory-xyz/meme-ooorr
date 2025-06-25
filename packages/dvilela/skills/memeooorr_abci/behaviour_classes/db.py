@@ -44,7 +44,11 @@ class LoadDatabaseBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            persona, hearting_cooldown_hours = yield from self.load_db()
+            (
+                persona,
+                hearting_cooldown_hours,
+                summon_cooldown_seconds,
+            ) = yield from self.load_db()
             yield from self.populate_keys_in_kv()
             yield from self.init_own_twitter_details()
             agent_details = self.gather_agent_details(persona)
@@ -56,6 +60,7 @@ class LoadDatabaseBehaviour(
                 persona=persona,
                 agent_details=agent_details,
                 heart_cooldown_hours=hearting_cooldown_hours,
+                summon_cooldown_seconds=summon_cooldown_seconds,
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
@@ -64,15 +69,16 @@ class LoadDatabaseBehaviour(
 
         self.set_done()
 
-    def load_db(self) -> Generator[None, None, Tuple[str, int]]:
+    def load_db(self) -> Generator[None, None, Tuple[str, int, int]]:
         """Load the data"""
         persona = yield from self.get_persona()
         heart_cooldown_hours = yield from self.get_heart_cooldown_hours()
+        summon_cooldown_seconds = yield from self.get_summon_cooldown_seconds()
         self.context.logger.info(
-            f"Loaded from the db\npersona={persona}\nheart_cooldown_hours={heart_cooldown_hours}"
+            f"Loaded from the db\npersona={persona}\nheart_cooldown_hours={heart_cooldown_hours}\nsummon_cooldown_seconds={summon_cooldown_seconds}"
         )
         yield from self.context.agents_fun_db.load()
-        return persona, heart_cooldown_hours
+        return persona, heart_cooldown_hours, summon_cooldown_seconds
 
     def populate_keys_in_kv(self) -> Generator[None, None, None]:
         """This function is used to populate the keys in the KV store which are required in EngageTwitterRound."""

@@ -121,6 +121,11 @@ class SynchronizedData(BaseSynchronizedData):
         return cast(int, self.db.get("heart_cooldown_hours", None))
 
     @property
+    def summon_cooldown_seconds(self) -> Optional[int]:
+        """Get the summon cooldown seconds."""
+        return cast(int, self.db.get("summon_cooldown_seconds", None))
+
+    @property
     def meme_coins(self) -> List[Dict]:
         """Get the meme_coins."""
         return cast(list, json.loads(cast(str, self.db.get("meme_coins", "[]"))))
@@ -250,6 +255,7 @@ class LoadDatabaseRound(CollectSameUntilThresholdRound):
     selection_key = (
         get_name(SynchronizedData.persona),
         get_name(SynchronizedData.heart_cooldown_hours),
+        get_name(SynchronizedData.summon_cooldown_seconds),
     )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -270,6 +276,9 @@ class LoadDatabaseRound(CollectSameUntilThresholdRound):
                     get_name(
                         SynchronizedData.heart_cooldown_hours
                     ): payload.heart_cooldown_hours,
+                    get_name(
+                        SynchronizedData.summon_cooldown_seconds
+                    ): payload.summon_cooldown_seconds,
                     get_name(SynchronizedData.agent_details): payload.agent_details,
                 },
             )
@@ -917,7 +926,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
     }
     event_to_timeout: EventToTimeout = {Event.ROUND_TIMEOUT: 30}
     cross_period_persisted_keys: FrozenSet[str] = frozenset(
-        ["persona", "heart_cooldown_hours"]
+        ["persona", "heart_cooldown_hours", "summon_cooldown_seconds"]
     )
     db_pre_conditions: Dict[AppState, Set[str]] = {
         LoadDatabaseRound: set(),

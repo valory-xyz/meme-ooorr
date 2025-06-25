@@ -720,12 +720,16 @@ class HttpHandler(BaseHttpHandler):
                 current_heart_cooldown_hours = self._get_value_from_db(
                     "heart_cooldown_hours", None
                 )
+                current_summon_cooldown_seconds = self._get_value_from_db(
+                    "summon_cooldown_seconds", None
+                )
 
         # Format the prompt
         prompt_template = CHATUI_PROMPT.format(
             user_prompt=user_prompt,
             current_persona=current_persona,
             current_heart_cooldown_hours=current_heart_cooldown_hours,
+            current_summon_cooldown_seconds=current_summon_cooldown_seconds,
         )
 
         # Prepare payload data
@@ -778,6 +782,9 @@ class HttpHandler(BaseHttpHandler):
         updated_heart_cooldown_hours = json.loads(llm_response).get(
             "heart_cooldown_hours", None
         )
+        updated_summon_cooldown_seconds = json.loads(llm_response).get(
+            "summon_cooldown_seconds", None
+        )
 
         updated_params = {}
 
@@ -790,7 +797,11 @@ class HttpHandler(BaseHttpHandler):
             self.context.logger.info(f"Updated persona: {updated_persona}")
 
         if updated_heart_cooldown_hours:
-            # Update the persona in the database
+            # One more check just in case the llm allows it through
+            if int(updated_heart_cooldown_hours) < 24:
+                updated_heart_cooldown_hours = 24
+
+            # Update the heart_cooldown_hours in the database
             with self._db_connection_context():
                 with self.db.atomic():
                     self._set_value_to_db(
@@ -801,6 +812,23 @@ class HttpHandler(BaseHttpHandler):
             )
             self.context.logger.info(
                 f"Updated heart_cooldown_hours: {updated_heart_cooldown_hours}"
+            )
+        if updated_summon_cooldown_seconds:
+            # One more check just in case the llm allows it through
+            if int(updated_summon_cooldown_seconds) < 2592000:
+                updated_summon_cooldown_seconds = 2592000
+
+            # Update the summon_cooldown_seconds in the database
+            with self._db_connection_context():
+                with self.db.atomic():
+                    self._set_value_to_db(
+                        "summon_cooldown_seconds", updated_summon_cooldown_seconds
+                    )
+            updated_params.update(
+                {"summon_cooldown_seconds": updated_summon_cooldown_seconds}
+            )
+            self.context.logger.info(
+                f"Updated summon_cooldown_seconds: {updated_summon_cooldown_seconds}"
             )
 
         self._send_ok_response(
