@@ -788,7 +788,7 @@ class HttpHandler(BaseHttpHandler):
         )
 
         llm_response = json.loads(llm_response_message.payload).get("response", "{}")
-        updated_persona = json.loads(llm_response).get("agent_persona", None)
+        updated_persona: str = json.loads(llm_response).get("agent_persona", None)
         updated_heart_cooldown_hours = json.loads(llm_response).get(
             "heart_cooldown_hours", None
         )
@@ -805,6 +805,16 @@ class HttpHandler(BaseHttpHandler):
                     self._set_value_to_db("persona", updated_persona)
             updated_params.update({"persona": updated_persona})
             self.context.logger.info(f"Updated persona: {updated_persona}")
+
+            with self._db_connection_context():
+                with self.db.atomic():
+                    agent_details = cast(Dict, self._get_json_from_db("agent_details"))
+
+            agent_details["persona"] = updated_persona
+
+            with self._db_connection_context():
+                with self.db.atomic():
+                    self._set_value_to_db("agent_details", json.dumps(agent_details))
 
         if updated_heart_cooldown_hours:
             # One more check just in case the llm allows it through
