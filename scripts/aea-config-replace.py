@@ -66,6 +66,8 @@ PATH_TO_VAR = {
     "models/params/args/fireworks_api_key": "FIREWORKS_API_KEY",
     # Cooldown
     "models/params/args/summon_cooldown_seconds": "SUMMON_COOLDOWN_SECONDS",
+    # Memecoin
+    "models/params/args/is_memecoin_logic_enabled": "IS_MEMECOIN_LOGIC_ENABLED",
 }
 
 CONFIG_REGEX = r"\${.*?:(.*)}"

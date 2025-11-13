@@ -189,4 +189,8 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
         self.store_path = self._ensure("store_path", kwargs, str)
         self.heart_cooldown_hours = self._ensure("heart_cooldown_hours", kwargs, int)
 
+        self.is_memecoin_logic_enabled = self._ensure(
+            "is_memecoin_logic_enabled", kwargs, bool
+        )
+
         super().__init__(*args, **kwargs)

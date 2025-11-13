@@ -247,6 +247,7 @@ models:
       use_acn_for_delivers: false
       summon_cooldown_seconds: ${int:2592000}
       heart_cooldown_hours: ${int:48}
+      is_memecoin_logic_enabled: ${bool:false}
 ---
 public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
