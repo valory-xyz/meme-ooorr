@@ -191,4 +191,5 @@ type: connection
 config:
   host: ${HTTP_SERVER_HOST:str:0.0.0.0}
   port: ${HTTP_SERVER_PORT:int:8716}
+  timeout: ${HTTP_SERVER_TIMEOUT:float:30.0}
   target_skill_id: dvilela/memeooorr_chained_abci:0.1.0
