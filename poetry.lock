@@ -638,13 +638,13 @@ files = [
 
 [[package]]
 name = "cachetools"
-version = "6.2.1"
+version = "6.2.2"
 description = "Extensible memoizing collections and decorators"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "cachetools-6.2.1-py3-none-any.whl", hash = "sha256:09868944b6dde876dfd44e1d47e18484541eaf12f26f29b7af91b26cc892d701"},
-    {file = "cachetools-6.2.1.tar.gz", hash = "sha256:3f391e4bd8f8bf0931169baf7456cc822705f4e2a31f840d218f445b9a854201"},
+    {file = "cachetools-6.2.2-py3-none-any.whl", hash = "sha256:6c09c98183bf58560c97b2abfcedcbaf6a896a490f534b031b661d3723b45ace"},
+    {file = "cachetools-6.2.2.tar.gz", hash = "sha256:8e6d266b25e539df852251cfd6f990b4bc3a141db73b939058d809ebd2590fc6"},
 ]
 
 [[package]]
@@ -5230,6 +5230,21 @@ docs = ["furo (>=2023.7.26)", "proselint (>=0.13)", "sphinx (>=7.1.2,!=7.3)", "s
 test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=23.1)", "pytest (>=7.4)", "pytest-env (>=0.8.2)", "pytest-freezer (>=0.4.8)", "pytest-mock (>=3.11.1)", "pytest-randomly (>=3.12)", "pytest-timeout (>=2.1)", "setuptools (>=68)", "time-machine (>=2.10)"]
 
 [[package]]
+name = "w3multicall"
+version = "0.3.1"
+description = "Python interface and utilities for Solidity multicall contract"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "w3multicall-0.3.1-py3-none-any.whl", hash = "sha256:04f95d6ee64c9b2ab3bc9d7a3b2bac4a717fe9f8523f5aba6e7550086efcdad2"},
+    {file = "w3multicall-0.3.1.tar.gz", hash = "sha256:24c7bf3aac8cb8f8c62dd555212b3b5e87d6e7cf9cc4b3f3769a819bb9c55846"},
+]
+
+[package.dependencies]
+requests = "*"
+web3 = "*"
+
+[[package]]
 name = "watchdog"
 version = "6.0.0"
 description = "Filesystem events monitoring"
@@ -5587,4 +5602,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "<3.13,>=3.10"
-content-hash = "5d0ce49bd0bd687c4c42722fba0eb3c8eea2c5ba0d6d6403e39324ad975267ca"
+content-hash = "9d7f7027490cff37127d4f02a39134fdb073d3d0f10c74f644e0090e4cbb7a96"

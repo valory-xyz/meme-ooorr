@@ -193,3 +193,12 @@ config:
   port: ${HTTP_SERVER_PORT:int:8716}
   timeout: ${HTTP_SERVER_TIMEOUT:float:30.0}
   target_skill_id: dvilela/memeooorr_chained_abci:0.1.0
+---
+public_id: valory/funds_manager:0.1.0
+type: skill
+models:
+  params:
+    args:
+      fund_requirements: ${FUND_REQUIREMENTS:dict:{"base":{"agent":{"0x0000000000000000000000000000000000000000":{"topup":325700000000000,"threshold":325700000000}},"safe":{"0x0000000000000000000000000000000000000000":{"topup":1628500000000000,"threshold":325700000000}}}}}
+      rpc_urls: ${RPC_URLS:dict:{"base":"https://1rpc.io/base"}}
+      safe_contract_addresses: ${SAFE_CONTRACT_ADDRESSES:dict:{"gnosis":"0x0000000000000000000000000000000000000000"}}

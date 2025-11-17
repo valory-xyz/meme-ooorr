@@ -38,6 +38,7 @@ PATH_TO_VAR = {
     "config/ledger_apis/base/chain_id": "BASE_LEDGER_CHAIN_ID",
     # Params
     "models/params/args/setup/all_participants": "ALL_PARTICIPANTS",
+    "models/params/args/safe_contract_addresses": "SAFE_CONTRACT_ADDRESSES",
     "models/params/args/reset_tendermint_after": "RESET_TENDERMINT_AFTER",
     "models/params/args/reset_pause_duration": "RESET_PAUSE_DURATION",
     "models/params/args/termination_from_block": "TERMINATION_FROM_BLOCK",
