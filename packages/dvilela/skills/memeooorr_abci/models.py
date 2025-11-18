@@ -54,6 +54,7 @@ class SharedState(BaseSharedState):
         self.twitter_id: Optional[str] = None
 
         self.req_to_callback: Dict[str, Tuple[Callable, Dict[str, Any]]] = {}
+        self.sufficient_funds_for_x402_payments: Optional[bool] = None
 
 
 Requests = BaseRequests
@@ -192,5 +193,14 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
         self.is_memecoin_logic_enabled = self._ensure(
             "is_memecoin_logic_enabled", kwargs, bool
         )
+        self.genai_api_key: str = self._ensure("genai_api_key", kwargs, str)
+        self.x402_payment_requirements: Dict[str, Any] = self._ensure(
+            "x402_payment_requirements", kwargs, dict
+        )
+        self.lifi_quote_to_amount_url: str = self._ensure(
+            "lifi_quote_to_amount_url", kwargs, str
+        )
+        self.base_ledger_rpc: str = self._ensure("base_ledger_rpc", kwargs, str)
+        self.use_x402: bool = self._ensure("use_x402", kwargs, bool)
 
         super().__init__(*args, **kwargs)

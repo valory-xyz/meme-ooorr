@@ -228,6 +228,11 @@ models:
         temperature": 0.6
       fireworks_api_key: null
       is_memecoin_logic_enabled: false
+      use_x402: false
+      genai_api_key: ''
+      x402_payment_requirements: {}
+      base_ledger_rpc: https://1rpc.io/base
+      lifi_quote_to_amount_url: https://li.quest/v1/quote/toAmount
     class_name: Params
   mech_response:
     args:
