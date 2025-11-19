@@ -161,11 +161,11 @@ transition_func:
     (RegistrationRound, DONE): FetchPerformanceDataRound
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): FetchPerformanceDataRound
-    (FetchPerformanceDataRound, DONE): CheckStakingRound
-    (FetchPerformanceDataRound, FAIL): CheckStakingRound
+    (FetchPerformanceDataRound, DONE): LoadDatabaseRound
+    (FetchPerformanceDataRound, FAIL): LoadDatabaseRound
     (FetchPerformanceDataRound, NONE): FetchPerformanceDataRound
     (FetchPerformanceDataRound, NO_MAJORITY): FetchPerformanceDataRound
-    (FetchPerformanceDataRound, ROUND_TIMEOUT): CheckStakingRound
+    (FetchPerformanceDataRound, ROUND_TIMEOUT): LoadDatabaseRound
     (ResetAndPauseRound, DONE): CheckStakingRound
     (ResetAndPauseRound, NO_MAJORITY): ResetAndPauseRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): ResetAndPauseRound
