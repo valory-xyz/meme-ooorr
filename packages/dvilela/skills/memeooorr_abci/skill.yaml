@@ -17,7 +17,7 @@ fingerprint:
   agentsfun-ui-build/index.html: bafybeiha3kqus3i3d45npqt4bzpxybkxqlaqev7sid5h34k5cygcm2xsmy
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeigi3bcpxaroxvvzzr7xhefg6yg53sp2awjdcdjyjnk6oqmlh5wxk4
-  behaviour_classes/chain.py: bafybeigi7rxpmjzhulzmpdyouz76i3n7avneow62pjk3xocj2rbkmeqx2a
+  behaviour_classes/chain.py: bafybeiasfazrwxiq7jujredudsdoj6gvheamrflal2qij32o2dmgm6764a
   behaviour_classes/db.py: bafybeihf7jbo6mfkrqlukmmxx5b6uu4wsagotebnbiqexz4qxzl5lyvuoa
   behaviour_classes/llm.py: bafybeidvbaz6cl7aff2dhr3xwxvu33ixk5o7pkdasivtjfe2ezn5ft7ira
   behaviour_classes/mech.py: bafybeiaopwxnj3c4xdyqh73fssieofvx2e3qitfpcie5r4lcjznlxkjgbi
