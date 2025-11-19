@@ -612,6 +612,7 @@ class PullMemesBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
 
     @property
     def params(self) -> Params:
+        """Get the params."""
         return self.context.params
 
     def async_act(self) -> Generator:

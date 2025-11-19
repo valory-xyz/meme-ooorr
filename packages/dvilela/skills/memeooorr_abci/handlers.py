@@ -339,6 +339,7 @@ class HttpHandler(BaseHttpHandler):
 
     @property
     def params(self) -> Params:
+        """Get the params."""
         return self.context.params
 
     @property
