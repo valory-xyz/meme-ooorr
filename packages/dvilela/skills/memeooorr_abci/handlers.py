@@ -44,10 +44,12 @@ from packages.dvilela.skills.memeooorr_abci.dialogues import (
     HttpDialogues,
     SrrDialogues,
 )
-from packages.dvilela.skills.memeooorr_abci.models import SharedState
+from packages.dvilela.skills.memeooorr_abci.models import Params, SharedState
 from packages.dvilela.skills.memeooorr_abci.prompts import (
     CHATUI_PROMPT,
+    CHATUI_PROMPT_NO_MEMECOIN,
     build_updated_agent_config_schema,
+    build_updated_agent_config_schema_no_memecoin,
 )
 from packages.dvilela.skills.memeooorr_abci.rounds import SynchronizedData
 from packages.dvilela.skills.memeooorr_abci.rounds_info import ROUNDS_INFO
@@ -88,6 +90,16 @@ TendermintHandler = BaseTendermintHandler
 IpfsHandler = BaseIpfsHandler
 
 AGENT_PROFILE_PATH = "agentsfun-ui-build"
+
+
+OK_CODE = 200
+NOT_FOUND_CODE = 404
+BAD_REQUEST_CODE = 400
+AVERAGE_PERIOD_SECONDS = 10
+
+
+PROMPT_FIELD = "prompt"
+LLM_MESSAGE_FIELD = "reasoning"
 
 
 def camel_to_snake(camel_str: str) -> str:
@@ -161,12 +173,6 @@ class KvStoreHandler(AbstractResponseHandler):
     )
 
 
-OK_CODE = 200
-NOT_FOUND_CODE = 404
-BAD_REQUEST_CODE = 400
-AVERAGE_PERIOD_SECONDS = 10
-
-
 class HttpMethod(Enum):
     """Http methods"""
 
@@ -221,7 +227,7 @@ class HttpHandler(BaseHttpHandler):
             "x_activity_url": rf"{hostname_regex}\/x-activity",
             "meme_coins_url": rf"{hostname_regex}\/memecoin-activity",
             "media_url": rf"{hostname_regex}\/media",
-            "process_prompt_url": rf"{hostname_regex}\/process-prompt",
+            "process_prompt_url": rf"{hostname_regex}\/configure_strategies",
             "static_files_url": rf"{hostname_regex}\/(.*)",
         }
 
@@ -294,6 +300,15 @@ class HttpHandler(BaseHttpHandler):
         return SynchronizedData(
             db=self.context.state.round_sequence.latest_synchronized_data.db
         )
+
+    @property
+    def params(self) -> Params:
+        return self.context.params
+
+    @property
+    def is_memecoin_logic_enabled(self) -> bool:
+        """Check if memecoin logic is enabled."""
+        return self.params.is_memecoin_logic_enabled
 
     def _get_handler(self, url: str, method: str) -> Tuple[Optional[Callable], Dict]:
         """Check if an url is meant to be handled in this handler
@@ -378,7 +393,10 @@ class HttpHandler(BaseHttpHandler):
         handler(http_msg, http_dialogue, **kwargs)
 
     def _handle_bad_request(
-        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+        self,
+        http_msg: HttpMessage,
+        http_dialogue: HttpDialogue,
+        body: Optional[Dict[str, Any]] = {},
     ) -> None:
         """
         Handle a Http bad request.
@@ -393,7 +411,7 @@ class HttpHandler(BaseHttpHandler):
             status_code=BAD_REQUEST_CODE,
             status_text="Bad request",
             headers=http_msg.headers,
-            body=b"",
+            body=json.dumps(body).encode("utf-8"),
         )
 
         # Send response
@@ -704,6 +722,45 @@ class HttpHandler(BaseHttpHandler):
         nonce = dialogue.dialogue_label.dialogue_reference[0]
         self.context.state.req_to_callback[nonce] = (callback, callback_kwargs or {})
 
+    def _get_prompt_and_schema(
+        self,
+        user_prompt: str,
+    ) -> Tuple[str, dict]:
+        if self.is_memecoin_logic_enabled:
+            with self._db_connection_context():
+                with self.db.atomic():
+                    current_persona = self._get_value_from_db("persona", "")
+
+                    current_heart_cooldown_hours = self._get_value_from_db(
+                        "heart_cooldown_hours", None
+                    )
+                    current_summon_cooldown_seconds = self._get_value_from_db(
+                        "summon_cooldown_seconds", None
+                    )
+
+            prompt = CHATUI_PROMPT.format(
+                user_prompt=user_prompt,
+                current_persona=current_persona,
+                current_heart_cooldown_hours=current_heart_cooldown_hours,
+                current_summon_cooldown_seconds=current_summon_cooldown_seconds,
+            )
+
+            prompt_schema = build_updated_agent_config_schema()
+
+            return prompt, prompt_schema
+
+        with self._db_connection_context():
+            with self.db.atomic():
+                current_persona = self._get_value_from_db("persona", "")
+
+        prompt = CHATUI_PROMPT_NO_MEMECOIN.format(
+            user_prompt=user_prompt,
+            current_persona=current_persona,
+        )
+        prompt_schema = build_updated_agent_config_schema_no_memecoin()
+
+        return prompt, prompt_schema
+
     def _handle_post_process_prompt(
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
@@ -714,43 +771,43 @@ class HttpHandler(BaseHttpHandler):
         :param http_dialogue: the HttpDialogue instance
         """
 
+        self.context.logger.info("Handling chatui prompt")
         # Parse incoming data
         data = json.loads(http_msg.body.decode("utf-8"))
-        user_prompt = data.get("prompt", "")
-        self.context.logger.info(f"user_prompt from the user: {user_prompt}")
+        user_prompt = data.get(PROMPT_FIELD, "")
 
         if not user_prompt:
-            self._handle_bad_request(http_msg, http_dialogue)
+            self._handle_bad_request(
+                http_msg,
+                http_dialogue,
+                {"error": "User prompt is required."},
+            )
+            return
 
-        self.context.logger.info(f"user_prompt from the user: {user_prompt}")
+        prompt, schema = self._get_prompt_and_schema(user_prompt=user_prompt)
 
-        with self._db_connection_context():
-            with self.db.atomic():
-                current_persona = self._get_value_from_db("persona", "")
-                current_heart_cooldown_hours = self._get_value_from_db(
-                    "heart_cooldown_hours", None
-                )
-                current_summon_cooldown_seconds = self._get_value_from_db(
-                    "summon_cooldown_seconds", None
-                )
-
-        # Format the prompt
-        prompt_template = CHATUI_PROMPT.format(
-            user_prompt=user_prompt,
-            current_persona=current_persona,
-            current_heart_cooldown_hours=current_heart_cooldown_hours,
-            current_summon_cooldown_seconds=current_summon_cooldown_seconds,
+        self._send_chatui_llm_request(
+            prompt=prompt,
+            schema=schema,
+            http_msg=http_msg,
+            http_dialogue=http_dialogue,
         )
 
+    def _send_chatui_llm_request(
+        self,
+        prompt: str,
+        schema: dict,
+        http_msg: HttpMessage,
+        http_dialogue: HttpDialogue,
+    ) -> None:
         # Prepare payload data
         payload_data = {
-            "prompt": prompt_template,
-            "schema": build_updated_agent_config_schema(),
+            "prompt": prompt,
+            "schema": schema,
         }
 
         self.context.logger.info(f"Payload data: {payload_data}")
 
-        # Create LLM request
         srr_dialogues = cast(SrrDialogues, self.context.srr_dialogues)
         request_srr_message, srr_dialogue = srr_dialogues.create(
             counterparty=str(GENAI_CONNECTION_PUBLIC_ID),
@@ -758,7 +815,6 @@ class HttpHandler(BaseHttpHandler):
             payload=json.dumps(payload_data),
         )
 
-        # Prepare callback args
         callback_kwargs = {"http_msg": http_msg, "http_dialogue": http_dialogue}
         self._send_message(
             request_srr_message,
@@ -795,6 +851,7 @@ class HttpHandler(BaseHttpHandler):
         updated_summon_cooldown_seconds = json.loads(llm_response).get(
             "summon_cooldown_seconds", None
         )
+        reasoning = json.loads(llm_response).get("message", "")
 
         updated_params = {}
 
@@ -861,6 +918,7 @@ class HttpHandler(BaseHttpHandler):
                     if updated_params
                     else "No Params updated"
                 ),
+                LLM_MESSAGE_FIELD: reasoning,
             },
         )
 

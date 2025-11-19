@@ -24,6 +24,8 @@ import pickle  # nosec
 import typing
 from dataclasses import dataclass
 
+from pydantic import BaseModel
+
 
 ENFORCE_ACTION_COMMAND = "IMPORTANT: Please use tools, as you are required to meet some action KPIs and you have not met them yet."
 
@@ -396,21 +398,50 @@ The agent's current configuration is:
     (Note: Replace this value fully if the user specifies a new summon cooldown.)
     (Threshold: >=2592000. This equates to 48 hours. If the user requests a value below 22592000, set it to 2592000.)
 
-Carefully analyze the following user prompt and determine the most appropriate updates for the agent. If the prompt lacks sufficient information to make a meaningful change (e.g., it is a greeting or off-topic), return empty values for all fields. Empty values signify no change to that field. If only one field has changed, keep the other field empty.
+Carefully read the user's prompt below and decide what configuration changes, if any, should be made. If only one field should be updated, set the others to null. A field can not be deselected and set at the same time.
+
+Always include a clear message to the user explaining your reasoning for the update, or ask for clarification if needed. This message should be phrased in a way that is for the user, not for the agent. The user may not always ask for a change, the user can also ask for information about the current configuration or the available configurations, in which case, you should respond appropriately. You can format your message using basic HTML tags such as <b> for bold, <i> for italics, <ul>/<li> for lists, and <br> for line breaks. Use these tags to make your explanation clearer and easier to read.
 
 User prompt: "{user_prompt}"
 """
 
 
-@dataclass(frozen=True)
-class UpdatedAgentConfig:
+class UpdatedAgentConfig(BaseModel):
     """UpdatedAgentConfig"""
 
     agent_persona: typing.Optional[str]
     heart_cooldown_hours: typing.Optional[int]
     summon_cooldown_seconds: typing.Optional[int]
+    message: str
 
 
 def build_updated_agent_config_schema() -> dict:
     """Build a schema for token action response"""
     return {"class": pickle.dumps(UpdatedAgentConfig).hex(), "is_list": False}
+
+
+CHATUI_PROMPT_NO_MEMECOIN = """
+You are an expert assistant responsible for updating the configuration of an agent based on user input.
+
+The agent's current configuration is:
+- persona: "{current_persona}"
+    (Note: Enhance or refine the persona to better align with the user's intent, but preserve the agent's core identity. Avoid completely replacing it unless explicitly requested.)
+
+Carefully read the user's prompt below and decide what configuration changes, if any, should be made. If only one field should be updated, set the others to null. A field can not be deselected and set at the same time.
+
+Always include a clear message to the user explaining your reasoning for the update, or ask for clarification if needed. This message should be phrased in a way that is for the user, not for the agent. The user may not always ask for a change, the user can also ask for information about the current configuration or the available configurations, in which case, you should respond appropriately. You can format your message using basic HTML tags such as <b> for bold, <i> for italics, <ul>/<li> for lists, and <br> for line breaks. Use these tags to make your explanation clearer and easier to read.
+
+User prompt: "{user_prompt}"
+"""
+
+
+class UpdatedAgentConfigNoMemecoin(BaseModel):
+    """UpdatedAgentConfigNoMemecoin"""
+
+    agent_persona: typing.Optional[str]
+    message: str
+
+
+def build_updated_agent_config_schema_no_memecoin() -> dict:
+    """Build a schema for token action response"""
+    return {"class": pickle.dumps(UpdatedAgentConfigNoMemecoin).hex(), "is_list": False}
