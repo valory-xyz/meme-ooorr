@@ -35,9 +35,11 @@ AGENT_NAME = "agent"
 PATH_TO_VAR = {
     # Chains
     "config/ledger_apis/base/address": "BASE_LEDGER_RPC",
+    "models/params/args/base_ledger_rpc": "BASE_LEDGER_RPC",
     "config/ledger_apis/base/chain_id": "BASE_LEDGER_CHAIN_ID",
     # Params
     "models/params/args/setup/all_participants": "ALL_PARTICIPANTS",
+    "models/params/args/setup/safe_contract_address": "SAFE_CONTRACT_ADDRESS",
     "models/params/args/safe_contract_addresses": "SAFE_CONTRACT_ADDRESSES",
     "models/params/args/reset_tendermint_after": "RESET_TENDERMINT_AFTER",
     "models/params/args/reset_pause_duration": "RESET_PAUSE_DURATION",
@@ -45,7 +47,6 @@ PATH_TO_VAR = {
     "models/params/args/on_chain_service_id": "ON_CHAIN_SERVICE_ID",
     "models/params/args/minimum_gas_balance": "MINIMUM_GAS_BALANCE",
     "models/params/args/min_feedback_replies": "MIN_FEEDBACK_REPLIES",
-    "models/params/args/setup/safe_contract_address": "SAFE_CONTRACT_ADDRESS",
     "models/params/args/persona": "PERSONA",
     "models/params/args/skip_engagement": "SKIP_ENGAGEMENT",
     "models/params/args/staking_token_contract_address": "STAKING_TOKEN_CONTRACT_ADDRESS",
@@ -60,6 +61,7 @@ PATH_TO_VAR = {
     "config/tweepy_skip_auth": "TWEEPY_SKIP_AUTH",
     # Genai connection
     "config/genai_api_key": "GENAI_API_KEY",
+    "models/params/args/genai_api_key": "GENAI_API_KEY",
     # Store
     "config/store_path": "STORE_PATH",
     # Fireworks API
@@ -69,6 +71,11 @@ PATH_TO_VAR = {
     "models/params/args/summon_cooldown_seconds": "SUMMON_COOLDOWN_SECONDS",
     # Memecoin
     "models/params/args/is_memecoin_logic_enabled": "IS_MEMECOIN_LOGIC_ENABLED",
+    # x402
+    "models/params/args/x402_payment_requirements": "X402_PAYMENT_REQUIREMENTS",
+    "models/params/args/use_x402": "USE_X402",
+    "config/use_x402": "USE_X402",
+    "config/genai_x402_server_base_url": "GENAI_X402_SERVER_BASE_URL",
 }
 
 CONFIG_REGEX = r"\${.*?:(.*)}"

@@ -22,7 +22,6 @@
 import enum
 import pickle  # nosec
 import typing
-from dataclasses import dataclass
 
 from pydantic import BaseModel
 
@@ -133,8 +132,7 @@ class ToolActionName(enum.Enum):
     SHORT_MAKER = "short_maker"
 
 
-@dataclass(frozen=True)
-class TwitterAction:
+class TwitterAction(BaseModel):
     """TwitterAction"""
 
     action: TwitterActionName
@@ -143,8 +141,7 @@ class TwitterAction:
     text: str
 
 
-@dataclass(frozen=True)
-class ToolAction:
+class ToolAction(BaseModel):
     """ToolAction"""
 
     tool_name: ToolActionName
@@ -161,8 +158,7 @@ def build_tool_action_schema() -> dict:
     return {"class": pickle.dumps(ToolAction).hex(), "is_list": False}
 
 
-@dataclass(frozen=True)
-class Decision:
+class Decision(BaseModel):
     """Decision"""
 
     tool_action: typing.Optional[ToolAction]
@@ -301,8 +297,7 @@ ALTERNATIVE_MODEL_TOKEN_PROMPT = (  # nosec
 )
 
 
-@dataclass(frozen=True)
-class TokenSummon:
+class TokenSummon(BaseModel):
     """TokenSummon"""
 
     token_name: str
@@ -311,31 +306,27 @@ class TokenSummon:
     amount: int
 
 
-@dataclass(frozen=True)
-class TokenHeart:
+class TokenHeart(BaseModel):
     """TokenSummon"""
 
     token_nonce: str
     amount: int
 
 
-@dataclass(frozen=True)
-class TokenUnleash:
+class TokenUnleash(BaseModel):
     """TokenSummon"""
 
     token_nonce: str
 
 
-@dataclass(frozen=True)
-class TokenCollect:
+class TokenCollect(BaseModel):
     """TokenSummon"""
 
     token_nonce: str
     token_address: str
 
 
-@dataclass(frozen=True)
-class TokenPurge:
+class TokenPurge(BaseModel):
     """TokenSummon"""
 
     token_nonce: str
@@ -354,8 +345,7 @@ class ValidActionName(enum.Enum):
     BURN = "burn"
 
 
-@dataclass(frozen=True)
-class TokenAction:  # pylint: disable=too-many-instance-attributes
+class TokenAction(BaseModel):  # pylint: disable=too-many-instance-attributes
     """TokenAction"""
 
     action_name: ValidActionName
@@ -373,8 +363,7 @@ def build_token_action_schema() -> dict:
     return {"class": pickle.dumps(TokenAction).hex(), "is_list": False}
 
 
-@dataclass(frozen=True)
-class PersonaAction:  # pylint: disable=too-many-instance-attributes
+class PersonaAction(BaseModel):  # pylint: disable=too-many-instance-attributes
     """PersonaAction"""
 
     new_persona: typing.Optional[str]
