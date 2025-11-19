@@ -80,6 +80,8 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 from packages.valory.skills.abstract_round_abci.handlers import (
     TendermintHandler as BaseTendermintHandler,
 )
+from packages.valory.skills.funds_manager.behaviours import GET_FUNDS_STATUS_METHOD_NAME
+from packages.valory.skills.funds_manager.models import FundRequirements
 
 
 ABCIHandler = BaseABCIRoundHandler
@@ -228,6 +230,7 @@ class HttpHandler(BaseHttpHandler):
             "meme_coins_url": rf"{hostname_regex}\/memecoin-activity",
             "media_url": rf"{hostname_regex}\/media",
             "process_prompt_url": rf"{hostname_regex}\/configure_strategies",
+            "funds_status_url": rf"{hostname_regex}\/funds-status",
             "static_files_url": rf"{hostname_regex}\/(.*)",
         }
 
@@ -242,7 +245,11 @@ class HttpHandler(BaseHttpHandler):
                 (route_regexes["x_activity_url"], self._handle_get_recent_x_activity),
                 (route_regexes["meme_coins_url"], self._handle_get_meme_coins),
                 (route_regexes["media_url"], self._handle_get_media),
-                (route_regexes["static_files_url"], self._handle_get_static_file),
+                (route_regexes["funds_status_url"], self._handle_get_funds_status),
+                (
+                    route_regexes["static_files_url"],
+                    self._handle_get_static_file,
+                ),  # Always keep this last as its a catch-all
             ],
         }
 
@@ -309,6 +316,11 @@ class HttpHandler(BaseHttpHandler):
     def is_memecoin_logic_enabled(self) -> bool:
         """Check if memecoin logic is enabled."""
         return self.params.is_memecoin_logic_enabled
+
+    @property
+    def funds_status(self) -> FundRequirements:
+        """Get the fund status."""
+        return self.context.shared_state[GET_FUNDS_STATUS_METHOD_NAME]()
 
     def _get_handler(self, url: str, method: str) -> Tuple[Optional[Callable], Dict]:
         """Check if an url is meant to be handled in this handler
@@ -984,3 +996,14 @@ class HttpHandler(BaseHttpHandler):
         # Send response
         self.context.logger.info(f"Responding with {NOT_FOUND_CODE}")
         self.context.outbox.put_message(message=http_response)
+
+    def _handle_get_funds_status(
+        self, http_msg: HttpMessage, http_dialogue: HttpDialogue
+    ) -> None:
+        """Handle a fund status request."""
+
+        self._send_ok_response(
+            http_msg,
+            http_dialogue,
+            self.funds_status.get_response_body(),
+        )
