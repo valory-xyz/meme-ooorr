@@ -195,6 +195,7 @@ models:
         frequency_penalty: 0
         temperature": 0.6
       fireworks_api_key: null
+      is_memecoin_logic_enabled: false
     class_name: Params
   randomness_api:
     args:

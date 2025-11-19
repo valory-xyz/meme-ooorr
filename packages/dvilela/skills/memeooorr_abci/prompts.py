@@ -237,6 +237,16 @@ TOKEN_DECISION_PROMPT = (  # nosec
     """
 )
 
+ONLY_PERSONA_UPDATE_PROMPT = """You are an agent with a specific persona. You create tweets based on it.
+
+    Here's your latest tweet:
+    "{latest_tweet}"
+
+    Here's a list of tweets that you received as a response to your latest tweet.
+    You can use this information to update your persona if you think that will improve engagement.
+    "{tweet_responses}"
+    """  # nosec
+
 ALTERNATIVE_MODEL_TOKEN_PROMPT = (  # nosec
     ""
     """
@@ -359,6 +369,18 @@ class TokenAction:  # pylint: disable=too-many-instance-attributes
 def build_token_action_schema() -> dict:
     """Build a schema for token action response"""
     return {"class": pickle.dumps(TokenAction).hex(), "is_list": False}
+
+
+@dataclass(frozen=True)
+class PersonaAction:  # pylint: disable=too-many-instance-attributes
+    """PersonaAction"""
+
+    new_persona: typing.Optional[str]
+
+
+def build_persona_action_schema() -> dict:
+    """Build a schema for persona action response"""
+    return {"class": pickle.dumps(PersonaAction).hex(), "is_list": False}
 
 
 CHATUI_PROMPT = """
