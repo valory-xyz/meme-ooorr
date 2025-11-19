@@ -84,8 +84,6 @@ class FetchPerformanceSummaryBehaviour(
         """Get total likes and retweets from Twitter activity over the last prediction market duration."""
         yield from self.init_own_twitter_details()
 
-        self.shared_state.twitter_id = "1934591152042479617"
-
         response: List[Dict] | Dict = yield from self._call_tweepy(
             method="get_user_tweets_with_public_metrics",
             **{
