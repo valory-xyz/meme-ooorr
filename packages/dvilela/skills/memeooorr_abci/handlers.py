@@ -443,7 +443,7 @@ class HttpHandler(BaseHttpHandler):
         self,
         http_msg: HttpMessage,
         http_dialogue: HttpDialogue,
-        body: Optional[Dict[str, Any]] = {},
+        body: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Handle a Http bad request.
@@ -1093,7 +1093,7 @@ class HttpHandler(BaseHttpHandler):
         self,
         http_msg: HttpMessage,
         http_dialogue: HttpDialogue,
-        body: Optional[Dict[str, Any]] = {},
+        body: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Send a too early response"""
         http_response = http_dialogue.reply(
@@ -1113,7 +1113,7 @@ class HttpHandler(BaseHttpHandler):
         self,
         http_msg: HttpMessage,
         http_dialogue: HttpDialogue,
-        body: Optional[Dict[str, Any]] = {},
+        body: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Send a too many requests response"""
         http_response = http_dialogue.reply(
@@ -1133,7 +1133,7 @@ class HttpHandler(BaseHttpHandler):
         self,
         http_msg: HttpMessage,
         http_dialogue: HttpDialogue,
-        body: Optional[Dict[str, Any]] = {},
+        body: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Send an internal server error response"""
         http_response = http_dialogue.reply(
