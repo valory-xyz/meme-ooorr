@@ -619,7 +619,6 @@ class PullMemesBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-
             if not self.params.is_memecoin_logic_enabled:
                 self.context.logger.info(
                     "Meme-coin logic is disabled. Skipping token pull operation."
