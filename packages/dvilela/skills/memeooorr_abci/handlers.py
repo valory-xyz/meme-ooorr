@@ -39,6 +39,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from eth_account import Account
+from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
 from packages.dvilela.connections.genai.connection import (
@@ -1194,7 +1195,7 @@ class HttpHandler(BaseHttpHandler):
             self.funds_status.get_response_body(),
         )
 
-    def _get_eoa_account(self) -> Optional[Account]:
+    def _get_eoa_account(self) -> Optional[LocalAccount]:
         """Get the EOA account, handling both plaintext and encrypted private keys."""
         default_ledger = self.context.default_ledger_id
         eoa_file_path = (
@@ -1302,7 +1303,7 @@ class HttpHandler(BaseHttpHandler):
             return None
 
     def _sign_and_submit_tx_web3(
-        self, tx_data: Dict, chain: str, eoa_account: Account
+        self, tx_data: Dict, chain: str, eoa_account: LocalAccount
     ) -> Optional[str]:
         """Sign and submit transaction using Web3."""
         try:
@@ -1333,13 +1334,13 @@ class HttpHandler(BaseHttpHandler):
             )
 
             # Wait for transaction receipt with timeout
-            receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=timeout)
+            receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=timeout)  # type: ignore
 
-            if receipt.status == 1:
+            if receipt.status == 1:  # type: ignore[attr-defined]
                 self.context.logger.info(f"Transaction {tx_hash} successful")
                 return True
             self.context.logger.error(
-                f"Transaction {tx_hash} failed (status: {receipt.status})"
+                f"Transaction {tx_hash} failed (status: {receipt.status})"  # type: ignore[attr-defined]
             )
             return False
 
@@ -1394,7 +1395,7 @@ class HttpHandler(BaseHttpHandler):
                 "from": Web3.to_checksum_address(eoa_address),
             }
             # Try to estimate gas using Web3
-            estimated_gas = w3.eth.estimate_gas(tx_data_for_estimation)
+            estimated_gas = w3.eth.estimate_gas(tx_data_for_estimation)  # type: ignore
             # Add 20% buffer to estimated gas
             tx_gas = int(estimated_gas * 1.2)
             self.context.logger.info(
