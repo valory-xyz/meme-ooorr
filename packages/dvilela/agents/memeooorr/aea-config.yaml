@@ -243,10 +243,7 @@ models:
       mech_chain_id: base
       mech_interaction_sleep_time: 10
       use_mech_marketplace: true
-      mech_marketplace_config:
-        mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
-        priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
-        response_timeout: 300
+      mech_marketplace_config: ${dict:{"mech_marketplace_address":"0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020","priority_mech_address":"0xe535D7AcDEeD905dddcb5443f41980436833cA2B","priority_mech_staking_instance_address":"0x0000000000000000000000000000000000000000","priority_mech_service_id":0,"requester_staking_instance_address":"0x0000000000000000000000000000000000000000","response_timeout":300}}
       use_acn_for_delivers: false
       summon_cooldown_seconds: ${int:2592000}
       heart_cooldown_hours: ${int:48}
