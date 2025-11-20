@@ -87,6 +87,7 @@ class HttpHandler(BaseHttpHandler):
                     route_regexes["performance_summary_url"],
                     self._get_performance_summary,
                 ),
+                *(self.routes.get((HttpMethod.GET.value, HttpMethod.HEAD.value)) or []),
             ],
         }
 
