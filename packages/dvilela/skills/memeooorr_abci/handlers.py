@@ -988,7 +988,7 @@ class HttpHandler(BaseHttpHandler):
                 with self.db.atomic():
                     self._set_value_to_db("agent_details", json.dumps(agent_details))
 
-            getattr(self.shared_state, "update_agent_behavior")(updated_persona)
+            self.shared_state.update_agent_behavior(updated_persona)  # type: ignore[attr-defined]
 
         if updated_heart_cooldown_hours:
             # One more check just in case the llm allows it through

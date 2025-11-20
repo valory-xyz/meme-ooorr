@@ -439,7 +439,7 @@ class MemeooorrBaseBehaviour(
             param_type=str,
         )
 
-        getattr(self.shared_state, "update_agent_behavior")(persona)
+        self.shared_state.update_agent_behavior(persona)  # type: ignore[attr-defined]
         return persona
 
     def get_heart_cooldown_hours(self) -> Generator[None, None, int]:
