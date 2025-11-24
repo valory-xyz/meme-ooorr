@@ -1191,6 +1191,8 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a fund status request."""
+        if self.params.use_x402:
+            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
 
         self._send_ok_response(
             http_msg,
