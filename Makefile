@@ -172,7 +172,7 @@ build-agent-runner: poetry-install  agent
 	--hidden-import aea_ledger_cosmos \
 	--hidden-import aea_ledger_ethereum_flashbots \
 	$(shell poetry run python get_pyinstaller_dependencies.py) \
-	--onefile pyinstaller/trader_bin.py \
+	--onefile pyinstaller/memeooorr_bin.py \
 	--name agent_runner_bin
 	./dist/agent_runner_bin --version 
 	
@@ -190,7 +190,7 @@ build-agent-runner-mac: poetry-install  agent
 	--hidden-import aea_ledger_cosmos \
 	--hidden-import aea_ledger_ethereum_flashbots \
 	$(shell poetry run python get_pyinstaller_dependencies.py) \
-	--onefile pyinstaller/trader_bin.py \
+	--onefile pyinstaller/memeooorr_bin.py \
 	--codesign-identity "${SIGN_ID}" \
 	--name agent_runner_bin
 	./dist/agent_runner_bin 1>/dev/null
@@ -221,7 +221,7 @@ build-agent-runner-mac: poetry-install  agent
 
 # Configuration
 TIMEOUT := 20
-COMMAND := cd ./agent && SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_STORE_PATH=/tmp ../dist/agent_runner_bin -s run
+COMMAND := cd ./agent && SKILL_MEMEOOORR_CHAINED_ABCI_MODELS_PARAMS_ARGS_STORE_PATH=/tmp ../dist/agent_runner_bin -s run
 SEARCH_STRING := Starting AEA
 
 
