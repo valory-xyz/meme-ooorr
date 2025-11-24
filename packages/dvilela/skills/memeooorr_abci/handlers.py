@@ -237,7 +237,7 @@ class Store(BaseModel):
     value = peewee.CharField()
 
 
-class HttpHandler(BaseHttpHandler):
+class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attributes
     """This implements the echo handler."""
 
     SUPPORTED_PROTOCOL = HttpMessage.protocol_id
