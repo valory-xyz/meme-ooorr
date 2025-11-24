@@ -17,6 +17,7 @@ def main():
     # Copy env and set your variable
     env = os.environ.copy()
     env["SKILL_MEMEOOORR_CHAINED_ABCI_MODELS_PARAMS_ARGS_STORE_PATH"] = "/tmp"
+    env["CONNECTION_KV_STORE_CONFIG_STORE_PATH"] = "/tmp"
 
     # Cross-platform handling
     system = platform.system()
