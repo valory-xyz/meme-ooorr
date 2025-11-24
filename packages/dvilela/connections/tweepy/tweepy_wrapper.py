@@ -263,6 +263,10 @@ class Twitter:
             for response in paginator:
                 if response.data:
                     all_tweets.extend(response.data)
+                else:
+                    self.logger.warning(
+                        f"No tweets found for user_id {user_id} in the current page."
+                    )
 
             return all_tweets
         except tweepy.errors.TweepyException as e:

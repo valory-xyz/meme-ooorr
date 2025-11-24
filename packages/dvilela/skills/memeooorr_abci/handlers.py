@@ -19,10 +19,11 @@
 
 """This module contains the handlers for the skill of MemeooorrAbciApp."""
 
+import atexit
 import json
 import mimetypes
 import re
-import sys
+from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime
@@ -145,19 +146,14 @@ def load_fsm_spec() -> Dict:
 
 def get_password_from_args() -> Optional[str]:
     """Extract password from command line arguments."""
-    args = sys.argv
-    try:
-        password_index = args.index("--password")
-        if password_index + 1 < len(args):
-            return args[password_index + 1]
-    except ValueError:
-        pass
-
-    for arg in args:
-        if arg.startswith("--password="):
-            return arg.split("=", 1)[1]
-
-    return None
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument(
+        "--password",
+        type=str,
+        help="Password to decrypt the Ethereum private key.",
+    )
+    args, _ = arg_parser.parse_known_args()
+    return args.password
 
 
 class SrrHandler(AbstractResponseHandler):
@@ -241,20 +237,25 @@ class Store(BaseModel):
     value = peewee.CharField()
 
 
-class HttpHandler(BaseHttpHandler):
+class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attributes
     """This implements the echo handler."""
 
     SUPPORTED_PROTOCOL = HttpMessage.protocol_id
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the handler."""
+        super().__init__(**kwargs)
+
+        self.executor = ThreadPoolExecutor(max_workers=1)
+        atexit.register(self._executor_shutdown)
 
     def setup(self) -> None:
         """Implement the setup."""
 
         # Only check funds if using X402
-        if self.context.params.use_x402:
+        if self.params.use_x402:
             self.shared_state.sufficient_funds_for_x402_payments = False
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                executor.submit(self._ensure_sufficient_funds_for_x402_payments)
-                executor.shutdown(wait=False)
+            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
 
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
@@ -1190,6 +1191,8 @@ class HttpHandler(BaseHttpHandler):
         self, http_msg: HttpMessage, http_dialogue: HttpDialogue
     ) -> None:
         """Handle a fund status request."""
+        if self.params.use_x402:
+            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
 
         self._send_ok_response(
             http_msg,
@@ -1524,3 +1527,12 @@ class HttpHandler(BaseHttpHandler):
             self.context.logger.error(f"Error in _ensure_usdc_balance: {str(e)}")
             self.shared_state.sufficient_funds_for_x402_payments = False
             return False
+
+    def teardown(self) -> None:
+        """Tear down the handler."""
+        super().teardown()
+        self._executor_shutdown()
+
+    def _executor_shutdown(self) -> None:
+        """Shut down the executor."""
+        self.executor.shutdown(wait=False, cancel_futures=True)
