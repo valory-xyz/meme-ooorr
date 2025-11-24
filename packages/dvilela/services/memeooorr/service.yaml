@@ -105,9 +105,9 @@ extra:
         min_summon_amount_celo: ${MIN_SUMMON_AMOUNT_CELO:float:10.0}
         max_summon_amount_celo: ${MAX_SUMMON_AMOUNT_CELO:float:20.0}
         max_heart_amount_celo: ${MAX_HEART_AMOUNT_CELO:float:0.2}
-        use_mech_marketplace: ${USE_MECH_MARKETPLACE:bool:false}
-        mech_marketplace_config: ${MECH_MARKETPLACE_CONFIG:dict:{"mech_marketplace_address":"0x0000000000000000000000000000000000000000","priority_mech_address":"0x0000000000000000000000000000000000000000","response_timeout":300}}
-        mech_contract_address: ${MECH_CONTRACT_ADDRESS:str:0x}
+        use_mech_marketplace: ${USE_MECH_MARKETPLACE:bool:true}
+        mech_marketplace_config: ${MECH_MARKETPLACE_CONFIG:dict:{"mech_marketplace_address":"0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020","priority_mech_address":"0xe535D7AcDEeD905dddcb5443f41980436833cA2B","priority_mech_staking_instance_address":"0x0000000000000000000000000000000000000000","priority_mech_service_id":0,"requester_staking_instance_address":"0x0000000000000000000000000000000000000000","response_timeout":300}}
+        mech_contract_address: ${MECH_CONTRACT_ADDRESS:str:0xe535D7AcDEeD905dddcb5443f41980436833cA2B}
         mech_request_price: ${MECH_REQUEST_PRICE:int:100}
         mech_chain_id: ${MECH_CHAIN_ID:str:gnosis}
         staking_token_contract_address: ${STAKING_TOKEN_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
