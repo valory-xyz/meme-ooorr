@@ -22,7 +22,7 @@
 import json
 import mimetypes
 import re
-import sys
+from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime
@@ -145,19 +145,14 @@ def load_fsm_spec() -> Dict:
 
 def get_password_from_args() -> Optional[str]:
     """Extract password from command line arguments."""
-    args = sys.argv
-    try:
-        password_index = args.index("--password")
-        if password_index + 1 < len(args):
-            return args[password_index + 1]
-    except ValueError:
-        pass
-
-    for arg in args:
-        if arg.startswith("--password="):
-            return arg.split("=", 1)[1]
-
-    return None
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument(
+        "--password",
+        type=str,
+        help="Password to decrypt the Ethereum private key.",
+    )
+    args, _ = arg_parser.parse_known_args()
+    return args.password
 
 
 class SrrHandler(AbstractResponseHandler):
