@@ -75,6 +75,7 @@ transition_func:
     (CheckFundsRound, ROUND_TIMEOUT): CheckFundsRound
     (CheckFundsRound, SKIP): FinishedToResetRound
     (CheckStakingRound, DONE): PullMemesRound
+    (CheckStakingRound, SKIP): CallCheckpointRound
     (CheckStakingRound, NO_MAJORITY): CheckStakingRound
     (CheckStakingRound, ROUND_TIMEOUT): CheckStakingRound
     (CollectFeedbackRound, DONE): EngageTwitterRound
