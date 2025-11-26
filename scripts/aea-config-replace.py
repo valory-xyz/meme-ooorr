@@ -69,6 +69,7 @@ PATH_TO_VAR = {
     "models/params/args/fireworks_api_key": "FIREWORKS_API_KEY",
     # Cooldown
     "models/params/args/summon_cooldown_seconds": "SUMMON_COOLDOWN_SECONDS",
+    "models/params/args/stop_posting_if_staking_kpi_met": "STOP_POSTING_IF_STAKING_KPI_MET",
     # Memecoin
     "models/params/args/is_memecoin_logic_enabled": "IS_MEMECOIN_LOGIC_ENABLED",
     # x402

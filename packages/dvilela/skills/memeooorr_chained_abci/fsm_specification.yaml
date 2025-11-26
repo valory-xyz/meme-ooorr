@@ -118,6 +118,7 @@ transition_func:
     (CollectSignatureRound, NO_MAJORITY): ResetRound
     (CollectSignatureRound, ROUND_TIMEOUT): CollectSignatureRound
     (EngageTwitterRound, DONE): ActionDecisionRound
+    (CheckStakingRound, SKIP): CallCheckpointRound
     (EngageTwitterRound, ERROR): EngageTwitterRound
     (EngageTwitterRound, MECH): MechRequestRound
     (EngageTwitterRound, NO_MAJORITY): EngageTwitterRound

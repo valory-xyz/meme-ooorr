@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiaekcmielp6mb4qvmo2twwkpmoun36bqajrh7wnnkcpdnia45ycl4
 fingerprint_ignore_patterns: []
-agent: dvilela/memeooorr:0.1.0:bafybeidyem6xsz6udhgkt3ldkhhnhxgpqthet6j5pvuckowyw3xgdufdpu
+agent: dvilela/memeooorr:0.1.0:bafybeibwf7zgmzijiu3hzlbx4g2mzyhn4fpm56dwpd4e7ofewimqeaa6u4
 number_of_agents: 1
 deployment:
   agent:
@@ -127,6 +127,7 @@ extra:
         lifi_quote_to_amount_url: ${LIFI_QUOTE_TO_AMOUNT_URL:str:https://li.quest/v1/quote/toAmount}
         is_agent_performance_summary_enabled: ${IS_AGENT_PERFORMANCE_SUMMARY_ENABLED:bool:true}
         performance_summary_ttl: ${PERFORMANCE_SUMMARY_TTL:int:1800}
+        stop_posting_if_staking_kpi_met: ${STOP_POSTING_IF_STAKING_KPI_MET:bool:true}
 ---
 public_id: valory/ledger:0.19.0
 type: connection

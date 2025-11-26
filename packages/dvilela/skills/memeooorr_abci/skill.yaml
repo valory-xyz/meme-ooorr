@@ -24,12 +24,12 @@ fingerprint:
   behaviour_classes/twitter.py: bafybeidnjg6oyhx2na3q3ke3fwwm6q5aarwbb6hzvabqjjuuhekald7teu
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
-  fsm_specification.yaml: bafybeiawjozalhwzeybvyri6hnimlxvnka3d6eykiu7nnqi54nmqbdqu64
+  fsm_specification.yaml: bafybeiasa72sv2qqwjrc45xqeflvffvqkilfl2dnjwd5qk74i4nwlscuf4
   handlers.py: bafybeibts44ko3dsgavr7tn6rrprtmlorhdm633spfq3jbpqyyvmq7ij74
-  models.py: bafybeidptygsilab6upr4e3ad5t6vtrbxlrpqrenzv7euxjbcmulfblhly
+  models.py: bafybeidfn2k77ylijlwzp747iycee43bwk34wmhn6d3a6l6v3vfff7bxyy
   payloads.py: bafybeifrhbfqwrcxx2q5ekeioz7tl4xjkoirqy5s6tdpioa52b63qg7kva
   prompts.py: bafybeienmm4cftgcwb5mgrq7222kp5rf7xd6e2dxrujlnc6eltbccanfra
-  rounds.py: bafybeiak2gwsjsypglbq2bu6aekdn7qthmasw442pzc3ll4mllegb6kltq
+  rounds.py: bafybeia4iy6tbh2dvk3q7ia2dfwem742s3h27b6433tqiwllxavzslx2gq
   rounds_info.py: bafybeihsaghfckxyfrynb2ncqvuocjastmvwzg5wjih4sugfbpykriz26u
 fingerprint_ignore_patterns: []
 connections:
@@ -235,6 +235,7 @@ models:
       lifi_quote_to_amount_url: https://li.quest/v1/quote/toAmount
       is_agent_performance_summary_enabled: true
       performance_summary_ttl: 1800
+      stop_posting_if_staking_kpi_met: true
     class_name: Params
   mech_response:
     args:

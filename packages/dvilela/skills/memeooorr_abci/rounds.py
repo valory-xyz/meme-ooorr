@@ -322,6 +322,12 @@ class CheckStakingRound(CollectSameUntilThresholdRound):
                 },
             )
 
+            if (
+                self.context.params.stop_posting_if_staking_kpi_met
+                and payload.is_staking_kpi_met
+            ):
+                return synchronized_data, Event.SKIP
+
             return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
@@ -829,6 +835,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
         },
         CheckStakingRound: {
             Event.DONE: PullMemesRound,
+            Event.SKIP: CallCheckpointRound,
             Event.NO_MAJORITY: CheckStakingRound,
             Event.ROUND_TIMEOUT: CheckStakingRound,
         },

@@ -202,5 +202,8 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
         )
         self.base_ledger_rpc: str = self._ensure("base_ledger_rpc", kwargs, str)
         self.use_x402: bool = self._ensure("use_x402", kwargs, bool)
+        self.stop_posting_if_staking_kpi_met: bool = self._ensure(
+            "stop_posting_if_staking_kpi_met", kwargs, bool
+        )
 
         super().__init__(*args, **kwargs)
