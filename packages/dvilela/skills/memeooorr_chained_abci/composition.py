@@ -49,7 +49,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     MemeooorrAbci.FinishedToSettlementRound: TransactionSettlementAbci.RandomnessTransactionSubmissionRound,
     TransactionSettlementAbci.FinishedTransactionSubmissionRound: MemeooorrAbci.PostTxDecisionMakingRound,
     TransactionSettlementAbci.FailedRound: MemeooorrAbci.TransactionLoopCheckRound,
-    ResetAndPauseAbci.FinishedResetAndPauseRound: MemeooorrAbci.CheckStakingRound,
+    ResetAndPauseAbci.FinishedResetAndPauseRound: AgentPerformanceSummaryAbci.FetchPerformanceDataRound,
     ResetAndPauseAbci.FinishedResetAndPauseErrorRound: ResetAndPauseAbci.ResetAndPauseRound,
     MemeooorrAbci.FinishedForMechRequestRound: MechRequestStates.MechRequestRound,
     MechFinalStates.FinishedMechRequestRound: TransactionSettlementAbci.RandomnessTransactionSubmissionRound,
