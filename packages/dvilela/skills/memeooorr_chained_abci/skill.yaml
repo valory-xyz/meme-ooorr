@@ -8,9 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeiacqbub377oj2uvkw3lu2u43zv5rpdd2z4jx7dailiffqttksds24
   behaviours.py: bafybeiapclfprmrnn3nqtwvblr6pyvyhcghcj64mtfkotoy3jctkce4akm
-  composition.py: bafybeihhcfk2e7lczwbldfzpx5igbbtqysrba3lk2rjh5fpcth7qvf7jjm
+  composition.py: bafybeifgvqodgmf7kmausj4tonoa7xjr5oa4ki4ixodh3iixgobcia4xve
   dialogues.py: bafybeiawrgmlra5f6o63nhv5kc77wvzoqmcareub3lf4qceuwpjso4pjbe
-  fsm_specification.yaml: bafybeidl6b734e4mt4osgv3xvhutnw3xgupmy2qmhqcid3bkwlgvehr66u
+  fsm_specification.yaml: bafybeic6cunx4z43u6uc4x6idqdgzgnvxcj2hscxtpueqepkjlj3olsdi4
   handlers.py: bafybeihtdxdmnknewkwtwja5vjq7uyizirtj2ahzovizg3vzon4c53izay
   models.py: bafybeie22hfznu62ybuziuh6owiez4hh4jontjrlch57wid4puljda62y4
 fingerprint_ignore_patterns: []
