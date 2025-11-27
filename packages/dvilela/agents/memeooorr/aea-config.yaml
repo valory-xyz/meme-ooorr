@@ -257,7 +257,7 @@ models:
       base_ledger_rpc: ${str:https://1rpc.io/base}
       lifi_quote_to_amount_url: ${str:https://li.quest/v1/quote/toAmount}
       is_agent_performance_summary_enabled: ${bool:true}
-      performance_summary_ttl: ${int:1800}
+      performance_summary_ttl: ${int:86400}
       stop_posting_if_staking_kpi_met: ${bool:true}
 ---
 public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq

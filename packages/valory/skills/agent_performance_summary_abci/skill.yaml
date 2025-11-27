@@ -50,7 +50,7 @@ models:
     args:
       store_path: /data/
       is_agent_performance_summary_enabled: true
-      performance_summary_ttl: 1800
+      performance_summary_ttl: 86400
     class_name: AgentPerformanceSummaryParams
 dependencies: {}
 is_abstract: true

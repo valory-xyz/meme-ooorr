@@ -202,7 +202,7 @@ models:
       base_ledger_rpc: https://1rpc.io/base
       lifi_quote_to_amount_url: https://li.quest/v1/quote/toAmount
       is_agent_performance_summary_enabled: true
-      performance_summary_ttl: 1800
+      performance_summary_ttl: 86400
       stop_posting_if_staking_kpi_met: true
     class_name: Params
   randomness_api:
