@@ -144,5 +144,4 @@ class SharedState(BaseSharedState):
         """Update the agent behavior in agent performance template file."""
         existing_data = self.read_existing_performance_summary()
         existing_data.agent_behavior = behavior
-        existing_data.timestamp = self.synced_timestamp
         self.overwrite_performance_summary(existing_data)
