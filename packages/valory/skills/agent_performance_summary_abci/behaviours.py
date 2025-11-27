@@ -56,6 +56,15 @@ PERCENTAGE_FACTOR = 100
 WEI_IN_ETH = 10**18  # 1 ETH = 10^18 wei
 
 NA = "N/A"
+TOTAL_LIKES_METRIC_NAME = "Total Likes"
+TOTAL_IMPRESSIONS_METRIC_NAME = "Total Impressions"
+
+
+def extract_metric_by_name(
+    metrics: List[AgentPerformanceMetrics], name: str
+) -> Optional[str]:
+    """Get metric value by name."""
+    return next((m.value for m in metrics if m.name == name), None)
 
 
 class FetchPerformanceSummaryBehaviour(
@@ -129,11 +138,23 @@ class FetchPerformanceSummaryBehaviour(
 
         total_likes, total_impressions = yield from self._get_total_likes_and_retweets()
 
+        if total_likes is None or total_impressions is None:
+            self.context.logger.warning(
+                "Could not fetch total likes or impressions. Keeping old values."
+            )
+            existing_data = self.shared_state.read_existing_performance_summary()
+            total_likes = extract_metric_by_name(
+                existing_data.metrics, TOTAL_LIKES_METRIC_NAME
+            )
+            total_impressions = extract_metric_by_name(
+                existing_data.metrics, TOTAL_IMPRESSIONS_METRIC_NAME
+            )
+
         metrics = []
 
         metrics.append(
             AgentPerformanceMetrics(
-                name="Total Impressions",
+                name=TOTAL_IMPRESSIONS_METRIC_NAME,
                 is_primary=True,
                 description="Total number of times your agent's posts were viewed on X (not unique). A view counts when any part of a post is visible on screen.",
                 value=str(total_impressions) if total_impressions is not None else NA,
@@ -142,7 +163,7 @@ class FetchPerformanceSummaryBehaviour(
 
         metrics.append(
             AgentPerformanceMetrics(
-                name="Total Likes",
+                name=TOTAL_LIKES_METRIC_NAME,
                 is_primary=False,
                 description="Total number of times users tapped the heart icon to like your agent's posts on X.",
                 value=str(total_likes) if total_likes is not None else NA,
