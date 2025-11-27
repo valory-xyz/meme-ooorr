@@ -115,10 +115,8 @@ class FetchPerformanceSummaryBehaviour(
         if any(metric.value == NA for metric in existing_data.metrics):
             self.context.logger.info("Existing data has N/A metrics.")
             return True
-        if (
-            existing_data.timestamp + self.params.performance_summary_ttl
-            > self.shared_state.synced_timestamp
-        ):
+        update_expiry = existing_data.timestamp + self.params.performance_summary_ttl
+        if update_expiry > self.shared_state.synced_timestamp:
             self.context.logger.info(
                 "Agent performance summary was updated recently. Skipping to avoid rate limits."
             )
