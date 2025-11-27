@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeifrlephtnp4zdqlmovozy25ztjsfyvopm2pinkzyxtc65hmg53b5m
-  behaviours.py: bafybeidzn5jwtvllwp2nnmgxmr4ftrajhgnvnqulzq4j4ckxkhury5zdye
+  behaviours.py: bafybeiehlotmae4xultkxp7x3dtrixc6zklfizdkio5xgvmqtzizxpa2z4
   dialogues.py: bafybeihqnuqcqbrxzedx5iq5bkjg7r54f2bzcwu4frwtym3o4cggscx36m
   fsm_specification.yaml: bafybeieh2wmnqfkrpfeyvkoojbvd7tbjg36edhnisi6mycdjugymgut3vi
   handlers.py: bafybeiedgxcptl2pydqttyx6hd2vhpjkh7vrlaxf7qgwov3uu64wfvnc64
@@ -18,7 +18,7 @@ fingerprint_ignore_patterns: []
 contracts: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
-- dvilela/memeooorr_abci:0.1.0:bafybeiamd6kewcrbf7ysmyoaifjzmolozqwtazwgqw2adp2ry4uqvxkjhm
+- dvilela/memeooorr_abci:0.1.0:bafybeia3q5bbtkuqqezbum2475vpznnbp3befp7htip474eeyje7amezqy
 handlers:
   abci:
     args: {}
@@ -50,7 +50,7 @@ models:
     args:
       store_path: /data/
       is_agent_performance_summary_enabled: true
-      performance_summary_ttl: 1800
+      performance_summary_ttl: 86400
     class_name: AgentPerformanceSummaryParams
 dependencies: {}
 is_abstract: true

@@ -56,6 +56,24 @@ PERCENTAGE_FACTOR = 100
 WEI_IN_ETH = 10**18  # 1 ETH = 10^18 wei
 
 NA = "N/A"
+LIKES_METRIC_NAME = "Weekly Likes"
+IMPRESSIONS_METRIC_NAME = "Weekly Impressions"
+
+LIKES_METRIC_DESCRIPTION = """Total number of times your agent's posts were viewed on X (non-unique) in the last 7 days. A view counts whenever any part of the post appears on screen."""
+IMPRESSIONS_METRIC_DESCRIPTION = """Total number of times users tapped the heart icon on your agent's posts on X in the last 7 days."""
+
+FETCH_FOR_LAST_DAYS = 7
+
+NUMBER_OF_SECONDS_IN_A_DAY = 86400
+
+LAST_METRIC_FETCH_TIMESTAMP_KEY = "last_metric_fetch_timestamp"
+
+
+def extract_metric_by_name(
+    metrics: List[AgentPerformanceMetrics], name: str
+) -> Optional[str]:
+    """Get metric value by name."""
+    return next((m.value for m in metrics if m.name == name), None)
 
 
 class FetchPerformanceSummaryBehaviour(
@@ -80,14 +98,15 @@ class FetchPerformanceSummaryBehaviour(
         """Return the skill params."""
         return cast(AgentPerformanceSummaryParams, self.context.params)
 
-    def _get_total_likes_and_retweets(self) -> Generator:
-        """Get total likes and retweets from Twitter activity over the last prediction market duration."""
+    def _get_total_likes_and_retweets(self, since_timestamp: int) -> Generator:
+        """Get total likes and retweets from Twitter activity since a given timestamp."""
         yield from self.init_own_twitter_details()
 
         response: List[Dict] | Dict = yield from self._call_tweepy(
             method="get_user_tweets_with_public_metrics",
             **{
                 "user_id": self.shared_state.twitter_id,
+                "since_timestamp": since_timestamp,
             },
         )
         if isinstance(response, dict) and "error" in response:
@@ -105,20 +124,23 @@ class FetchPerformanceSummaryBehaviour(
 
         return total_likes, total_impressions
 
-    def should_fetch_metrics_again(self) -> bool:
+    def should_fetch_metrics_again(self) -> Generator:
         """Check if we should fetch the metrics again based on the TTL."""
         existing_data = self.shared_state.read_existing_performance_summary()
-        if not existing_data.timestamp:
-            self.context.logger.info("No existing data found.")
-            return True
-
         if any(metric.value == NA for metric in existing_data.metrics):
             self.context.logger.info("Existing data has N/A metrics.")
             return True
-        if (
-            existing_data.timestamp + self.params.performance_summary_ttl
-            > self.shared_state.synced_timestamp
-        ):
+
+        last_fetch_timestamp = yield from self._read_json_from_kv(
+            LAST_METRIC_FETCH_TIMESTAMP_KEY, None
+        )
+        if not last_fetch_timestamp:
+            self.context.logger.info("No previous fetch timestamp found.")
+            return True
+
+        update_expiry = last_fetch_timestamp + self.params.performance_summary_ttl
+
+        if update_expiry > self.shared_state.synced_timestamp:
             self.context.logger.info(
                 "Agent performance summary was updated recently. Skipping to avoid rate limits."
             )
@@ -129,24 +151,46 @@ class FetchPerformanceSummaryBehaviour(
         """Fetch the agent performance summary"""
         current_timestamp = self.shared_state.synced_timestamp
 
-        total_likes, total_impressions = yield from self._get_total_likes_and_retweets()
+        since_timestamp = (
+            current_timestamp - FETCH_FOR_LAST_DAYS * NUMBER_OF_SECONDS_IN_A_DAY
+        )
+
+        total_likes, total_impressions = yield from self._get_total_likes_and_retweets(
+            since_timestamp=since_timestamp
+        )
+
+        if total_likes is None or total_impressions is None:
+            self.context.logger.warning(
+                "Could not fetch total likes or impressions. Keeping old values."
+            )
+            existing_data = self.shared_state.read_existing_performance_summary()
+            total_likes = extract_metric_by_name(
+                existing_data.metrics, LIKES_METRIC_NAME
+            )
+            total_impressions = extract_metric_by_name(
+                existing_data.metrics, IMPRESSIONS_METRIC_NAME
+            )
+        else:
+            yield from self.write_kv(
+                {LAST_METRIC_FETCH_TIMESTAMP_KEY: current_timestamp}
+            )
 
         metrics = []
 
         metrics.append(
             AgentPerformanceMetrics(
-                name="Total Impressions",
+                name=IMPRESSIONS_METRIC_NAME,
                 is_primary=True,
-                description="Total number of times your agent's posts were viewed on X (not unique). A view counts when any part of a post is visible on screen.",
+                description=IMPRESSIONS_METRIC_DESCRIPTION,
                 value=str(total_impressions) if total_impressions is not None else NA,
             )
         )
 
         metrics.append(
             AgentPerformanceMetrics(
-                name="Total Likes",
+                name=LIKES_METRIC_NAME,
                 is_primary=False,
-                description="Total number of times users tapped the heart icon to like your agent's posts on X.",
+                description=LIKES_METRIC_DESCRIPTION,
                 value=str(total_likes) if total_likes is not None else NA,
             )
         )
@@ -176,7 +220,8 @@ class FetchPerformanceSummaryBehaviour(
             yield from self.finish_behaviour(payload)
             return
 
-        if not self.should_fetch_metrics_again():
+        should_fetch = yield from self.should_fetch_metrics_again()
+        if not should_fetch:
             payload = FetchPerformanceDataPayload(
                 sender=self.context.agent_address,
                 vote=False,
