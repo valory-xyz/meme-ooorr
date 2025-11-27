@@ -7,14 +7,13 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
-  agentsfun-ui-build/assets/agent-agentsfun-logo-Cl82UKSm.png: bafybeia3nla5pruiurpwvzex6bbsgset4k2foerma2iwy5zxmtjidur454
   agentsfun-ui-build/assets/agentsfun-chat-CQO2MvlO.png: bafybeibm5nhmhfa54gimrsjt7pupvw3bkg2ayr6nul5o5krlj67ivh26oy
   agentsfun-ui-build/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
-  agentsfun-ui-build/assets/index-CQGd9MCc.js: bafybeiezb6vr3yumgmecfjjo5cjbbpug6tdjxzczfxh22ukkgzv7ppxzoy
+  agentsfun-ui-build/assets/index-Ciy3ywQD.js: bafybeienqranakwkwwtq46utsjz3zex6sgtjvp4dycv73j6ofu37ftptfa
   agentsfun-ui-build/assets/media-empty-B-lyiAtK.png: bafybeihuag4bulfk7vvoiycjyycvrmpb5k25nizofy6wa5f5v5a3hv7344
   agentsfun-ui-build/assets/x-activity-empty-eVudZvXV.png: bafybeidv76vrjgsi2xdhie76gqwr2p6t42egap4en4ko7wyumavyrrkify
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
-  agentsfun-ui-build/index.html: bafybeig6afofigmqiefhps5rkiwymnf4xa4bnnte76byx4itcf26t6qw2y
+  agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeiegtvonsqvevo4v5vf3bcvbunamhmgpnuzz2sdlfppmzut7wnjmkq
   behaviour_classes/chain.py: bafybeiasfazrwxiq7jujredudsdoj6gvheamrflal2qij32o2dmgm6764a
@@ -34,7 +33,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeieufzdojxahh3ejagdbzroqredi5uvkfgjiwsfod7l7whn2octmmi
-- dvilela/tweepy:0.1.0:bafybeidi5jryldbhbhpau2kypum7vk357bssohv47n7u6356x5yn7bkmoq
+- dvilela/tweepy:0.1.0:bafybeig7lfvwlgn4igdei3vupbhqa6bjemmudcyrpciv2powsif2cmt6zq
 - dvilela/genai:0.1.0:bafybeifbm6vgvudeh4stqaf5ur2hwiym3ka7tnrpcavwgrf5oafal3oqwa
 - valory/http_server:0.22.0:bafybeidrrp33iujkplxjs7eylsple4tw3ymqhaapzikjai5movuesuz7f4
 contracts:
