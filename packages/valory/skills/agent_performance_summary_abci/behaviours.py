@@ -66,6 +66,8 @@ FETCH_FOR_LAST_DAYS = 7
 
 NUMBER_OF_SECONDS_IN_A_DAY = 86400
 
+LAST_METRIC_FETCH_TIMESTAMP_KEY = "last_metric_fetch_timestamp"
+
 
 def extract_metric_by_name(
     metrics: List[AgentPerformanceMetrics], name: str
@@ -122,17 +124,22 @@ class FetchPerformanceSummaryBehaviour(
 
         return total_likes, total_impressions
 
-    def should_fetch_metrics_again(self) -> bool:
+    def should_fetch_metrics_again(self) -> Generator:
         """Check if we should fetch the metrics again based on the TTL."""
         existing_data = self.shared_state.read_existing_performance_summary()
-        if not existing_data.timestamp:
-            self.context.logger.info("No existing data found.")
-            return True
-
         if any(metric.value == NA for metric in existing_data.metrics):
             self.context.logger.info("Existing data has N/A metrics.")
             return True
-        update_expiry = existing_data.timestamp + self.params.performance_summary_ttl
+
+        last_fetch_timestamp = yield from self._read_json_from_kv(
+            LAST_METRIC_FETCH_TIMESTAMP_KEY, None
+        )
+        if not last_fetch_timestamp:
+            self.context.logger.info("No previous fetch timestamp found.")
+            return True
+
+        update_expiry = last_fetch_timestamp + self.params.performance_summary_ttl
+
         if update_expiry > self.shared_state.synced_timestamp:
             self.context.logger.info(
                 "Agent performance summary was updated recently. Skipping to avoid rate limits."
@@ -162,6 +169,10 @@ class FetchPerformanceSummaryBehaviour(
             )
             total_impressions = extract_metric_by_name(
                 existing_data.metrics, IMPRESSIONS_METRIC_NAME
+            )
+        else:
+            yield from self.write_kv(
+                {LAST_METRIC_FETCH_TIMESTAMP_KEY: current_timestamp}
             )
 
         metrics = []
@@ -209,7 +220,8 @@ class FetchPerformanceSummaryBehaviour(
             yield from self.finish_behaviour(payload)
             return
 
-        if not self.should_fetch_metrics_again():
+        should_fetch = yield from self.should_fetch_metrics_again()
+        if not should_fetch:
             payload = FetchPerformanceDataPayload(
                 sender=self.context.agent_address,
                 vote=False,
