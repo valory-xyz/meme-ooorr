@@ -127,7 +127,9 @@ class FetchPerformanceSummaryBehaviour(
     def should_fetch_metrics_again(self) -> Generator:
         """Check if we should fetch the metrics again based on the TTL."""
         existing_data = self.shared_state.read_existing_performance_summary()
-        if any(metric.value == NA for metric in existing_data.metrics):
+        if not existing_data.metrics or any(
+            metric.value == NA for metric in existing_data.metrics
+        ):
             self.context.logger.info("Existing data has N/A metrics.")
             return True
 
