@@ -59,8 +59,8 @@ NA = "N/A"
 LIKES_METRIC_NAME = "Weekly Likes"
 IMPRESSIONS_METRIC_NAME = "Weekly Impressions"
 
-LIKES_METRIC_DESCRIPTION = """Total number of times your agent's posts were viewed on X (non-unique) in the last 7 days. A view counts whenever any part of the post appears on screen."""
-IMPRESSIONS_METRIC_DESCRIPTION = """Total number of times users tapped the heart icon on your agent's posts on X in the last 7 days."""
+LIKES_METRIC_DESCRIPTION = """Total number of times users tapped the heart icon on your agent's posts on X in the last 7 days. (Updated daily)"""
+IMPRESSIONS_METRIC_DESCRIPTION = """Total number of times your agent's posts were viewed on X (non-unique) in the last 7 days. A view counts whenever any part of the post appears on screen. (Updated daily)"""
 
 FETCH_FOR_LAST_DAYS = 7
 
