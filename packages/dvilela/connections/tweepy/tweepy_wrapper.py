@@ -20,6 +20,7 @@
 
 """Tweepy wrapper."""
 
+import datetime
 import logging
 import re
 from typing import Dict, List, Optional
@@ -250,6 +251,7 @@ class Twitter:
         user_id: str,
         max_results: int = 100,
         tweet_fields: Optional[List[str]] = None,
+        start_time: Optional[datetime.datetime] = None,
     ) -> List:
         """Get a user's tweets."""
         try:
@@ -258,6 +260,7 @@ class Twitter:
                 user_id,
                 max_results=max_results,
                 tweet_fields=tweet_fields,
+                start_time=start_time,
             )
             all_tweets = []
             for response in paginator:

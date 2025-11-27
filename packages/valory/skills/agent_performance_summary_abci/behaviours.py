@@ -56,8 +56,15 @@ PERCENTAGE_FACTOR = 100
 WEI_IN_ETH = 10**18  # 1 ETH = 10^18 wei
 
 NA = "N/A"
-TOTAL_LIKES_METRIC_NAME = "Total Likes"
-TOTAL_IMPRESSIONS_METRIC_NAME = "Total Impressions"
+LIKES_METRIC_NAME = "Weekly Likes"
+IMPRESSIONS_METRIC_NAME = "Weekly Impressions"
+
+LIKES_METRIC_DESCRIPTION = """Total number of times your agent's posts were viewed on X (non-unique) in the last 7 days. A view counts whenever any part of the post appears on screen."""
+IMPRESSIONS_METRIC_DESCRIPTION = """Total number of times users tapped the heart icon on your agent's posts on X in the last 7 days."""
+
+FETCH_FOR_LAST_DAYS = 7
+
+NUMBER_OF_SECONDS_IN_A_DAY = 86400
 
 
 def extract_metric_by_name(
@@ -89,14 +96,15 @@ class FetchPerformanceSummaryBehaviour(
         """Return the skill params."""
         return cast(AgentPerformanceSummaryParams, self.context.params)
 
-    def _get_total_likes_and_retweets(self) -> Generator:
-        """Get total likes and retweets from Twitter activity over the last prediction market duration."""
+    def _get_total_likes_and_retweets(self, since_timestamp: int) -> Generator:
+        """Get total likes and retweets from Twitter activity since a given timestamp."""
         yield from self.init_own_twitter_details()
 
         response: List[Dict] | Dict = yield from self._call_tweepy(
             method="get_user_tweets_with_public_metrics",
             **{
                 "user_id": self.shared_state.twitter_id,
+                "since_timestamp": since_timestamp,
             },
         )
         if isinstance(response, dict) and "error" in response:
@@ -136,7 +144,13 @@ class FetchPerformanceSummaryBehaviour(
         """Fetch the agent performance summary"""
         current_timestamp = self.shared_state.synced_timestamp
 
-        total_likes, total_impressions = yield from self._get_total_likes_and_retweets()
+        since_timestamp = (
+            current_timestamp - FETCH_FOR_LAST_DAYS * NUMBER_OF_SECONDS_IN_A_DAY
+        )
+
+        total_likes, total_impressions = yield from self._get_total_likes_and_retweets(
+            since_timestamp=since_timestamp
+        )
 
         if total_likes is None or total_impressions is None:
             self.context.logger.warning(
@@ -144,28 +158,28 @@ class FetchPerformanceSummaryBehaviour(
             )
             existing_data = self.shared_state.read_existing_performance_summary()
             total_likes = extract_metric_by_name(
-                existing_data.metrics, TOTAL_LIKES_METRIC_NAME
+                existing_data.metrics, LIKES_METRIC_NAME
             )
             total_impressions = extract_metric_by_name(
-                existing_data.metrics, TOTAL_IMPRESSIONS_METRIC_NAME
+                existing_data.metrics, IMPRESSIONS_METRIC_NAME
             )
 
         metrics = []
 
         metrics.append(
             AgentPerformanceMetrics(
-                name=TOTAL_IMPRESSIONS_METRIC_NAME,
+                name=IMPRESSIONS_METRIC_NAME,
                 is_primary=True,
-                description="Total number of times your agent's posts were viewed on X (not unique). A view counts when any part of a post is visible on screen.",
+                description=IMPRESSIONS_METRIC_DESCRIPTION,
                 value=str(total_impressions) if total_impressions is not None else NA,
             )
         )
 
         metrics.append(
             AgentPerformanceMetrics(
-                name=TOTAL_LIKES_METRIC_NAME,
+                name=LIKES_METRIC_NAME,
                 is_primary=False,
-                description="Total number of times users tapped the heart icon to like your agent's posts on X.",
+                description=LIKES_METRIC_DESCRIPTION,
                 value=str(total_likes) if total_likes is not None else NA,
             )
         )

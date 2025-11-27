@@ -19,9 +19,9 @@
 # ------------------------------------------------------------------------------
 
 """Tweepy connection."""
-
 import json
 import time
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 
 from aea.configurations.base import PublicId
@@ -364,8 +364,15 @@ class TweepyConnection(BaseSyncConnection):
     def get_user_tweets_with_public_metrics(
         self,
         user_id: str,
+        since_timestamp: Optional[int] = None,
     ) -> List[Dict]:
         """Get user tweets with public metrics."""
+
+        start_time = (
+            datetime.fromtimestamp(since_timestamp, tz=timezone.utc)
+            if since_timestamp is not None
+            else None
+        )
 
         if self.twitter is None:
             self.logger.error("Twitter client not initialized.")
@@ -373,6 +380,7 @@ class TweepyConnection(BaseSyncConnection):
         all_tweets: List[Tweet] = self.twitter.get_all_user_tweets(
             user_id=user_id,
             tweet_fields=["public_metrics", "created_at"],
+            start_time=start_time,
         )
 
         return [
