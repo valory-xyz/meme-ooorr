@@ -59,8 +59,8 @@ NA = "N/A"
 LIKES_METRIC_NAME = "Weekly Likes"
 IMPRESSIONS_METRIC_NAME = "Weekly Impressions"
 
-LIKES_METRIC_DESCRIPTION = """Total number of times your agent's posts were viewed on X (non-unique) in the last 7 days. A view counts whenever any part of the post appears on screen."""
-IMPRESSIONS_METRIC_DESCRIPTION = """Total number of times users tapped the heart icon on your agent's posts on X in the last 7 days."""
+LIKES_METRIC_DESCRIPTION = """Total number of times users tapped the heart icon on your agent's posts on X in the last 7 days. (Updated daily)"""
+IMPRESSIONS_METRIC_DESCRIPTION = """Total number of times your agent's posts were viewed on X (non-unique) in the last 7 days. A view counts whenever any part of the post appears on screen. (Updated daily)"""
 
 FETCH_FOR_LAST_DAYS = 7
 
@@ -127,7 +127,9 @@ class FetchPerformanceSummaryBehaviour(
     def should_fetch_metrics_again(self) -> Generator:
         """Check if we should fetch the metrics again based on the TTL."""
         existing_data = self.shared_state.read_existing_performance_summary()
-        if any(metric.value == NA for metric in existing_data.metrics):
+        if not existing_data.metrics or any(
+            metric.value == NA for metric in existing_data.metrics
+        ):
             self.context.logger.info("Existing data has N/A metrics.")
             return True
 
