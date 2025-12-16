@@ -524,7 +524,18 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            event, new_mech_requests = yield from self.get_event()
+            # Check Twitter auth before making any mech requests
+            # This prevents spending ETH on mech requests when Twitter credentials are invalid
+            auth_check = yield from self._call_tweepy(method="get_me")
+            if auth_check is None or "error" in auth_check:
+                self.context.logger.error(
+                    "Twitter authentication failed. Skipping engagement and mech requests to prevent unnecessary fund consumption."
+                )
+                event = Event.DONE.value
+                new_mech_requests: List = []
+            else:
+                # Auth OK, proceed with normal flow
+                event, new_mech_requests = yield from self.get_event()
 
             if new_mech_requests:
                 mech_requests = json.dumps(new_mech_requests, sort_keys=True)
