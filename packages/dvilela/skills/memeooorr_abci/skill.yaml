@@ -29,7 +29,7 @@ fingerprint:
   payloads.py: bafybeifrhbfqwrcxx2q5ekeioz7tl4xjkoirqy5s6tdpioa52b63qg7kva
   prompts.py: bafybeienmm4cftgcwb5mgrq7222kp5rf7xd6e2dxrujlnc6eltbccanfra
   rounds.py: bafybeia4iy6tbh2dvk3q7ia2dfwem742s3h27b6433tqiwllxavzslx2gq
-  rounds_info.py: bafybeihsaghfckxyfrynb2ncqvuocjastmvwzg5wjih4sugfbpykriz26u
+  rounds_info.py: bafybeihrmmd3sdp26zr2yzhyykvpx5qng6rt3onshmvxqjwpwvq6mjdzjm
 fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeieufzdojxahh3ejagdbzroqredi5uvkfgjiwsfod7l7whn2octmmi
