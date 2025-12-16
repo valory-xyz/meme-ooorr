@@ -22,8 +22,8 @@
 
 ROUNDS_INFO = {
     "action_decision_round": {
-        "name": "Deciding Next Action",
-        "description": "Evaluates current meme tokens and chooses a strategic move—investing, unleashing, collecting, or doing nothing—to optimise returns",
+        "name": "Updating persona",
+        "description": "Assesses the engagement from recent X posts and refines the agent's persona.",
     },
     "action_preparation_round": {
         "name": "Preparing Action Transaction",
@@ -35,127 +35,127 @@ ROUNDS_INFO = {
     },
     "check_funds_round": {
         "name": "Checking Funds",
-        "description": "Verifies available currency to ensure the feasibility of deploying tokens or conducting further actions",
+        "description": "The agent checks whether it has enough available funds for any required on-chain activity.",
     },
     "check_late_tx_hashes_round": {
-        "name": "Checking late transaction hashes",
-        "description": "Checks late transaction hashes",
+        "name": "Reviewing Pending Transactions",
+        "description": "The agent looks for any delayed or stuck transactions and updates their status.",
     },
     "check_transaction_history_round": {
-        "name": "Checking the transaction history",
-        "description": "Checks the transaction history",
+        "name": "Reviewing Transaction History",
+        "description": "The agent checks past transactions to ensure everything is in sync and up to date.",
     },
     "collect_feedback_round": {
-        "name": "Collecting Feedback",
-        "description": "Compiles replies from the latest tweet, extracting conditions and sentiments that guide future persona or strategy adjustments",
+        "name": "Reading Replies",
+        "description": "The agent gathers replies to its latest post to understand audience reactions and adjust future tone or style.",
     },
     "collect_signature_round": {
-        "name": "Collecting agent signatures",
-        "description": "Collects agent signatures for a transaction",
+        "name": "Preparing a Signature",
+        "description": "The agent signs the action it’s about to take, completing a required step for sending certain transactions.",
     },
     "engage_twitter_round": {
-        "name": "Engaging with other agents",
-        "description": "Responds to tweets from other agents",
+        "name": "Engaging on X",
+        "description": "The agent interacts with posts from other accounts—liking, replying, or reacting to stay active.",
     },
     "finalization_round": {
         "name": "Sending a transaction",
-        "description": "Sends a transaction for mining",
+        "description": "The agent sends a required transaction and waits for it to be processed.",
     },
     "load_database_round": {
-        "name": "Loading Database",
-        "description": "Retrieves saved persona and latest tweet data from storage, ensuring the activity restarts with consistent context",
+        "name": "Loading Persona & History",
+        "description": "Loads Persona & History",
     },
     "pull_memes_round": {
         "name": "Pulling Meme Data",
-        "description": "Fetches updated information on existing meme tokens, determining which may benefit from actions like hearting or unleashing",
+        "description": "Fetches updated information on meme tokens and determines which ones to act on and what action to take.",
     },
     "randomness_transaction_submission_round": {
-        "name": "Getting some randomness",
-        "description": "Gets randomness from a decentralized randomness source",
+        "name": "Generating Randomness",
+        "description": "The agent collects the randomness it needs to vary its behavior or decisions.",
     },
     "registration_round": {
-        "name": "Registering agents ",
-        "description": "Initializes the agent registration process",
+        "name": "Setting Up the Agent",
+        "description": "The agent completes its setup steps to begin operating correctly.",
     },
     "registration_startup_round": {
-        "name": "Registering agents at startup",
-        "description": "Initializes the agent registration process",
+        "name": "Starting Up",
+        "description": "The agent initializes and gets everything ready to begin its activities.",
     },
     "reset_and_pause_round": {
-        "name": "Cleaning up and sleeping for some time",
-        "description": "Cleans up and sleeps for some time before running again",
+        "name": "Taking a Short Break",
+        "description": "The agent pauses before continuing its next cycle of activity.",
     },
     "reset_round": {
         "name": "Cleaning up and resetting",
-        "description": "Cleans up and resets the agent",
+        "description": "The agent clears temporary data and resets before continuing.",
     },
     "select_keeper_transaction_submission_a_round": {
-        "name": "Selecting an agent to send the transaction",
-        "description": "Selects an agent to send the transaction",
+        "name": "Enabling agent to send the transaction",
+        "description": "Aligns agent components for transaction submission.",
     },
     "select_keeper_transaction_submission_b_after_timeout_round": {
-        "name": "Selecting an agent to send the transaction",
-        "description": "Selects an agent to send the transaction",
+        "name": "Enabling agent to send the transaction",
+        "description": "Aligns agent components for transaction submission.",
     },
     "select_keeper_transaction_submission_b_round": {
-        "name": "Selecting an agent to send the transaction",
-        "description": "Selects an agent to send the transaction",
+        "name": "Enabling agent to send the transaction",
+        "description": "Aligns agent components for transaction submission.",
     },
     "synchronize_late_messages_round": {
-        "name": "Synchronizing late messages",
-        "description": "Synchronizes late messages",
+        "name": "Syncing messages",
+        "description": "The agent catches up on any delayed messages to stay up to date.",
     },
     "transaction_multiplexer_round": {
-        "name": "Orchestrating Transactions",
+        "name": "Coordinating transactions",
         "description": "Coordinates multiple blockchain operations into a coherent sequence, ensuring efficient and timely execution of strategic steps",
     },
     "validate_transaction_round": {
         "name": "Validating the transaction",
-        "description": "Checks that the transaction was successful",
+        "description": "The agent checks that the sent transaction was completed successfully.",
     },
     "call_checkpoint_round": {
-        "name": "Calling checkpoint",
-        "description": "Verifies if service is staked and enough time has passed to trigger a checkpoint call",
+        "name": "Checking service status",
+        "description": "The agent verifies whether the service is active and whether it’s time to perform a required checkpoint action.",
     },
     "check_staking_round": {
-        "name": "Checking staking",
-        "description": "Verifies staking status and KPIs including transaction count and liveness requirements",
+        "name": "Checking staking status",
+        "description": "The agent confirms that staking conditions are met so it can continue running properly.",
     },
     "post_tx_decision_making_round": {
-        "name": "Post Transaction Decision Making",
-        "description": "Evaluates transaction outcomes and determines next actions based on success/failure status",
+        "name": "Reviewing results",
+        "description": "The agent looks at the outcome of the last transaction and decides what to do next.",
     },
     "transaction_loop_check_round": {
-        "name": "Transaction Loop Check",
-        "description": "Checks if the transaction settlement ABCI is in an infinite loop and breaks it if it is",
+        "name": "Ensuring smooth operation",
+        "description": "The agent checks for any stuck processes and resolves them if needed.",
     },
     "failed_mech_request_round": {
-        "name": "Failed Mech Request",
-        "description": "Handles a failed Mech request",
+        "name": "Retrying a service request",
+        "description": "The agent handles a failed request to an external service.",
     },
     "failed_mech_response_round": {
-        "name": "Failed Mech Response",
-        "description": "Handles a failed Mech response",
+        "name": "Handling a failed response",
+        "description": "The agent manages an error from an external service response.",
     },
     "mech_request_round": {
-        "name": "Mech Request",
-        "description": "Handles a Mech request",
+        "name": "Requesting a service",
+        "description": "The agent sends a request to an external service it needs to operate.",
     },
     "mech_response_round": {
-        "name": "Mech Response",
-        "description": "Handles a Mech response",
+        "name": "Processing a service response",
+        "description": "The agent handles the response it received from an external service.",
     },
     "post_mech_response_round": {
-        "name": "Post Mech response",
-        "description": "Handles a post Mech response",
+        "name": "Completing service handling",
+        "description": "The agent wraps up tasks related to the service response.",
     },
     "mech_purchase_subscription_round": {
         "name": "Preparing an NVM purchase subscription tx",
-        "description": "Preparing a transaction to purchase an NVM subscription, in order to interact with an NVM Mech",
+        "description": "Preparing a transaction to purchase a Nevermined subscription, in order to interact with a Nevermind external service.",
         "transitions": {},
     },
     "fetch_performance_data_round": {
         "name": "Fetching agent performance summary",
-        "description": "Fetches the agent performance summary data",
+        "description": "The agent gathers statistics about its recent performance and activity.",
     },
 }
