@@ -11,6 +11,7 @@ alphabet_in:
 - SETTLE
 - SKIP
 - WAIT
+- INVALID_AUTH
 default_start_state: LoadDatabaseRound
 final_states:
 - FinishedForMechRequestRound
@@ -83,6 +84,7 @@ transition_func:
     (CollectFeedbackRound, NO_MAJORITY): CollectFeedbackRound
     (CollectFeedbackRound, ROUND_TIMEOUT): CollectFeedbackRound
     (EngageTwitterRound, DONE): ActionDecisionRound
+    (EngageTwitterRound, INVALID_AUTH): ActionDecisionRound
     (EngageTwitterRound, ERROR): EngageTwitterRound
     (EngageTwitterRound, MECH): FinishedForMechRequestRound
     (EngageTwitterRound, NO_MAJORITY): EngageTwitterRound
@@ -97,6 +99,7 @@ transition_func:
     (FailedMechResponseRound, ROUND_TIMEOUT): EngageTwitterRound
     (LoadDatabaseRound, DONE): CheckStakingRound
     (LoadDatabaseRound, NO_MAJORITY): LoadDatabaseRound
+    (LoadDatabaseRound, INVALID_AUTH): CallCheckpointRound
     (LoadDatabaseRound, ROUND_TIMEOUT): LoadDatabaseRound
     (PostMechResponseRound, DONE): EngageTwitterRound
     (PostMechResponseRound, ERROR): FailedMechResponseRound
