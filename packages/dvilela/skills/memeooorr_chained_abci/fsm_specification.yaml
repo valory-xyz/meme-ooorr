@@ -27,6 +27,7 @@ alphabet_in:
 - SUSPICIOUS_ACTIVITY
 - VALIDATE_TIMEOUT
 - WAIT
+- INVALID_AUTH
 default_start_state: RegistrationStartupRound
 final_states:
 - FinishedMechPurchaseSubscriptionRound
@@ -118,6 +119,7 @@ transition_func:
     (CollectSignatureRound, NO_MAJORITY): ResetRound
     (CollectSignatureRound, ROUND_TIMEOUT): CollectSignatureRound
     (EngageTwitterRound, DONE): ActionDecisionRound
+    (EngageTwitterRound, INVALID_AUTH): ActionDecisionRound
     (CheckStakingRound, SKIP): CallCheckpointRound
     (EngageTwitterRound, ERROR): EngageTwitterRound
     (EngageTwitterRound, MECH): MechRequestRound
@@ -145,6 +147,7 @@ transition_func:
     (LoadDatabaseRound, DONE): CheckStakingRound
     (LoadDatabaseRound, NO_MAJORITY): LoadDatabaseRound
     (LoadDatabaseRound, ROUND_TIMEOUT): LoadDatabaseRound
+    (LoadDatabaseRound, INVALID_AUTH): CallCheckpointRound
     (MechPurchaseSubscriptionRound, DONE): FinishedMechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, NONE): MechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, NO_MAJORITY): MechPurchaseSubscriptionRound

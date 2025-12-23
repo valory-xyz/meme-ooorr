@@ -531,7 +531,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 self.context.logger.error(
                     "Twitter authentication failed. Skipping engagement and mech requests to prevent unnecessary fund consumption."
                 )
-                event = Event.DONE.value
+                event = Event.INVALID_AUTH.value
                 new_mech_requests: List = []
             else:
                 # Auth OK, proceed with normal flow

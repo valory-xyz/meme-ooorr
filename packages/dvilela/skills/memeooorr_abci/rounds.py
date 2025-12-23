@@ -91,6 +91,7 @@ class Event(Enum):
     RETRY = "retry"
     NONE = "none"
     SKIP = "skip"
+    INVALID_AUTH = "invalid_auth"
 
 
 class SynchronizedData(BaseSynchronizedData):
@@ -283,6 +284,9 @@ class LoadDatabaseRound(CollectSameUntilThresholdRound):
                 },
             )
 
+            if json.loads(payload.agent_details).get("twitter_username") is None:
+                return synchronized_data, Event.INVALID_AUTH
+
             return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
@@ -460,7 +464,7 @@ class EngageTwitterRound(CollectSameUntilThresholdRound):
                     get_name(SynchronizedData.failed_mech): False,
                 },
             )
-            return synchronized_data, Event.DONE
+            return synchronized_data, event
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -832,6 +836,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.DONE: CheckStakingRound,
             Event.NO_MAJORITY: LoadDatabaseRound,
             Event.ROUND_TIMEOUT: LoadDatabaseRound,
+            Event.INVALID_AUTH: CallCheckpointRound,
         },
         CheckStakingRound: {
             Event.DONE: PullMemesRound,
@@ -853,6 +858,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
         },
         EngageTwitterRound: {
             Event.DONE: ActionDecisionRound,
+            Event.INVALID_AUTH: ActionDecisionRound,
             Event.MECH: FinishedForMechRequestRound,
             Event.ERROR: EngageTwitterRound,
             Event.NO_MAJORITY: EngageTwitterRound,
