@@ -424,6 +424,9 @@ class EngageTwitterRound(CollectSameUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     extended_requirements = ()
 
+    # This needs to be mentioned for static checkers
+    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.INVALID_AUTH
+
     def end_block(  # pylint: disable=too-many-return-statements
         self,
     ) -> Optional[Tuple[BaseSynchronizedData, Event]]:
