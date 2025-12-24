@@ -178,7 +178,7 @@ models:
       max_attempts: 10
       max_healthcheck: 120
       multisend_address: ${str:0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761}
-      init_fallback_gas: 0
+      init_fallback_gas: 800000
       keeper_allowed_retries: 3
       reset_pause_duration: ${int:300}
       on_chain_service_id: ${int:null}

@@ -106,7 +106,7 @@ models:
       multisend_address: ${MULTISEND_ADDRESS:str:0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761}
       termination_sleep: 900
       termination_from_block: 0
-      init_fallback_gas: 0
+      init_fallback_gas: 800000
       keeper_allowed_retries: 3
       reset_pause_duration: 300
       on_chain_service_id: null
