@@ -1,7 +1,7 @@
 name: memeooorr
-author: dvilela
+author: valory
 version: 0.1.0
-description: A service that deploys memecoins.
+description: A service that posts to twitter.
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
