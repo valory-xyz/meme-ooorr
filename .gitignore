@@ -26,6 +26,7 @@ memeooorr
 agent
 !packages/dvilela/agents/memeooorr
 !packages/dvilela/services/memeooorr
+!packages/valory/services/memeooorr
 packages/__pycache__/
 packages/dvilela/protocols/kv_store
 __pycache__/
