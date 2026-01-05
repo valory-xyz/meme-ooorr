@@ -5,7 +5,7 @@ description: A service that posts to twitter.
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: bafybeiaekcmielp6mb4qvmo2twwkpmoun36bqajrh7wnnkcpdnia45ycl4
+  README.md: bafybeifngitemoxhahloctciywjzfmlhp373ijuvrocmwbyxl3bate2fne
 fingerprint_ignore_patterns: []
 agent: dvilela/memeooorr:0.1.0:bafybeidzic54crvfhruiruewc5qblhsry456q2izoxwbfbnf54zdgwxqs4
 number_of_agents: 1
