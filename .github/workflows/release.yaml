@@ -24,7 +24,8 @@ jobs:
           run: |
             echo "Pushing Packages"
             cd /work
-            export AUTHOR=$(grep 'service' packages/packages.json | awk -F/ '{print $2}' | head -1)
+            # Hardcode author to push images to valory docker repository
+            export AUTHOR=valory
             autonomy init --reset --author $AUTHOR --ipfs --remote
             autonomy push-all
   publish-images:
