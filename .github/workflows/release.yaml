@@ -94,7 +94,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-14, macos-14-large]
+        os: [windows-latest, macos-14, macos-14-large, ubuntu-latest]
     defaults:
       run:
         shell: bash
@@ -155,15 +155,30 @@ jobs:
           make agent.zip
           make agent.tar.gz
 
+
+      ## LINUX
+      - name: Build Agent Runner Linux
+        if: runner.os == 'Linux'
+        run: |
+          make build-agent-runner-mac
+
+      - name: rename the file linux
+        if: runner.os == 'Linux'
+        run: |
+          export FILENAME=`echo -n agent_runner_${{runner.os}}_${{runner.arch}}|tr '[:upper:]' '[:lower:]'`
+          echo "FILENAME=$FILENAME" >> $GITHUB_ENV;
+          cp dist/agent_runner_bin dist/${FILENAME}
+          chmod +x dist/${FILENAME}
+
       #### MAC
       - name: build an sign sign the file mac os
-        if: runner.os != 'Windows'
+        if: runner.os == 'macOS'
         env:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
-          APPLE_ID: ${{ secrets.APPLE_ID }} # Apple ID email
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }} # App-specific password
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }} # Team ID из Apple Dev Account
+          APPLE_ID: ${{ secrets.APPLE_ID }}  # Apple ID email
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}  # App-specific password
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}  # Team ID из Apple Dev Account
           SIGN_ID: "Developer ID Application: Valory AG (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           echo "$CSC_LINK" | base64 --decode > certificate.p12
@@ -179,7 +194,7 @@ jobs:
           codesign -dv --verbose=4 dist/agent_runner_bin
 
       - name: rename the file mac os
-        if: runner.os != 'Windows'
+        if: runner.os == 'macOS'
         run: |
           export FILENAME=`echo -n agent_runner_${{runner.os}}_${{runner.arch}}|tr '[:upper:]' '[:lower:]'`
           echo "FILENAME=$FILENAME" >> $GITHUB_ENV;
@@ -246,6 +261,7 @@ jobs:
     needs: build-agent-runner
     runs-on: ubuntu-latest
     steps:
+      # MAC OS
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -257,11 +273,21 @@ jobs:
         with:
           name: agent_runner_macos_arm64
           path: ./dist/
+
+      # LINUX
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: agent_runner_linux_x64
+          path: ./dist/
+
+      # WINDOWS
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: agent_runner_windows_x64.exe
           path: ./dist/
+
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
