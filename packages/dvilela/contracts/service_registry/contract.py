@@ -60,7 +60,7 @@ class ServiceRegistryContract(Contract):
                 {
                     "security_deposit": service_data[0],
                     "multisig_address": service_data[1],
-                    "ipfs_hash": "f01701220" + service_data[2].hex(),
+                    "ipfs_hash": "f01701220" + service_data[2].to_0x_hex(),
                     "threshold": service_data[3],
                     "max_num_agent_instances": service_data[4],
                     "num_agent_instances": service_data[5],

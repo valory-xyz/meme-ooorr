@@ -4,7 +4,7 @@ version: 0.1.0
 type: connection
 description: A connection that provides a wrapper around the Twikit library.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiaism4qxp36o6dflr3emtu4hk37dw7evimcoqkvlvt5s42af5lr5m
   connection.py: bafybeige3o7bnje2jbj4443kg2qk7biswmvu2n3rm7wuxpycp2tp4g5m2u

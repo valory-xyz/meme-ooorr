@@ -3,7 +3,7 @@ author: dvilela
 version: 0.1.0
 license: Apache-2.0
 description: An agent that deploys memecoins.
-aea_version: '>=1.19.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeid4555nbqrben3bbz62jsycrtssy5mqso4w23q7bjorln3qur7baq
 fingerprint_ignore_patterns: []
@@ -83,7 +83,7 @@ logging_config:
 skill_exception_policy: stop_and_exit
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.65.0
+    version: ==2.0.8
   typing_extensions:
     version: ==4.13.2
 default_connection: null
