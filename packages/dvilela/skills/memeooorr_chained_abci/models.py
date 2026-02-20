@@ -81,9 +81,9 @@ class SharedState(BaseSharedState):
         """Set up."""
         super().setup()
 
-        MemeooorrChainedSkillAbciApp.event_to_timeout[
-            ResetPauseEvent.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
+        MemeooorrChainedSkillAbciApp.event_to_timeout[ResetPauseEvent.ROUND_TIMEOUT] = (
+            self.context.params.round_timeout_seconds
+        )
 
         MemeooorrChainedSkillAbciApp.event_to_timeout[
             ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT
@@ -105,3 +105,7 @@ class Params(
     MemeooorrParams, TerminationParams, AgentPerformanceSummaryParams
 ):  # pylint: disable=too-many-ancestors
     """A model to represent params for multiple abci apps."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Init."""
+        super().__init__(*args, **kwargs)

@@ -53,8 +53,8 @@ class MemeFactoryContract(Contract):
         """Build a deposit transaction."""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        data = contract_instance.encodeABI(
-            fn_name="summonThisMeme",
+        data = contract_instance.encode_abi(
+            abi_element_identifier="summonThisMeme",
             args=[
                 token_name,
                 token_ticker,
@@ -72,8 +72,8 @@ class MemeFactoryContract(Contract):
     ) -> Dict[str, bytes]:
         """Build a deposit transaction."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        data = contract_instance.encodeABI(
-            fn_name="heartThisMeme",
+        data = contract_instance.encode_abi(
+            abi_element_identifier="heartThisMeme",
             args=[
                 meme_nonce,
             ],
@@ -89,8 +89,8 @@ class MemeFactoryContract(Contract):
     ) -> Dict[str, bytes]:
         """Build a deposit transaction."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        data = contract_instance.encodeABI(
-            fn_name="unleashThisMeme",
+        data = contract_instance.encode_abi(
+            abi_element_identifier="unleashThisMeme",
             args=[meme_nonce],
         )
         return {"data": bytes.fromhex(data[2:])}
@@ -105,8 +105,8 @@ class MemeFactoryContract(Contract):
         """Build a deposit transaction."""
         meme_address = web3.Web3.to_checksum_address(meme_address)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        data = contract_instance.encodeABI(
-            fn_name="collectThisMeme",
+        data = contract_instance.encode_abi(
+            abi_element_identifier="collectThisMeme",
             args=[
                 meme_address,
             ],
@@ -123,8 +123,8 @@ class MemeFactoryContract(Contract):
         """Build a deposit transaction."""
         meme_address = web3.Web3.to_checksum_address(meme_address)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        data = contract_instance.encodeABI(
-            fn_name="purgeThisMeme",
+        data = contract_instance.encode_abi(
+            abi_element_identifier="purgeThisMeme",
             args=[
                 meme_address,
             ],
@@ -140,8 +140,8 @@ class MemeFactoryContract(Contract):
         """Build a deposit transaction."""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        data = contract_instance.encodeABI(
-            fn_name="scheduleForAscendance",
+        data = contract_instance.encode_abi(
+            abi_element_identifier="scheduleForAscendance",
             args=[],
         )
         return {"data": bytes.fromhex(data[2:])}

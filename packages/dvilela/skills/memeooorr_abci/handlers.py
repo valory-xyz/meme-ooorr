@@ -1318,8 +1318,8 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
 
             signed_tx = eoa_account.sign_transaction(tx_data)
 
-            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            return tx_hash.hex()
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            return tx_hash.to_0x_hex()
 
         except Exception as e:  # pylint: disable=broad-except
             self.context.logger.error(f"Error submitting transaction: {str(e)}")

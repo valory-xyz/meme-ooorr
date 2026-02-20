@@ -99,7 +99,7 @@ def summon_from_agent():
     signed_tx = w3.eth.account.sign_transaction(summon_tx, private_key=PRIVATE_KEY)
 
     # Send
-    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
     # Wait
     tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)

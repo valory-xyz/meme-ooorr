@@ -203,7 +203,7 @@ class StakingContract:
         signed_txn = self.web3.eth.account.sign_transaction(
             transaction, private_key=self.private_key
         )
-        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
         receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
         if receipt.status == 1:
             self.wait_for_no_pending_tx()

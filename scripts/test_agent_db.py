@@ -128,7 +128,7 @@ class AgentDBClient:  # pylint: disable=too-many-public-methods
 
         auth_data = {
             "agent_id": self.agent.agent_id,
-            "signature": signed_message.signature.hex(),
+            "signature": signed_message.signature.to_0x_hex(),
             "message": message_to_sign,
         }
         return auth_data
