@@ -1297,7 +1297,9 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
             }
 
             response = requests.get(
-                self.params.lifi_quote_to_amount_url, params=params, timeout=30
+                self.params.lifi_quote_to_amount_url,
+                params=params,  # type: ignore[arg-type]
+                timeout=30,
             )
 
             if response.status_code == 200:

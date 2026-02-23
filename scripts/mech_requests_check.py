@@ -372,7 +372,7 @@ def run_mechx_command(  # pylint: disable=too-many-locals
     )
     stdout_data_to_return = None
     try:  # nosec
-        process = subprocess.run(
+        process = subprocess.run(  # nosec
             command_args, capture_output=True, text=True, check=False, timeout=900
         )
         stdout_data = process.stdout or ""
@@ -480,7 +480,7 @@ def main_process(
 
 if __name__ == "__main__":
     try:  # nosec
-        subprocess.run(
+        subprocess.run(  # nosec
             ["mechx", "--version"], capture_output=True, check=True, timeout=10
         )
     except (
