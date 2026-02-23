@@ -17,6 +17,7 @@ alphabet_in:
 - NONE
 - NO_FUNDS
 - NO_MAJORITY
+- NO_MARKETPLACE
 - RESET_AND_PAUSE_TIMEOUT
 - RESET_TIMEOUT
 - RETRY
@@ -25,11 +26,13 @@ alphabet_in:
 - SKIP
 - SKIP_REQUEST
 - SUSPICIOUS_ACTIVITY
+- V1
+- V2
 - VALIDATE_TIMEOUT
 - WAIT
-- INVALID_AUTH
 default_start_state: RegistrationStartupRound
 final_states:
+- FinishedMarketplaceLegacyDetectedRound
 - FinishedMechPurchaseSubscriptionRound
 label: MemeooorrChainedSkillAbciApp
 start_states:
@@ -51,11 +54,14 @@ states:
 - FailedMechResponseRound
 - FetchPerformanceDataRound
 - FinalizationRound
+- FinishedMarketplaceLegacyDetectedRound
 - FinishedMechPurchaseSubscriptionRound
 - LoadDatabaseRound
+- MechInformationRound
 - MechPurchaseSubscriptionRound
 - MechRequestRound
 - MechResponseRound
+- MechVersionDetectionRound
 - PostMechResponseRound
 - PostTxDecisionMakingRound
 - PullMemesRound
@@ -120,9 +126,7 @@ transition_func:
     (CollectSignatureRound, ROUND_TIMEOUT): CollectSignatureRound
     (EngageTwitterRound, DONE): ActionDecisionRound
     (EngageTwitterRound, INVALID_AUTH): ActionDecisionRound
-    (CheckStakingRound, SKIP): CallCheckpointRound
-    (EngageTwitterRound, ERROR): EngageTwitterRound
-    (EngageTwitterRound, MECH): MechRequestRound
+    (EngageTwitterRound, MECH): MechVersionDetectionRound
     (EngageTwitterRound, NO_MAJORITY): EngageTwitterRound
     (EngageTwitterRound, ROUND_TIMEOUT): EngageTwitterRound
     (FailedMechRequestRound, DONE): EngageTwitterRound
@@ -147,7 +151,10 @@ transition_func:
     (LoadDatabaseRound, DONE): CheckStakingRound
     (LoadDatabaseRound, NO_MAJORITY): LoadDatabaseRound
     (LoadDatabaseRound, ROUND_TIMEOUT): LoadDatabaseRound
-    (LoadDatabaseRound, INVALID_AUTH): CallCheckpointRound
+    (MechInformationRound, DONE): MechRequestRound
+    (MechInformationRound, NONE): MechVersionDetectionRound
+    (MechInformationRound, NO_MAJORITY): MechInformationRound
+    (MechInformationRound, ROUND_TIMEOUT): MechInformationRound
     (MechPurchaseSubscriptionRound, DONE): FinishedMechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, NONE): MechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, NO_MAJORITY): MechPurchaseSubscriptionRound
@@ -160,6 +167,11 @@ transition_func:
     (MechResponseRound, DONE): PostMechResponseRound
     (MechResponseRound, NO_MAJORITY): MechResponseRound
     (MechResponseRound, ROUND_TIMEOUT): FailedMechResponseRound
+    (MechVersionDetectionRound, NO_MAJORITY): MechVersionDetectionRound
+    (MechVersionDetectionRound, NO_MARKETPLACE): MechRequestRound
+    (MechVersionDetectionRound, ROUND_TIMEOUT): MechVersionDetectionRound
+    (MechVersionDetectionRound, V1): FinishedMarketplaceLegacyDetectedRound
+    (MechVersionDetectionRound, V2): MechInformationRound
     (PostMechResponseRound, DONE): EngageTwitterRound
     (PostMechResponseRound, ERROR): FailedMechResponseRound
     (PostMechResponseRound, NO_MAJORITY): PostMechResponseRound
