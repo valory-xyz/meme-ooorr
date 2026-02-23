@@ -469,6 +469,7 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
 
         :param http_msg: the http message
         :param http_dialogue: the http dialogue
+        :param body: the body to include in the response, if any
         """
         http_response = http_dialogue.reply(
             performative=HttpMessage.Performative.RESPONSE,

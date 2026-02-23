@@ -566,8 +566,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """
         Get the next event for Twitter engagement.
 
-        Returns:
-            Tuple[str, List]: Event type and any new mech requests.
+        :yields: None while awaiting async behaviour execution.
+        :return: A tuple containing the event type and any new mech requests.
         """
         new_mech_requests: List[Dict[str, Any]] = []
 
@@ -609,8 +609,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """
         Handle Twitter engagement when mech_for_twitter is True.
 
-        Returns:
-            Tuple[dict, list]: Pending tweets and interacted tweet IDs.
+        :yields: None while processing.
+        :return: A tuple containing pending tweets and interacted tweet IDs.
         """
         self.context.logger.info(
             "Mech for twitter detected, using Mech response for decision"
@@ -640,8 +640,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """
         Handle Twitter engagement when mech_for_twitter is False.
 
-        Returns:
-            Tuple[dict, list]: Pending tweets and interacted tweet IDs.
+        :yields: None while processing.
+        :return: Pending tweets and interacted tweet IDs.
         """
 
         self.context.logger.info("Entered Regular Engagement in EngageTwitterBehaviour")

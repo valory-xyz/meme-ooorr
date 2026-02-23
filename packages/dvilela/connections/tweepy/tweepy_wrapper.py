@@ -32,14 +32,10 @@ DEFAULT_LOGGER = logging.getLogger(__name__)
 
 
 def is_twitter_id(twitter_id: str) -> bool:
-    """
-    Check if a string is a valid Twitter ID.
+    """Check whether a string is a valid Twitter ID.
 
-    Args:
-        twitter_id (str): The string to check.
-
-    Returns:
-        bool: True if the string is a valid Twitter ID, False otherwise.
+    :param twitter_id: The string to check.
+    :return: True if the string is a valid Twitter ID, False otherwise.
     """
     return bool(re.match(r"^\d{1,20}$", twitter_id))
 
@@ -87,9 +83,11 @@ class Twitter:
         """
         Posts a new tweet with optional media.
 
-        Args:
-            text (str): The content of the tweet.
-            media_ids (list of int, optional): A list of media IDs to attach to the tweet. Defaults to None.
+        :param text: The content of the tweet.
+        :param image_paths: Optional list of image file paths.
+        :param in_reply_to_tweet_id: Optional tweet ID to reply to.
+        :param quote_tweet_id: Optional tweet ID to quote.
+        :return: The ID of the posted tweet if successful, otherwise None.
         """
         try:
             tweet = self.client.create_tweet(
