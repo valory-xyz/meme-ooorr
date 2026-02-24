@@ -158,4 +158,14 @@ ROUNDS_INFO = {
         "name": "Fetching agent performance summary",
         "description": "The agent gathers statistics about its recent performance and activity.",
     },
+    "mech_information_round": {
+        "name": "Fetching mech's information",
+        "description": "Fetches the mech's information",
+        "transitions": {},
+    },
+    "mech_version_detection_round": {
+        "name": "Detecting the priority mech's version.",
+        "description": "Detect the version of the priority mech (Legacy, Legacy Mech Marketplace, Mech Marketplace)",
+        "transitions": {},
+    },
 }

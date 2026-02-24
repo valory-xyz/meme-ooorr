@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -203,7 +203,7 @@ class StakingContract:
         signed_txn = self.web3.eth.account.sign_transaction(
             transaction, private_key=self.private_key
         )
-        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
         receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
         if receipt.status == 1:
             self.wait_for_no_pending_tx()

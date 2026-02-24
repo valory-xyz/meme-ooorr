@@ -176,13 +176,11 @@ class MemeooorrBaseBehaviour(
         """
         Public wrapper for making a connection request and waiting for response.
 
-        Args:
-            message: The message to send
-            dialogue: The dialogue context
-            timeout: Optional timeout duration
-
-        Returns:
-            Message: The response message
+        :param message: The message to send.
+        :param dialogue: The dialogue context.
+        :param timeout: Optional timeout duration.
+        :yields: None while waiting for the response.
+        :return: The response message.
         """
         return (yield from self._do_connection_request(message, dialogue, timeout))
 
@@ -340,11 +338,9 @@ class MemeooorrBaseBehaviour(
         """
         Public wrapper for reading from key-value store.
 
-        Args:
-            keys: Tuple of keys to read from the store.
-
-        Returns:
-            Optional[Dict]: The data read from the store, or None if unsuccessful.
+        :param keys: Tuple of keys to read from the store.
+        :yields: None while awaiting the store response.
+        :return: The data read from the store, or None if unsuccessful.
         """
         return (yield from self._read_kv(keys=keys))
 
@@ -355,11 +351,9 @@ class MemeooorrBaseBehaviour(
         """
         Public wrapper for writing to key-value store.
 
-        Args:
-            data: Dictionary of key-value pairs to write to the store.
-
-        Returns:
-            bool: True if write was successful, False otherwise.
+        :param data: Dictionary of key-value pairs to write to the store.
+        :yields: None while awaiting the store response.
+        :return: True if write was successful, False otherwise.
         """
         return (yield from self._write_kv(data=data))
 
@@ -390,7 +384,8 @@ class MemeooorrBaseBehaviour(
 
         :param param_name: The name of the parameter in the DB.
         :param initial_param_name: The name of the initial parameter in the DB.
-        :param type: The type to cast the parameter value to.
+        :param param_type: The type to cast the parameter value to.
+        :yields: None while awaiting DB read/write operations.
         :return: The resolved parameter value.
         """
 
@@ -1052,8 +1047,9 @@ class MemeooorrBaseBehaviour(
         """
         Stores an agent action (tool, tweet, or token) in the KV store.
 
-        :param action_type: The type of action, e.g., "tool_action", "tweet_action".
-        :param action_data: The dictionary containing the action data to store.
+        :param action_type: The type of action (e.g., "tool_action", "tweet_action").
+        :param action_data: The action data to store.
+        :yields: None while writing to the KV store.
         """
         current_agent_actions = yield from self._read_json_from_kv("agent_actions", {})
 
@@ -1083,8 +1079,9 @@ class MemeooorrBaseBehaviour(
         """
         Retrieves the latest agent actions of a specific type from the KV store.
 
-        :param action_type: The type of action to retrieve, e.g., "tool_action", "tweet_action".
+        :param action_type: The type of action to retrieve (e.g., "tool_action", "tweet_action").
         :param limit: The maximum number of actions to return.
+        :yields: None.
         :return: A list of the latest actions.
         """
         agent_actions = yield from self._read_json_from_kv("agent_actions", {})

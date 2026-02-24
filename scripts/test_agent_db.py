@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -128,14 +128,20 @@ class AgentDBClient:  # pylint: disable=too-many-public-methods
 
         auth_data = {
             "agent_id": self.agent.agent_id,
-            "signature": signed_message.signature.hex(),
+            "signature": signed_message.signature.to_0x_hex(),
             "message": message_to_sign,
         }
         return auth_data
 
     def _request(
-        self, method, endpoint, payload=None, params=None, auth=False, nested_auth=True
-    ):
+        self,
+        method,
+        endpoint,
+        payload=None,
+        params=None,
+        auth=False,
+        nested_auth=True,
+    ):  # pylint: disable=too-many-positional-arguments
         """Make the request"""
         start_time = time.time()
         endpoint_key = f"{method} {endpoint}"
@@ -148,7 +154,7 @@ class AgentDBClient:  # pylint: disable=too-many-public-methods
             else:
                 payload = payload | self._sign_request(endpoint)
         response = requests.request(
-            method, url, headers=headers, json=payload, params=params
+            method, url, headers=headers, json=payload, params=params, timeout=60
         )
 
         duration = time.time() - start_time
@@ -162,7 +168,9 @@ class AgentDBClient:  # pylint: disable=too-many-public-methods
             return response.json()
         if response.status_code == 404:
             return None
-        raise Exception(f"Request failed: {response.status_code} - {response.text}")
+        raise Exception(  # pylint: disable=broad-exception-raised
+            f"Request failed: {response.status_code} - {response.text}"
+        )
 
     # Agent Type Methods
 
@@ -239,7 +247,7 @@ class AgentDBClient:  # pylint: disable=too-many-public-methods
         data_type: str,
         default_value: str,
         is_required: bool = False,
-    ):
+    ):  # pylint: disable=too-many-positional-arguments
         """Create attribute definition"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/attributes/"
         payload = {
@@ -319,7 +327,7 @@ class AgentDBClient:  # pylint: disable=too-many-public-methods
         result = self._request("GET", endpoint)
         return AttributeInstance.model_validate(result) if result else None
 
-    def update_attribute_instance(
+    def update_attribute_instance(  # pylint: disable=too-many-positional-arguments
         self,
         agent_instance: AgentInstance,
         attribute_def: AttributeDefinition,

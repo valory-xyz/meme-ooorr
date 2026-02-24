@@ -23,6 +23,7 @@ import packages.dvilela.skills.memeooorr_abci.rounds as MemeooorrAbci
 import packages.valory.skills.agent_performance_summary_abci.rounds as AgentPerformanceSummaryAbci
 import packages.valory.skills.mech_interact_abci.rounds as MechInteractAbci
 import packages.valory.skills.mech_interact_abci.states.final_states as MechFinalStates
+import packages.valory.skills.mech_interact_abci.states.mech_version as MechVersionStates
 import packages.valory.skills.mech_interact_abci.states.request as MechRequestStates
 import packages.valory.skills.mech_interact_abci.states.response as MechResponseStates
 import packages.valory.skills.registration_abci.rounds as RegistrationAbci
@@ -51,7 +52,10 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     TransactionSettlementAbci.FailedRound: MemeooorrAbci.TransactionLoopCheckRound,
     ResetAndPauseAbci.FinishedResetAndPauseRound: AgentPerformanceSummaryAbci.FetchPerformanceDataRound,
     ResetAndPauseAbci.FinishedResetAndPauseErrorRound: ResetAndPauseAbci.ResetAndPauseRound,
-    MemeooorrAbci.FinishedForMechRequestRound: MechRequestStates.MechRequestRound,
+    MemeooorrAbci.FinishedForMechRequestRound: MechVersionStates.MechVersionDetectionRound,
+    MechFinalStates.FinishedMechLegacyDetectedRound: MechRequestStates.MechRequestRound,
+    MechFinalStates.FinishedMechInformationRound: MechRequestStates.MechRequestRound,
+    MechFinalStates.FailedMechInformationRound: MechVersionStates.MechVersionDetectionRound,
     MechFinalStates.FinishedMechRequestRound: TransactionSettlementAbci.RandomnessTransactionSubmissionRound,
     MechFinalStates.FinishedMechResponseRound: MemeooorrAbci.PostMechResponseRound,
     MechFinalStates.FinishedMechRequestSkipRound: MemeooorrAbci.FailedMechRequestRound,

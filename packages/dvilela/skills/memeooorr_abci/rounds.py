@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2024 David Vilela Freire
+#   Copyright 2024-2026 David Vilela Freire
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -188,6 +188,8 @@ class SynchronizedData(BaseSynchronizedData):
         responses = self.db.get("mech_responses", "[]")
         if isinstance(responses, str):
             responses = json.loads(responses)
+        if responses is None:
+            responses = []
         return [MechInteractionResponse(**response_item) for response_item in responses]
 
     @property
@@ -242,7 +244,8 @@ class DataclassEncoder(json.JSONEncoder):
 
     def default(self, o: Any) -> Any:
         """The default JSON encoder."""
-        if is_dataclass(o):
+        # asdict requires an instance, so guard against receiving a dataclass type
+        if is_dataclass(o) and not isinstance(o, type):
             return asdict(o)
         return super().default(o)
 

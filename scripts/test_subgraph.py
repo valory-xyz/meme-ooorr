@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ def get_meme_coins_from_subgraph():
     headers = {"Content-Type": "application/json"}
 
     # Make the HTTP request
-    response = requests.post(url=url, json=query, headers=headers)
+    response = requests.post(url=url, json=query, headers=headers, timeout=60)
 
     # Handle HTTP errors
     if response.status_code != HTTP_OK:
@@ -184,7 +184,7 @@ def get_memeooorrs_from_subgraph():
 def introspect_subgraph():
     """Introspect the subgraph to get the schema"""
     url = "https://agentsfun-indexer-production.up.railway.app"
-    response = requests.post(url, json={"query": INTROSPECTION_QUERY})
+    response = requests.post(url, json={"query": INTROSPECTION_QUERY}, timeout=60)
     fields = response.json()["data"]["__schema"]["queryType"]["fields"]
 
     for f in fields:

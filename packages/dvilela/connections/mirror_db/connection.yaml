@@ -5,7 +5,7 @@ type: connection
 description: A connection that provides a wrapper around the backend service for Twitter
   mirror database.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiglyqy5epuu3plwuf4vbvm4kmg2dtohrpmarhbxdr5a27kg32mxku
   connection.py: bafybeiddum4vixjgjcsybmbxdfryrtz3jbaypkq6ib5ab46r22ck7jt2ai
@@ -13,7 +13,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/srr:0.1.0:bafybeihrixgptxuqpf2s4nujypwlv5aed2nboozq5kl4c26cxw6r7si2x4
+- valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
 class_name: MirrorDBConnection
 config:
   mirror_db_base_url: https://afmdb.autonolas.tech

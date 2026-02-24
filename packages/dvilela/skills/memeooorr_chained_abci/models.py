@@ -50,6 +50,12 @@ from packages.valory.skills.agent_performance_summary_abci.models import (
 from packages.valory.skills.mech_interact_abci.models import (
     MechResponseSpecs as BaseMechResponseSpecs,
 )
+from packages.valory.skills.mech_interact_abci.models import (
+    MechToolsSpecs as BaseMechToolsSpecs,
+)
+from packages.valory.skills.mech_interact_abci.models import (
+    MechsSubgraph as BaseMechsSubgraph,
+)
 from packages.valory.skills.mech_interact_abci.rounds import Event as MechInteractEvent
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
 from packages.valory.skills.termination_abci.models import TerminationParams
@@ -59,6 +65,8 @@ Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = MemeooorrRandomnessApi
 MechResponseSpecs = BaseMechResponseSpecs
+MechToolsSpecs = BaseMechToolsSpecs
+MechsSubgraph = BaseMechsSubgraph
 AgentDBClient = BaseAgentDBClient
 AgentsFunDatabase = BaseAgentsFunDatabase
 
@@ -81,13 +89,15 @@ class SharedState(BaseSharedState):
         """Set up."""
         super().setup()
 
-        MemeooorrChainedSkillAbciApp.event_to_timeout[
-            ResetPauseEvent.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
+        MemeooorrChainedSkillAbciApp.event_to_timeout[ResetPauseEvent.ROUND_TIMEOUT] = (
+            self.context.params.round_timeout_seconds
+        )
 
         MemeooorrChainedSkillAbciApp.event_to_timeout[
             ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT
-        ] = (self.context.params.reset_pause_duration + MARGIN)
+        ] = (
+            self.context.params.reset_pause_duration + MARGIN
+        )  # pylint: disable=superfluous-parens
 
         MemeooorrChainedSkillAbciApp.event_to_timeout[MemeooorrEvent.ROUND_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER

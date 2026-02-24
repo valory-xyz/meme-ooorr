@@ -100,7 +100,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         self.context.logger.info("Stored/Appended tweet data in KV store.")
         return True
 
-    def _handle_simple_twitter_action(  # pylint: disable=too-many-arguments
+    def _handle_simple_twitter_action(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         action_description: str,
         tweepy_method_name: str,
@@ -171,7 +171,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             yield from self._store_agent_action(
                 "tweet_action",
                 {
-                    "action_type": action_type,
+                    "action_type": action_type,  # pylint: disable=possibly-used-before-assignment
                     "action_data": action_data,
                 },
             )
@@ -180,7 +180,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
         return False  # Should not be reached if response["success"] is true, but as a fallback
 
-    def _create_twitter_content(  # pylint: disable=too-many-arguments
+    def _create_twitter_content(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
         self,
         log_message_prefix: str,
         tweet_payload: Dict[str, Any],
@@ -222,13 +222,13 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
         }
 
         if quote_tweet_id:  # If a quote ID for DB storage is provided
-            post_action_params[
-                "quote_url"
-            ] = quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
+            post_action_params["quote_url"] = (
+                quote_tweet_id  # we have defined the quote_url in the DB model/schema so we need to use quote_url instead of quote_tweet_id
+            )
         elif original_tweet_id_for_reply:
             post_action_params["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
 
-        post_action = TwitterPost(**post_action_params)
+        post_action = TwitterPost(**post_action_params)  # type: ignore[arg-type]
 
         db_add_result = yield from self.context.agents_fun_db.my_agent.add_interaction(
             post_action
@@ -256,15 +256,22 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             action_data["reply_to_tweet_id"] = str(original_tweet_id_for_reply)
             action_data["tweet_id"] = newly_posted_tweet_id
             action_data["text"] = tweet_payload.get("text", "")
-        elif media_type and tweet_payload.get("image_paths", None):
-            action_type = "tweet_with_media"
-            action_data["media_path"] = tweet_payload.get("image_paths", None)[0]
-            action_data["media_ipfs_hash"] = tweet_payload.get(
-                "image_ipfs_hashes", None
-            )[0]
-            action_data["media_type"] = media_type  # type: ignore
-            action_data["tweet_id"] = newly_posted_tweet_id
-            action_data["text"] = tweet_payload.get("text", "")
+        elif media_type:
+            image_paths = tweet_payload.get("image_paths")
+            image_ipfs_hashes = tweet_payload.get("image_ipfs_hashes")
+
+            if image_paths and image_ipfs_hashes:
+                action_type = "tweet_with_media"
+                action_data["media_path"] = image_paths[0]
+                action_data["media_ipfs_hash"] = image_ipfs_hashes[0]
+                action_data["media_type"] = media_type  # type: ignore
+                action_data["tweet_id"] = newly_posted_tweet_id
+                action_data["text"] = tweet_payload.get("text", "")
+            else:
+                # Fallback to plain tweet if media data is missing
+                action_type = "tweet"
+                action_data["tweet_id"] = newly_posted_tweet_id
+                action_data["text"] = tweet_payload.get("text", "")
         else:
             action_type = "tweet"
             action_data["tweet_id"] = newly_posted_tweet_id
@@ -566,8 +573,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """
         Get the next event for Twitter engagement.
 
-        Returns:
-            Tuple[str, List]: Event type and any new mech requests.
+        :yields: None while awaiting async behaviour execution.
+        :return: A tuple containing the event type and any new mech requests.
         """
         new_mech_requests: List[Dict[str, Any]] = []
 
@@ -609,8 +616,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """
         Handle Twitter engagement when mech_for_twitter is True.
 
-        Returns:
-            Tuple[dict, list]: Pending tweets and interacted tweet IDs.
+        :yields: None while processing.
+        :return: A tuple containing pending tweets and interacted tweet IDs.
         """
         self.context.logger.info(
             "Mech for twitter detected, using Mech response for decision"
@@ -640,8 +647,8 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         """
         Handle Twitter engagement when mech_for_twitter is False.
 
-        Returns:
-            Tuple[dict, list]: Pending tweets and interacted tweet IDs.
+        :yields: None while processing.
+        :return: Pending tweets and interacted tweet IDs.
         """
 
         self.context.logger.info("Entered Regular Engagement in EngageTwitterBehaviour")
@@ -899,7 +906,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         if pending_tweets:
             items_for_formatting = list(
                 dict(
-                    random.sample(list(pending_tweets.items()), len(pending_tweets))
+                    random.sample(  # nosec B311
+                        list(pending_tweets.items()), len(pending_tweets)
+                    )
                 ).items()
             )
 
@@ -1252,7 +1261,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         return Event.MECH.value, [], new_mech_requests
 
-    def _handle_tweet_actions(  # pylint: disable=too-many-arguments
+    def _handle_tweet_actions(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
         self,
         json_response: dict,
         pending_tweets: dict,
@@ -1300,7 +1309,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         tweet_id = interaction.get("selected_tweet_id", None)
         user_name = interaction.get("user_name", None)
         action = interaction.get("action", None)
-        text = interaction.get("text", None)
+        text = interaction.get("text", "")
 
         # Validate action and parameters (using context)
         if not self._validate_interaction(
@@ -1339,7 +1348,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                 )
         else:
             yield from self._handle_tweet_interaction(
-                action,
+                action,  # type: ignore[arg-type]
                 tweet_id,
                 text,
                 user_name,
@@ -1399,18 +1408,21 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         return False
 
     def _validate_interaction(
-        self, action: str, tweet_id: str, user_name: str, pending_tweets: dict
+        self,
+        action: Optional[str],
+        tweet_id: Optional[str],
+        user_name: Optional[str],
+        pending_tweets: dict,
     ) -> bool:
         """Validate tweet interaction parameters."""
-        if action == "none":
+        if action == "none" or action is None:
             self.context.logger.error("Action is none")
             return False
 
         # Treat tweet_with_media like tweet - it doesn't need a tweet_id
         # Also, 'follow' action does not need a tweet_id for this specific check.
-        if (
-            action not in ["tweet", "tweet_with_media", "follow"]
-            and str(tweet_id) not in pending_tweets.keys()
+        if action not in ["tweet", "tweet_with_media", "follow"] and (
+            tweet_id is None or str(tweet_id) not in pending_tweets.keys()
         ):
             self.context.logger.error(
                 f"Action is {action} but tweet_id is not valid [{tweet_id}]"
@@ -1419,7 +1431,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         if action == "follow" and (
             not user_name
-            or user_name not in [t["user_name"] for t in pending_tweets.values()]
+            or user_name not in [t.get("user_name") for t in pending_tweets.values()]
         ):
             self.context.logger.error(
                 f"Action is {action} but user_name is not valid [{user_name}]"
@@ -1452,7 +1464,7 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
 
         yield from self.post_tweet(text=[text])
 
-    def _handle_tweet_interaction(  # pylint: disable=too-many-arguments
+    def _handle_tweet_interaction(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         action: str,
         tweet_id: Optional[str],  # Can be None for follow

@@ -180,7 +180,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
 
         self.default_error(contract_id, contract_callable, response_msg)
 
-    def contract_interact(  # pylint: disable=too-many-arguments
+    def contract_interact(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         performative: ContractApiMessage.Performative,
         contract_address: str,
@@ -796,7 +796,7 @@ class ActionPreparationBehaviour(ChainBehaviour):  # pylint: disable=too-many-an
                 self.context.logger.error(
                     "Error while loading tokens from the database"
                 )
-                tokens = []
+                tokens: list[dict[str, Any]] = []
             else:
                 tokens = json.loads(db_data["tokens"]) if db_data["tokens"] else []
 

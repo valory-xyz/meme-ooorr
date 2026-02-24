@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,6 +43,8 @@ n_services = contract.functions.totalSupply().call()
 
 for i in range(1, n_services + 1):
     _, _, config_hash, _, _, _, _ = contract.functions.mapServices(i).call()
-    ipfs_hash = "f01701220" + config_hash.hex()
-    response = requests.get(f"https://gateway.autonolas.tech/ipfs/{ipfs_hash}")
+    ipfs_hash = "f01701220" + config_hash.to_0x_hex()
+    response = requests.get(
+        f"https://gateway.autonolas.tech/ipfs/{ipfs_hash}", timeout=10
+    )
     print(response.json()["description"])
