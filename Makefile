@@ -193,7 +193,7 @@ build-agent-runner-mac: poetry-install  agent
 	--onefile pyinstaller/memeooorr_bin.py \
 	--codesign-identity "${SIGN_ID}" \
 	--name agent_runner_bin
-	./dist/agent_runner_bin 1>/dev/null
+	./dist/agent_runner_bin --help 1>/dev/null
 	./dist/agent_runner_bin --version
 
 
