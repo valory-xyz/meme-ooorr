@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ TOKENS = [
         "meme_nonce": 4,
         "token_nonce": 4,
         "available_actions": random.sample(  # nosec
-            AVAILABLE_ACTIONS, random.randint(0, len(AVAILABLE_ACTIONS))
+            AVAILABLE_ACTIONS, random.randint(0, len(AVAILABLE_ACTIONS))  # nosec B311
         ),
     },
     {
@@ -111,7 +111,7 @@ TOKENS = [
         "meme_nonce": 5,
         "token_nonce": 5,
         "available_actions": random.sample(  # nosec
-            AVAILABLE_ACTIONS, random.randint(0, len(AVAILABLE_ACTIONS))
+            AVAILABLE_ACTIONS, random.randint(0, len(AVAILABLE_ACTIONS))  # nosec B311
         ),
     },
     {
@@ -123,7 +123,7 @@ TOKENS = [
         "meme_nonce": 6,
         "token_nonce": 6,
         "available_actions": random.sample(  # nosec
-            AVAILABLE_ACTIONS, random.randint(0, len(AVAILABLE_ACTIONS))
+            AVAILABLE_ACTIONS, random.randint(0, len(AVAILABLE_ACTIONS))  # nosec B311
         ),
     },
 ]

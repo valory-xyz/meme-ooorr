@@ -9,11 +9,11 @@ fingerprint:
   __init__.py: bafybeicrwqrdownfmeyvvzu45fllxouiwvtynrzs5fhbpt3wndyyhn66eu
   connection.py: bafybeibgnjuuygjatz6gy3w4jo5wf6775k5agfwcxl5md4pzcrf2yc4wtq
   readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
-  tweepy_wrapper.py: bafybeife4ops3azwb5k3bf7xrns56a6igg467ir62ungutll5gsrjic6fu
+  tweepy_wrapper.py: bafybeicudnqjy6lb6agl4qiz4dfxmspghoux5yc2jknhd5cu254klf2mpm
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/srr:0.1.0:bafybeihrixgptxuqpf2s4nujypwlv5aed2nboozq5kl4c26cxw6r7si2x4
+- valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
 class_name: TweepyConnection
 config:
   tweepy_consumer_api_key: null

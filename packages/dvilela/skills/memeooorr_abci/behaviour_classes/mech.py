@@ -85,9 +85,11 @@ class PostMechResponseBehaviour(
         self, mech_responses: List[MechInteractionResponse]
     ) -> Generator[None, None, bool]:
         """
-        Process the mech response, fetch media (video or image) based on the format,
+        Process the mech response, fetch media (video or image) based on the format, and save media info.
 
-        and save media info. Returns True if media was successfully processed and saved, False otherwise.
+        :param mech_responses: The list of mech interaction responses.
+        :yields: None while processing.
+        :return: True if media was successfully processed and saved, False otherwise.
         """
         if not mech_responses:
             self.context.logger.error("No mech responses found")

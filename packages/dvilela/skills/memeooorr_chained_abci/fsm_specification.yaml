@@ -11,6 +11,7 @@ alphabet_in:
 - FINALIZE_TIMEOUT
 - INCORRECT_SERIALIZATION
 - INSUFFICIENT_FUNDS
+- INVALID_AUTH
 - MECH
 - MISSING_TWEET
 - NEGATIVE
@@ -111,6 +112,7 @@ transition_func:
     (CheckStakingRound, DONE): PullMemesRound
     (CheckStakingRound, NO_MAJORITY): CheckStakingRound
     (CheckStakingRound, ROUND_TIMEOUT): CheckStakingRound
+    (CheckStakingRound, SKIP): CallCheckpointRound
     (CheckTransactionHistoryRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckTransactionHistoryRound, CHECK_TIMEOUT): CheckTransactionHistoryRound
     (CheckTransactionHistoryRound, DONE): PostTxDecisionMakingRound
@@ -125,6 +127,7 @@ transition_func:
     (CollectSignatureRound, NO_MAJORITY): ResetRound
     (CollectSignatureRound, ROUND_TIMEOUT): CollectSignatureRound
     (EngageTwitterRound, DONE): ActionDecisionRound
+    (EngageTwitterRound, ERROR): EngageTwitterRound
     (EngageTwitterRound, INVALID_AUTH): ActionDecisionRound
     (EngageTwitterRound, MECH): MechVersionDetectionRound
     (EngageTwitterRound, NO_MAJORITY): EngageTwitterRound
@@ -149,6 +152,7 @@ transition_func:
     (FinalizationRound, FINALIZE_TIMEOUT): SelectKeeperTransactionSubmissionBAfterTimeoutRound
     (FinalizationRound, INSUFFICIENT_FUNDS): SelectKeeperTransactionSubmissionBRound
     (LoadDatabaseRound, DONE): CheckStakingRound
+    (LoadDatabaseRound, INVALID_AUTH): CallCheckpointRound
     (LoadDatabaseRound, NO_MAJORITY): LoadDatabaseRound
     (LoadDatabaseRound, ROUND_TIMEOUT): LoadDatabaseRound
     (MechInformationRound, DONE): MechRequestRound
