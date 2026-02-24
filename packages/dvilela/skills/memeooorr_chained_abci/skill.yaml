@@ -8,24 +8,24 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiacqbub377oj2uvkw3lu2u43zv5rpdd2z4jx7dailiffqttksds24
   behaviours.py: bafybeiapclfprmrnn3nqtwvblr6pyvyhcghcj64mtfkotoy3jctkce4akm
-  composition.py: bafybeifgvqodgmf7kmausj4tonoa7xjr5oa4ki4ixodh3iixgobcia4xve
+  composition.py: bafybeigy3poeku26tsq2ivrfp2cihnis57adlnbnmij5zvlwicfbqvglym
   dialogues.py: bafybeiawrgmlra5f6o63nhv5kc77wvzoqmcareub3lf4qceuwpjso4pjbe
-  fsm_specification.yaml: bafybeid4t44rnrblz3mawmfspxvh3qdcbb456ihltiz6uo665pdhrem5ty
+  fsm_specification.yaml: bafybeicbkr3543gfp52q2xspjs3nra6qqbhxzrpgh3pat4ehyhgnohszo4
   handlers.py: bafybeihtdxdmnknewkwtwja5vjq7uyizirtj2ahzovizg3vzon4c53izay
-  models.py: bafybeie22hfznu62ybuziuh6owiez4hh4jontjrlch57wid4puljda62y4
+  models.py: bafybeicpwur5dpmh3zwxwa4fll6n5usc552yh7oe6zrnnhdo3dxwbcbtle
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
-- valory/registration_abci:0.1.0:bafybeie6rd7zlws4rxzkwka5mzhk56mn6clj3ocxbkbgeaiawv2c6b6jtm
-- valory/reset_pause_abci:0.1.0:bafybeian7gymp6x6rn55uaf4u3dgirbzr43xvnsj2ev27stkadikjqz4du
-- valory/transaction_settlement_abci:0.1.0:bafybeiem4qoc2pdpxoingjqp3qnrdjwho67pd6amy7o3xjr5mpdrepctve
-- valory/termination_abci:0.1.0:bafybeiht4uj5j3qqf2hewtzah7vcabb7okkjgi65jb76ddfltvjpk6bzxi
-- dvilela/memeooorr_abci:0.1.0:bafybeifdjauqlrafntpyjtstp55woxj2duimdmbcregkdc7dz742gjjbvu
-- valory/mech_interact_abci:0.1.0:bafybeicinkpskogfzsdlqak2ky7yux3lftiut4x5t52n2xofj6zbsrkb3m
-- valory/agent_performance_summary_abci:0.1.0:bafybeigahhcpw72tmt7v2s4u5xr6bp3tolqh6q53yp4ma3ox6xr7ludgme
+- valory/abstract_round_abci:0.1.0:bafybeihhadgaitdltynzaq4w7jhgwbdnizsobbaa2riqtqwbml3li2tieq
+- valory/registration_abci:0.1.0:bafybeie3dfore53bxvbokqiarzuwulzlyt4vz5mifb4t3gxl6drwkblfha
+- valory/reset_pause_abci:0.1.0:bafybeicffwijiecbqc6z22nowir2fgwwqzwu6vokzuwgd5wa3zxromxevm
+- valory/transaction_settlement_abci:0.1.0:bafybeifbumqyemwzffxtn3kwucxx55ja57mhmfalo7fqlkq2hnjwqhfp74
+- valory/termination_abci:0.1.0:bafybeiaylk6haefa2xex55krizafzwo2v5tpkcoflw5hiwaqm3qxice23m
+- dvilela/memeooorr_abci:0.1.0:bafybeidn326miiuwqbs7izfpdu5nzaium3tas53ledlabhbevxsvymutnu
+- valory/mech_interact_abci:0.1.0:bafybeiffz7arijdfjko47rqrkcs5eobyj4vmal5pmiuhopmot24qrigwdy
+- valory/agent_performance_summary_abci:0.1.0:bafybeifztojxvh6oirbebhl2uaydhlwilvyjhgxe4wndwbre2yq6oiyvky
 behaviours:
   main:
     args: {}
@@ -179,8 +179,23 @@ models:
       mech_marketplace_config:
         mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
         priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
+        priority_mech_staking_instance_address: '0x0000000000000000000000000000000000000000'
+        priority_mech_service_id: 0
+        requester_staking_instance_address: '0x0000000000000000000000000000000000000000'
+        use_dynamic_mech_selection: false
         response_timeout: 300
       use_acn_for_delivers: false
+      irrelevant_tools:
+      - openai-text-davinci-002
+      - openai-text-davinci-003
+      - openai-gpt-3.5-turbo
+      - openai-gpt-4
+      - stabilityai-stable-diffusion-v1-5
+      - stabilityai-stable-diffusion-xl-beta-v2-2-2
+      - stabilityai-stable-diffusion-512-v2-1
+      - stabilityai-stable-diffusion-768-v2-1
+      ignored_mechs: []
+      penalize_mech_time_window: 1800
       summon_cooldown_seconds: 2592000
       heart_cooldown_hours: 48
       alternative_model_for_tweets:
@@ -204,6 +219,7 @@ models:
       is_agent_performance_summary_enabled: true
       performance_summary_ttl: 86400
       stop_posting_if_staking_kpi_met: true
+      mech_wrapped_native_token_address: '0x4200000000000000000000000000000000000006'
     class_name: Params
   randomness_api:
     args:
@@ -228,6 +244,34 @@ models:
       retries: 5
       url: ''
     class_name: MechResponseSpecs
+  mech_tools:
+    args:
+      api_id: mech_tools
+      headers:
+        Content-Type: application/json
+      method: GET
+      parameters: {}
+      response_key: tools
+      response_type: list
+      retries: 5
+      url: ''
+    class_name: MechToolsSpecs
+  mechs_subgraph:
+    args:
+      api_id: mechs
+      headers:
+        Content-Type: application/json
+      method: POST
+      parameters: {}
+      response_key: data:meches
+      response_type: list
+      error_key: errors
+      error_index: 0
+      error_type: dict
+      retries: 5
+      url: https://api.subgraph.autonolas.tech/api/proxy/marketplace-base
+      delivery_rate_cap: 10000000000000000
+    class_name: MechsSubgraph
   requests:
     args: {}
     class_name: Requests

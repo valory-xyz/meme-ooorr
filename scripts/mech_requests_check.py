@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -372,7 +372,7 @@ def run_mechx_command(  # pylint: disable=too-many-locals
     )
     stdout_data_to_return = None
     try:  # nosec
-        process = subprocess.run(
+        process = subprocess.run(  # nosec
             command_args, capture_output=True, text=True, check=False, timeout=900
         )
         stdout_data = process.stdout or ""
@@ -480,7 +480,7 @@ def main_process(
 
 if __name__ == "__main__":
     try:  # nosec
-        subprocess.run(
+        subprocess.run(  # nosec
             ["mechx", "--version"], capture_output=True, check=True, timeout=10
         )
     except (

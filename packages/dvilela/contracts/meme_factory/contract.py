@@ -42,7 +42,7 @@ class MemeFactoryContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
-    def build_summon_tx(  # pylint: disable=too-many-arguments
+    def build_summon_tx(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -246,7 +246,7 @@ class MemeFactoryContract(Contract):
         return {"purged_addresses": purged_addresses}
 
     @classmethod
-    def get_events(  # pylint: disable=too-many-arguments
+    def get_events(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -357,7 +357,7 @@ class MemeFactoryContract(Contract):
         return {"burnable_amount": burnable_amount}
 
     @classmethod
-    def get_collectable_amount(
+    def get_collectable_amount(  # pylint: disable=too-many-positional-arguments
         cls,
         ledger_api: EthereumApi,
         contract_address: str,

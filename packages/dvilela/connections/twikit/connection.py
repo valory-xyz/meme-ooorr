@@ -24,6 +24,7 @@ import asyncio
 import json
 import os
 import secrets
+import tempfile
 import time
 from asyncio import Task
 from datetime import datetime, timezone
@@ -105,12 +106,12 @@ class TwikitConnection(Connection):
         :param kwargs: keyword arguments passed to component base
         """
         super().__init__(*args, **kwargs)
-        self.username = self.configuration.config.get("twikit_username")
+        self.username = self.configuration.config.get("twikit_username", "")
         self.email = self.configuration.config.get("twikit_email")
         self.password = self.configuration.config.get("twikit_password")
         self.cookies = self.configuration.config.get("twikit_cookies")
-        self.cookies_path = (  # nosec
-            Path(self.configuration.config.get("store_path", "/tmp"))  # type: ignore
+        self.cookies_path = (
+            Path(self.configuration.config.get("store_path") or tempfile.gettempdir())
             / self.username
             / "twikit_cookies.json"
         )
