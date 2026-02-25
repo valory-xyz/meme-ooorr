@@ -24,7 +24,9 @@ jobs:
           run: |
             echo "Pushing Packages"
             cd /work
-            export AUTHOR=$(grep 'service' packages/packages.json | awk -F/ '{print $2}' | head -1)
+            # export AUTHOR=$(grep 'service' packages/packages.json | awk -F/ '{print $2}' | head -1)
+            # Hardcode author to push images to valory docker repository
+            export AUTHOR=valory
             autonomy init --reset --author $AUTHOR --ipfs --remote
             autonomy push-all
   publish-images:
@@ -80,7 +82,8 @@ jobs:
             cd /work
             source env.sh || exit 1
             echo "Building images for $AUTHOR for service $SERVICE"
-            autonomy init --reset --author $AUTHOR --ipfs --remote
+            echo "TODO: Remove hardcoding of author to valory and use $AUTHOR"
+            autonomy init --reset --author valory --ipfs --remote
             autonomy fetch $AUTHOR/$SERVICE --service --local || exit 1
             cd $SERVICE || exit 1
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin || exit 1
@@ -155,7 +158,6 @@ jobs:
           make agent.zip
           make agent.tar.gz
 
-
       ## LINUX
       - name: Build Agent Runner Linux
         if: runner.os == 'Linux'
@@ -176,9 +178,9 @@ jobs:
         env:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}  # Apple ID email
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}  # App-specific password
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}  # Team ID из Apple Dev Account
+          APPLE_ID: ${{ secrets.APPLE_ID }} # Apple ID email
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }} # App-specific password
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }} # Team ID из Apple Dev Account
           SIGN_ID: "Developer ID Application: Valory AG (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           echo "$CSC_LINK" | base64 --decode > certificate.p12
@@ -287,7 +289,6 @@ jobs:
         with:
           name: agent_runner_windows_x64.exe
           path: ./dist/
-
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
