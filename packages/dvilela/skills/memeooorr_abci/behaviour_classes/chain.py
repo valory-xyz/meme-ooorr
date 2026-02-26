@@ -49,8 +49,8 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
     TransactionLoopCheckPayload,
     TransactionLoopCheckRound,
 )
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.agent_mech.contract import AgentMech
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.staking_activity_checker.contract import (
     StakingActivityCheckerContract,
 )
