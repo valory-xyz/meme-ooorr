@@ -50,7 +50,7 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
     TransactionLoopCheckRound,
 )
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.mech_marketplace.contract import MechMarketplace
+from packages.valory.contracts.agent_mech.contract import AgentMech
 from packages.valory.contracts.staking_activity_checker.contract import (
     StakingActivityCheckerContract,
 )
@@ -398,7 +398,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
         response_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.mech_marketplace_config.mech_marketplace_address,
-            contract_id=str(MechMarketplace.contract_id),
+            contract_id=str(AgentMech.contract_id),
             contract_callable="get_request_count",
             chain_id=self.get_chain_id(),
             address=self.synchronized_data.safe_contract_address,

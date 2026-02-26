@@ -16,7 +16,7 @@ fingerprint:
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeiavreutmgzzxofrfhhvspyg7tsotvswlrk3iajurgfkd4n3oecjie
-  behaviour_classes/chain.py: bafybeiaeb4mbxcslpfif2ktgyvit23ur5ehn7wprwghhsxiapqhffndm6q
+  behaviour_classes/chain.py: bafybeidpzilwbvcoletvkthm3otq2lxlusgltfgx7qu2xtk34gkrcpgwp4
   behaviour_classes/db.py: bafybeihf7jbo6mfkrqlukmmxx5b6uu4wsagotebnbiqexz4qxzl5lyvuoa
   behaviour_classes/llm.py: bafybeif7gn23nw4ham3ksl5nbjbmdbrjnm3ye5o55kovevi4jlu7ymmiym
   behaviour_classes/mech.py: bafybeiahsmbobk7bpwhmpsnuaivt5yui23sy6qrwxdsbhnd2nwidsrwikq
@@ -42,7 +42,7 @@ contracts:
 - dvilela/service_registry:0.1.0:bafybeibbncokrg2tzer2sjxwvwrybsl6wx2gqiwjsgfug7f3rfflibpxeq
 - valory/staking_token:0.1.0:bafybeieofpmhto2wacfmbwizenlqkssoephzmidw2sxglqlxdopjzipuda
 - valory/staking_activity_checker:0.1.0:bafybeidt2rkw7ulmhxqj6j7l54ojhatinzmc54cgofq6jx7442jz3dwqhu
-- valory/mech_marketplace:0.1.0:bafybeibbxutph6qbaldnq3o5kiaqgubc6jhgxappf33u2t7udnwajhmbf4
+- valory/agent_mech:0.1.0:bafybeiee6j6tjjsoa7qn2ganeyxm7h5n3x3ukqdrs7sf7aliybcekantka
 protocols:
 - valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
 - dvilela/kv_store:0.1.0:bafybeianryj5powscuj6eupseja7xjzo5ecsd6sr7ketfw667nvxkvi7fa
@@ -52,7 +52,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihhadgaitdltynzaq4w7jhgwbdnizsobbaa2riqtqwbml3li2tieq
 - valory/transaction_settlement_abci:0.1.0:bafybeifbumqyemwzffxtn3kwucxx55ja57mhmfalo7fqlkq2hnjwqhfp74
-- valory/mech_interact_abci:0.1.0:bafybeigy44slchxksmn2e3l5q435hvkhfljaukwc7q2ga2anv5ng7b44ga
+- valory/mech_interact_abci:0.1.0:bafybeiattdcryfuddcptgioyu2jeb25h4afgba2prbax6oerofh5i3qpua
 - valory/agent_db_abci:0.1.0:bafybeihizhhlst6vtnkaoeophuseayd7zk7kiisxgo7niemzcatwnfatba
 - valory/funds_manager:0.1.0:bafybeidtprwtynln7kig2ymxmgiohinofq5jf4n5g2wkbxa4bw3nm2pn4y
 behaviours:
