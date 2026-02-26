@@ -9,7 +9,7 @@ htmlcov
 packages/open_aea
 packages/valory/contracts/*
 !packages/valory/contracts/staking_token
-!packages/valory/contracts/staking_activity_checker
+packages/valory/contracts/staking_activity_checker
 packages/valory/protocols/
 packages/valory/skills/*
 !packages/valory/skills/agent_performance_summary_abci
