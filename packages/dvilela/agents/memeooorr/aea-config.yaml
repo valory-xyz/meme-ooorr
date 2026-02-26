@@ -24,8 +24,8 @@ contracts:
 - valory/multisend:0.1.0:bafybeidjdgi2kyexajirj3cnpzgse4y5u664b2blztt4flv6i7knlecyr4
 - dvilela/meme_factory:0.1.0:bafybeia4lvdencuwha6lmztji7vpe5dyjldclgwdww7sjjn7g5qbgavz34
 - dvilela/service_registry:0.1.0:bafybeibbncokrg2tzer2sjxwvwrybsl6wx2gqiwjsgfug7f3rfflibpxeq
-- valory/staking_token:0.1.0:bafybeiew7ul7numklfp7orbnhddsfih2uqlcsxr2sww2rmur2suia2cdaa
-- valory/staking_activity_checker:0.1.0:bafybeiaedx54qqvosecplrgumooc3m5vanzcfwlbrrh4qggwio57epxjqu
+- valory/staking_token:0.1.0:bafybeieofpmhto2wacfmbwizenlqkssoephzmidw2sxglqlxdopjzipuda
+- valory/staking_activity_checker:0.1.0:bafybeidt2rkw7ulmhxqj6j7l54ojhatinzmc54cgofq6jx7442jz3dwqhu
 protocols:
 - open_aea/signing:1.0.0:bafybeiei6h5suazzfta7n3uyq7bsz26zkmdiiylptu5i44p7s2wiygxt24
 - valory/abci:0.1.0:bafybeicjjeintlqgg53zrreflmoafeiynt3gvdnovy5ocea7doddos3e5a
@@ -44,11 +44,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeifbumqyemwzffxtn3kwucxx55ja57mhmfalo7fqlkq2hnjwqhfp74
 - valory/registration_abci:0.1.0:bafybeie3dfore53bxvbokqiarzuwulzlyt4vz5mifb4t3gxl6drwkblfha
 - valory/reset_pause_abci:0.1.0:bafybeicffwijiecbqc6z22nowir2fgwwqzwu6vokzuwgd5wa3zxromxevm
-- dvilela/memeooorr_abci:0.1.0:bafybeiacx2hv3alx7fwo24w3ucdlz62bb6rextxys76bymaagr7dkrnwwa
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeib6h2mucpuorxch5w5q54ndflalct3fxunr2u5wh3vrv6qiktz76e
+- dvilela/memeooorr_abci:0.1.0:bafybeiftdobhaoqmz5xrl26snyobspsqezoplgipjufdqaszd66ncbv3vq
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeiaea664ujnsgdqajmbvhbjnojk2kybupurd6czekkveoo6js2sife
 - valory/mech_interact_abci:0.1.0:bafybeigy44slchxksmn2e3l5q435hvkhfljaukwc7q2ga2anv5ng7b44ga
 - valory/agent_db_abci:0.1.0:bafybeihizhhlst6vtnkaoeophuseayd7zk7kiisxgo7niemzcatwnfatba
-- valory/agent_performance_summary_abci:0.1.0:bafybeihek2rwo2gryejhm4wkusdy6vklb3u57iglnnngorrnaiuks7n2f4
+- valory/agent_performance_summary_abci:0.1.0:bafybeicylaplzv67tjyfcgdrevcbhoetwh3xeavhbedzzw2toahbb2ukhm
 - valory/funds_manager:0.1.0:bafybeidtprwtynln7kig2ymxmgiohinofq5jf4n5g2wkbxa4bw3nm2pn4y
 default_ledger: ethereum
 required_ledgers:
