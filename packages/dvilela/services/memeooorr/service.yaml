@@ -99,6 +99,7 @@ extra:
         service_registry_address_base: ${SERVICE_REGISTRY_ADDRESS_BASE:str:0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE}
         service_registry_address_celo: ${SERVICE_REGISTRY_ADDRESS_CELO:str:0xE3607b00E75f6405248323A9417ff6b39B244b50}
         meme_subgraph_url: ${MEME_SUBGRAPH_URL:str:https://agentsfun-indexer-production.up.railway.app}
+        olas_subgraph_url: ${OLAS_SUBGRAPH_URL:str:https://api.subgraph.autonolas.tech/api/proxy/autonolas-base}
         skip_engagement: ${SKIP_ENGAGEMENT:bool:false}
         min_summon_amount_base: ${MIN_SUMMON_AMOUNT_BASE:float:0.01}
         max_summon_amount_base: ${MAX_SUMMON_AMOUNT_BASE:float:0.02}

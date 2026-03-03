@@ -610,10 +610,6 @@ class MemeooorrBaseBehaviour(
 
         self.context.logger.info("Getting packages from Olas subgraph...")
 
-        SUBGRAPH_URL = (
-            "https://subgraph.staging.autonolas.tech/subgraphs/name/autonolas-base"
-        )
-
         headers = {
             "Content-Type": "application/json",
         }
@@ -629,7 +625,7 @@ class MemeooorrBaseBehaviour(
         self.context.logger.info("Getting agents from subgraph")
         response = yield from self.get_http_response(  # type: ignore
             method="POST",
-            url=SUBGRAPH_URL,
+            url=self.params.olas_subgraph_url,
             headers=headers,
             content=json.dumps(data).encode(),
         )

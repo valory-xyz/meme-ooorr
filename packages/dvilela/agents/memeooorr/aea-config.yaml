@@ -229,6 +229,7 @@ models:
       service_registry_address_base: ${str:0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE}
       service_registry_address_celo: ${str:0xE3607b00E75f6405248323A9417ff6b39B244b50}
       meme_subgraph_url: ${str:https://agentsfun-indexer-production.up.railway.app}
+      olas_subgraph_url: ${str:https://api.subgraph.autonolas.tech/api/proxy/autonolas-base}
       skip_engagement: ${bool:false}
       min_summon_amount_base: ${float:0.01}
       max_summon_amount_base: ${float:0.02}
