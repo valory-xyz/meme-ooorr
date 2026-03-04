@@ -15,7 +15,7 @@ fingerprint:
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeiavreutmgzzxofrfhhvspyg7tsotvswlrk3iajurgfkd4n3oecjie
+  behaviour_classes/base.py: bafybeicjalqz6is4yreebsikvak2fkoavvy7titdvlocuf3pcgrn65sy2u
   behaviour_classes/chain.py: bafybeic6ut3it5iekfw4g6u6vxax23ecqprqr3wfz2r2n4ziuq4ripb5oi
   behaviour_classes/db.py: bafybeihf7jbo6mfkrqlukmmxx5b6uu4wsagotebnbiqexz4qxzl5lyvuoa
   behaviour_classes/llm.py: bafybeif7gn23nw4ham3ksl5nbjbmdbrjnm3ye5o55kovevi4jlu7ymmiym
@@ -25,7 +25,7 @@ fingerprint:
   dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
   fsm_specification.yaml: bafybeigx6jmwncoe3n7rc3pstbttgg44t3uou4joqyqw6htmew7f35plrm
   handlers.py: bafybeigt4vyirl3rfs75frg7dsxbacbwoejtln2nsu4v5dgplool6ukxsy
-  models.py: bafybeidfn2k77ylijlwzp747iycee43bwk34wmhn6d3a6l6v3vfff7bxyy
+  models.py: bafybeiblbn3ew5tpgl4hzcnzzh7khvkjuwkdx7pdtjyhqketeb4cvryk3e
   payloads.py: bafybeifrhbfqwrcxx2q5ekeioz7tl4xjkoirqy5s6tdpioa52b63qg7kva
   prompts.py: bafybeienmm4cftgcwb5mgrq7222kp5rf7xd6e2dxrujlnc6eltbccanfra
   rounds.py: bafybeiaep2q76lxmmmgaatu4gnsg7247tpfff2eqaan3znq6gi2zpargnq
@@ -177,6 +177,7 @@ models:
       service_registry_address_base: '0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE'
       service_registry_address_celo: '0xE3607b00E75f6405248323A9417ff6b39B244b50'
       meme_subgraph_url: https://agentsfun-indexer-production.up.railway.app
+      olas_subgraph_url: https://api.subgraph.autonolas.tech/api/proxy/autonolas-base
       skip_engagement: false
       min_summon_amount_base: 0.01
       max_summon_amount_base: 0.02

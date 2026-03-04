@@ -145,6 +145,7 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
             "meme_factory_deployment_block_celo", kwargs, int
         )
         self.meme_subgraph_url = self._ensure("meme_subgraph_url", kwargs, str)
+        self.olas_subgraph_url = self._ensure("olas_subgraph_url", kwargs, str)
         self.skip_engagement = self._ensure("skip_engagement", kwargs, bool)
 
         self.min_summon_amount_base = self._ensure(

@@ -23,9 +23,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeicffwijiecbqc6z22nowir2fgwwqzwu6vokzuwgd5wa3zxromxevm
 - valory/transaction_settlement_abci:0.1.0:bafybeifbumqyemwzffxtn3kwucxx55ja57mhmfalo7fqlkq2hnjwqhfp74
 - valory/termination_abci:0.1.0:bafybeiaylk6haefa2xex55krizafzwo2v5tpkcoflw5hiwaqm3qxice23m
-- dvilela/memeooorr_abci:0.1.0:bafybeidwczjnbnzqk6cfccchhun3o7d5dah7vavdu77kss2atban6hulbu
+- dvilela/memeooorr_abci:0.1.0:bafybeianxy5upe3uosd3wcpyqffk7gu5w5jvp6bkera5prpxk2fs6tdwly
 - valory/mech_interact_abci:0.1.0:bafybeienj5jzbq2x5hpedqwpa46rmprcdc42536zjyxkmsemjs3jjhl5oe
-- valory/agent_performance_summary_abci:0.1.0:bafybeidl7uqpm5blguquhvl5ogxj7wr4qgp5h5vvnhw65qrocmx4xk5zya
+- valory/agent_performance_summary_abci:0.1.0:bafybeidvpshjvszo2x2punelllwvkn6yyuj6uamyb45uinpslec3xiofxi
 behaviours:
   main:
     args: {}
@@ -157,6 +157,7 @@ models:
       service_registry_address_base: '0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE'
       service_registry_address_celo: '0xE3607b00E75f6405248323A9417ff6b39B244b50'
       meme_subgraph_url: https://agentsfun-indexer-production.up.railway.app
+      olas_subgraph_url: https://api.subgraph.autonolas.tech/api/proxy/autonolas-base
       skip_engagement: false
       min_summon_amount_base: 0.01
       max_summon_amount_base: 0.02

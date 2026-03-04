@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifngitemoxhahloctciywjzfmlhp373ijuvrocmwbyxl3bate2fne
 fingerprint_ignore_patterns: []
-agent: dvilela/memeooorr:0.1.0:bafybeidrqwukleukreacoq2udmb5pgf5tojbif5vltese5domscfggbedm
+agent: dvilela/memeooorr:0.1.0:bafybeie2nv6tlumpnmj5qop5ewhue5b7mlkfl6pcnjbb4w7zpe7xbqccvu
 number_of_agents: 1
 deployment:
   agent:
@@ -99,6 +99,7 @@ extra:
         service_registry_address_base: ${SERVICE_REGISTRY_ADDRESS_BASE:str:0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE}
         service_registry_address_celo: ${SERVICE_REGISTRY_ADDRESS_CELO:str:0xE3607b00E75f6405248323A9417ff6b39B244b50}
         meme_subgraph_url: ${MEME_SUBGRAPH_URL:str:https://agentsfun-indexer-production.up.railway.app}
+        olas_subgraph_url: ${OLAS_SUBGRAPH_URL:str:https://api.subgraph.autonolas.tech/api/proxy/autonolas-base}
         skip_engagement: ${SKIP_ENGAGEMENT:bool:false}
         min_summon_amount_base: ${MIN_SUMMON_AMOUNT_BASE:float:0.01}
         max_summon_amount_base: ${MAX_SUMMON_AMOUNT_BASE:float:0.02}
@@ -175,7 +176,7 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${ACN_URI:str:acn.staging.autonolas.tech:9005}
+  - uri: ${ACN_URI:str:acn.autonolas.tech:9005}
     public_key: ${ACN_NODE_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
 cert_requests:
 - identifier: acn
