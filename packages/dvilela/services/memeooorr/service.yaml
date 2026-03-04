@@ -2,7 +2,7 @@ name: memeooorr
 author: dvilela
 version: 0.1.0
 description: A service that posts to twitter.
-aea_version: '>=2.0.0, <3.0.0'
+aea_version: ">=2.0.0, <3.0.0"
 license: Apache-2.0
 fingerprint:
   README.md: bafybeifngitemoxhahloctciywjzfmlhp373ijuvrocmwbyxl3bate2fne
@@ -27,22 +27,22 @@ extra:
         all_participants: ${ALL_PARTICIPANTS:list:[]}
         consensus_threshold: null
       genesis_config: &id002
-        genesis_time: '2022-09-26T00:00:00.000000000Z'
+        genesis_time: "2022-09-26T00:00:00.000000000Z"
         chain_id: chain-c4daS1
         consensus_params:
           block:
-            max_bytes: '22020096'
-            max_gas: '-1'
-            time_iota_ms: '1000'
+            max_bytes: "22020096"
+            max_gas: "-1"
+            time_iota_ms: "1000"
           evidence:
-            max_age_num_blocks: '100000'
-            max_age_duration: '172800000000000'
-            max_bytes: '1048576'
+            max_age_num_blocks: "100000"
+            max_age_duration: "172800000000000"
+            max_bytes: "1048576"
           validator:
             pub_key_types:
-            - ed25519
+              - ed25519
           version: {}
-        voting_power: '10'
+        voting_power: "10"
 0:
   models:
     benchmark_tool:
@@ -131,14 +131,14 @@ extra:
         performance_summary_ttl: ${PERFORMANCE_SUMMARY_TTL:int:86400}
         stop_posting_if_staking_kpi_met: ${STOP_POSTING_IF_STAKING_KPI_MET:bool:true}
         irrelevant_tools:
-        - openai-text-davinci-002
-        - openai-text-davinci-003
-        - openai-gpt-3.5-turbo
-        - openai-gpt-4
-        - stabilityai-stable-diffusion-v1-5
-        - stabilityai-stable-diffusion-xl-beta-v2-2-2
-        - stabilityai-stable-diffusion-512-v2-1
-        - stabilityai-stable-diffusion-768-v2-1
+          - openai-text-davinci-002
+          - openai-text-davinci-003
+          - openai-gpt-3.5-turbo
+          - openai-gpt-4
+          - stabilityai-stable-diffusion-v1-5
+          - stabilityai-stable-diffusion-xl-beta-v2-2-2
+          - stabilityai-stable-diffusion-512-v2-1
+          - stabilityai-stable-diffusion-768-v2-1
         ignored_mechs: []
         penalize_mech_time_window: 1800
 ---
@@ -176,16 +176,16 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${ACN_URI:str:acn.staging.autonolas.tech:9005}
-    public_key: ${ACN_NODE_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+    - uri: ${ACN_URI:str:acn.autonolas.tech:9005}
+      public_key: ${ACN_NODE_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
 cert_requests:
-- identifier: acn
-  ledger_id: ethereum
-  message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
-  public_key: ${ACN_NODE_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  save_path: .certs/acn_cosmos_11000.txt
+  - identifier: acn
+    ledger_id: ethereum
+    message_format: "{public_key}"
+    not_after: "2023-01-01"
+    not_before: "2022-01-01"
+    public_key: ${ACN_NODE_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+    save_path: .certs/acn_cosmos_11000.txt
 ---
 public_id: dvilela/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
