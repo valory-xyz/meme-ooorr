@@ -61,7 +61,7 @@
 
 7. Fill in the required environment variables in .env.
 
-8. [For Tenderly testing only] In the root of your repo, create a file called tenderly_vnets.json with the following content (add your agent and safe adress):
+8. [For Tenderly testing only] In the root of your repo, create a file called tenderly_vnets.json with the following content (add your agent and safe address):
     ```json
     {
         "base": {
