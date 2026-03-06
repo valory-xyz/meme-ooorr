@@ -26,7 +26,6 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
 
-
 PUBLIC_ID = PublicId.from_str("dvilela/service_registry:0.1.0")
 
 _logger = logging.getLogger(

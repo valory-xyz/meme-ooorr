@@ -26,7 +26,6 @@ import dotenv
 
 from packages.dvilela.connections.tweepy.tweepy_wrapper import Twitter
 
-
 dotenv.load_dotenv()
 
 twitter = Twitter(

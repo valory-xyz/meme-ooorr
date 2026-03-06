@@ -29,7 +29,6 @@ from aea_ledger_ethereum.ethereum import EthereumApi
 
 from packages.dvilela.contracts.meme_factory.contract import MemeFactoryContract
 
-
 dotenv.load_dotenv(override=True)
 
 SUMMON_BLOCK_DELTA = 100000

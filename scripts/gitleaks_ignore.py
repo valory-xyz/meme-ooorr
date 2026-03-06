@@ -23,7 +23,6 @@
 
 import json
 
-
 with open("leak_report", "r", encoding="utf-8") as report_file:
     report = json.load(report_file)
     fps = [leak["Fingerprint"] + "\n" for leak in report]

@@ -91,7 +91,6 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 from packages.valory.skills.funds_manager.behaviours import GET_FUNDS_STATUS_METHOD_NAME
 from packages.valory.skills.funds_manager.models import FundRequirements
 
-
 ABCIHandler = BaseABCIRoundHandler
 SigningHandler = BaseSigningHandler
 LedgerApiHandler = BaseLedgerApiHandler

@@ -26,7 +26,6 @@ from pathlib import Path
 
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
-
 MINT_PATH = Path(".", "mints")
 MINT_FILE = "mints.json"
 IPFS_NODE = "/dns/registry.autonolas.tech/tcp/443/https"

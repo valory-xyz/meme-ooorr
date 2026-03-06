@@ -45,7 +45,6 @@ from packages.valory.skills.agent_performance_summary_abci.handlers import (
     HttpHandler as BaseHttpHandler,
 )
 
-
 ABCIRoundHandler = BaseABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler

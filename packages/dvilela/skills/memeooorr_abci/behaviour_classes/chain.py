@@ -66,7 +66,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LENGTH
 
-
 WaitableConditionType = Generator[None, None, Optional[bool]]
 
 WAIT_TIME_DELAY = 20

@@ -25,7 +25,6 @@ import os
 import dotenv
 from web3 import Web3
 
-
 dotenv.load_dotenv(override=True)
 
 web3 = Web3(Web3.HTTPProvider(os.getenv("BASE_LEDGER_RPC")))

@@ -33,7 +33,6 @@ from packages.dvilela.skills.memeooorr_abci.prompts import (
     build_token_action_schema,
 )
 
-
 dotenv.load_dotenv(override=True)
 
 PERSONA = """

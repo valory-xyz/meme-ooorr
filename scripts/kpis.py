@@ -41,7 +41,6 @@ from scripts.test_twikit import (
     get_tweet_engagement_rate,
 )
 
-
 dotenv.load_dotenv(override=True)
 
 BASESCAN_API_BASE = "https://api.etherscan.io/v2/api?chainid=8453"

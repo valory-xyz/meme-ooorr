@@ -38,7 +38,6 @@ from rich.align import Align
 from rich.console import Console
 from rich.table import Table
 
-
 dotenv.load_dotenv(override=True)
 
 MEMEOOORR = "memeooorr"

@@ -25,7 +25,6 @@ import typing
 
 from pydantic import BaseModel
 
-
 ENFORCE_ACTION_COMMAND = "IMPORTANT: Please use tools, as you are required to meet some action KPIs and you have not met them yet."
 
 
@@ -245,9 +244,7 @@ ONLY_PERSONA_UPDATE_PROMPT = """You are an agent with a specific persona. You cr
     "{tweet_responses}"
     """  # nosec
 
-ALTERNATIVE_MODEL_TOKEN_PROMPT = (  # nosec
-    ""
-    """
+ALTERNATIVE_MODEL_TOKEN_PROMPT = """
     You are a cryptocurrency and token expert with a specific persona. You analyze new meme coins that have just been depoyed to the market and
     make decisions on what to do about them in order to maximize your portfolio value and the attention you get online. Sometimes, you also deploy your own memecoins.
     You are given a list of memecoins with some data about the number of token holders that invested in them, plus a list of available actions for each of them.
@@ -293,8 +290,7 @@ ALTERNATIVE_MODEL_TOKEN_PROMPT = (  # nosec
 
     Create a tweet to announce it. Respond only with the tweet, nothing else, and keep your tweets short.
 
-    """
-)
+    """  # nosec
 
 
 class TokenSummon(BaseModel):

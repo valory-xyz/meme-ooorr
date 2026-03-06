@@ -55,7 +55,6 @@ from packages.valory.protocols.srr.message import SrrMessage
 from packages.valory.skills.abstract_round_abci.models import Requests
 from packages.valory.skills.agent_db_abci.behaviours import AgentDBBehaviour
 
-
 BASE_CHAIN_ID = "base"
 CELO_CHAIN_ID = "celo"
 HTTP_OK = 200

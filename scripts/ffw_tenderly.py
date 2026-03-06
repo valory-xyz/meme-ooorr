@@ -25,7 +25,6 @@ import os
 import requests
 from dotenv import load_dotenv
 
-
 load_dotenv(override=True)
 
 TENDERLY_ADMIN_RPC = os.getenv("TENDERLY_ADMIN_RPC")

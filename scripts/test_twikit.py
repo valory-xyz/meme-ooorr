@@ -20,7 +20,6 @@
 
 """Test twikit"""
 
-
 import asyncio
 import os
 import random
@@ -31,7 +30,6 @@ from typing import Any, Dict, List, Optional
 
 import dotenv
 import twikit
-
 
 dotenv.load_dotenv(override=True)
 

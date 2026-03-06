@@ -30,7 +30,6 @@ from safe_eth.eth import EthereumClient
 from safe_eth.safe import Safe
 from web3 import Web3
 
-
 dotenv.load_dotenv(override=True)
 
 # Constants

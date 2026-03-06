@@ -60,7 +60,6 @@ from packages.valory.skills.mech_interact_abci.rounds import Event as MechIntera
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
 from packages.valory.skills.termination_abci.models import TerminationParams
 
-
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = MemeooorrRandomnessApi
