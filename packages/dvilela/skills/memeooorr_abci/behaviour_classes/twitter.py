@@ -60,7 +60,6 @@ from packages.valory.skills.agent_db_abci.twitter_models import (
 )
 from packages.valory.skills.mech_interact_abci.states.base import MechMetadata
 
-
 MAX_TWEET_CHARS = 280
 JSON_RESPONSE_REGEXES = [r"json.?({.*})", r"json({.*})", r"\`\`\`json(.*)\`\`\`"]
 MAX_TWEET_PREPARATIONS_RETRIES = 3

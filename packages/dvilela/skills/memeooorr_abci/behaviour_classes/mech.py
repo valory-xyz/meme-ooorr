@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This package contains round behaviours of MemeooorrAbciApp."""
+
 import json
 import os
 import traceback

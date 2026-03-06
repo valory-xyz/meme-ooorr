@@ -28,7 +28,6 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
 
-
 PUBLIC_ID = PublicId.from_str("dvilela/meme_factory:0.1.0")
 
 _logger = logging.getLogger(
@@ -168,7 +167,11 @@ class MemeFactoryContract(Contract):
             except web3.exceptions.MismatchedABI:
                 continue
 
-        return {"token_address": None, "summoner": None, "eth_contributed": None}
+        return {
+            "token_address": None,
+            "summoner": None,
+            "eth_contributed": None,
+        }  # nosec
 
     @classmethod
     def get_meme_summons_info(
@@ -212,7 +215,7 @@ class MemeFactoryContract(Contract):
         tokens = []
         for nonce in nonce_to_event.keys():
             summon_data = meme_summons(nonce).call()
-            token_data = {
+            token_data = {  # nosec
                 "summoner": nonce_to_event[nonce]["summoner"],
                 "token_nonce": nonce,
                 "token_address": None,

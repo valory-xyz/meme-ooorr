@@ -39,7 +39,6 @@ from packages.dvilela.skills.memeooorr_abci.prompts import (
     build_token_action_schema,
 )
 
-
 dotenv.load_dotenv(override=True)
 
 PERSONA = """
@@ -236,8 +235,7 @@ def build_decision_schema() -> dict:
     return {"class": pickle.dumps(Decision).hex(), "is_list": False}
 
 
-MECH_RESPONSE_SUBPROMPT = MECH_RESPONSE_SUBPROMPT.format(
-    mech_response=""""[
+MECH_RESPONSE_SUBPROMPT = MECH_RESPONSE_SUBPROMPT.format(mech_response=""""[
         MechInteractionResponse(
             data="11330f28690d7908c60c145c70bd49ecd79332a998e2508d76ef33d033b9cf69",
             requestId=86725440349159450213892102625528816528314986604628557752902184657670368435189,
@@ -247,8 +245,7 @@ MECH_RESPONSE_SUBPROMPT = MECH_RESPONSE_SUBPROMPT.format(
             response_data=None,
             sender_address=None,
         )
-    ]"""
-)
+    ]""")
 
 TEMP_TOOLS_LIST = """
 google_image_gen: This tool generates an image based on a given prompt using the Google Image Generation model.

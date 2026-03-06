@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,10 +29,9 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv  # type: ignore
 
-
 AGENT_NAME = "agent"
 
-PATH_TO_VAR = {
+PATH_TO_VAR = {  # nosec
     # Chains
     "config/ledger_apis/base/address": "BASE_LEDGER_RPC",
     "models/params/args/base_ledger_rpc": "BASE_LEDGER_RPC",

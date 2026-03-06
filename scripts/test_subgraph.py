@@ -20,12 +20,10 @@
 
 """Test subgraph"""
 
-
 import json
 import re
 
 import requests
-
 
 MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
 

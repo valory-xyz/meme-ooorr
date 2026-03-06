@@ -27,7 +27,6 @@ import dotenv
 import requests
 from web3 import Web3
 
-
 dotenv.load_dotenv(override=True)
 
 w3 = Web3(Web3.HTTPProvider(os.getenv("BASE_RPC")))

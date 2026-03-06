@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This package contains code to read Contribute streams on Ceramic."""
+
 # pylint: disable=import-error
 
 import json
@@ -35,7 +36,6 @@ from web3.contract import Contract
 
 from scripts.staking_epoch_trigger import StakingContract
 from scripts.test_subgraph import get_memeooorrs_from_subgraph
-
 
 dotenv.load_dotenv(override=True)
 
@@ -95,7 +95,7 @@ def get_contract_info() -> Dict:
     contract_info = STAKING_CONTRACTS
 
     table = Table(title="Agents.fun staking contracts")
-    columns = ["Name", "Adress", "Epoch", "Epoch end", "Used slots"]
+    columns = ["Name", "Address", "Epoch", "Epoch end", "Used slots"]
 
     for column in columns:
         table.add_column(column)

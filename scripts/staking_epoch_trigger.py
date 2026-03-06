@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This package contains code to interact with staking contracts."""
+
 # pylint: disable=too-many-instance-attributes,unused-variable
 
 import json
@@ -32,7 +33,6 @@ import dotenv
 import tzlocal
 from web3 import Web3
 from web3.contract import Contract
-
 
 dotenv.load_dotenv(override=True)
 

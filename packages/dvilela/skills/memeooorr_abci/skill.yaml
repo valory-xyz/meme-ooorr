@@ -6,7 +6,7 @@ description: A skill that deploys memecoins.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeidorrnxjv4n4ngovxnu4mzod46kyrdncfmli4hapqeqnzp7imq7hm
+  __init__.py: bafybeigzqbg2nchyerxgwo4hnoj5pnuhrmozgmbh77yyd7ml4kv3w6fjm4
   agentsfun-ui-build/assets/agentsfun-chat-CQO2MvlO.png: bafybeibm5nhmhfa54gimrsjt7pupvw3bkg2ayr6nul5o5krlj67ivh26oy
   agentsfun-ui-build/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
   agentsfun-ui-build/assets/index-Ciy3ywQD.js: bafybeienqranakwkwwtq46utsjz3zex6sgtjvp4dycv73j6ofu37ftptfa
@@ -15,46 +15,46 @@ fingerprint:
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeicjalqz6is4yreebsikvak2fkoavvy7titdvlocuf3pcgrn65sy2u
-  behaviour_classes/chain.py: bafybeic6ut3it5iekfw4g6u6vxax23ecqprqr3wfz2r2n4ziuq4ripb5oi
+  behaviour_classes/base.py: bafybeiecuabrrvpgvdclb3rzkuw6u6yggz4wjtqwzpnhz74nlg7t3ezuvi
+  behaviour_classes/chain.py: bafybeien2sho7pzkcdym7mnls6fhcbgd74ngkxkv2rg4mmbndc2ke4xcze
   behaviour_classes/db.py: bafybeihf7jbo6mfkrqlukmmxx5b6uu4wsagotebnbiqexz4qxzl5lyvuoa
-  behaviour_classes/llm.py: bafybeif7gn23nw4ham3ksl5nbjbmdbrjnm3ye5o55kovevi4jlu7ymmiym
-  behaviour_classes/mech.py: bafybeiahsmbobk7bpwhmpsnuaivt5yui23sy6qrwxdsbhnd2nwidsrwikq
-  behaviour_classes/twitter.py: bafybeihi7yhs7ysdqf2r3rasm25qxtdlnxhbthxvndpd2p6vidoz37ktky
+  behaviour_classes/llm.py: bafybeict6zq5zdsgkpzkzhxykxvupmcymcimfckbbnnbjmye3llpkkyu7u
+  behaviour_classes/mech.py: bafybeidmcudz4gohnuavygwsqg7kenrdegs6yf6nidp4zn6bwrardzudpa
+  behaviour_classes/twitter.py: bafybeicaghgzlybz2irmzkmlxk7pew5nynakwkhnz6tzjhpshzw5wlt23e
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
-  dialogues.py: bafybeiaygigeleloplgrsg2sovv463uvzk3zc2tupgazn4ak2vqcangksu
+  dialogues.py: bafybeiczyi7ygutsp55gafvrwky4ft7v752bl5hcueiohk7lynxygomcfm
   fsm_specification.yaml: bafybeigx6jmwncoe3n7rc3pstbttgg44t3uou4joqyqw6htmew7f35plrm
-  handlers.py: bafybeigt4vyirl3rfs75frg7dsxbacbwoejtln2nsu4v5dgplool6ukxsy
+  handlers.py: bafybeiccu2a725imeoyjxe2fai6sixrqhm76woykk3ocgmy4zxwylmy52a
   models.py: bafybeiblbn3ew5tpgl4hzcnzzh7khvkjuwkdx7pdtjyhqketeb4cvryk3e
   payloads.py: bafybeifrhbfqwrcxx2q5ekeioz7tl4xjkoirqy5s6tdpioa52b63qg7kva
-  prompts.py: bafybeienmm4cftgcwb5mgrq7222kp5rf7xd6e2dxrujlnc6eltbccanfra
+  prompts.py: bafybeidewp7obapgoikok4vavwlgb6ewdqszq4h3l4jp3nrzqggdi2ttsi
   rounds.py: bafybeiaep2q76lxmmmgaatu4gnsg7247tpfff2eqaan3znq6gi2zpargnq
-  rounds_info.py: bafybeihgnz2g3ppds3jjdm6iy2ypvst34ckzgb3osmkra4ouiqgcozwm6m
+  rounds_info.py: bafybeihojp3e4oeldscpso2v4pwv2rw74sulasnihrejllhnlaazqxf4p4
 fingerprint_ignore_patterns: []
 connections:
-- dvilela/kv_store:0.1.0:bafybeihhxngfz4vdc7nwmto74b3scgitdhk4ncmw7jpjj7n2vm2u65wxie
+- dvilela/kv_store:0.1.0:bafybeihmppbeo5gh3w7gnr3vff6u4qlurt3dhxd4cn4mnrzyhnrxdr336u
 - dvilela/tweepy:0.1.0:bafybeidkx7lrvn6t43blc3ooydodjpuyj3f6c72sdjhgrn2ga7ockvlmzi
-- dvilela/genai:0.1.0:bafybeibopgvwqvqvyru7n2o2ddryujl6jhknjg5na4675of2eui5i3xube
-- valory/http_server:0.22.0:bafybeigyjwg6nfwmdkwzt7i56n4zv3oj6hii2mkkgstuaztyunscjifdee
+- dvilela/genai:0.1.0:bafybeic3ydvjmb33addd5ye3et3xl4enhmoug4n4agmutz6xgan7rvpqiq
+- valory/http_server:0.22.0:bafybeid4oqsfkqo36lryoecymjnq4whme3tgupqfq6m4l7lbr5r4yxtswu
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeia3ictpeosrza3tkxa7ad2io5txutcs44jgrqoqgdxhrjdu2fy4qy
-- dvilela/meme_factory:0.1.0:bafybeia4lvdencuwha6lmztji7vpe5dyjldclgwdww7sjjn7g5qbgavz34
-- dvilela/service_registry:0.1.0:bafybeibbncokrg2tzer2sjxwvwrybsl6wx2gqiwjsgfug7f3rfflibpxeq
-- valory/staking_token:0.1.0:bafybeieofpmhto2wacfmbwizenlqkssoephzmidw2sxglqlxdopjzipuda
-- valory/staking_activity_checker:0.1.0:bafybeidt2rkw7ulmhxqj6j7l54ojhatinzmc54cgofq6jx7442jz3dwqhu
-- valory/agent_mech:0.1.0:bafybeibvtxsxeuymbmxyyn7rj46m3skylupr7qib5eptqluklz4apr77iq
+- valory/gnosis_safe:0.1.0:bafybeiamcgebbdbm3kzcvpeio4pjobzduz2cdlxrs7ufe4ere2zuompgwe
+- dvilela/meme_factory:0.1.0:bafybeic2vufaoxy45u62wgwmbra3fza6yjh6fylrlv344cpfrt3aq2sctq
+- dvilela/service_registry:0.1.0:bafybeihdlwrponava4wscis7wwi4ctwqh4k4v4nollej53t6lpg7qztljm
+- valory/staking_token:0.1.0:bafybeiai7ymajetb4ai6k6mwalqzyaddjx4dq5wr7ehrxs7iu45endnwby
+- valory/staking_activity_checker:0.1.0:bafybeibkikabwwayupto26mw7kjkgwwwucfll7hsr2c3aenghcuu54jy3a
+- valory/agent_mech:0.1.0:bafybeifamjf76fn3f7qjdv7jm5skrd4xcsnt43kq3zy6e5hnh6kwsjbjvq
 protocols:
 - valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
-- dvilela/kv_store:0.1.0:bafybeianryj5powscuj6eupseja7xjzo5ecsd6sr7ketfw667nvxkvi7fa
-- valory/http:1.0.0:bafybeia4tq7ycivm3dnekelrnlzdwb4qnrjdykk6gf5tizq6djr66adotm
-- valory/ledger_api:1.0.0:bafybeig7yk77pmebqcb33jbavodcslmltitz2uolq6s5arklvsvu5bvp7y
-- valory/contract_api:1.0.0:bafybeigl7mxuyxngk4gztgygeccbgdfrllx73kwbvvkjvtkfw6ionyd56q
+- dvilela/kv_store:0.1.0:bafybeib3hyj6om7bdsqqhsc4ro3xdxijp2mk5da7ks4ipfgxiovtc3aqfm
+- valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
+- valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihhadgaitdltynzaq4w7jhgwbdnizsobbaa2riqtqwbml3li2tieq
-- valory/transaction_settlement_abci:0.1.0:bafybeifbumqyemwzffxtn3kwucxx55ja57mhmfalo7fqlkq2hnjwqhfp74
-- valory/mech_interact_abci:0.1.0:bafybeienj5jzbq2x5hpedqwpa46rmprcdc42536zjyxkmsemjs3jjhl5oe
-- valory/agent_db_abci:0.1.0:bafybeihizhhlst6vtnkaoeophuseayd7zk7kiisxgo7niemzcatwnfatba
-- valory/funds_manager:0.1.0:bafybeidtprwtynln7kig2ymxmgiohinofq5jf4n5g2wkbxa4bw3nm2pn4y
+- valory/abstract_round_abci:0.1.0:bafybeicehi2yqab3lldm7qzoqev3tmqrdk275sbtcabneyorhmzft76z7m
+- valory/transaction_settlement_abci:0.1.0:bafybeigivknq755rbnelrdemaz3vm4x7jkofvaskm34uh36pbbg6uiquo4
+- valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
+- valory/agent_db_abci:0.1.0:bafybeiatkzze24mjprk6xotncs5n3tysocenfiaiwczvhulafebagej7km
+- valory/funds_manager:0.1.0:bafybeih5k7v6zx7mtkdg4hkgmsyngkz66bbwmrpqqxccnhif666v2hzi6y
 behaviours:
   main:
     args: {}
@@ -288,9 +288,9 @@ dependencies:
   web3:
     version: <8,>=7.0.0
   requests:
-    version: '>=2.28.1, <2.31.2'
+    version: '>=2.28.1,<2.33.0'
   open-aea-ledger-ethereum:
-    version: '>=2.0.8'
+    version: '>=2.1.0rc6'
   pydantic:
     version: ==2.11.9
 is_abstract: true

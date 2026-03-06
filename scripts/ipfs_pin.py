@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import os
 from pathlib import Path
 
 from aea_cli_ipfs.ipfs_utils import IPFSTool
-
 
 MINT_PATH = Path(".", "mints")
 MINT_FILE = "mints.json"

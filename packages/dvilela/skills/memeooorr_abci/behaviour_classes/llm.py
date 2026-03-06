@@ -42,7 +42,6 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 
-
 JSON_RESPONSE_REGEX = r"json.?({.*})"
 
 # fmt: off

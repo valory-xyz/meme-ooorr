@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeies3iafkjwo4xvqtqpdxvood7pf2wgto4t76dqswy55rya7vl5zgu
   __init__.py: bafybeiddslgyschgiuwsfiovqgxqqbkazdy6h3d4swwnq3tvpqaxzy37si
   build/MemeFactory.json: bafybeiholsk2gmpvayfftai7envnllozw3rjdsxrmpplht2fw5g6qiht3e
-  contract.py: bafybeihxppmwygkb2cvcw2w2gqiv4r7psi32rsbpql3wtii2anykcggivq
+  contract.py: bafybeib6k3ukxmlcalgtqcaqt5h74gpvgtbz72cgicimnca3uarmygcmhi
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: MemeFactoryContract
@@ -21,11 +21,11 @@ dependencies:
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==2.0.8
+    version: ==2.1.0rc6
   open-aea-test-autonomy:
-    version: ==0.21.8
+    version: ==0.21.12rc4
   packaging: {}
   requests:
-    version: <2.32.5,>=2.28.1
+    version: '>=2.28.1,<2.33.0'
   web3:
     version: <8,>=7.0.0
