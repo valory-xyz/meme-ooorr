@@ -26,7 +26,6 @@ from packages.valory.skills.agent_performance_summary_abci.payloads import (
     FetchPerformanceDataPayload,
 )
 
-
 SENDER = "test_sender"
 
 

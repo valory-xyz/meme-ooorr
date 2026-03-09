@@ -32,7 +32,6 @@ from packages.valory.skills.agent_db_abci.agent_db_models import (
     AttributeInstance,
 )
 
-
 # Docs at:
 # https://axatbhardwaj.notion.site/MirrorDB-Agent-and-Attribute-Data-Flow-1eac8d38bc0b80edae04ff1017d80f58
 # https://afmdb.autonolas.tech/docs#/default/read_attribute_definitions_by_type_api_agent_types__type_id__attributes__get
@@ -163,7 +162,9 @@ class AgentDBClient(Model):
         """Make the request"""
 
         if self.http_request_func is None:
-            raise ValueError("HTTP request function not set. Use set_external_funcs to set it.")
+            raise ValueError(
+                "HTTP request function not set. Use set_external_funcs to set it."
+            )
 
         url = f"{self.base_url}{endpoint}"
         headers = {"Content-Type": "application/json"}
@@ -175,7 +176,9 @@ class AgentDBClient(Model):
             else:
                 payload = payload | auth
 
-        self.logger.info(f"Making {method} request to {url} with payload: {payload} and params: {params}")
+        self.logger.info(
+            f"Making {method} request to {url} with payload: {payload} and params: {params}"
+        )
 
         content = json.dumps(payload).encode() if payload else None
 
@@ -217,7 +220,9 @@ class AgentDBClient(Model):
     def delete_agent_type(self, agent_type: AgentType):
         """Delete agent type"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/"
-        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=True)
+        result = yield from self._request(
+            "DELETE", endpoint, auth=True, nested_auth=True
+        )
         return AgentType.model_validate(result) if result else None
 
     # Agent Instance Methods
@@ -248,7 +253,9 @@ class AgentDBClient(Model):
             "skip": 0,
             "limit": 100,
         }
-        result = yield from self._request(method="GET", endpoint=endpoint, params=params)
+        result = yield from self._request(
+            method="GET", endpoint=endpoint, params=params
+        )
         return (
             [AgentInstance.model_validate(agent) for agent in result] if result else []
         )
@@ -256,7 +263,9 @@ class AgentDBClient(Model):
     def delete_agent_instance(self, agent_instance: AgentInstance):
         """Delete agent instance"""
         endpoint = f"/api/agent-registry/{agent_instance.agent_id}/"
-        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=False)
+        result = yield from self._request(
+            "DELETE", endpoint, auth=True, nested_auth=False
+        )
         return AgentInstance.model_validate(result) if result else None
 
     # Attribute Definition Methods
@@ -278,7 +287,9 @@ class AgentDBClient(Model):
             "default_value": default_value,
             "is_required": is_required,
         }
-        result = yield from self._request("POST", endpoint, {"attr_def": payload}, auth=True)
+        result = yield from self._request(
+            "POST", endpoint, {"attr_def": payload}, auth=True
+        )
         return AttributeDefinition.model_validate(result) if result else None
 
     def get_attribute_definition_by_name(
@@ -316,7 +327,9 @@ class AgentDBClient(Model):
     def delete_attribute_definition(self, attr_def: AttributeDefinition):
         """Delete attribute definition"""
         endpoint = f"/api/attributes/{attr_def.attr_def_id}/"
-        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=True)
+        result = yield from self._request(
+            "DELETE", endpoint, auth=True, nested_auth=True
+        )
         return AttributeDefinition.model_validate(result) if result else None
 
     # Attribute Instance Methods
@@ -335,7 +348,9 @@ class AgentDBClient(Model):
             "attr_def_id": attribute_def.attr_def_id,
             f"{value_type}_value": value,
         }
-        result = yield from self._request("POST", endpoint, {"agent_attr": payload}, auth=True)
+        result = yield from self._request(
+            "POST", endpoint, {"agent_attr": payload}, auth=True
+        )
         return AttributeInstance.model_validate(result) if result else None
 
     def get_attribute_instance(
@@ -363,7 +378,9 @@ class AgentDBClient(Model):
             "attr_def_id": attribute_def.attr_def_id,
             f"{value_type}_value": value,
         }
-        result = yield from self._request("PUT", endpoint, {"agent_attr": payload}, auth=True)
+        result = yield from self._request(
+            "PUT", endpoint, {"agent_attr": payload}, auth=True
+        )
         return AttributeInstance.model_validate(result) if result else None
 
     def delete_attribute_instance(
@@ -371,7 +388,9 @@ class AgentDBClient(Model):
     ) -> Optional[AttributeInstance]:
         """Delete attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_instance.attribute_id}"
-        result = yield from self._request("DELETE", endpoint, auth=True, nested_auth=True)
+        result = yield from self._request(
+            "DELETE", endpoint, auth=True, nested_auth=True
+        )
         return AttributeInstance.model_validate(result) if result else None
 
     # Get all attributes of an agent instance
@@ -382,7 +401,9 @@ class AgentDBClient(Model):
         payload = {
             "agent_id": agent_instance.agent_id,
         }
-        result = yield from self._request("GET", endpoint, {"agent_attr": payload}, auth=True)
+        result = yield from self._request(
+            "GET", endpoint, {"agent_attr": payload}, auth=True
+        )
         return result
 
     def parse_attribute_instance(self, attribute_instance: AttributeInstance):
@@ -426,7 +447,9 @@ class AgentDBClient(Model):
 
     def get_all_agent_instance_attributes_parsed(self, agent_instance: AgentInstance):
         """Get all attributes of an agent by agent ID"""
-        attribute_instances = yield from self.get_all_agent_instance_attributes_raw(agent_instance)
+        attribute_instances = yield from self.get_all_agent_instance_attributes_raw(
+            agent_instance
+        )
         parsed_attributes = []
         for attr in attribute_instances:
             result = yield from self.parse_attribute_instance(AttributeInstance(**attr))

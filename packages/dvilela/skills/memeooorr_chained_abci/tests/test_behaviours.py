@@ -26,9 +26,7 @@ from packages.dvilela.skills.memeooorr_chained_abci.behaviours import (
 from packages.dvilela.skills.memeooorr_chained_abci.composition import (
     MemeooorrChainedSkillAbciApp,
 )
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-)
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.agent_performance_summary_abci.behaviours import (
     AgentPerformanceSummaryRoundBehaviour,
 )
@@ -56,9 +54,7 @@ class TestMemeooorrChainedConsensusBehaviour:
 
     def test_is_subclass_of_abstract_round_behaviour(self) -> None:
         """Test it is a subclass of AbstractRoundBehaviour."""
-        assert issubclass(
-            MemeooorrChainedConsensusBehaviour, AbstractRoundBehaviour
-        )
+        assert issubclass(MemeooorrChainedConsensusBehaviour, AbstractRoundBehaviour)
 
     def test_initial_behaviour_cls(self) -> None:
         """Test initial_behaviour_cls is RegistrationStartupBehaviour."""

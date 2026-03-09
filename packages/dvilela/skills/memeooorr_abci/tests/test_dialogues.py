@@ -21,6 +21,36 @@
 
 from unittest.mock import MagicMock
 
+from aea.skills.base import Model
+
+from packages.dvilela.protocols.kv_store.dialogues import (
+    KvStoreDialogue as BaseKvStoreDialogue,
+)
+from packages.dvilela.protocols.kv_store.dialogues import (
+    KvStoreDialogues as BaseKvStoreDialogues,
+)
+from packages.dvilela.skills.memeooorr_abci.dialogues import (
+    AbciDialogue,
+    AbciDialogues,
+    ContractApiDialogue,
+    ContractApiDialogues,
+    HttpDialogue,
+    HttpDialogues,
+    IpfsDialogue,
+    IpfsDialogues,
+    KvStoreDialogue,
+    KvStoreDialogues,
+    LedgerApiDialogue,
+    LedgerApiDialogues,
+    SigningDialogue,
+    SigningDialogues,
+    SrrDialogue,
+    SrrDialogues,
+    TendermintDialogue,
+    TendermintDialogues,
+)
+from packages.valory.protocols.srr.dialogues import SrrDialogue as BaseSrrDialogue
+from packages.valory.protocols.srr.dialogues import SrrDialogues as BaseSrrDialogues
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue as BaseAbciDialogue,
 )
@@ -63,35 +93,6 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 from packages.valory.skills.abstract_round_abci.dialogues import (
     TendermintDialogues as BaseTendermintDialogues,
 )
-from packages.valory.protocols.srr.dialogues import SrrDialogue as BaseSrrDialogue
-from packages.valory.protocols.srr.dialogues import SrrDialogues as BaseSrrDialogues
-from packages.dvilela.protocols.kv_store.dialogues import (
-    KvStoreDialogue as BaseKvStoreDialogue,
-)
-from packages.dvilela.protocols.kv_store.dialogues import (
-    KvStoreDialogues as BaseKvStoreDialogues,
-)
-from packages.dvilela.skills.memeooorr_abci.dialogues import (
-    AbciDialogue,
-    AbciDialogues,
-    ContractApiDialogue,
-    ContractApiDialogues,
-    HttpDialogue,
-    HttpDialogues,
-    IpfsDialogue,
-    IpfsDialogues,
-    KvStoreDialogue,
-    KvStoreDialogues,
-    LedgerApiDialogue,
-    LedgerApiDialogues,
-    SigningDialogue,
-    SigningDialogues,
-    SrrDialogue,
-    SrrDialogues,
-    TendermintDialogue,
-    TendermintDialogues,
-)
-from aea.skills.base import Model
 
 
 class TestDialogueAliases:

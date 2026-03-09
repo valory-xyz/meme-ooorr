@@ -135,9 +135,7 @@ class TestProcessMechResponseAndFetchMedia:
         response = MagicMock()
         response.result = json.dumps({"video": "QmHash123"})
 
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(
-            return_value="/tmp/video.mp4"
-        )
+        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/video.mp4")
 
         def mock_save_media_info(media_path, media_type, ipfs_hash):
             yield
@@ -192,9 +190,7 @@ class TestProcessMechResponseAndFetchMedia:
         response = MagicMock()
         response.result = json.dumps({"image_hash": "QmImageHash"})
 
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(
-            return_value="/tmp/image.png"
-        )
+        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/image.png")
 
         def mock_save_media_info(media_path, media_type, ipfs_hash):
             yield

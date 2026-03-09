@@ -154,9 +154,7 @@ class TestDecision:
 
     def test_construction_with_tool(self) -> None:
         """Test with tool action."""
-        tool = ToolAction(
-            tool_name=ToolActionName.GOOGLE_IMAGE_GEN, tool_input="input"
-        )
+        tool = ToolAction(tool_name=ToolActionName.GOOGLE_IMAGE_GEN, tool_input="input")
         decision = Decision(tool_action=tool, tweet_action=None)
         assert decision.tool_action == tool
         assert decision.tweet_action is None

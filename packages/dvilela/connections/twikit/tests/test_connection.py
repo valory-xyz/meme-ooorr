@@ -44,7 +44,6 @@ from packages.dvilela.connections.twikit.connection import (
 )
 from packages.valory.protocols.srr.message import SrrMessage
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -328,7 +327,10 @@ class TestGetResponse:
 
         result = await conn._get_response(msg, dialogue)
         payload = json.loads(result.payload)
-        assert "disabled" in payload["error"].lower() or "Connection is disabled" in payload["error"]
+        assert (
+            "disabled" in payload["error"].lower()
+            or "Connection is disabled" in payload["error"]
+        )
 
     @pytest.mark.asyncio
     async def test_missing_required_properties(self) -> None:
@@ -371,9 +373,12 @@ class TestGetResponse:
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
 
-        with patch.object(conn, "search", new_callable=AsyncMock, return_value=[{"id": "1"}]), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"), \
-             patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0):
+        with patch.object(
+            conn, "search", new_callable=AsyncMock, return_value=[{"id": "1"}]
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"), patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ):
             result = await conn._get_response(msg, dialogue)
 
         payload = json.loads(result.payload)
@@ -387,9 +392,15 @@ class TestGetResponse:
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
 
-        with patch.object(conn, "search", new_callable=AsyncMock, side_effect=twikit.errors.AccountLocked("")), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"), \
-             patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0):
+        with patch.object(
+            conn,
+            "search",
+            new_callable=AsyncMock,
+            side_effect=twikit.errors.AccountLocked(""),
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"), patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ):
             result = await conn._get_response(msg, dialogue)
 
         payload = json.loads(result.payload)
@@ -402,9 +413,15 @@ class TestGetResponse:
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
 
-        with patch.object(conn, "search", new_callable=AsyncMock, side_effect=twikit.errors.AccountSuspended("")), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"), \
-             patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0):
+        with patch.object(
+            conn,
+            "search",
+            new_callable=AsyncMock,
+            side_effect=twikit.errors.AccountSuspended(""),
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"), patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ):
             result = await conn._get_response(msg, dialogue)
 
         payload = json.loads(result.payload)
@@ -417,9 +434,15 @@ class TestGetResponse:
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
 
-        with patch.object(conn, "search", new_callable=AsyncMock, side_effect=twikit.errors.Unauthorized("")), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"), \
-             patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0):
+        with patch.object(
+            conn,
+            "search",
+            new_callable=AsyncMock,
+            side_effect=twikit.errors.Unauthorized(""),
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"), patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ):
             result = await conn._get_response(msg, dialogue)
 
         payload = json.loads(result.payload)
@@ -432,9 +455,12 @@ class TestGetResponse:
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
 
-        with patch.object(conn, "search", new_callable=AsyncMock, side_effect=RuntimeError("boom")), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"), \
-             patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0):
+        with patch.object(
+            conn, "search", new_callable=AsyncMock, side_effect=RuntimeError("boom")
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"), patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ):
             result = await conn._get_response(msg, dialogue)
 
         payload = json.loads(result.payload)
@@ -498,7 +524,9 @@ class TestTwikitLogin:
         conn = _make_connection(logged_in=False)
         conn.client.login = AsyncMock()
 
-        with patch.object(conn, "validate_login", new_callable=AsyncMock, return_value=True):
+        with patch.object(
+            conn, "validate_login", new_callable=AsyncMock, return_value=True
+        ):
             await conn.twikit_login()
         assert conn.logged_in is True
 
@@ -520,7 +548,9 @@ class TestTwikitLogin:
 
         conn.client.login = mock_login
 
-        with patch.object(conn, "validate_login", new_callable=AsyncMock, return_value=True):
+        with patch.object(
+            conn, "validate_login", new_callable=AsyncMock, return_value=True
+        ):
             await conn.twikit_login()
         assert conn.logged_in is True
 
@@ -589,7 +619,9 @@ class TestPost:
         """Post a single tweet successfully."""
         conn = _make_connection()
 
-        with patch.object(conn, "post_tweet", new_callable=AsyncMock, return_value="tweet_1"):
+        with patch.object(
+            conn, "post_tweet", new_callable=AsyncMock, return_value="tweet_1"
+        ):
             result = await conn.post([{"text": "hello"}])
         assert result == ["tweet_1"]
 
@@ -598,7 +630,9 @@ class TestPost:
         """Post a thread of tweets successfully."""
         conn = _make_connection()
 
-        with patch.object(conn, "post_tweet", new_callable=AsyncMock, side_effect=["t1", "t2", "t3"]):
+        with patch.object(
+            conn, "post_tweet", new_callable=AsyncMock, side_effect=["t1", "t2", "t3"]
+        ):
             result = await conn.post([{"text": "1"}, {"text": "2"}, {"text": "3"}])
         assert result == ["t1", "t2", "t3"]
 
@@ -614,10 +648,16 @@ class TestPost:
         """When a tweet fails, previously posted tweets are deleted."""
         conn = _make_connection()
 
-        with patch.object(conn, "post_tweet", new_callable=AsyncMock, side_effect=["t1", None]), \
-             patch.object(conn, "delete_tweet", new_callable=AsyncMock) as mock_delete, \
-             patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+        with patch.object(
+            conn, "post_tweet", new_callable=AsyncMock, side_effect=["t1", None]
+        ), patch.object(
+            conn, "delete_tweet", new_callable=AsyncMock
+        ) as mock_delete, patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ), patch(
+            "packages.dvilela.connections.twikit.connection.time.sleep"
+        ):
             result = await conn.post([{"text": "1"}, {"text": "2"}])
 
         assert result == [None, None]
@@ -704,9 +744,7 @@ class TestDeleteTweet:
     async def test_delete_tweet_retry(self) -> None:
         """Retries on exception."""
         conn = _make_connection()
-        conn.client.delete_tweet = AsyncMock(
-            side_effect=[RuntimeError("fail"), None]
-        )
+        conn.client.delete_tweet = AsyncMock(side_effect=[RuntimeError("fail"), None])
 
         with patch("packages.dvilela.connections.twikit.connection.time.sleep"):
             await conn.delete_tweet("tweet_123")
@@ -770,9 +808,7 @@ class TestLikeTweet:
     async def test_like_tweet_generic_exception(self) -> None:
         """Generic exception on like."""
         conn = _make_connection()
-        conn.client.favorite_tweet = AsyncMock(
-            side_effect=RuntimeError("unexpected")
-        )
+        conn.client.favorite_tweet = AsyncMock(side_effect=RuntimeError("unexpected"))
 
         result = await conn.like_tweet("tweet_123")
         assert result["success"] is False
@@ -807,9 +843,7 @@ class TestFollowUser:
     async def test_follow_user_generic_exception(self) -> None:
         """Generic exception on follow."""
         conn = _make_connection()
-        conn.client.follow_user = AsyncMock(
-            side_effect=RuntimeError("unexpected")
-        )
+        conn.client.follow_user = AsyncMock(side_effect=RuntimeError("unexpected"))
 
         result = await conn.follow_user("user_123")
         assert result["success"] is False
@@ -844,9 +878,7 @@ class TestRetweet:
     async def test_retweet_generic_exception(self) -> None:
         """Generic exception on retweet."""
         conn = _make_connection()
-        conn.client.retweet = AsyncMock(
-            side_effect=RuntimeError("unexpected")
-        )
+        conn.client.retweet = AsyncMock(side_effect=RuntimeError("unexpected"))
 
         result = await conn.retweet("tweet_123")
         assert result["success"] is False
@@ -873,8 +905,10 @@ class TestFilterSuspendedUsers:
 
         conn.client.get_user_by_screen_name = mock_get_user
 
-        with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+        with patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
             result = await conn.filter_suspended_users(
                 ["valid_user", "suspended_user", "another_valid"]
             )
@@ -891,8 +925,10 @@ class TestFilterSuspendedUsers:
 
         conn.client.get_user_by_screen_name = mock_get_user
 
-        with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+        with patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
             result = await conn.filter_suspended_users(["user1"])
 
         assert result == []
@@ -964,8 +1000,10 @@ class TestUploadMedia:
             temp_path = f.name
 
         try:
-            with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-                 patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+            with patch(
+                "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+                return_value=0,
+            ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
                 result = await conn.upload_media(temp_path)
             assert result == "media_123"
         finally:
@@ -976,8 +1014,10 @@ class TestUploadMedia:
         """File not found returns None immediately."""
         conn = _make_connection()
 
-        with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-             patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+        with patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
             result = await conn.upload_media("/nonexistent/path.png")
         assert result is None
 
@@ -991,8 +1031,10 @@ class TestUploadMedia:
             temp_path = f.name
 
         try:
-            with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-                 patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+            with patch(
+                "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+                return_value=0,
+            ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
                 result = await conn.upload_media({"latest_image_path": temp_path})
             assert result == "media_456"
         finally:
@@ -1010,8 +1052,10 @@ class TestUploadMedia:
             temp_path = f.name
 
         try:
-            with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-                 patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+            with patch(
+                "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+                return_value=0,
+            ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
                 result = await conn.upload_media(temp_path)
             assert result == "media_789"
         finally:
@@ -1029,8 +1073,10 @@ class TestUploadMedia:
             temp_path = f.name
 
         try:
-            with patch("packages.dvilela.connections.twikit.connection.secrets.randbelow", return_value=0), \
-                 patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+            with patch(
+                "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+                return_value=0,
+            ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
                 result = await conn.upload_media(temp_path)
             assert result is None
         finally:

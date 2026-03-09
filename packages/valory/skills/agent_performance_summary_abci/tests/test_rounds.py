@@ -79,9 +79,7 @@ class TestFetchPerformanceDataRound:
 
     def test_synchronized_data_class(self) -> None:
         """Test the synchronized_data_class attribute."""
-        assert (
-            FetchPerformanceDataRound.synchronized_data_class is BaseSynchronizedData
-        )
+        assert FetchPerformanceDataRound.synchronized_data_class is BaseSynchronizedData
 
     def test_done_event(self) -> None:
         """Test the done_event attribute."""

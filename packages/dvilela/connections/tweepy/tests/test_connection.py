@@ -26,9 +26,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, call, patch
 
-from aea.mail.base import Envelope
-
 import pytest
+from aea.mail.base import Envelope
 
 from packages.dvilela.connections.tweepy.connection import (
     MAX_POST_RETRIES,
@@ -37,7 +36,6 @@ from packages.dvilela.connections.tweepy.connection import (
     TweepyConnection,
 )
 from packages.valory.protocols.srr.message import SrrMessage
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -115,7 +113,10 @@ class TestGetResponseValidation:
         conn = _make_connection(twitter=_mock_twitter())
         result = conn._get_response({"kwargs": {}})
         assert "error" in result
-        assert "missing" in result["error"].lower() or "required" in result["error"].lower()
+        assert (
+            "missing" in result["error"].lower()
+            or "required" in result["error"].lower()
+        )
 
     def test_missing_kwargs_key(self) -> None:
         """Payload without 'kwargs' returns error."""
@@ -153,7 +154,11 @@ class TestGetResponseValidation:
     def test_method_dispatch_success(self) -> None:
         """A valid method is dispatched and its return value used."""
         tw = _mock_twitter()
-        tw.get_me.return_value = {"user_id": "1", "username": "me", "display_name": "Me"}
+        tw.get_me.return_value = {
+            "user_id": "1",
+            "username": "me",
+            "display_name": "Me",
+        }
         conn = _make_connection(twitter=tw)
         result = conn._get_response({"method": "get_me", "kwargs": {}})
         assert result == {"user_id": "1", "username": "me", "display_name": "Me"}
@@ -165,7 +170,9 @@ class TestGetResponseValidation:
         # Manually make like_tweet raise
         tw.like_tweet.side_effect = Exception("api down")
         # like_tweet on the connection delegates to tw.like_tweet
-        result = conn._get_response({"method": "like_tweet", "kwargs": {"tweet_id": "1"}})
+        result = conn._get_response(
+            {"method": "like_tweet", "kwargs": {"tweet_id": "1"}}
+        )
         assert "error" in result
         assert "api down" in result["error"]
 
@@ -218,10 +225,16 @@ class TestOnSend:
         conn.put_envelope.assert_not_called()
 
     @patch("packages.dvilela.connections.tweepy.connection.Envelope")
-    def test_request_performative_happy_path(self, mock_envelope_cls: MagicMock) -> None:
+    def test_request_performative_happy_path(
+        self, mock_envelope_cls: MagicMock
+    ) -> None:
         """A valid REQUEST envelope is processed and a response envelope put."""
         tw = _mock_twitter()
-        tw.get_me.return_value = {"user_id": "1", "username": "me", "display_name": "Me"}
+        tw.get_me.return_value = {
+            "user_id": "1",
+            "username": "me",
+            "display_name": "Me",
+        }
         conn = _make_connection(twitter=tw)
 
         envelope = self._make_envelope()
@@ -402,7 +415,11 @@ class TestSimpleDelegation:
 
     def test_get_me_success(self) -> None:
         tw = _mock_twitter()
-        tw.get_me.return_value = {"user_id": "1", "username": "me", "display_name": "Me"}
+        tw.get_me.return_value = {
+            "user_id": "1",
+            "username": "me",
+            "display_name": "Me",
+        }
         conn = _make_connection(twitter=tw)
         assert conn.get_me() == {"user_id": "1", "username": "me", "display_name": "Me"}
 
@@ -437,13 +454,17 @@ class TestGetUserTweetsWithPublicMetrics:
         tweet.text = text
         tweet.author_id = author_id
         tweet.created_at = created_at or datetime(2024, 1, 1, tzinfo=timezone.utc)
-        tweet.public_metrics = public_metrics if public_metrics is not None else {
-            "like_count": 5,
-            "retweet_count": 2,
-            "reply_count": 1,
-            "quote_count": 0,
-            "impression_count": 100,
-        }
+        tweet.public_metrics = (
+            public_metrics
+            if public_metrics is not None
+            else {
+                "like_count": 5,
+                "retweet_count": 2,
+                "reply_count": 1,
+                "quote_count": 0,
+                "impression_count": 100,
+            }
+        )
         return tweet
 
     def test_with_tweets_no_since_timestamp(self) -> None:
@@ -474,7 +495,9 @@ class TestGetUserTweetsWithPublicMetrics:
         conn = _make_connection(twitter=tw)
 
         ts = 1704067200  # 2024-01-01T00:00:00 UTC
-        result = conn.get_user_tweets_with_public_metrics(user_id="10", since_timestamp=ts)
+        result = conn.get_user_tweets_with_public_metrics(
+            user_id="10", since_timestamp=ts
+        )
         assert result == []
 
         expected_dt = datetime.fromtimestamp(ts, tz=timezone.utc)
@@ -552,7 +575,11 @@ class TestGetResponseAllMethods:
         tw.follow_by_id.return_value = True
         tw.follow_by_username.return_value = True
         tw.unfollow_by_id.return_value = True
-        tw.get_me.return_value = {"user_id": "1", "username": "me", "display_name": "Me"}
+        tw.get_me.return_value = {
+            "user_id": "1",
+            "username": "me",
+            "display_name": "Me",
+        }
         tw.get_all_user_tweets.return_value = []
 
         conn = _make_connection(twitter=tw)

@@ -26,12 +26,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour,
 )
 from packages.valory.skills.agent_performance_summary_abci.behaviours import (
+    AgentPerformanceSummaryRoundBehaviour,
     FETCH_FOR_LAST_DAYS,
+    FetchPerformanceSummaryBehaviour,
     IMPRESSIONS_METRIC_NAME,
     LIKES_METRIC_NAME,
     NA,
-    AgentPerformanceSummaryRoundBehaviour,
-    FetchPerformanceSummaryBehaviour,
     extract_metric_by_name,
 )
 from packages.valory.skills.agent_performance_summary_abci.models import (
@@ -50,9 +50,7 @@ class TestExtractMetricByName:
         """Test extracting a metric that exists."""
         metrics = [
             AgentPerformanceMetrics(name="likes", is_primary=True, value="42"),
-            AgentPerformanceMetrics(
-                name="impressions", is_primary=False, value="1000"
-            ),
+            AgentPerformanceMetrics(name="impressions", is_primary=False, value="1000"),
         ]
         assert extract_metric_by_name(metrics, "likes") == "42"
         assert extract_metric_by_name(metrics, "impressions") == "1000"
@@ -83,8 +81,7 @@ class TestFetchPerformanceSummaryBehaviour:
     def test_matching_round(self) -> None:
         """Test matching_round attribute."""
         assert (
-            FetchPerformanceSummaryBehaviour.matching_round
-            is FetchPerformanceDataRound
+            FetchPerformanceSummaryBehaviour.matching_round is FetchPerformanceDataRound
         )
 
 
@@ -93,9 +90,7 @@ class TestAgentPerformanceSummaryRoundBehaviour:
 
     def test_is_abstract_round_behaviour(self) -> None:
         """Test that it is an AbstractRoundBehaviour subclass."""
-        assert issubclass(
-            AgentPerformanceSummaryRoundBehaviour, AbstractRoundBehaviour
-        )
+        assert issubclass(AgentPerformanceSummaryRoundBehaviour, AbstractRoundBehaviour)
 
     def test_initial_behaviour_cls(self) -> None:
         """Test initial_behaviour_cls attribute."""

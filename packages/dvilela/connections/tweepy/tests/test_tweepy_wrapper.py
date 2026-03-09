@@ -34,7 +34,6 @@ from packages.dvilela.connections.tweepy.tweepy_wrapper import (
     is_twitter_id,
 )
 
-
 # ---------------------------------------------------------------------------
 # is_twitter_id
 # ---------------------------------------------------------------------------
@@ -88,7 +87,9 @@ BEARER_TOKEN = "bt"
 @pytest.fixture()
 def twitter_instance() -> Twitter:
     """Return a Twitter instance with all tweepy internals mocked."""
-    with patch("packages.dvilela.connections.tweepy.tweepy_wrapper.tweepy") as mock_tweepy:
+    with patch(
+        "packages.dvilela.connections.tweepy.tweepy_wrapper.tweepy"
+    ) as mock_tweepy:
         # Set up the mock so the constructor runs
         mock_tweepy.OAuth2BearerHandler.return_value = MagicMock()
         mock_tweepy.OAuth2AppHandler.return_value = MagicMock()
@@ -114,7 +115,9 @@ def twitter_instance() -> Twitter:
 @pytest.fixture()
 def twitter_with_logger() -> Twitter:
     """Return a Twitter instance initialised with a custom logger."""
-    with patch("packages.dvilela.connections.tweepy.tweepy_wrapper.tweepy") as mock_tweepy:
+    with patch(
+        "packages.dvilela.connections.tweepy.tweepy_wrapper.tweepy"
+    ) as mock_tweepy:
         mock_tweepy.OAuth2BearerHandler.return_value = MagicMock()
         mock_tweepy.OAuth2AppHandler.return_value = MagicMock()
         mock_tweepy.OAuth1UserHandler.return_value = MagicMock()
@@ -211,8 +214,8 @@ class TestPostTweet:
 
     def test_post_tweet_tweepy_exception(self, twitter_instance: Twitter) -> None:
         """TweepyException is logged and re-raised."""
-        twitter_instance.client.create_tweet.side_effect = tweepy.errors.TweepyException(
-            "boom"
+        twitter_instance.client.create_tweet.side_effect = (
+            tweepy.errors.TweepyException("boom")
         )
         with pytest.raises(tweepy.errors.TweepyException):
             twitter_instance.post_tweet(text="fail")
@@ -233,8 +236,8 @@ class TestDeleteTweet:
 
     def test_delete_tweet_exception(self, twitter_instance: Twitter) -> None:
         """TweepyException is logged and re-raised."""
-        twitter_instance.client.delete_tweet.side_effect = tweepy.errors.TweepyException(
-            "err"
+        twitter_instance.client.delete_tweet.side_effect = (
+            tweepy.errors.TweepyException("err")
         )
         with pytest.raises(tweepy.errors.TweepyException):
             twitter_instance.delete_tweet("123")

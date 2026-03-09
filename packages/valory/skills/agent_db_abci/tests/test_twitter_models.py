@@ -32,7 +32,6 @@ from packages.valory.skills.agent_db_abci.twitter_models import (
     TwitterRewtweet,
 )
 
-
 TIMESTAMP = datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
 TIMESTAMP_ISO_Z = "2025-01-15T12:00:00Z"
 TIMESTAMP_ISO_OFFSET = "2025-01-15T12:00:00+00:00"
@@ -69,9 +68,7 @@ class TestTwitterPost:
 
     def test_construction(self) -> None:
         """Test basic construction."""
-        post = TwitterPost(
-            tweet_id="123", text="Hello world", timestamp=TIMESTAMP
-        )
+        post = TwitterPost(tweet_id="123", text="Hello world", timestamp=TIMESTAMP)
         assert post.action == "post"
         assert post.tweet_id == "123"
         assert post.text == "Hello world"
@@ -92,9 +89,7 @@ class TestTwitterPost:
 
     def test_to_json(self) -> None:
         """Test to_json serialization."""
-        post = TwitterPost(
-            tweet_id="123", text="Hello", timestamp=TIMESTAMP
-        )
+        post = TwitterPost(tweet_id="123", text="Hello", timestamp=TIMESTAMP)
         result = post.to_json()
         assert result["action"] == "post"
         assert result["details"]["tweet_id"] == "123"
@@ -123,10 +118,12 @@ class TestTwitterPost:
         data = {
             "action": "post",
             "timestamp": TIMESTAMP_ISO_Z,
-            "details": json.dumps({
-                "tweet_id": "123",
-                "text": "Hello",
-            }),
+            "details": json.dumps(
+                {
+                    "tweet_id": "123",
+                    "text": "Hello",
+                }
+            ),
         }
         post = TwitterPost.from_nested_json(data)
         assert post.tweet_id == "123"

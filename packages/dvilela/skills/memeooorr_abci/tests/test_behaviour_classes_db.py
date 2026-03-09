@@ -94,9 +94,7 @@ class TestGatherAgentDetails:
     def test_gather_agent_details_contains_persona(self) -> None:
         """Test gather_agent_details includes persona."""
         behaviour = self._make_behaviour()
-        result = LoadDatabaseBehaviour.gather_agent_details(
-            behaviour, "custom persona"
-        )
+        result = LoadDatabaseBehaviour.gather_agent_details(behaviour, "custom persona")
         parsed = json.loads(result)
         assert parsed["persona"] == "custom persona"
 

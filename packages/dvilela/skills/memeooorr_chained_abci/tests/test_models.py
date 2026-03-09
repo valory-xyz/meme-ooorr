@@ -36,12 +36,12 @@ from packages.dvilela.skills.memeooorr_chained_abci.composition import (
     MemeooorrChainedSkillAbciApp,
 )
 from packages.dvilela.skills.memeooorr_chained_abci.models import (
-    MARGIN,
-    MULTIPLIER,
-    MULTIPLIER_MECH,
     AgentDBClient,
     AgentsFunDatabase,
     BenchmarkTool,
+    MARGIN,
+    MULTIPLIER,
+    MULTIPLIER_MECH,
     MechResponseSpecs,
     MechToolsSpecs,
     MechsSubgraph,
@@ -162,9 +162,7 @@ class TestSharedState:
             shared_state.setup()
 
         assert (
-            MemeooorrChainedSkillAbciApp.event_to_timeout[
-                ResetPauseEvent.ROUND_TIMEOUT
-            ]
+            MemeooorrChainedSkillAbciApp.event_to_timeout[ResetPauseEvent.ROUND_TIMEOUT]
             == 30.0
         )
 
@@ -204,9 +202,7 @@ class TestSharedState:
             shared_state.setup()
 
         assert (
-            MemeooorrChainedSkillAbciApp.event_to_timeout[
-                MemeooorrEvent.ROUND_TIMEOUT
-            ]
+            MemeooorrChainedSkillAbciApp.event_to_timeout[MemeooorrEvent.ROUND_TIMEOUT]
             == 30.0 * MULTIPLIER
         )
 

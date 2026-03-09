@@ -26,21 +26,21 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.chain import (
-    CHECKPOINT_FILENAME,
-    EMPTY_CALL_DATA,
-    LIVENESS_RATIO_SCALE_FACTOR,
-    NULL_ADDRESS,
-    REQUIRED_REQUESTS_SAFETY_MARGIN,
-    SAFE_GAS,
-    ZERO_VALUE,
     ActionPreparationBehaviour,
+    CHECKPOINT_FILENAME,
     CallCheckpointBehaviour,
     ChainBehaviour,
     CheckFundsBehaviour,
     CheckStakingBehaviour,
+    EMPTY_CALL_DATA,
+    LIVENESS_RATIO_SCALE_FACTOR,
+    NULL_ADDRESS,
     PostTxDecisionMakingBehaviour,
     PullMemesBehaviour,
+    REQUIRED_REQUESTS_SAFETY_MARGIN,
+    SAFE_GAS,
     TransactionLoopCheckBehaviour,
+    ZERO_VALUE,
 )
 from packages.dvilela.skills.memeooorr_abci.rounds import (
     ActionPreparationRound,
@@ -87,9 +87,7 @@ class TestChainBehaviourMatchingRounds:
 
     def test_post_tx_decision_making_matching_round(self) -> None:
         """Test PostTxDecisionMakingBehaviour has correct matching_round."""
-        assert (
-            PostTxDecisionMakingBehaviour.matching_round is PostTxDecisionMakingRound
-        )
+        assert PostTxDecisionMakingBehaviour.matching_round is PostTxDecisionMakingRound
 
     def test_call_checkpoint_matching_round(self) -> None:
         """Test CallCheckpointBehaviour has correct matching_round."""
@@ -406,9 +404,7 @@ class TestPostTxDecisionMakingBehaviour:
         behaviour = MagicMock(spec=PostTxDecisionMakingBehaviour)
         behaviour.context = make_mock_context()
         round_id = CallCheckpointBehaviour.matching_round.auto_round_id()
-        behaviour.synchronized_data = make_mock_synchronized_data(
-            tx_submitter=round_id
-        )
+        behaviour.synchronized_data = make_mock_synchronized_data(tx_submitter=round_id)
         # The logic is straightforward; test the conditional path
         assert round_id == CallCheckpointRound.auto_round_id()
 
@@ -457,9 +453,7 @@ class TestBuildSafeTxHash:
 
         behaviour.get_contract_api_response = mock_get_contract_api_response
 
-        gen = ChainBehaviour._build_safe_tx_hash(
-            behaviour, to_address="0x" + "a" * 40
-        )
+        gen = ChainBehaviour._build_safe_tx_hash(behaviour, to_address="0x" + "a" * 40)
         next(gen)
         try:
             gen.send(None)
@@ -480,9 +474,7 @@ class TestBuildSafeTxHash:
 
         behaviour.get_contract_api_response = mock_get_contract_api_response
 
-        gen = ChainBehaviour._build_safe_tx_hash(
-            behaviour, to_address="0x" + "a" * 40
-        )
+        gen = ChainBehaviour._build_safe_tx_hash(behaviour, to_address="0x" + "a" * 40)
         next(gen)
         try:
             gen.send(None)
@@ -503,9 +495,7 @@ class TestBuildSafeTxHash:
 
         behaviour.get_contract_api_response = mock_get_contract_api_response
 
-        gen = ChainBehaviour._build_safe_tx_hash(
-            behaviour, to_address="0x" + "a" * 40
-        )
+        gen = ChainBehaviour._build_safe_tx_hash(behaviour, to_address="0x" + "a" * 40)
         next(gen)
         try:
             gen.send(None)

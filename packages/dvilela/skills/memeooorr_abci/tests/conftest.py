@@ -27,7 +27,6 @@ from unittest.mock import MagicMock, PropertyMock
 
 import pytest
 
-
 SENDER = "test_agent_address"
 SAFE_ADDRESS = "0x" + "a" * 40
 STAKING_TOKEN_ADDRESS = "0x" + "b" * 40

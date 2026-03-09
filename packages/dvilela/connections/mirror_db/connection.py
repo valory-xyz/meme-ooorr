@@ -39,7 +39,6 @@ from packages.valory.protocols.srr.dialogues import SrrDialogue
 from packages.valory.protocols.srr.dialogues import SrrDialogues as BaseSrrDialogues
 from packages.valory.protocols.srr.message import SrrMessage
 
-
 PUBLIC_ID = PublicId.from_str("dvilela/mirror_db:0.1.0")
 
 # Default headers for JSON requests

@@ -26,14 +26,11 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.llm import (
+    ActionDecisionBehaviour,
     MIN_TOKEN_SUPPLY,
     TOKEN_SUMMARY,
-    ActionDecisionBehaviour,
 )
-from packages.dvilela.skills.memeooorr_abci.rounds import (
-    ActionDecisionRound,
-    Event,
-)
+from packages.dvilela.skills.memeooorr_abci.rounds import ActionDecisionRound, Event
 
 from .conftest import (
     SAFE_ADDRESS,

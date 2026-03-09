@@ -26,12 +26,11 @@ from pydantic import ValidationError
 
 from packages.valory.skills.agent_db_abci.agent_db_models import (
     AgentInstance,
-    AgentsFunAgentType,
     AgentType,
+    AgentsFunAgentType,
     AttributeDefinition,
     AttributeInstance,
 )
-
 
 TIMESTAMP = datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
 

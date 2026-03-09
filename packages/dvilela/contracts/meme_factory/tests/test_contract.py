@@ -30,7 +30,6 @@ from packages.dvilela.contracts.meme_factory.contract import (
     PUBLIC_ID,
 )
 
-
 DUMMY_ADDRESS = "0x" + "1" * 40
 DUMMY_TX_HASH = "0x" + "a" * 64
 
@@ -90,9 +89,7 @@ class TestBuildTransactions:
         instance.encode_abi.return_value = "0xaa"
         mock_get_instance.return_value = instance
 
-        MemeFactoryContract.build_summon_tx(
-            mock_ledger_api, DUMMY_ADDRESS, "Tok", "T"
-        )
+        MemeFactoryContract.build_summon_tx(mock_ledger_api, DUMMY_ADDRESS, "Tok", "T")
 
         call_args = instance.encode_abi.call_args
         assert call_args[1]["args"][2] == 1000000000000000000000000
@@ -530,9 +527,7 @@ class TestGetEvents:
         event_obj.create_filter.return_value.get_all_entries.return_value = []
         instance.events.Summoned = event_obj
 
-        MemeFactoryContract.get_events(
-            mock_ledger_api, DUMMY_ADDRESS, "Summoned"
-        )
+        MemeFactoryContract.get_events(mock_ledger_api, DUMMY_ADDRESS, "Summoned")
 
         # from_block = 100000 - 86400 = 13600
         # The first batch should start at 13600
@@ -624,9 +619,7 @@ class TestGetBurnableAmount:
         instance.functions.scheduledForAscendance.return_value.call.return_value = 42
         mock_get_instance.return_value = instance
 
-        result = MemeFactoryContract.get_burnable_amount(
-            mock_ledger_api, DUMMY_ADDRESS
-        )
+        result = MemeFactoryContract.get_burnable_amount(mock_ledger_api, DUMMY_ADDRESS)
 
         assert result == {"burnable_amount": 42}
 

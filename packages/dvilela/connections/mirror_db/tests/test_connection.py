@@ -26,7 +26,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
-
 from aea.connections.base import ConnectionStates
 from aea.protocols.base import Message
 
@@ -38,10 +37,10 @@ from packages.dvilela.connections.mirror_db.connection import (
 )
 from packages.valory.protocols.srr.message import SrrMessage
 
-
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
+
 
 def _make_client_response_error(status: int) -> aiohttp.ClientResponseError:
     """Create a ClientResponseError with the given status."""
@@ -281,9 +280,7 @@ class TestMirrorDBConnectionLifecycle:
     async def test_connect(self) -> None:
         """connect() sets up session and queue."""
         conn = _make_connection()
-        with patch("aiohttp.ClientSession") as mock_cs, patch(
-            "aiohttp.TCPConnector"
-        ):
+        with patch("aiohttp.ClientSession") as mock_cs, patch("aiohttp.TCPConnector"):
             await conn.connect()
         assert conn._response_envelopes is not None  # noqa: SLF001
         assert conn.session is not None
@@ -428,9 +425,7 @@ class TestGetResponse:
     async def test_method_not_found(self) -> None:
         """Method in allowed list but not on instance returns error."""
         conn = _make_connection()
-        payload = json.dumps(
-            {"method": "create_", "kwargs": {"endpoint": "/test"}}
-        )
+        payload = json.dumps({"method": "create_", "kwargs": {"endpoint": "/test"}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
         conn.prepare_error_message = MagicMock(return_value=MagicMock())
@@ -461,9 +456,7 @@ class TestGetResponse:
     async def test_successful_request(self) -> None:
         """Successful method call returns proper response."""
         conn = _make_connection()
-        payload = json.dumps(
-            {"method": "read_", "kwargs": {"endpoint": "/items"}}
-        )
+        payload = json.dumps({"method": "read_", "kwargs": {"endpoint": "/items"}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
         mock_response_msg = MagicMock()
@@ -481,9 +474,7 @@ class TestGetResponse:
     async def test_generic_exception_during_method_call(self) -> None:
         """Exception during method execution returns error message."""
         conn = _make_connection()
-        payload = json.dumps(
-            {"method": "read_", "kwargs": {"endpoint": "/items"}}
-        )
+        payload = json.dumps({"method": "read_", "kwargs": {"endpoint": "/items"}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
         conn.prepare_error_message = MagicMock(return_value=MagicMock())
@@ -493,7 +484,9 @@ class TestGetResponse:
         result = await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
-        assert "Exception processing request" in conn.prepare_error_message.call_args[0][2]
+        assert (
+            "Exception processing request" in conn.prepare_error_message.call_args[0][2]
+        )
 
 
 # ---------------------------------------------------------------------------

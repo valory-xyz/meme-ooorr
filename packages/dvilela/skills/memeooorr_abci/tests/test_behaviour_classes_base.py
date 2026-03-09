@@ -488,9 +488,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         behaviour._read_json_from_kv = mock_read_json
 
-        gen = MemeooorrBaseBehaviour.get_latest_agent_actions(
-            behaviour, "tweet_action"
-        )
+        gen = MemeooorrBaseBehaviour.get_latest_agent_actions(behaviour, "tweet_action")
         next(gen)
         try:
             gen.send(None)
@@ -530,9 +528,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         behaviour._read_json_from_kv = mock_read_json
 
-        gen = MemeooorrBaseBehaviour.get_latest_agent_actions(
-            behaviour, "tweet_action"
-        )
+        gen = MemeooorrBaseBehaviour.get_latest_agent_actions(behaviour, "tweet_action")
         next(gen)
         try:
             gen.send(None)

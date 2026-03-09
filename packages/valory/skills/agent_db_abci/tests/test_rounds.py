@@ -56,9 +56,7 @@ class TestSynchronizedData:
 
     def test_is_subclass(self) -> None:
         """Test that SynchronizedData is a subclass of BaseSynchronizedData."""
-        from packages.valory.skills.abstract_round_abci.base import (
-            BaseSynchronizedData,
-        )
+        from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 
         assert issubclass(SynchronizedData, BaseSynchronizedData)
 

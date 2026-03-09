@@ -34,7 +34,6 @@ from packages.valory.skills.agent_db_abci.agent_db_models import (
     AttributeInstance,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -215,8 +214,12 @@ class TestCastAttributeValue:
     def _make_attr_def(self, data_type: str) -> AttributeDefinition:
         """Helper to create AttributeDefinition with given data_type."""
         return AttributeDefinition(
-            attr_def_id=1, type_id=1, attr_name="test",
-            data_type=data_type, is_required=False, default_value="",
+            attr_def_id=1,
+            type_id=1,
+            attr_name="test",
+            data_type=data_type,
+            is_required=False,
+            default_value="",
         )
 
     def test_cast_string(self, client: AgentDBClient) -> None:
@@ -246,14 +249,16 @@ class TestCastAttributeValue:
     def test_cast_date(self, client: AgentDBClient) -> None:
         """Test casting to date."""
         result = client.cast_attribute_value(
-            "2025-01-15T12:00:00+00:00", self._make_attr_def("date"),
+            "2025-01-15T12:00:00+00:00",
+            self._make_attr_def("date"),
         )
         assert result == datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
 
     def test_cast_date_z_suffix(self, client: AgentDBClient) -> None:
         """Test casting date with Z suffix."""
         result = client.cast_attribute_value(
-            "2025-01-15T12:00:00Z", self._make_attr_def("date"),
+            "2025-01-15T12:00:00Z",
+            self._make_attr_def("date"),
         )
         assert result == datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
 
@@ -393,7 +398,9 @@ class TestRequest:
         client.agent = AGENT_INSTANCE
         client.address = "0xABC"
         result = _exhaust(
-            client._request("POST", "/ep", payload={"d": 1}, auth=True, nested_auth=True)
+            client._request(
+                "POST", "/ep", payload={"d": 1}, auth=True, nested_auth=True
+            )
         )
         assert result == {"ok": True}
         body = json.loads(captured["content"])
@@ -415,7 +422,9 @@ class TestRequest:
         client.agent = AGENT_INSTANCE
         client.address = "0xABC"
         result = _exhaust(
-            client._request("POST", "/ep", payload={"d": 1}, auth=True, nested_auth=False)
+            client._request(
+                "POST", "/ep", payload={"d": 1}, auth=True, nested_auth=False
+            )
         )
         assert result == {"ok": True}
         body = json.loads(captured["content"])
@@ -437,7 +446,9 @@ class TestRequest:
         client.signing_func = _sign_gen()
         client.agent = AGENT_INSTANCE
         client.address = "0xABC"
-        _exhaust(client._request("POST", "/ep", payload=None, auth=True, nested_auth=True))
+        _exhaust(
+            client._request("POST", "/ep", payload=None, auth=True, nested_auth=True)
+        )
         body = json.loads(captured["content"])
         assert "auth" in body
 
@@ -491,7 +502,7 @@ class TestEnsureAgentInstance:
         client.address = "0xABC"
         client.http_request_func = _http_gen(
             _make_response(200, AGENT_INSTANCE_DICT),  # get_agent_instance_by_address
-            _make_response(200, AGENT_TYPE_DICT),       # get_agent_type_by_type_id
+            _make_response(200, AGENT_TYPE_DICT),  # get_agent_type_by_type_id
         )
         _exhaust(client._ensure_agent_instance())
         assert client.agent is not None
@@ -506,9 +517,9 @@ class TestEnsureAgentInstance:
         client.agent_type_name = "memeooorr"
         client.agent_name_template = "agent-{address}"
         client.http_request_func = _http_gen(
-            _make_response(404),                        # get_agent_instance_by_address
-            _make_response(200, AGENT_TYPE_DICT),       # get_agent_type_by_type_name
-            _make_response(201, AGENT_INSTANCE_DICT),   # create_agent_instance
+            _make_response(404),  # get_agent_instance_by_address
+            _make_response(200, AGENT_TYPE_DICT),  # get_agent_type_by_type_name
+            _make_response(201, AGENT_INSTANCE_DICT),  # create_agent_instance
         )
         _exhaust(client._ensure_agent_instance())
         assert client.agent is not None
@@ -554,7 +565,7 @@ class TestEnsureAgentTypeDefinition:
         client = make_client()
         client.agent_type_name = "memeooorr"
         client.http_request_func = _http_gen(
-            _make_response(404),                   # get_agent_type_by_type_name
+            _make_response(404),  # get_agent_type_by_type_name
             _make_response(201, AGENT_TYPE_DICT),  # create_agent_type
         )
         _exhaust(client._ensure_agent_type_definition("desc"))
@@ -572,8 +583,12 @@ class TestEnsureAgentTypeAttributeDefinition:
     def test_creates_missing_definitions(self) -> None:
         """Test creates attribute definitions that don't already exist."""
         new_def = AttributeDefinition(
-            attr_def_id=0, type_id=1, attr_name="new_attr",
-            data_type="string", is_required=False, default_value="",
+            attr_def_id=0,
+            type_id=1,
+            attr_name="new_attr",
+            data_type="string",
+            is_required=False,
+            default_value="",
         )
         new_def_dict = {**ATTR_DEF_DICT, "attr_name": "new_attr", "attr_def_id": 101}
 
@@ -583,7 +598,7 @@ class TestEnsureAgentTypeAttributeDefinition:
         client.signing_func = _sign_gen()
         client.http_request_func = _http_gen(
             _make_response(200, [ATTR_DEF_DICT]),  # get existing
-            _make_response(201, new_def_dict),      # create new_attr
+            _make_response(201, new_def_dict),  # create new_attr
         )
         _exhaust(client._ensure_agent_type_attribute_definition([ATTR_DEF, new_def]))
 
@@ -764,7 +779,9 @@ class TestAttributeDefinitionCRUD:
         client.address = "0xABC"
         client.http_request_func = _http_gen(_make_response(201, ATTR_DEF_DICT))
         result = _exhaust(
-            client.create_attribute_definition(AGENT_TYPE, "my_attr", "string", "", False)
+            client.create_attribute_definition(
+                AGENT_TYPE, "my_attr", "string", "", False
+            )
         )
         assert isinstance(result, AttributeDefinition)
 
@@ -870,7 +887,9 @@ class TestAttributeInstanceCRUD:
     def test_create_attribute_instance(self) -> None:
         """Test create_attribute_instance."""
         client = self._make_auth_client(_make_response(201, ATTR_INSTANCE_DICT))
-        result = _exhaust(client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, "hello"))
+        result = _exhaust(
+            client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, "hello")
+        )
         assert isinstance(result, AttributeInstance)
 
     def test_create_attribute_instance_custom_type(self) -> None:
@@ -888,7 +907,9 @@ class TestAttributeInstanceCRUD:
         client.address = "0xABC"
         client.http_request_func = http_func
         _exhaust(
-            client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, 42, value_type="integer")
+            client.create_attribute_instance(
+                AGENT_INSTANCE, ATTR_DEF, 42, value_type="integer"
+            )
         )
         body = json.loads(captured["content"])
         assert "integer_value" in body["agent_attr"]
@@ -896,7 +917,9 @@ class TestAttributeInstanceCRUD:
     def test_create_attribute_instance_none(self) -> None:
         """Test create_attribute_instance returns None on 404."""
         client = self._make_auth_client(_make_response(404))
-        result = _exhaust(client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, "x"))
+        result = _exhaust(
+            client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, "x")
+        )
         assert result is None
 
     def test_get_attribute_instance(self) -> None:
@@ -918,7 +941,10 @@ class TestAttributeInstanceCRUD:
         client = self._make_auth_client(_make_response(200, ATTR_INSTANCE_DICT))
         result = _exhaust(
             client.update_attribute_instance(
-                AGENT_INSTANCE, ATTR_DEF, ATTR_INSTANCE, "new_val",
+                AGENT_INSTANCE,
+                ATTR_DEF,
+                ATTR_INSTANCE,
+                "new_val",
             )
         )
         assert isinstance(result, AttributeInstance)
@@ -928,7 +954,10 @@ class TestAttributeInstanceCRUD:
         client = self._make_auth_client(_make_response(404))
         result = _exhaust(
             client.update_attribute_instance(
-                AGENT_INSTANCE, ATTR_DEF, ATTR_INSTANCE, "x",
+                AGENT_INSTANCE,
+                ATTR_DEF,
+                ATTR_INSTANCE,
+                "x",
             )
         )
         assert result is None
@@ -987,7 +1016,9 @@ class TestAttributeParsing:
         client.address = "0xABC"
         client.http_request_func = _http_gen(_make_response(200, [ATTR_INSTANCE_DICT]))
         client._attribute_definition_cache[100] = ATTR_DEF
-        result = _exhaust(client.get_all_agent_instance_attributes_parsed(AGENT_INSTANCE))
+        result = _exhaust(
+            client.get_all_agent_instance_attributes_parsed(AGENT_INSTANCE)
+        )
         assert len(result) == 1
         assert result[0]["attr_name"] == "my_attr"
 
@@ -1007,9 +1038,9 @@ class TestUpdateOrCreateAgentAttribute:
         client.agent = AGENT_INSTANCE
         client.address = "0xABC"
         client.http_request_func = _http_gen(
-            _make_response(200, ATTR_DEF_DICT),          # get_attribute_definition_by_name
-            _make_response(200, ATTR_INSTANCE_DICT),     # get_attribute_instance
-            _make_response(200, ATTR_INSTANCE_DICT),     # update_attribute_instance
+            _make_response(200, ATTR_DEF_DICT),  # get_attribute_definition_by_name
+            _make_response(200, ATTR_INSTANCE_DICT),  # get_attribute_instance
+            _make_response(200, ATTR_INSTANCE_DICT),  # update_attribute_instance
         )
         result = _exhaust(client.update_or_create_agent_attribute("my_attr", "new_val"))
         assert result is True
@@ -1036,8 +1067,8 @@ class TestUpdateOrCreateAgentAttribute:
         client.address = "0xABC"
         client.http_request_func = _http_gen(
             _make_response(200, ATTR_DEF_DICT),
-            _make_response(404),                          # get_attribute_instance -> None
-            _make_response(201, ATTR_INSTANCE_DICT),      # create_attribute_instance
+            _make_response(404),  # get_attribute_instance -> None
+            _make_response(201, ATTR_INSTANCE_DICT),  # create_attribute_instance
         )
         result = _exhaust(client.update_or_create_agent_attribute("my_attr", "val"))
         assert result is True

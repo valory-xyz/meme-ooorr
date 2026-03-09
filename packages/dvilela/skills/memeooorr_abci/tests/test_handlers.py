@@ -19,6 +19,17 @@
 
 """Tests for handlers.py."""
 
+from packages.dvilela.skills.memeooorr_abci.handlers import (
+    ABCIHandler,
+    ContractApiHandler,
+    HttpHandler,
+    IpfsHandler,
+    KvStoreHandler,
+    LedgerApiHandler,
+    SigningHandler,
+    SrrHandler,
+    TendermintHandler,
+)
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler as BaseABCIRoundHandler,
 )
@@ -40,17 +51,6 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 from packages.valory.skills.abstract_round_abci.handlers import (
     TendermintHandler as BaseTendermintHandler,
-)
-from packages.dvilela.skills.memeooorr_abci.handlers import (
-    ABCIHandler,
-    ContractApiHandler,
-    HttpHandler,
-    IpfsHandler,
-    LedgerApiHandler,
-    SigningHandler,
-    SrrHandler,
-    KvStoreHandler,
-    TendermintHandler,
 )
 
 

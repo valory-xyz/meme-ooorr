@@ -43,7 +43,6 @@ from packages.valory.protocols.srr.dialogues import SrrDialogue
 from packages.valory.protocols.srr.dialogues import SrrDialogues as BaseSrrDialogues
 from packages.valory.protocols.srr.message import SrrMessage
 
-
 PUBLIC_ID = PublicId.from_str("dvilela/twikit:0.1.0")
 
 MAX_POST_RETRIES = 5

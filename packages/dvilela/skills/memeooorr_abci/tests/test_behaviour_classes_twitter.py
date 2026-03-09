@@ -185,9 +185,7 @@ class TestCollectFeedbackBehaviour:
     def test_process_raw_replies_not_list(self) -> None:
         """Test _process_raw_replies returns empty list for non-list input."""
         behaviour = self._make_behaviour()
-        result = CollectFeedbackBehaviour._process_raw_replies(
-            behaviour, "not a list"
-        )
+        result = CollectFeedbackBehaviour._process_raw_replies(behaviour, "not a list")
         assert result == []
 
     def test_process_raw_replies_empty(self) -> None:
@@ -261,9 +259,7 @@ class TestEngageTwitterBehaviour:
     def test_validate_llm_response_not_dict(self) -> None:
         """Test _validate_llm_response returns False for non-dict."""
         behaviour = self._make_behaviour()
-        result = EngageTwitterBehaviour._validate_llm_response(
-            behaviour, "not a dict"
-        )
+        result = EngageTwitterBehaviour._validate_llm_response(behaviour, "not a dict")
         assert result is False
 
     def test_validate_mech_llm_response_no_tweet_action(self) -> None:
@@ -386,9 +382,7 @@ class TestEngageTwitterBehaviour:
     def test_validate_llm_response_mech_for_twitter_true(self) -> None:
         """Test _validate_llm_response delegates to mech validation."""
         behaviour = self._make_behaviour()
-        behaviour.synchronized_data = make_mock_synchronized_data(
-            mech_for_twitter=True
-        )
+        behaviour.synchronized_data = make_mock_synchronized_data(mech_for_twitter=True)
         behaviour._validate_mech_llm_response = MagicMock(return_value=True)
         result = EngageTwitterBehaviour._validate_llm_response(
             behaviour,

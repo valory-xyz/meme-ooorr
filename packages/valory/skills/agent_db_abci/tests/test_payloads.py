@@ -25,7 +25,6 @@ import pytest
 
 from packages.valory.skills.agent_db_abci.payloads import AgentDBPayload
 
-
 SENDER = "test_sender"
 
 

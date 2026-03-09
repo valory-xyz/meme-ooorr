@@ -95,6 +95,6 @@ class TestMemeooorrRoundBehaviour:
     def test_all_behaviours_are_base_behaviour_subclasses(self) -> None:
         """Test that all behaviours in the set are subclasses of BaseBehaviour."""
         for behaviour_cls in MemeooorrRoundBehaviour.behaviours:
-            assert issubclass(behaviour_cls, BaseBehaviour), (
-                f"{behaviour_cls.__name__} is not a subclass of BaseBehaviour"
-            )
+            assert issubclass(
+                behaviour_cls, BaseBehaviour
+            ), f"{behaviour_cls.__name__} is not a subclass of BaseBehaviour"

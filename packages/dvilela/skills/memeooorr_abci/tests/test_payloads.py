@@ -40,7 +40,6 @@ from packages.dvilela.skills.memeooorr_abci.payloads import (
 )
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
-
 SENDER = "test_sender"
 
 
@@ -327,9 +326,7 @@ class TestCheckFundsPayload:
 
     def test_construction(self) -> None:
         """Test payload construction."""
-        payload = CheckFundsPayload(
-            sender=SENDER, event="done", check_funds_count=5
-        )
+        payload = CheckFundsPayload(sender=SENDER, event="done", check_funds_count=5)
         assert payload.event == "done"
         assert payload.check_funds_count == 5
 
@@ -375,9 +372,7 @@ class TestCallCheckpointPayload:
 
     def test_frozen(self) -> None:
         """Test that the dataclass is frozen."""
-        payload = CallCheckpointPayload(
-            sender=SENDER, tx_submitter="sub", tx_hash="0x"
-        )
+        payload = CallCheckpointPayload(sender=SENDER, tx_submitter="sub", tx_hash="0x")
         with pytest.raises(FrozenInstanceError):
             payload.tx_hash = "new"  # type: ignore
 

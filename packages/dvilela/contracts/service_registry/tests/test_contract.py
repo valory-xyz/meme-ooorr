@@ -28,7 +28,6 @@ from packages.dvilela.contracts.service_registry.contract import (
     ServiceRegistryContract,
 )
 
-
 DUMMY_ADDRESS = "0x" + "1" * 40
 
 
@@ -80,13 +79,13 @@ class TestGetServicesData:
         mock_hash.to_0x_hex.return_value = "abcdef"
 
         service_data = [
-            1000,           # security_deposit
-            "0xMultisig",   # multisig_address
-            mock_hash,      # ipfs_hash
-            3,              # threshold
-            4,              # max_num_agent_instances
-            2,              # num_agent_instances
-            1,              # state
+            1000,  # security_deposit
+            "0xMultisig",  # multisig_address
+            mock_hash,  # ipfs_hash
+            3,  # threshold
+            4,  # max_num_agent_instances
+            2,  # num_agent_instances
+            1,  # state
         ]
         instance.functions.mapServices.return_value.call.return_value = service_data
         mock_get_instance.return_value = instance

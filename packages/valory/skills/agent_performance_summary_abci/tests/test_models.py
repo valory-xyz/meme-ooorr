@@ -43,9 +43,7 @@ class TestAgentPerformanceMetrics:
 
     def test_construction_without_description(self) -> None:
         """Test construction without optional description."""
-        metric = AgentPerformanceMetrics(
-            name="likes", is_primary=True, value="100"
-        )
+        metric = AgentPerformanceMetrics(name="likes", is_primary=True, value="100")
         assert metric.name == "likes"
         assert metric.is_primary is True
         assert metric.value == "100"
@@ -234,9 +232,7 @@ class TestSharedState:
         result = state.synced_timestamp
         assert result == 1234567890
 
-    def test_read_existing_performance_summary_valid_file(
-        self, tmp_path: Path
-    ) -> None:
+    def test_read_existing_performance_summary_valid_file(self, tmp_path: Path) -> None:
         """Test reading a valid performance summary file."""
         state = SharedState.__new__(SharedState)
         mock_params = MagicMock()
@@ -247,9 +243,7 @@ class TestSharedState:
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
         data = {
             "timestamp": 999,
-            "metrics": [
-                {"name": "likes", "is_primary": True, "value": "50"}
-            ],
+            "metrics": [{"name": "likes", "is_primary": True, "value": "50"}],
             "agent_behavior": "test",
         }
         file_path.write_text(json.dumps(data))
@@ -337,13 +331,22 @@ class TestSharedState:
             agent_behavior="old behavior",
         )
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
-        file_path.write_text(json.dumps({
-            "timestamp": 100,
-            "metrics": [
-                {"name": "likes", "is_primary": True, "value": "5", "description": None}
-            ],
-            "agent_behavior": "old behavior",
-        }))
+        file_path.write_text(
+            json.dumps(
+                {
+                    "timestamp": 100,
+                    "metrics": [
+                        {
+                            "name": "likes",
+                            "is_primary": True,
+                            "value": "5",
+                            "description": None,
+                        }
+                    ],
+                    "agent_behavior": "old behavior",
+                }
+            )
+        )
 
         # Mock synced_timestamp
         mock_ts = MagicMock()
