@@ -6,19 +6,26 @@ type: skill
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeifrlephtnp4zdqlmovozy25ztjsfyvopm2pinkzyxtc65hmg53b5m
-  behaviours.py: bafybeie6zunl7hx2rlid4zcz5nwmt4omdzxnftcgm2x3jndoxhhfauadve
-  dialogues.py: bafybeihqnuqcqbrxzedx5iq5bkjg7r54f2bzcwu4frwtym3o4cggscx36m
+  __init__.py: bafybeidwijw5a2fisvlobwslucfwdfeyb3pulekabl6a4nlrojncrznrz4
+  behaviours.py: bafybeiavr2wqoqz3gbtgxtos4vacmpxbqfob6vhklbtq3tj6did6jdvkwi
+  dialogues.py: bafybeihhotmeh6tcqippp7fikpjg6xfdgee3iftrxgxglzszwdisjp4qle
   fsm_specification.yaml: bafybeieh2wmnqfkrpfeyvkoojbvd7tbjg36edhnisi6mycdjugymgut3vi
-  handlers.py: bafybeiedgxcptl2pydqttyx6hd2vhpjkh7vrlaxf7qgwov3uu64wfvnc64
-  models.py: bafybeida77oribwezrzmpzmw6xwncnr6ludh5zmi522vuuvrmbkawbgef4
+  handlers.py: bafybeigizje5m4t24deuk2ejwqzcmqtbozkgrm6aekph223fub2kq4yt5m
+  models.py: bafybeia4krrjagdgjnc7sr57rkzbzus7jqh5w2utpbfmdg7rkaso3vnn5q
   payloads.py: bafybeibrfby2hkt3ljy4qpkshx5shjozxu2jfw4wpzggqvejce4nridyhe
-  rounds.py: bafybeifkvdespxwx5m2kvnaiidplx6brotpp3xiay3xahqmlasq7uvxcxe
+  rounds.py: bafybeic2svkxd4sgbuxexro5bo6jekkc6oqgqr4uaoucfsd7j6f7lf6sqy
+  tests/__init__.py: bafybeifpwen2kv6qttq7u26ywcnqfwki5kvlhlgf456wbdxih4uex3aa2a
+  tests/test_behaviours.py: bafybeigfzg3ohvmllmpayvnhz2t2m27dsky3722mrmm37olzuipvwcro4a
+  tests/test_dialogues.py: bafybeiamf3krtteyvtiiodx27hktnhwzakfaq2zbbdprzhsn4tofwfr7ou
+  tests/test_handlers.py: bafybeiav5n57o2wz6t6pvndo3abogjnle4geakngxt4wvxnc7eovzjicw4
+  tests/test_models.py: bafybeichfrsxvaqgiiozud7ol6ezla5intpazi4dnchn4xmumeg62le5pq
+  tests/test_payloads.py: bafybeig4wt2zmyqyqlb3h3pvyxw2mys6sabssmd6wzruqtmsqovxk3gwyu
+  tests/test_rounds.py: bafybeiat7jlosy7ksojrlczjvdbub7hvkfv5dupbg5c5v4e5g7owxgaxbu
 fingerprint_ignore_patterns: []
 contracts: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeicehi2yqab3lldm7qzoqev3tmqrdk275sbtcabneyorhmzft76z7m
-- dvilela/memeooorr_abci:0.1.0:bafybeibafuqi726oz4jdesbjh7kzh3axs4q6wrwrls27bp6x3zydixs3ny
+- dvilela/memeooorr_abci:0.1.0:bafybeieljxgoceskr6bjln6qcurpe27ytmmmf3omyx2c72dnrt5bo3hymy
 handlers:
   abci:
     args: {}

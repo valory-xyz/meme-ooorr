@@ -13,6 +13,12 @@ fingerprint:
   fsm_specification.yaml: bafybeifqv2mgdsby45gkmvr5ioqvvdfjvklunk5thiuh7zmzhybgcj7ac4
   handlers.py: bafybeifrrhshan44befpkjbo6pp3qfvgqugaw2wt6jbcwdxzkzvudvks5u
   models.py: bafybeiapxquyvz2rw5dupza2avbqlpgcwihtf62np26fehcgfhzcq436da
+  tests/__init__.py: bafybeihk33mhdgfwpqzfuggfswd7ulnmrjhfnbrtaufnti6o2oww4335eq
+  tests/test_behaviours.py: bafybeigofmrfyiopsbhctyxzpzajjbs6hb6jjjcokdsxbr3e74dpnbe4lq
+  tests/test_composition.py: bafybeiawpwqc6ckagdtw3r4acev2ipc5xviq74v3tbcqjy2qnawuvxmqdm
+  tests/test_dialogues.py: bafybeidahhzicl7lw6bwlk44i7u6oyu343fe35kttilkvj6buolyfjkqby
+  tests/test_handlers.py: bafybeibvkikop2ijlfm42cjrmpnvujsxeslin64ftfh7tbz4ydweglufku
+  tests/test_models.py: bafybeihiamfs6migzqd5jbcgsbfellfm6r7rwulgzks7td53s5oxb7lxn4
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
@@ -23,9 +29,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeih6bjalcohxytg6hj3doy5dhkxonrxpqgcnclyf6tnmuyfbom2usy
 - valory/transaction_settlement_abci:0.1.0:bafybeigivknq755rbnelrdemaz3vm4x7jkofvaskm34uh36pbbg6uiquo4
 - valory/termination_abci:0.1.0:bafybeiarjw4hhu2vf56yxqb4jh3kmk4hfxvqahygn6scc3rfnlogjkwwpe
-- dvilela/memeooorr_abci:0.1.0:bafybeibafuqi726oz4jdesbjh7kzh3axs4q6wrwrls27bp6x3zydixs3ny
+- dvilela/memeooorr_abci:0.1.0:bafybeieljxgoceskr6bjln6qcurpe27ytmmmf3omyx2c72dnrt5bo3hymy
 - valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
-- valory/agent_performance_summary_abci:0.1.0:bafybeietome3cw7tgvtprfxvmtlk6krqp6fefbbdwsqllu2fp3vo54xsja
+- valory/agent_performance_summary_abci:0.1.0:bafybeib6as2g7xa6ujbw5c2aq5qdxuntoj5zszczsfgjjmklwpknyjy57m
 behaviours:
   main:
     args: {}
