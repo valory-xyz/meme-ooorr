@@ -22,8 +22,8 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeiamcgebbdbm3kzcvpeio4pjobzduz2cdlxrs7ufe4ere2zuompgwe
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiha6fjcg4oyn557yrr5pv3e2rntdbt4rglkmjsjqdtzrqusl2cu4q
 - valory/multisend:0.1.0:bafybeiaf3hapi3prgpjeugwhq64k7lqelo6kibhol5rkajt7id3knomp5q
-- dvilela/meme_factory:0.1.0:bafybeicua4gzxs6cwi6bpkr3m2r35vkacxwb7pdidh6wpywehvfdjop25y
-- dvilela/service_registry:0.1.0:bafybeibmoyz36ct5w7alm5yrhhtaqxmrycm3xh7td6ypnxbjaima5tuxcu
+- dvilela/meme_factory:0.1.0:bafybeiakzqqdqmowglxhscsyoqctq5k3jm4bqosy7y5ocbny4lfksxqbeu
+- dvilela/service_registry:0.1.0:bafybeiefdt5t4qlehh66ejpi2r7fgvtfo4ooywachadq6bsx5igzcezrh4
 - valory/staking_token:0.1.0:bafybeiai7ymajetb4ai6k6mwalqzyaddjx4dq5wr7ehrxs7iu45endnwby
 - valory/staking_activity_checker:0.1.0:bafybeibkikabwwayupto26mw7kjkgwwwucfll7hsr2c3aenghcuu54jy3a
 protocols:
@@ -44,11 +44,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeigivknq755rbnelrdemaz3vm4x7jkofvaskm34uh36pbbg6uiquo4
 - valory/registration_abci:0.1.0:bafybeihjgfzqvuymqgku6mwqih7hlvqwr2tmdjrip3m6unt5l4e55bshkm
 - valory/reset_pause_abci:0.1.0:bafybeih6bjalcohxytg6hj3doy5dhkxonrxpqgcnclyf6tnmuyfbom2usy
-- dvilela/memeooorr_abci:0.1.0:bafybeidgf744gtewme2vvhzg6xleol3qnliadm7hce3clfb6wvl6jzeimy
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeiapzlfhwmvqp4hngcovqmqknexm4hmfpgkcurl6tuakbpezk3pc74
+- dvilela/memeooorr_abci:0.1.0:bafybeigzfxtgdno6dxy3luibxlveardqn7poqguh55j6opv55izlb345hq
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeibflk2ujbxnhryuaqsrcyzztkeorimljpwgp6zccmajslaidai5qm
 - valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
 - valory/agent_db_abci:0.1.0:bafybeiap4vzewiqg2speznj6bxcm4cr6xveead4cvi3zjfydn4favyhdcy
-- valory/agent_performance_summary_abci:0.1.0:bafybeifcatwjo4gli4bpz54otmmj37qfwz2b6ajgfyxhdn3b7egdh27sae
+- valory/agent_performance_summary_abci:0.1.0:bafybeicd7dmamp3nzdj5kxpdcnsl2cg2agidsepbgfgialomjqpn5tvidq
 - valory/funds_manager:0.1.0:bafybeih5k7v6zx7mtkdg4hkgmsyngkz66bbwmrpqqxccnhif666v2hzi6y
 default_ledger: ethereum
 required_ledgers:
