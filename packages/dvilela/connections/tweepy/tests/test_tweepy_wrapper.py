@@ -20,9 +20,10 @@
 
 """Tests for tweepy_wrapper.py."""
 
+# pylint: disable=protected-access,redefined-outer-name
+
 import datetime
 import logging
-from typing import List, Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -213,7 +214,7 @@ class TestPostTweet:
         )
 
     def test_post_tweet_tweepy_exception(self, twitter_instance: Twitter) -> None:
-        """TweepyException is logged and re-raised."""
+        """Verify TweepyException is logged and re-raised."""
         twitter_instance.client.create_tweet.side_effect = (
             tweepy.errors.TweepyException("boom")
         )
@@ -235,7 +236,7 @@ class TestDeleteTweet:
         twitter_instance.client.delete_tweet.assert_called_once_with("123")
 
     def test_delete_tweet_exception(self, twitter_instance: Twitter) -> None:
-        """TweepyException is logged and re-raised."""
+        """Verify TweepyException is logged and re-raised."""
         twitter_instance.client.delete_tweet.side_effect = (
             tweepy.errors.TweepyException("err")
         )
@@ -252,19 +253,23 @@ class TestLikeUnlike:
     """Tests for like_tweet and unlike_tweet."""
 
     def test_like_tweet_success(self, twitter_instance: Twitter) -> None:
+        """Successful like returns True."""
         assert twitter_instance.like_tweet("1") is True
         twitter_instance.client.like.assert_called_once_with("1")
 
     def test_like_tweet_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on like is re-raised."""
         twitter_instance.client.like.side_effect = tweepy.errors.TweepyException("err")
         with pytest.raises(tweepy.errors.TweepyException):
             twitter_instance.like_tweet("1")
 
     def test_unlike_tweet_success(self, twitter_instance: Twitter) -> None:
+        """Successful unlike returns True."""
         assert twitter_instance.unlike_tweet("1") is True
         twitter_instance.client.unlike.assert_called_once_with("1")
 
     def test_unlike_tweet_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on unlike is re-raised."""
         twitter_instance.client.unlike.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -281,10 +286,12 @@ class TestRetweetUnretweet:
     """Tests for retweet and unretweet."""
 
     def test_retweet_success(self, twitter_instance: Twitter) -> None:
+        """Successful retweet returns True."""
         assert twitter_instance.retweet("1") is True
         twitter_instance.client.retweet.assert_called_once_with("1")
 
     def test_retweet_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on retweet is re-raised."""
         twitter_instance.client.retweet.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -292,10 +299,12 @@ class TestRetweetUnretweet:
             twitter_instance.retweet("1")
 
     def test_unretweet_success(self, twitter_instance: Twitter) -> None:
+        """Successful unretweet returns True."""
         assert twitter_instance.unretweet("1") is True
         twitter_instance.client.unretweet.assert_called_once_with("1")
 
     def test_unretweet_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on unretweet is re-raised."""
         twitter_instance.client.unretweet.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -312,10 +321,12 @@ class TestFollow:
     """Tests for follow and unfollow methods."""
 
     def test_follow_by_id_success(self, twitter_instance: Twitter) -> None:
+        """Successful follow_by_id returns True."""
         assert twitter_instance.follow_by_id("42") is True
         twitter_instance.client.follow.assert_called_once_with("42")
 
     def test_follow_by_id_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on follow_by_id is re-raised."""
         twitter_instance.client.follow.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -323,7 +334,7 @@ class TestFollow:
             twitter_instance.follow_by_id("42")
 
     def test_follow_by_username_success(self, twitter_instance: Twitter) -> None:
-        """follow_by_username resolves the id then delegates to follow_by_id."""
+        """Method follow_by_username resolves the id then delegates to follow_by_id."""
         twitter_instance.client.get_user.return_value = MagicMock(
             data=MagicMock(id="99")
         )
@@ -338,10 +349,12 @@ class TestFollow:
         assert twitter_instance.follow_by_username("ghost") is False
 
     def test_unfollow_by_id_success(self, twitter_instance: Twitter) -> None:
+        """Successful unfollow_by_id returns True."""
         assert twitter_instance.unfollow_by_id("42") is True
         twitter_instance.client.unfollow.assert_called_once_with("42")
 
     def test_unfollow_by_id_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on unfollow_by_id is re-raised."""
         twitter_instance.client.unfollow.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -358,12 +371,14 @@ class TestGetUserId:
     """Tests for get_user_id."""
 
     def test_get_user_id_success(self, twitter_instance: Twitter) -> None:
+        """Successful get_user_id returns the user id."""
         twitter_instance.client.get_user.return_value = MagicMock(
             data=MagicMock(id="100")
         )
         assert twitter_instance.get_user_id("bob") == "100"
 
     def test_get_user_id_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on get_user_id is re-raised."""
         twitter_instance.client.get_user.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -380,6 +395,7 @@ class TestGetMe:
     """Tests for get_me."""
 
     def test_get_me_success(self, twitter_instance: Twitter) -> None:
+        """Successful get_me returns user dict."""
         mock_data = MagicMock(id="1", username="me")
         mock_data.name = "Me"
         twitter_instance.client.get_me.return_value = MagicMock(data=mock_data)
@@ -387,6 +403,7 @@ class TestGetMe:
         assert result == {"user_id": "1", "username": "me", "display_name": "Me"}
 
     def test_get_me_exception(self, twitter_instance: Twitter) -> None:
+        """Verify TweepyException on get_me is re-raised."""
         twitter_instance.client.get_me.side_effect = tweepy.errors.TweepyException(
             "err"
         )
@@ -431,7 +448,7 @@ class TestGetFollowerIds:
         assert result is None
 
     def test_get_follower_ids_exception(self, twitter_instance: Twitter) -> None:
-        """TweepyException from get_follower_ids is re-raised."""
+        """Verify TweepyException from get_follower_ids is re-raised."""
         twitter_instance.api.get_follower_ids.side_effect = (
             tweepy.errors.TweepyException("err")
         )
@@ -477,7 +494,7 @@ class TestGetAllUserTweets:
         assert result == ["t1"]
 
     def test_get_all_user_tweets_exception(self, twitter_instance: Twitter) -> None:
-        """TweepyException is logged and re-raised."""
+        """Verify TweepyException is logged and re-raised."""
         with patch(
             "packages.dvilela.connections.tweepy.tweepy_wrapper.tweepy.Paginator"
         ) as mock_paginator:

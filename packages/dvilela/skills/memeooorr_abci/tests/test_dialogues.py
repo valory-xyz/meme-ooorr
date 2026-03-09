@@ -19,8 +19,6 @@
 
 """Tests for dialogues.py."""
 
-from unittest.mock import MagicMock
-
 from aea.skills.base import Model
 
 from packages.dvilela.protocols.kv_store.dialogues import (

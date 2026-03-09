@@ -63,12 +63,14 @@ class AgentPerformanceSummary:
 
     @staticmethod
     def from_dict(data: dict) -> "AgentPerformanceSummary":
+        """Create an AgentPerformanceSummary from a dictionary."""
         data["metrics"] = [
             AgentPerformanceMetrics(**m) for m in data.get("metrics", [])
         ]
         return AgentPerformanceSummary(**data)
 
     def to_json(self):
+        """Serialize the summary to a JSON string."""
         return json.dumps(asdict(self))
 
 

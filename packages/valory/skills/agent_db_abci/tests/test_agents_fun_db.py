@@ -19,6 +19,8 @@
 
 """Tests for agents_fun_db.py."""
 
+# pylint: disable=W0212,W0613,R0903,E1136
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generator
 from unittest.mock import MagicMock
@@ -108,9 +110,7 @@ def _gen_return(value):
     return gen
 
 
-# ---------------------------------------------------------------------------
-# Tests: constants
-# ---------------------------------------------------------------------------
+# --- Section: constants ---
 
 
 class TestConstants:
@@ -199,9 +199,7 @@ class TestAgentsFunAgentBasic:
         assert "@testuser" in result
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunAgent.delete (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunAgent.delete (generator) ---
 
 
 class TestAgentsFunAgentDelete:
@@ -216,9 +214,7 @@ class TestAgentsFunAgentDelete:
         _exhaust(agent.delete())
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunAgent.load (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunAgent.load (generator) ---
 
 
 class TestAgentsFunAgentLoad:
@@ -423,9 +419,7 @@ class TestAgentsFunAgentLoad:
         assert agent.posts == []
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunAgent.add_interaction (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunAgent.add_interaction (generator) ---
 
 
 class TestAgentsFunAgentAddInteraction:
@@ -474,9 +468,7 @@ class TestAgentsFunAgentAddInteraction:
         assert result is attr_instance
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunAgent.update_twitter_details (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunAgent.update_twitter_details (generator) ---
 
 
 class TestAgentsFunAgentUpdateTwitterDetails:
@@ -524,7 +516,7 @@ class TestAgentsFunDatabase:
         db = self._make_db()
         assert db.client is None
         assert db.agent_type is None
-        assert db.agents == []
+        assert not db.agents
         assert db.my_agent is None
 
     def test_initialize(self) -> None:
@@ -549,9 +541,7 @@ class TestAgentsFunDatabase:
         assert str(db) == "AgentsFunDatabase with 3 agents"
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunDatabase.load (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunDatabase.load (generator) ---
 
 
 class TestAgentsFunDatabaseLoad:
@@ -658,9 +648,7 @@ class TestAgentsFunDatabaseLoad:
         assert db.agent_type is AGENT_TYPE_OBJ
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunDatabase.get_tweet_likes_number (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunDatabase.get_tweet_likes_number (generator) ---
 
 
 class TestGetTweetLikesNumber:
@@ -748,9 +736,7 @@ class TestGetTweetLikesNumber:
         assert result == 1
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunDatabase.get_tweet_retweets_number (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunDatabase.get_tweet_retweets_number (generator) ---
 
 
 class TestGetTweetRetweetsNumber:
@@ -799,9 +785,7 @@ class TestGetTweetRetweetsNumber:
         assert result == 1
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunDatabase.get_tweet_replies (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunDatabase.get_tweet_replies (generator) ---
 
 
 class TestGetTweetReplies:
@@ -832,7 +816,7 @@ class TestGetTweetReplies:
         """Test returns empty list when no replies."""
         db = self._make_db_with_agents([{"loaded": True, "posts": []}])
         result = _exhaust(db.get_tweet_replies("t1"))
-        assert result == []
+        assert not result
 
     def test_one_reply(self) -> None:
         """Test returns reply post."""
@@ -852,7 +836,7 @@ class TestGetTweetReplies:
         post = TwitterPost(tweet_id="p1", text="not a reply", timestamp=NOW)
         db = self._make_db_with_agents([{"loaded": True, "posts": [post]}])
         result = _exhaust(db.get_tweet_replies("t1"))
-        assert result == []
+        assert not result
 
     def test_loads_unloaded_agent(self) -> None:
         """Test loads unloaded agent before checking."""
@@ -868,9 +852,7 @@ class TestGetTweetReplies:
         assert len(result) == 1
 
 
-# ---------------------------------------------------------------------------
-# Tests: AgentsFunDatabase.get_tweet_feedback (generator)
-# ---------------------------------------------------------------------------
+# --- Section: AgentsFunDatabase.get_tweet_feedback (generator) ---
 
 
 class TestGetTweetFeedback:
@@ -912,9 +894,7 @@ class TestGetTweetFeedback:
         assert len(result["replies"]) == 1
 
 
-# ---------------------------------------------------------------------------
-# Tests: get_active_agents (non-generator)
-# ---------------------------------------------------------------------------
+# --- Section: get_active_agents (non-generator) ---
 
 
 class TestGetActiveAgents:
@@ -955,7 +935,7 @@ class TestGetActiveAgents:
     def test_empty_agents(self) -> None:
         """Test with no agents."""
         db = self._make_db_with_agents([])
-        assert db.get_active_agents() == []
+        assert not db.get_active_agents()
 
     def test_unloaded_agent_skipped(self) -> None:
         """Test that unloaded agents are skipped."""
@@ -964,7 +944,7 @@ class TestGetActiveAgents:
                 {"loaded": False, "twitter_username": "u", "last_post_timestamp": NOW},
             ]
         )
-        assert db.get_active_agents() == []
+        assert not db.get_active_agents()
 
     def test_no_posts_skipped(self) -> None:
         """Test that agents with no posts are skipped."""
@@ -973,7 +953,7 @@ class TestGetActiveAgents:
                 {"loaded": True, "twitter_username": "u", "last_post_timestamp": None},
             ]
         )
-        assert db.get_active_agents() == []
+        assert not db.get_active_agents()
 
     def test_old_post_skipped(self) -> None:
         """Test that agents with posts older than 7 days are skipped."""
@@ -983,7 +963,7 @@ class TestGetActiveAgents:
                 {"loaded": True, "twitter_username": "u", "last_post_timestamp": old},
             ]
         )
-        assert db.get_active_agents() == []
+        assert not db.get_active_agents()
 
     def test_active_with_username_included(self) -> None:
         """Test active agent with username is included."""
@@ -1013,7 +993,7 @@ class TestGetActiveAgents:
                 },
             ]
         )
-        assert db.get_active_agents() == []
+        assert not db.get_active_agents()
 
     def test_mixed_agents(self) -> None:
         """Test with a mix of active, inactive, and unloaded agents."""
@@ -1069,7 +1049,7 @@ class TestGetActiveAgents:
                 },
             ]
         )
-        assert db.get_active_agents() == []
+        assert not db.get_active_agents()
 
     def test_just_within_7_days(self) -> None:
         """Test agent with post just within the 7-day window is included."""

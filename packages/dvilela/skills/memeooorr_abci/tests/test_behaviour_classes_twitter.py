@@ -19,12 +19,11 @@
 
 """Tests for behaviour_classes/twitter.py."""
 
-import json
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, PropertyMock, patch
+# pylint: disable=protected-access,too-few-public-methods,unsubscriptable-object,unused-argument,used-before-assignment,useless-return,no-member,use-implicit-booleaness-not-comparison
 
-import pytest
+from datetime import datetime, timezone
+from typing import Any
+from unittest.mock import MagicMock
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.twitter import (
     ActionTweetBehaviour,
@@ -41,12 +40,7 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
     Event,
 )
 
-from .conftest import (
-    SENDER,
-    make_mock_context,
-    make_mock_params,
-    make_mock_synchronized_data,
-)
+from .conftest import make_mock_context, make_mock_params, make_mock_synchronized_data
 
 
 class TestMatchingRounds:
@@ -139,10 +133,7 @@ class TestFormatPreviousTweetsStr:
         post = MagicMock()
         post.text = "Test post"
         post.timestamp = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        # Make isinstance check work
-        from packages.valory.skills.agent_db_abci.twitter_models import TwitterPost
-
-        result = BaseTweetBehaviour._format_previous_tweets_str([post])
+        result = BaseTweetBehaviour._format_previous_tweets_str([post])  # type: ignore[arg-type]
         # Since post is a MagicMock, not an actual TwitterPost, it goes through dict branch
         assert isinstance(result, str)
 
@@ -226,6 +217,7 @@ class TestCollectFeedbackBehaviour:
         behaviour.context.agents_fun_db.my_agent.posts = []
 
         gen = CollectFeedbackBehaviour.get_feedback(behaviour)
+        result = None
         try:
             next(gen)
         except StopIteration as e:
@@ -238,6 +230,7 @@ class TestCollectFeedbackBehaviour:
         behaviour.context.agents_fun_db.my_agent.posts = [None]
 
         gen = CollectFeedbackBehaviour.get_feedback(behaviour)
+        result = None
         try:
             next(gen)
         except StopIteration as e:
@@ -259,7 +252,7 @@ class TestEngageTwitterBehaviour:
     def test_validate_llm_response_not_dict(self) -> None:
         """Test _validate_llm_response returns False for non-dict."""
         behaviour = self._make_behaviour()
-        result = EngageTwitterBehaviour._validate_llm_response(behaviour, "not a dict")
+        result = EngageTwitterBehaviour._validate_llm_response(behaviour, "not a dict")  # type: ignore[arg-type]
         assert result is False
 
     def test_validate_mech_llm_response_no_tweet_action(self) -> None:
@@ -340,7 +333,7 @@ class TestEngageTwitterBehaviour:
         """Test _validate_non_mech_tool_action returns False for non-dict."""
         behaviour = self._make_behaviour()
         result = EngageTwitterBehaviour._validate_non_mech_tool_action(
-            behaviour, "not a dict"
+            behaviour, "not a dict"  # type: ignore[arg-type]
         )
         assert result is False
 
@@ -422,10 +415,12 @@ class TestEngageTwitterGetEvent:
         )
 
         gen = EngageTwitterBehaviour.get_event(behaviour)
+        result = None
         try:
             next(gen)
         except StopIteration as e:
             result = e.value
+        assert result is not None
         assert result[0] == Event.DONE.value
         assert result[1] == []
 
@@ -451,7 +446,7 @@ class TestProcessSingleInteraction:
         )
 
         gen = EngageTwitterBehaviour._process_single_interaction(
-            behaviour, "not a dict", ctx
+            behaviour, "not a dict", ctx  # type: ignore[arg-type]
         )
         try:
             next(gen)
@@ -471,7 +466,7 @@ class TestDetermineMechSummary:
         """Test returns default message when no media info."""
         behaviour = self._make_behaviour()
 
-        def mock_get_latest_media_info():
+        def mock_get_latest_media_info():  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -479,17 +474,19 @@ class TestDetermineMechSummary:
 
         gen = EngageTwitterBehaviour._determine_mech_summary(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
             result = e.value
+        assert result is not None
         assert "failed" in result.lower() or "proceed" in result.lower()
 
     def test_image_media_info(self) -> None:
         """Test returns image message when image media."""
         behaviour = self._make_behaviour()
 
-        def mock_get_latest_media_info():
+        def mock_get_latest_media_info():  # type: ignore[no-untyped-def]
             yield
             return {"type": "image", "path": "/tmp/img.png"}
 
@@ -497,17 +494,19 @@ class TestDetermineMechSummary:
 
         gen = EngageTwitterBehaviour._determine_mech_summary(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
             result = e.value
+        assert result is not None
         assert "image" in result.lower()
 
     def test_video_media_info(self) -> None:
         """Test returns video message when video media."""
         behaviour = self._make_behaviour()
 
-        def mock_get_latest_media_info():
+        def mock_get_latest_media_info():  # type: ignore[no-untyped-def]
             yield
             return {"type": "video", "path": "/tmp/vid.mp4"}
 
@@ -515,17 +514,19 @@ class TestDetermineMechSummary:
 
         gen = EngageTwitterBehaviour._determine_mech_summary(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
             result = e.value
+        assert result is not None
         assert "video" in result.lower()
 
     def test_unknown_media_type(self) -> None:
         """Test handles unknown media type gracefully."""
         behaviour = self._make_behaviour()
 
-        def mock_get_latest_media_info():
+        def mock_get_latest_media_info():  # type: ignore[no-untyped-def]
             yield
             return {"type": "audio", "path": "/tmp/audio.mp3"}
 
@@ -555,10 +556,11 @@ class TestHandleToolAction:
         behaviour = self._make_behaviour()
 
         gen = EngageTwitterBehaviour._handle_tool_action(behaviour, {})
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result[0] == Event.ERROR.value
@@ -570,10 +572,11 @@ class TestHandleToolAction:
         gen = EngageTwitterBehaviour._handle_tool_action(
             behaviour, {"tool_action": {"tool_input": "test"}}
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result[0] == Event.ERROR.value
@@ -582,7 +585,7 @@ class TestHandleToolAction:
         """Test returns MECH with valid mech requests."""
         behaviour = self._make_behaviour()
 
-        def mock_store_agent_action(action_type, data):
+        def mock_store_agent_action(action_type, data):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -597,10 +600,11 @@ class TestHandleToolAction:
                 }
             },
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result[0] == Event.MECH.value
@@ -621,7 +625,7 @@ class TestHandleTweetActions:
         """Test _handle_tweet_actions converts string to list."""
         behaviour = self._make_behaviour()
 
-        def mock_process_single(interaction, context):
+        def mock_process_single(interaction, context):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -635,10 +639,11 @@ class TestHandleTweetActions:
             "test persona",
             [],
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result[0] == Event.DONE.value
@@ -647,7 +652,7 @@ class TestHandleTweetActions:
         """Test _handle_tweet_actions wraps dict in list."""
         behaviour = self._make_behaviour()
 
-        def mock_process_single(interaction, context):
+        def mock_process_single(interaction, context):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -661,10 +666,11 @@ class TestHandleTweetActions:
             "test persona",
             [],
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result[0] == Event.DONE.value
@@ -674,7 +680,7 @@ class TestHandleTweetActions:
         behaviour = self._make_behaviour()
         call_count = [0]
 
-        def mock_process_single(interaction, context):
+        def mock_process_single(interaction, context):  # type: ignore[no-untyped-def]
             call_count[0] += 1
             yield
             return None
@@ -694,10 +700,11 @@ class TestHandleTweetActions:
             "test persona",
             [],
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result[0] == Event.DONE.value
@@ -716,11 +723,11 @@ class TestBaseTweetBehaviourWriteTweet:
         """Test _write_tweet_to_kv_store with single tweet dict."""
         behaviour = self._make_behaviour()
 
-        def mock_get_tweets():
+        def mock_get_tweets():  # type: ignore[no-untyped-def]
             yield
             return []
 
-        def mock_write_kv(data):
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
             yield
             return True
 
@@ -730,10 +737,11 @@ class TestBaseTweetBehaviourWriteTweet:
         gen = BaseTweetBehaviour._write_tweet_to_kv_store(
             behaviour, {"text": "hello", "tweet_id": "1"}
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is True
@@ -742,11 +750,11 @@ class TestBaseTweetBehaviourWriteTweet:
         """Test _write_tweet_to_kv_store with list of tweets."""
         behaviour = self._make_behaviour()
 
-        def mock_get_tweets():
+        def mock_get_tweets():  # type: ignore[no-untyped-def]
             yield
             return [{"text": "existing"}]
 
-        def mock_write_kv(data):
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
             yield
             return True
 
@@ -757,10 +765,11 @@ class TestBaseTweetBehaviourWriteTweet:
             behaviour,
             [{"text": "new1", "tweet_id": "2"}, {"text": "new2", "tweet_id": "3"}],
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is True

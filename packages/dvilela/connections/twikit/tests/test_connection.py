@@ -20,6 +20,8 @@
 
 """Tests for the twikit connection."""
 
+# pylint: disable=protected-access,unused-argument,too-few-public-methods
+
 import asyncio
 import json
 import logging
@@ -31,11 +33,9 @@ from typing import Any, Dict, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import twikit.errors
+import twikit.errors  # type: ignore[import-untyped]
 
 from packages.dvilela.connections.twikit.connection import (
-    MAX_GET_RETRIES,
-    MAX_POST_RETRIES,
     PUBLIC_ID,
     SrrDialogues,
     TwikitConnection,
@@ -131,7 +131,7 @@ class TestTweetToJson:
     """Tests for tweet_to_json."""
 
     def test_tweet_to_json_default_user_id(self) -> None:
-        """tweet_to_json uses tweet.user.id when user_id not supplied."""
+        """Verify tweet_to_json uses tweet.user.id when user_id not supplied."""
         tweet = _make_tweet()
         result = tweet_to_json(tweet)
         assert result["id"] == "tweet_123"
@@ -144,7 +144,7 @@ class TestTweetToJson:
         assert result["view_count_state"] == "Enabled"
 
     def test_tweet_to_json_override_user_id(self) -> None:
-        """tweet_to_json uses supplied user_id."""
+        """Verify tweet_to_json uses supplied user_id."""
         tweet = _make_tweet()
         result = tweet_to_json(tweet, user_id="override_789")
         assert result["user_id"] == "override_789"
@@ -154,7 +154,7 @@ class TestUserToJson:
     """Tests for user_to_json."""
 
     def test_user_to_json(self) -> None:
-        """user_to_json returns correct dict."""
+        """Verify user_to_json returns correct dict."""
         user = _make_user()
         result = user_to_json(user)
         assert result == {
@@ -173,7 +173,7 @@ class TestSrrDialogues:
     """Tests for SrrDialogues."""
 
     def test_role_from_first_message(self) -> None:
-        """SrrDialogues assigns CONNECTION role."""
+        """Verify SrrDialogues assigns CONNECTION role."""
         dialogues = SrrDialogues(connection_id=PUBLIC_ID)
         assert dialogues is not None
 
@@ -187,7 +187,7 @@ class TestConnectionLifecycle:
     """Tests for connect / disconnect / response_envelopes."""
 
     def test_response_envelopes_raises_when_none(self) -> None:
-        """response_envelopes raises ValueError when queue is None."""
+        """Property response_envelopes raises ValueError when queue is None."""
         conn = _make_connection()
         conn._response_envelopes = None
         with pytest.raises(ValueError, match="not yet initialized"):
@@ -195,7 +195,7 @@ class TestConnectionLifecycle:
 
     @pytest.mark.asyncio
     async def test_connect_without_skip(self) -> None:
-        """connect() calls twikit_login when not skipped."""
+        """Connect calls twikit_login when not skipped."""
         conn = _make_connection(logged_in=False)
         conn.skip_connection = False
         with patch.object(conn, "twikit_login", new_callable=AsyncMock) as mock_login:
@@ -204,7 +204,7 @@ class TestConnectionLifecycle:
 
     @pytest.mark.asyncio
     async def test_connect_with_skip(self) -> None:
-        """connect() skips login when skip_connection is True."""
+        """Connect skips login when skip_connection is True."""
         conn = _make_connection(skip_connection=True)
         with patch.object(conn, "twikit_login", new_callable=AsyncMock) as mock_login:
             await conn.connect()
@@ -212,16 +212,17 @@ class TestConnectionLifecycle:
 
     @pytest.mark.asyncio
     async def test_disconnect(self) -> None:
-        """disconnect() nullifies queue and sets disconnected."""
+        """Disconnect nullifies queue and sets disconnected."""
         conn = _make_connection()
         await conn.disconnect()
         assert conn._response_envelopes is None
 
     @pytest.mark.asyncio
     async def test_receive(self) -> None:
-        """receive() returns envelope from queue."""
+        """Receive returns envelope from queue."""
         conn = _make_connection()
         sentinel = object()
+        assert conn._response_envelopes is not None
         conn._response_envelopes.put_nowait(sentinel)
         result = await conn.receive()
         assert result is sentinel
@@ -236,7 +237,7 @@ class TestHandleDoneTask:
     """Tests for _handle_done_task."""
 
     def test_handle_done_task_with_response(self) -> None:
-        """_handle_done_task puts envelope when response is not None."""
+        """Verify _handle_done_task puts envelope when response is not None."""
         conn = _make_connection()
         task = MagicMock()
         response_msg = SrrMessage(
@@ -253,11 +254,12 @@ class TestHandleDoneTask:
         conn.task_to_request[task] = request_envelope
 
         conn._handle_done_task(task)
+        assert conn._response_envelopes is not None
         envelope = conn._response_envelopes.get_nowait()
         assert envelope is not None
 
     def test_handle_done_task_with_none_response(self) -> None:
-        """_handle_done_task puts None envelope when response is None."""
+        """Verify _handle_done_task puts None envelope when response is None."""
         conn = _make_connection()
         task = MagicMock()
         task.result.return_value = None
@@ -269,6 +271,7 @@ class TestHandleDoneTask:
         conn.task_to_request[task] = request_envelope
 
         conn._handle_done_task(task)
+        assert conn._response_envelopes is not None
         envelope = conn._response_envelopes.get_nowait()
         assert envelope is None
 
@@ -320,7 +323,7 @@ class TestGetResponse:
 
     @pytest.mark.asyncio
     async def test_skip_connection(self) -> None:
-        """skip_connection returns disabled error."""
+        """Skip_connection returns disabled error."""
         conn = _make_connection(skip_connection=True)
         msg = _make_srr_request({"method": "search", "kwargs": {}})
         dialogue = self._setup_dialogue(conn, msg)
@@ -387,7 +390,7 @@ class TestGetResponse:
 
     @pytest.mark.asyncio
     async def test_account_locked_exception(self) -> None:
-        """AccountLocked exception returns locked/suspended error."""
+        """Handle AccountLocked exception returns locked/suspended error."""
         conn = _make_connection()
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
@@ -408,7 +411,7 @@ class TestGetResponse:
 
     @pytest.mark.asyncio
     async def test_account_suspended_exception(self) -> None:
-        """AccountSuspended exception returns locked/suspended error."""
+        """Handle AccountSuspended exception returns locked/suspended error."""
         conn = _make_connection()
         msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
         dialogue = self._setup_dialogue(conn, msg)
@@ -577,7 +580,7 @@ class TestTwikitLogin:
 
     @pytest.mark.asyncio
     async def test_login_account_locked(self) -> None:
-        """AccountLocked during login logs error."""
+        """Handle AccountLocked during login logs error."""
         conn = _make_connection(logged_in=False)
         conn.client.login = AsyncMock(side_effect=twikit.errors.AccountLocked("locked"))
 
@@ -595,7 +598,7 @@ class TestSearch:
 
     @pytest.mark.asyncio
     async def test_search(self) -> None:
-        """search returns list of tweet dicts."""
+        """Search returns list of tweet dicts."""
         conn = _make_connection()
         tweets = [_make_tweet(id="t1"), _make_tweet(id="t2")]
         conn.client.search_tweet = AsyncMock(return_value=tweets)
@@ -794,7 +797,7 @@ class TestLikeTweet:
 
     @pytest.mark.asyncio
     async def test_like_tweet_twitter_exception(self) -> None:
-        """TwitterException on like."""
+        """Raise TwitterException on like."""
         conn = _make_connection()
         conn.client.favorite_tweet = AsyncMock(
             side_effect=twikit.errors.TwitterException("api error")
@@ -829,7 +832,7 @@ class TestFollowUser:
 
     @pytest.mark.asyncio
     async def test_follow_user_twitter_exception(self) -> None:
-        """TwitterException on follow."""
+        """Raise TwitterException on follow."""
         conn = _make_connection()
         conn.client.follow_user = AsyncMock(
             side_effect=twikit.errors.TwitterException("api error")
@@ -864,7 +867,7 @@ class TestRetweet:
 
     @pytest.mark.asyncio
     async def test_retweet_twitter_exception(self) -> None:
-        """TwitterException on retweet."""
+        """Raise TwitterException on retweet."""
         conn = _make_connection()
         conn.client.retweet = AsyncMock(
             side_effect=twikit.errors.TwitterException("api error")
@@ -1035,7 +1038,7 @@ class TestUploadMedia:
                 "packages.dvilela.connections.twikit.connection.secrets.randbelow",
                 return_value=0,
             ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
-                result = await conn.upload_media({"latest_image_path": temp_path})
+                result = await conn.upload_media({"latest_image_path": temp_path})  # type: ignore[arg-type]
             assert result == "media_456"
         finally:
             os.unlink(temp_path)

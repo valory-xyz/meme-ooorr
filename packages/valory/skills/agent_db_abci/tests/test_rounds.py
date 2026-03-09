@@ -19,7 +19,7 @@
 
 """Tests for rounds.py."""
 
-import pytest
+# pylint: disable=C0415,R0903
 
 from packages.valory.skills.agent_db_abci.payloads import AgentDBPayload
 from packages.valory.skills.agent_db_abci.rounds import (

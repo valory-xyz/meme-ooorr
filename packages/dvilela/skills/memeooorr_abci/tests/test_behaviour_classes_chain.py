@@ -19,28 +19,21 @@
 
 """Tests for behaviour_classes/chain.py."""
 
-import json
-from typing import Any, Generator, Optional
-from unittest.mock import MagicMock, PropertyMock, patch
+# pylint: disable=protected-access,unused-argument,used-before-assignment,too-few-public-methods,useless-return,import-outside-toplevel,assigning-non-slot
 
-import pytest
+from typing import Any
+from unittest.mock import MagicMock
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.chain import (
     ActionPreparationBehaviour,
-    CHECKPOINT_FILENAME,
     CallCheckpointBehaviour,
     ChainBehaviour,
     CheckFundsBehaviour,
     CheckStakingBehaviour,
-    EMPTY_CALL_DATA,
-    LIVENESS_RATIO_SCALE_FACTOR,
     NULL_ADDRESS,
     PostTxDecisionMakingBehaviour,
     PullMemesBehaviour,
-    REQUIRED_REQUESTS_SAFETY_MARGIN,
-    SAFE_GAS,
     TransactionLoopCheckBehaviour,
-    ZERO_VALUE,
 )
 from packages.dvilela.skills.memeooorr_abci.rounds import (
     ActionPreparationRound,
@@ -56,10 +49,7 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
 from packages.valory.protocols.contract_api import ContractApiMessage
 
 from .conftest import (
-    MECH_MARKETPLACE_ADDRESS,
     SAFE_ADDRESS,
-    SENDER,
-    STAKING_TOKEN_ADDRESS,
     make_mock_context,
     make_mock_params,
     make_mock_synchronized_data,
@@ -176,7 +166,7 @@ class TestContractInteract:
         response_msg.performative = ContractApiMessage.Performative.RAW_TRANSACTION
         response_msg.raw_transaction.body = {"data": 42}
 
-        def mock_get_contract_api_response(*args, **kwargs):
+        def mock_get_contract_api_response(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return response_msg
 
@@ -193,6 +183,7 @@ class TestContractInteract:
             data_key="data",
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -205,7 +196,7 @@ class TestContractInteract:
         response_msg = MagicMock()
         response_msg.performative = ContractApiMessage.Performative.ERROR
 
-        def mock_get_contract_api_response(*args, **kwargs):
+        def mock_get_contract_api_response(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return response_msg
 
@@ -222,6 +213,7 @@ class TestContractInteract:
             data_key="data",
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -235,7 +227,7 @@ class TestContractInteract:
         response_msg.performative = ContractApiMessage.Performative.RAW_TRANSACTION
         response_msg.raw_transaction.body = {"other_key": 42}
 
-        def mock_get_contract_api_response(*args, **kwargs):
+        def mock_get_contract_api_response(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return response_msg
 
@@ -252,6 +244,7 @@ class TestContractInteract:
             data_key="data",
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -275,6 +268,7 @@ class TestGetServiceStakingState:
         behaviour = self._make_chain_behaviour(on_chain_service_id=None)
 
         gen = ChainBehaviour._get_service_staking_state(behaviour, chain="base")
+        result = None
         try:
             next(gen)
         except StopIteration as e:
@@ -288,6 +282,7 @@ class TestGetServiceStakingState:
         )
 
         gen = ChainBehaviour._get_service_staking_state(behaviour, chain="base")
+        result = None
         try:
             next(gen)
         except StopIteration as e:
@@ -298,7 +293,7 @@ class TestGetServiceStakingState:
         """Test returns correct staking state from contract."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return StakingState.STAKED.value
 
@@ -306,6 +301,7 @@ class TestGetServiceStakingState:
 
         gen = ChainBehaviour._get_service_staking_state(behaviour, chain="base")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -316,7 +312,7 @@ class TestGetServiceStakingState:
         """Test returns UNSTAKED when contract returns None."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -324,6 +320,7 @@ class TestGetServiceStakingState:
 
         gen = ChainBehaviour._get_service_staking_state(behaviour, chain="base")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -345,7 +342,7 @@ class TestCheckFundsBehaviourGetEvent:
         """Test get_event returns NO_FUNDS when balance is None."""
         behaviour = self._make_behaviour()
 
-        def mock_get_native_balance():
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
             yield
             return {"agent": None, "safe": None}
 
@@ -353,6 +350,7 @@ class TestCheckFundsBehaviourGetEvent:
 
         gen = CheckFundsBehaviour.get_event(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -363,7 +361,7 @@ class TestCheckFundsBehaviourGetEvent:
         """Test get_event returns NO_FUNDS when balance is below minimum."""
         behaviour = self._make_behaviour()
 
-        def mock_get_native_balance():
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
             yield
             return {"agent": 0.0001, "safe": 1.0}
 
@@ -371,6 +369,7 @@ class TestCheckFundsBehaviourGetEvent:
 
         gen = CheckFundsBehaviour.get_event(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -381,7 +380,7 @@ class TestCheckFundsBehaviourGetEvent:
         """Test get_event returns DONE when balance is sufficient."""
         behaviour = self._make_behaviour()
 
-        def mock_get_native_balance():
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
             yield
             return {"agent": 1.0, "safe": 1.0}
 
@@ -389,6 +388,7 @@ class TestCheckFundsBehaviourGetEvent:
 
         gen = CheckFundsBehaviour.get_event(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -447,7 +447,7 @@ class TestBuildSafeTxHash:
         response_msg = MagicMock()
         response_msg.performative = ContractApiMessage.Performative.ERROR
 
-        def mock_get_contract_api_response(*args, **kwargs):
+        def mock_get_contract_api_response(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return response_msg
 
@@ -455,6 +455,7 @@ class TestBuildSafeTxHash:
 
         gen = ChainBehaviour._build_safe_tx_hash(behaviour, to_address="0x" + "a" * 40)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -468,7 +469,7 @@ class TestBuildSafeTxHash:
         response_msg.performative = ContractApiMessage.Performative.STATE
         response_msg.state.body = {"tx_hash": "0xshort"}
 
-        def mock_get_contract_api_response(*args, **kwargs):
+        def mock_get_contract_api_response(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return response_msg
 
@@ -476,6 +477,7 @@ class TestBuildSafeTxHash:
 
         gen = ChainBehaviour._build_safe_tx_hash(behaviour, to_address="0x" + "a" * 40)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -489,7 +491,7 @@ class TestBuildSafeTxHash:
         response_msg.performative = ContractApiMessage.Performative.STATE
         response_msg.state.body = {"tx_hash": None}
 
-        def mock_get_contract_api_response(*args, **kwargs):
+        def mock_get_contract_api_response(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return response_msg
 
@@ -497,6 +499,7 @@ class TestBuildSafeTxHash:
 
         gen = ChainBehaviour._build_safe_tx_hash(behaviour, to_address="0x" + "a" * 40)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -517,7 +520,7 @@ class TestGetLivenessRatio:
         """Test _get_liveness_ratio logs error on None."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -525,6 +528,7 @@ class TestGetLivenessRatio:
 
         gen = ChainBehaviour._get_liveness_ratio(behaviour, "base")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -535,7 +539,7 @@ class TestGetLivenessRatio:
         """Test _get_liveness_ratio logs error on zero."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return 0
 
@@ -543,6 +547,7 @@ class TestGetLivenessRatio:
 
         gen = ChainBehaviour._get_liveness_ratio(behaviour, "base")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -553,7 +558,7 @@ class TestGetLivenessRatio:
         """Test _get_liveness_ratio returns valid ratio."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return 10**18
 
@@ -561,6 +566,7 @@ class TestGetLivenessRatio:
 
         gen = ChainBehaviour._get_liveness_ratio(behaviour, "base")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -582,6 +588,7 @@ class TestGetServiceInfo:
         behaviour = self._make_chain_behaviour(on_chain_service_id=None)
 
         gen = ChainBehaviour._get_service_info(behaviour, chain="base")
+        result = None
         try:
             next(gen)
         except StopIteration as e:
@@ -593,7 +600,7 @@ class TestGetServiceInfo:
         behaviour = self._make_chain_behaviour()
         service_info = (1, 2, (3, 4))
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return service_info
 
@@ -601,6 +608,7 @@ class TestGetServiceInfo:
 
         gen = ChainBehaviour._get_service_info(behaviour, chain="base")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -621,7 +629,7 @@ class TestGetMultisigNonces:
         """Test returns None when contract returns None."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -629,6 +637,7 @@ class TestGetMultisigNonces:
 
         gen = ChainBehaviour._get_multisig_nonces(behaviour, "base", SAFE_ADDRESS)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -639,7 +648,7 @@ class TestGetMultisigNonces:
         """Test returns None when contract returns empty list."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return []
 
@@ -647,6 +656,7 @@ class TestGetMultisigNonces:
 
         gen = ChainBehaviour._get_multisig_nonces(behaviour, "base", SAFE_ADDRESS)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -657,7 +667,7 @@ class TestGetMultisigNonces:
         """Test returns first element of valid list."""
         behaviour = self._make_chain_behaviour()
 
-        def mock_contract_interact(*args, **kwargs):
+        def mock_contract_interact(*args, **kwargs):  # type: ignore[no-untyped-def]
             yield
             return [42, 10]
 
@@ -665,6 +675,7 @@ class TestGetMultisigNonces:
 
         gen = ChainBehaviour._get_multisig_nonces(behaviour, "base", SAFE_ADDRESS)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -692,7 +703,7 @@ class TestCheckpointBehaviour:
         """Test _check_if_checkpoint_reached returns False when next_checkpoint is None."""
         behaviour = self._make_behaviour()
 
-        def mock_get_next_checkpoint(chain):
+        def mock_get_next_checkpoint(chain):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -702,6 +713,7 @@ class TestCheckpointBehaviour:
             behaviour, chain="base"
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -712,7 +724,7 @@ class TestCheckpointBehaviour:
         """Test _check_if_checkpoint_reached returns True when next_checkpoint is 0."""
         behaviour = self._make_behaviour()
 
-        def mock_get_next_checkpoint(chain):
+        def mock_get_next_checkpoint(chain):  # type: ignore[no-untyped-def]
             yield
             return 0
 
@@ -722,6 +734,7 @@ class TestCheckpointBehaviour:
             behaviour, chain="base"
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -732,7 +745,7 @@ class TestCheckpointBehaviour:
         """Test returns False when next checkpoint is in the future."""
         behaviour = self._make_behaviour()
 
-        def mock_get_next_checkpoint(chain):
+        def mock_get_next_checkpoint(chain):  # type: ignore[no-untyped-def]
             yield
             return 1700000001  # 1 second in the future
 
@@ -742,6 +755,7 @@ class TestCheckpointBehaviour:
             behaviour, chain="base"
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -752,7 +766,7 @@ class TestCheckpointBehaviour:
         """Test returns True when next checkpoint is in the past."""
         behaviour = self._make_behaviour()
 
-        def mock_get_next_checkpoint(chain):
+        def mock_get_next_checkpoint(chain):  # type: ignore[no-untyped-def]
             yield
             return 1699999999  # 1 second in the past
 
@@ -762,6 +776,7 @@ class TestCheckpointBehaviour:
             behaviour, chain="base"
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:

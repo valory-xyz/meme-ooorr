@@ -19,8 +19,9 @@
 
 """Tests for models.py."""
 
+# pylint: disable=import-outside-toplevel,too-few-public-methods
+
 from typing import Any, Dict
-from unittest.mock import MagicMock
 
 import pytest
 

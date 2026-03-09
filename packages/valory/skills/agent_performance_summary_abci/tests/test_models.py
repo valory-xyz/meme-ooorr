@@ -19,10 +19,12 @@
 
 """Tests for the models module of the agent_performance_summary_abci skill."""
 
+# pylint: disable=W0212,E0237
+
 import json
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -195,7 +197,7 @@ class TestAgentPerformanceSummaryParams:
             ):
                 params.get_store_path({"store_path": str(read_only_dir)})
         finally:
-            os.chmod(read_only_dir, 0o755)
+            os.chmod(read_only_dir, 0o755)  # nosec B103
 
     def test_get_store_path_missing_key(self) -> None:
         """Test get_store_path with missing key uses empty string default."""
@@ -321,15 +323,6 @@ class TestSharedState:
         state.context.params = mock_params
 
         # Write initial data
-        initial = AgentPerformanceSummary(
-            timestamp=100,
-            metrics=[
-                AgentPerformanceMetrics(
-                    name="likes", is_primary=True, value="5", description=None
-                ),
-            ],
-            agent_behavior="old behavior",
-        )
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
         file_path.write_text(
             json.dumps(

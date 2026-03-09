@@ -19,6 +19,8 @@
 
 """Tests for models.py."""
 
+# pylint: disable=R0903
+
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,

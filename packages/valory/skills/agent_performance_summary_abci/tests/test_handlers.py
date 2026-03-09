@@ -19,6 +19,8 @@
 
 """Tests for the handlers module of the agent_performance_summary_abci skill."""
 
+# pylint: disable=W0212
+
 from unittest.mock import MagicMock, patch
 
 from packages.dvilela.skills.memeooorr_abci.handlers import (

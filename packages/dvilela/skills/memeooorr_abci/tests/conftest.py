@@ -19,13 +19,12 @@
 
 """Shared test fixtures for memeooorr_abci behaviour tests."""
 
+# pylint: disable=too-many-instance-attributes,assigning-non-slot,unused-argument
+
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from unittest.mock import MagicMock, PropertyMock
-
-import pytest
 
 SENDER = "test_agent_address"
 SAFE_ADDRESS = "0x" + "a" * 40

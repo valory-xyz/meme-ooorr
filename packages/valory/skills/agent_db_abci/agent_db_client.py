@@ -21,7 +21,7 @@
 
 import json
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional
 
 from aea.skills.base import Model
 
@@ -425,6 +425,7 @@ class AgentDBClient(Model):
     def cast_attribute_value(
         self, attr_value: Any, attribute_definition: AttributeDefinition
     ):
+        """Cast an attribute value to its defined data type."""
 
         # fetch data type from attribute definition
 

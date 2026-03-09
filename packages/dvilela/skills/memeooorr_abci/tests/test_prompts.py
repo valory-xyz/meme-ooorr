@@ -19,9 +19,10 @@
 
 """Tests for prompts.py."""
 
+# pylint: disable=too-few-public-methods
+
 import pickle  # nosec
 
-import pytest
 from pydantic import BaseModel
 
 from packages.dvilela.skills.memeooorr_abci.prompts import (

@@ -19,15 +19,12 @@
 
 """Tests for behaviour_classes/db.py."""
 
+# pylint: disable=protected-access,too-few-public-methods,unpacking-non-sequence,unused-argument,used-before-assignment,useless-return
+
 import json
 from typing import Any
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 
-import pytest
-
-from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
-    HOUR_TO_SECONDS,
-)
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.db import (
     LoadDatabaseBehaviour,
 )
@@ -35,7 +32,6 @@ from packages.dvilela.skills.memeooorr_abci.rounds import LoadDatabaseRound
 
 from .conftest import (
     SAFE_ADDRESS,
-    SENDER,
     make_mock_context,
     make_mock_params,
     make_mock_synchronized_data,
@@ -123,12 +119,12 @@ class TestPopulateKeysInKv:
         behaviour = self._make_behaviour()
         write_calls = []
 
-        def mock_write_kv(data):
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
             write_calls.append(data)
             yield
             return True
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -137,9 +133,9 @@ class TestPopulateKeysInKv:
 
         gen = LoadDatabaseBehaviour.populate_keys_in_kv(behaviour)
         try:
-            val = next(gen)
+            next(gen)
             while True:
-                val = gen.send(None)
+                gen.send(None)
         except StopIteration:
             pass
 
@@ -161,7 +157,7 @@ class TestPopulateKeysInKv:
         behaviour = self._make_behaviour()
         write_calls = []
 
-        def mock_write_kv(data):
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
             write_calls.append(data)
             yield
             return True
@@ -169,7 +165,7 @@ class TestPopulateKeysInKv:
         # Counter to track which read call we're on
         read_count = [0]
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             read_count[0] += 1
             yield
             if "last_summon_timestamp" in keys:
@@ -183,9 +179,9 @@ class TestPopulateKeysInKv:
 
         gen = LoadDatabaseBehaviour.populate_keys_in_kv(behaviour)
         try:
-            val = next(gen)
+            next(gen)
             while True:
-                val = gen.send(None)
+                gen.send(None)
         except StopIteration:
             pass
 
@@ -212,15 +208,15 @@ class TestLoadDb:
         """Test load_db returns a 3-tuple."""
         behaviour = self._make_behaviour()
 
-        def mock_get_persona():
+        def mock_get_persona():  # type: ignore[no-untyped-def]
             yield
             return "test persona"
 
-        def mock_get_heart_cooldown():
+        def mock_get_heart_cooldown():  # type: ignore[no-untyped-def]
             yield
             return 24
 
-        def mock_get_summon_cooldown():
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
             yield
             return 86400
 
@@ -229,10 +225,11 @@ class TestLoadDb:
         behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
 
         gen = LoadDatabaseBehaviour.load_db(behaviour)
+        result = None
         try:
-            val = next(gen)
+            next(gen)
             while True:
-                val = gen.send(None)
+                gen.send(None)
         except StopIteration as e:
             result = e.value
 

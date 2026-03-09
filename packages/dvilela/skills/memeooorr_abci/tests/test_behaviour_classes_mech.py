@@ -19,12 +19,11 @@
 
 """Tests for behaviour_classes/mech.py."""
 
-import json
-import os
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, PropertyMock, patch
+# pylint: disable=protected-access,unused-argument,used-before-assignment,useless-return,broad-exception-raised,unreachable,import-outside-toplevel
 
-import pytest
+import json
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.mech import (
     FailedMechRequestBehaviour,
@@ -37,12 +36,7 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
     PostMechResponseRound,
 )
 
-from .conftest import (
-    SENDER,
-    make_mock_context,
-    make_mock_params,
-    make_mock_synchronized_data,
-)
+from .conftest import make_mock_context, make_mock_params, make_mock_synchronized_data
 
 
 class TestMatchingRounds:
@@ -78,6 +72,7 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, []
         )
+        result = None
         try:
             result = next(gen)
         except StopIteration as e:
@@ -93,6 +88,7 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
             result = next(gen)
         except StopIteration as e:
@@ -108,6 +104,7 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
             result = next(gen)
         except StopIteration as e:
@@ -123,6 +120,7 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
             result = next(gen)
         except StopIteration as e:
@@ -137,7 +135,7 @@ class TestProcessMechResponseAndFetchMedia:
 
         behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/video.mp4")
 
-        def mock_save_media_info(media_path, media_type, ipfs_hash):
+        def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
             return True
 
@@ -146,10 +144,11 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is True
@@ -167,7 +166,7 @@ class TestProcessMechResponseAndFetchMedia:
             side_effect=[None, "/tmp/image.png"]
         )
 
-        def mock_save_media_info(media_path, media_type, ipfs_hash):
+        def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
             return True
 
@@ -176,10 +175,11 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is True
@@ -192,7 +192,7 @@ class TestProcessMechResponseAndFetchMedia:
 
         behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/image.png")
 
-        def mock_save_media_info(media_path, media_type, ipfs_hash):
+        def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
             return True
 
@@ -201,10 +201,11 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is True
@@ -220,10 +221,11 @@ class TestProcessMechResponseAndFetchMedia:
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is False
@@ -242,11 +244,11 @@ class TestSaveMediaInfo:
         """Test _save_media_info returns True on success."""
         behaviour = self._make_behaviour()
 
-        def mock_store_media_info_list(media_info):
+        def mock_store_media_info_list(media_info):  # type: ignore[no-untyped-def]
             yield
             return None
 
-        def mock_write_kv(data):
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
             yield
             return True
 
@@ -256,10 +258,11 @@ class TestSaveMediaInfo:
         gen = PostMechResponseBehaviour._save_media_info(
             behaviour, "/tmp/test.png", "image", "QmHash"
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is True
@@ -268,7 +271,7 @@ class TestSaveMediaInfo:
         """Test _save_media_info returns False on exception."""
         behaviour = self._make_behaviour()
 
-        def mock_store_media_info_list(media_info):
+        def mock_store_media_info_list(media_info):  # type: ignore[no-untyped-def]
             raise Exception("write error")
             yield  # noqa: E501  # make it a generator
 
@@ -277,10 +280,11 @@ class TestSaveMediaInfo:
         gen = PostMechResponseBehaviour._save_media_info(
             behaviour, "/tmp/test.png", "image", "QmHash"
         )
+        result = None
         try:
-            val = next(gen)
+            _ = next(gen)
             while True:
-                val = gen.send(None)
+                _ = gen.send(None)
         except StopIteration as e:
             result = e.value
         assert result is False

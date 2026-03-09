@@ -19,6 +19,8 @@
 
 """Tests for the MemeFactory contract."""
 
+# pylint: disable=redefined-outer-name,too-few-public-methods
+
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, patch
 
@@ -427,10 +429,11 @@ class TestGetEvents:
             mock_ledger_api, DUMMY_ADDRESS, "Summoned", from_block=10000
         )
 
-        assert len(result["events"]) == 1
-        assert result["events"][0]["summoner"] == "0xSumm"
-        assert result["events"][0]["token_nonce"] == "3"
-        assert result["events"][0]["eth_contributed"] == 500
+        events: List[Dict[str, Any]] = result["events"]  # type: ignore[assignment]
+        assert len(events) == 1
+        assert events[0]["summoner"] == "0xSumm"
+        assert events[0]["token_nonce"] == "3"
+        assert events[0]["eth_contributed"] == 500
         assert "latest_block" in result
 
     @patch.object(MemeFactoryContract, "get_instance")
@@ -462,10 +465,11 @@ class TestGetEvents:
             mock_ledger_api, DUMMY_ADDRESS, "Unleashed", from_block=10000
         )
 
-        assert len(result["events"]) == 1
-        assert result["events"][0]["token_unleasher"] == "0xUnl"
-        assert result["events"][0]["token_address"] == "0xToken"
-        assert result["events"][0]["position_id"] == 99
+        events: List[Dict[str, Any]] = result["events"]  # type: ignore[assignment]
+        assert len(events) == 1
+        assert events[0]["token_unleasher"] == "0xUnl"
+        assert events[0]["token_address"] == "0xToken"
+        assert events[0]["position_id"] == 99
 
     @patch.object(MemeFactoryContract, "get_instance")
     def test_purged_events(
@@ -490,8 +494,9 @@ class TestGetEvents:
             mock_ledger_api, DUMMY_ADDRESS, "Purged", from_block=10000
         )
 
-        assert len(result["events"]) == 1
-        assert result["events"][0]["token_address"] == "0xPurged"
+        events: List[Dict[str, Any]] = result["events"]  # type: ignore[assignment]
+        assert len(events) == 1
+        assert events[0]["token_address"] == "0xPurged"
 
     @patch.object(MemeFactoryContract, "get_instance")
     def test_unknown_event_returns_empty(
@@ -511,7 +516,7 @@ class TestGetEvents:
             mock_ledger_api, DUMMY_ADDRESS, "Unknown", from_block=10000
         )
 
-        assert result == {}
+        assert not result
 
     @patch.object(MemeFactoryContract, "get_instance")
     def test_default_from_block(

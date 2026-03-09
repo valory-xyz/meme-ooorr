@@ -19,6 +19,8 @@
 
 """Tests for the MirrorDB connection."""
 
+# pylint: disable=protected-access,unused-argument,too-few-public-methods,no-member,import-outside-toplevel,missing-class-docstring
+
 import asyncio
 import json
 from typing import Any, Dict, Optional
@@ -132,7 +134,7 @@ class TestHandleRetryableException:
 
     @pytest.mark.asyncio
     async def test_connection_error_retryable(self) -> None:
-        """ClientConnectionError with remaining attempts returns True."""
+        """Verify ClientConnectionError with remaining attempts returns True."""
         exc = aiohttp.ClientConnectionError("connection lost")
         logger = MagicMock()
         with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
@@ -261,7 +263,7 @@ class TestSrrDialogues:
     """Tests for SrrDialogues helper class."""
 
     def test_initialization(self) -> None:
-        """SrrDialogues initializes with connection_id."""
+        """Verify SrrDialogues initializes with connection_id."""
         dialogues = SrrDialogues(
             connection_id=MagicMock(__str__=lambda self: "dvilela/mirror_db:0.1.0")
         )
@@ -278,16 +280,16 @@ class TestMirrorDBConnectionLifecycle:
 
     @pytest.mark.asyncio
     async def test_connect(self) -> None:
-        """connect() sets up session and queue."""
+        """Connect sets up session and queue."""
         conn = _make_connection()
-        with patch("aiohttp.ClientSession") as mock_cs, patch("aiohttp.TCPConnector"):
+        with patch("aiohttp.ClientSession"), patch("aiohttp.TCPConnector"):
             await conn.connect()
         assert conn._response_envelopes is not None  # noqa: SLF001
         assert conn.session is not None
 
     @pytest.mark.asyncio
     async def test_disconnect(self) -> None:
-        """disconnect() closes session and clears queue."""
+        """Disconnect closes session and clears queue."""
         conn = _make_connection()
         conn._response_envelopes = asyncio.Queue()  # noqa: SLF001
         mock_session = AsyncMock()
@@ -302,16 +304,16 @@ class TestMirrorDBConnectionLifecycle:
 
     @pytest.mark.asyncio
     async def test_disconnect_when_already_disconnected(self) -> None:
-        """disconnect() returns immediately when already disconnected."""
+        """Disconnect returns immediately when already disconnected."""
         conn = _make_connection()
         # Make is_disconnected return True by setting state to disconnected
-        conn._state.get.return_value = ConnectionStates.disconnected  # noqa: SLF001
+        conn._state.get.return_value = ConnectionStates.disconnected  # type: ignore[attr-defined]  # noqa: SLF001
         # Should not raise or do anything
         await conn.disconnect()
 
     @pytest.mark.asyncio
     async def test_disconnect_cancels_pending_tasks(self) -> None:
-        """disconnect() cancels pending tasks."""
+        """Disconnect cancels pending tasks."""
         conn = _make_connection()
         conn._response_envelopes = asyncio.Queue()  # noqa: SLF001
         conn.session = AsyncMock()
@@ -325,15 +327,15 @@ class TestMirrorDBConnectionLifecycle:
         mock_task.cancel.assert_called_once()
 
     def test_response_envelopes_when_none(self) -> None:
-        """response_envelopes raises ValueError when not initialized."""
+        """Property response_envelopes raises ValueError when not initialized."""
         conn = _make_connection()
         with pytest.raises(ValueError, match="not yet initialized"):
             _ = conn.response_envelopes
 
     def test_response_envelopes_returns_queue(self) -> None:
-        """response_envelopes returns the queue when initialized."""
+        """Property response_envelopes returns the queue when initialized."""
         conn = _make_connection()
-        queue = asyncio.Queue()
+        queue: asyncio.Queue[Any] = asyncio.Queue()
         conn._response_envelopes = queue  # noqa: SLF001
         assert conn.response_envelopes is queue
 
@@ -348,9 +350,9 @@ class TestMirrorDBConnectionMessaging:
 
     @pytest.mark.asyncio
     async def test_receive(self) -> None:
-        """receive() returns item from the queue."""
+        """Receive returns item from the queue."""
         conn = _make_connection()
-        queue = asyncio.Queue()
+        queue: asyncio.Queue[Any] = asyncio.Queue()
         conn._response_envelopes = queue  # noqa: SLF001
         sentinel = object()
         queue.put_nowait(sentinel)
@@ -359,11 +361,11 @@ class TestMirrorDBConnectionMessaging:
 
     @pytest.mark.asyncio
     async def test_send(self) -> None:
-        """send() creates a task and stores it in task_to_request."""
+        """Send creates a task and stores it in task_to_request."""
         conn = _make_connection()
         conn._response_envelopes = asyncio.Queue()  # noqa: SLF001
         envelope = _make_envelope()
-        conn.dialogues.update.return_value = MagicMock()
+        conn.dialogues.update.return_value = MagicMock()  # type: ignore[attr-defined]
 
         mock_task = MagicMock()
         with patch.object(conn.loop, "create_task", return_value=mock_task):
@@ -387,9 +389,9 @@ class TestGetResponse:
         conn = _make_connection()
         msg = _make_srr_message(performative=SrrMessage.Performative.RESPONSE)
         dialogue = MagicMock()
-        conn.prepare_error_message = MagicMock(return_value=MagicMock())
+        conn.prepare_error_message = MagicMock(return_value=MagicMock())  # type: ignore[method-assign]
 
-        result = await conn._get_response(msg, dialogue)
+        await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
         assert "not supported" in conn.prepare_error_message.call_args[0][2]
@@ -400,9 +402,9 @@ class TestGetResponse:
         conn = _make_connection()
         msg = _make_srr_message(payload="not valid json{{{")
         dialogue = MagicMock()
-        conn.prepare_error_message = MagicMock(return_value=MagicMock())
+        conn.prepare_error_message = MagicMock(return_value=MagicMock())  # type: ignore[method-assign]
 
-        result = await conn._get_response(msg, dialogue)
+        await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
         assert "Invalid JSON" in conn.prepare_error_message.call_args[0][2]
@@ -414,9 +416,9 @@ class TestGetResponse:
         payload = json.dumps({"method": "forbidden_method", "kwargs": {}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
-        conn.prepare_error_message = MagicMock(return_value=MagicMock())
+        conn.prepare_error_message = MagicMock(return_value=MagicMock())  # type: ignore[method-assign]
 
-        result = await conn._get_response(msg, dialogue)
+        await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
         assert "not allowed" in conn.prepare_error_message.call_args[0][2]
@@ -428,12 +430,12 @@ class TestGetResponse:
         payload = json.dumps({"method": "create_", "kwargs": {"endpoint": "/test"}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
-        conn.prepare_error_message = MagicMock(return_value=MagicMock())
+        conn.prepare_error_message = MagicMock(return_value=MagicMock())  # type: ignore[method-assign]
 
         # Remove the method from the connection instance
         with patch.object(type(conn), "create_", new=None):
             # getattr returns None => not callable
-            result = await conn._get_response(msg, dialogue)
+            await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
         assert "not found or not callable" in conn.prepare_error_message.call_args[0][2]
@@ -445,9 +447,9 @@ class TestGetResponse:
         payload = json.dumps({"method": "read_", "kwargs": {}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
-        conn.prepare_error_message = MagicMock(return_value=MagicMock())
+        conn.prepare_error_message = MagicMock(return_value=MagicMock())  # type: ignore[method-assign]
 
-        result = await conn._get_response(msg, dialogue)
+        await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
         assert "Missing endpoint" in conn.prepare_error_message.call_args[0][2]
@@ -462,7 +464,7 @@ class TestGetResponse:
         mock_response_msg = MagicMock()
         dialogue.reply.return_value = mock_response_msg
 
-        conn.read_ = AsyncMock(return_value={"items": []})
+        conn.read_ = AsyncMock(return_value={"items": []})  # type: ignore[method-assign]
 
         result = await conn._get_response(msg, dialogue)
 
@@ -477,11 +479,11 @@ class TestGetResponse:
         payload = json.dumps({"method": "read_", "kwargs": {"endpoint": "/items"}})
         msg = _make_srr_message(payload=payload)
         dialogue = MagicMock()
-        conn.prepare_error_message = MagicMock(return_value=MagicMock())
+        conn.prepare_error_message = MagicMock(return_value=MagicMock())  # type: ignore[method-assign]
 
-        conn.read_ = AsyncMock(side_effect=RuntimeError("boom"))
+        conn.read_ = AsyncMock(side_effect=RuntimeError("boom"))  # type: ignore[method-assign]
 
-        result = await conn._get_response(msg, dialogue)
+        await conn._get_response(msg, dialogue)
 
         conn.prepare_error_message.assert_called_once()
         assert (
@@ -521,18 +523,18 @@ class TestPrepareErrorMessage:
         found_dialogue = MagicMock()
         reply_msg = MagicMock()
         found_dialogue.reply.return_value = reply_msg
-        conn.dialogues.get_dialogue.return_value = found_dialogue
+        conn.dialogues.get_dialogue.return_value = found_dialogue  # type: ignore[attr-defined]
 
-        result = conn.prepare_error_message(msg, non_dialogue, "test error")
+        conn.prepare_error_message(msg, non_dialogue, "test error")  # type: ignore[arg-type]
 
-        conn.dialogues.get_dialogue.assert_called_once_with(msg)
+        conn.dialogues.get_dialogue.assert_called_once_with(msg)  # type: ignore[attr-defined]
         found_dialogue.reply.assert_called_once()
 
     def test_dialogue_not_found_raises_value_error(self) -> None:
         """When dialogue lookup returns None, raises ValueError."""
         conn = _make_connection()
         msg = _make_srr_message()
-        conn.dialogues.get_dialogue.return_value = None
+        conn.dialogues.get_dialogue.return_value = None  # type: ignore[attr-defined]
 
         with pytest.raises(ValueError, match="Dialogue not found"):
             conn.prepare_error_message(msg, None, "test error")
@@ -549,7 +551,7 @@ class TestHandleDoneTask:
     def test_successful_result(self) -> None:
         """Successful task result puts envelope in queue."""
         conn = _make_connection()
-        queue = asyncio.Queue()
+        queue: asyncio.Queue[Any] = asyncio.Queue()
         conn._response_envelopes = queue  # noqa: SLF001
 
         request_envelope = _make_envelope()
@@ -571,7 +573,7 @@ class TestHandleDoneTask:
     def test_task_exception(self) -> None:
         """Task that raises exception logs error, returns None result."""
         conn = _make_connection()
-        queue = asyncio.Queue()
+        queue: asyncio.Queue[Any] = asyncio.Queue()
         conn._response_envelopes = queue  # noqa: SLF001
 
         request_envelope = _make_envelope()
@@ -581,15 +583,15 @@ class TestHandleDoneTask:
 
         conn._handle_done_task(task)
 
-        conn.logger.error.assert_called()
+        conn.logger.error.assert_called()  # type: ignore[attr-defined]
         # response_message is None after exception, so warning is logged
-        conn.logger.warning.assert_called_once()
+        conn.logger.warning.assert_called_once()  # type: ignore[attr-defined]
         assert queue.qsize() == 0
 
     def test_none_result(self) -> None:
         """Task returning None logs warning and does not enqueue."""
         conn = _make_connection()
-        queue = asyncio.Queue()
+        queue: asyncio.Queue[Any] = asyncio.Queue()
         conn._response_envelopes = queue  # noqa: SLF001
 
         request_envelope = _make_envelope()
@@ -599,7 +601,7 @@ class TestHandleDoneTask:
 
         conn._handle_done_task(task)
 
-        conn.logger.warning.assert_called_once()
+        conn.logger.warning.assert_called_once()  # type: ignore[attr-defined]
         assert queue.qsize() == 0
 
 
@@ -652,7 +654,7 @@ class TestCRUDSessionNone:
 
     @pytest.mark.asyncio
     async def test_create_no_session(self) -> None:
-        """create_ raises ValueError when session is None."""
+        """Method create_ raises ValueError when session is None."""
         conn = _make_connection()
         conn.session = None
         with pytest.raises(ValueError, match="Session not initialized"):
@@ -660,7 +662,7 @@ class TestCRUDSessionNone:
 
     @pytest.mark.asyncio
     async def test_read_no_session(self) -> None:
-        """read_ raises ValueError when session is None."""
+        """Method read_ raises ValueError when session is None."""
         conn = _make_connection()
         conn.session = None
         with pytest.raises(ValueError, match="Session not initialized"):
@@ -668,7 +670,7 @@ class TestCRUDSessionNone:
 
     @pytest.mark.asyncio
     async def test_update_no_session(self) -> None:
-        """update_ raises ValueError when session is None."""
+        """Method update_ raises ValueError when session is None."""
         conn = _make_connection()
         conn.session = None
         with pytest.raises(ValueError, match="Session not initialized"):
@@ -676,7 +678,7 @@ class TestCRUDSessionNone:
 
     @pytest.mark.asyncio
     async def test_delete_no_session(self) -> None:
-        """delete_ raises ValueError when session is None."""
+        """Method delete_ raises ValueError when session is None."""
         conn = _make_connection()
         conn.session = None
         with pytest.raises(ValueError, match="Session not initialized"):
@@ -706,7 +708,7 @@ class TestCRUDWithSession:
 
     @pytest.mark.asyncio
     async def test_create_success(self) -> None:
-        """create_ POSTs and returns JSON."""
+        """Method create_ POSTs and returns JSON."""
         conn = _make_connection()
         mock_ctx = self._mock_response(200, {"id": 1})
         conn.session = MagicMock()
@@ -720,7 +722,7 @@ class TestCRUDWithSession:
 
     @pytest.mark.asyncio
     async def test_read_success(self) -> None:
-        """read_ GETs and returns JSON."""
+        """Method read_ GETs and returns JSON."""
         conn = _make_connection()
         mock_ctx = self._mock_response(200, {"items": []})
         conn.session = MagicMock()
@@ -731,7 +733,7 @@ class TestCRUDWithSession:
 
     @pytest.mark.asyncio
     async def test_update_success(self) -> None:
-        """update_ PUTs and returns JSON."""
+        """Method update_ PUTs and returns JSON."""
         conn = _make_connection()
         mock_ctx = self._mock_response(200, {"updated": True})
         conn.session = MagicMock()
@@ -744,7 +746,7 @@ class TestCRUDWithSession:
 
     @pytest.mark.asyncio
     async def test_delete_success(self) -> None:
-        """delete_ DELETEs and returns JSON."""
+        """Method delete_ DELETEs and returns JSON."""
         conn = _make_connection()
         mock_ctx = self._mock_response(200, {"deleted": True})
         conn.session = MagicMock()

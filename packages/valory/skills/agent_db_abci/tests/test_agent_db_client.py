@@ -19,6 +19,8 @@
 
 """Tests for agent_db_client.py."""
 
+# pylint: disable=W0212,W0613,E1136,R0904,E1101
+
 import json
 from datetime import datetime, timezone
 from typing import Any, Generator
@@ -134,9 +136,7 @@ def _sign_gen():
     return sign_func
 
 
-# ---------------------------------------------------------------------------
-# Tests: __init__ and initialize
-# ---------------------------------------------------------------------------
+# --- Section: __init__ and initialize ---
 
 
 class TestAgentDBClientInit:
@@ -160,7 +160,7 @@ class TestAgentDBClientInit:
         assert client.address is None
         assert client.signing_func is None
         assert client.http_request_func is None
-        assert client._attribute_definition_cache == {}
+        assert not client._attribute_definition_cache
 
     def test_initialize(self) -> None:
         """Test initialize sets all external dependencies."""
@@ -198,9 +198,7 @@ class TestAgentDBClientInit:
         assert client.agent_name_template is None
 
 
-# ---------------------------------------------------------------------------
-# Tests: cast_attribute_value (non-generator)
-# ---------------------------------------------------------------------------
+# --- Section: cast_attribute_value (non-generator) ---
 
 
 class TestCastAttributeValue:
@@ -284,7 +282,7 @@ class TestAttributeDefinitionCache:
 
     def test_cache_starts_empty(self) -> None:
         """Test that cache starts empty."""
-        assert make_client()._attribute_definition_cache == {}
+        assert not make_client()._attribute_definition_cache
 
     def test_cache_can_be_populated(self) -> None:
         """Test that cache can be populated manually."""
@@ -293,9 +291,7 @@ class TestAttributeDefinitionCache:
         assert client._attribute_definition_cache[5].attr_name == "my_attr"
 
 
-# ---------------------------------------------------------------------------
-# Tests: _sign_request
-# ---------------------------------------------------------------------------
+# --- Section: _sign_request ---
 
 
 class TestSignRequest:
@@ -338,9 +334,7 @@ class TestSignRequest:
         assert "endpoint:/api/test" in result["message"]
 
 
-# ---------------------------------------------------------------------------
-# Tests: _request
-# ---------------------------------------------------------------------------
+# --- Section: _request ---
 
 
 class TestRequest:
@@ -481,9 +475,7 @@ class TestRequest:
         assert captured["parameters"] == {"skip": 0}
 
 
-# ---------------------------------------------------------------------------
-# Tests: _ensure_agent_instance
-# ---------------------------------------------------------------------------
+# --- Section: _ensure_agent_instance ---
 
 
 class TestEnsureAgentInstance:
@@ -544,9 +536,7 @@ class TestEnsureAgentInstance:
         assert client.agent is None
 
 
-# ---------------------------------------------------------------------------
-# Tests: _ensure_agent_type_definition
-# ---------------------------------------------------------------------------
+# --- Section: _ensure_agent_type_definition ---
 
 
 class TestEnsureAgentTypeDefinition:
@@ -572,9 +562,7 @@ class TestEnsureAgentTypeDefinition:
         assert client.agent_type is not None
 
 
-# ---------------------------------------------------------------------------
-# Tests: _ensure_agent_type_attribute_definition
-# ---------------------------------------------------------------------------
+# --- Section: _ensure_agent_type_attribute_definition ---
 
 
 class TestEnsureAgentTypeAttributeDefinition:
@@ -740,7 +728,7 @@ class TestAgentInstanceCRUD:
         client = make_client()
         client.http_request_func = _http_gen(_make_response(404))
         result = _exhaust(client.get_agent_instances_by_type_id(999))
-        assert result == []
+        assert not result
 
     def test_delete_agent_instance(self) -> None:
         """Test delete_agent_instance."""
@@ -845,7 +833,7 @@ class TestAttributeDefinitionCRUD:
         client = make_client()
         client.http_request_func = _http_gen(_make_response(404))
         result = _exhaust(client.get_attribute_definitions_by_agent_type(AGENT_TYPE))
-        assert result == []
+        assert not result
 
     def test_delete_attribute_definition(self) -> None:
         """Test delete_attribute_definition."""
@@ -1023,9 +1011,7 @@ class TestAttributeParsing:
         assert result[0]["attr_name"] == "my_attr"
 
 
-# ---------------------------------------------------------------------------
-# Tests: update_or_create_agent_attribute
-# ---------------------------------------------------------------------------
+# --- Section: update_or_create_agent_attribute ---
 
 
 class TestUpdateOrCreateAgentAttribute:

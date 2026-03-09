@@ -19,20 +19,17 @@
 
 """Tests for behaviour_classes/base.py."""
 
+# pylint: disable=protected-access,unused-argument,used-before-assignment,use-implicit-booleaness-not-comparison,useless-return
+
 import abc
 import json
 from datetime import datetime
-from typing import Any, Dict, Generator, Optional
-from unittest.mock import MagicMock, PropertyMock, patch
-
-import pytest
+from typing import Any
+from unittest.mock import MagicMock
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
     BASE_CHAIN_ID,
     CELO_CHAIN_ID,
-    HOUR_TO_SECONDS,
-    LIST_COUNT_TO_KEEP,
-    MAX_TWEET_CHARS,
     MemeooorrBaseBehaviour,
     is_tweet_valid,
 )
@@ -42,8 +39,6 @@ from .conftest import (
     MEME_FACTORY_ADDRESS_CELO,
     OLAS_TOKEN_ADDRESS_BASE,
     OLAS_TOKEN_ADDRESS_CELO,
-    SAFE_ADDRESS,
-    SENDER,
     SERVICE_REGISTRY_ADDRESS_BASE,
     SERVICE_REGISTRY_ADDRESS_CELO,
     make_mock_context,
@@ -280,7 +275,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test get_tweets_from_db returns empty list when no data."""
         behaviour = self._make_behaviour()
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -288,6 +283,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour.get_tweets_from_db(behaviour)
         next(gen)  # advance to yield
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -299,7 +295,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         behaviour = self._make_behaviour()
         tweets = [{"text": "hello", "id": "1"}]
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return {"tweets": json.dumps(tweets)}
 
@@ -307,6 +303,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour.get_tweets_from_db(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -317,7 +314,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test _read_json_from_kv returns default when no data."""
         behaviour = self._make_behaviour()
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -325,6 +322,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour._read_json_from_kv(behaviour, "test_key", {})
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -336,7 +334,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         behaviour = self._make_behaviour()
         data = {"key1": "value1"}
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return {"test_key": json.dumps(data)}
 
@@ -344,6 +342,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour._read_json_from_kv(behaviour, "test_key", {})
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -354,7 +353,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test _read_json_from_kv returns default for invalid JSON."""
         behaviour = self._make_behaviour()
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return {"test_key": "not-valid-json{"}
 
@@ -362,6 +361,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour._read_json_from_kv(behaviour, "test_key", [])
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -372,7 +372,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test _read_value_from_kv returns default when no data."""
         behaviour = self._make_behaviour()
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return None
 
@@ -382,6 +382,7 @@ class TestMemeooorrBaseBehaviourGenerators:
             behaviour, "test_key", "default"
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -392,7 +393,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test _read_value_from_kv returns stored value."""
         behaviour = self._make_behaviour()
 
-        def mock_read_kv(keys):
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
             return {"test_key": "stored_value"}
 
@@ -402,6 +403,7 @@ class TestMemeooorrBaseBehaviourGenerators:
             behaviour, "test_key", "default"
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -412,7 +414,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test _read_media_info_list returns empty list when no data."""
         behaviour = self._make_behaviour()
 
-        def mock_read_json(key, default):
+        def mock_read_json(key, default):  # type: ignore[no-untyped-def]
             yield
             return []
 
@@ -420,6 +422,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour._read_media_info_list(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -430,7 +433,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test _read_media_info_list returns empty list when data is not a list."""
         behaviour = self._make_behaviour()
 
-        def mock_read_json(key, default):
+        def mock_read_json(key, default):  # type: ignore[no-untyped-def]
             yield
             return "not a list"
 
@@ -438,6 +441,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour._read_media_info_list(behaviour)
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -450,11 +454,11 @@ class TestMemeooorrBaseBehaviourGenerators:
         behaviour.get_sync_timestamp = MagicMock(return_value=1700000000.0)
         write_calls = []
 
-        def mock_read_json(key, default):
+        def mock_read_json(key, default):  # type: ignore[no-untyped-def]
             yield
             return {}
 
-        def mock_write_kv(data):
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
             write_calls.append(data)
             yield
             return True
@@ -467,9 +471,9 @@ class TestMemeooorrBaseBehaviourGenerators:
         )
         # Step through the generator
         try:
-            val = next(gen)
+            next(gen)
             while True:
-                val = gen.send(None)
+                gen.send(None)
         except StopIteration:
             pass
 
@@ -482,7 +486,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test get_latest_agent_actions returns empty list when no actions."""
         behaviour = self._make_behaviour()
 
-        def mock_read_json(key, default):
+        def mock_read_json(key, default):  # type: ignore[no-untyped-def]
             yield
             return {}
 
@@ -490,6 +494,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour.get_latest_agent_actions(behaviour, "tweet_action")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
@@ -501,7 +506,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         behaviour = self._make_behaviour()
         actions = {"tweet_action": [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}]}
 
-        def mock_read_json(key, default):
+        def mock_read_json(key, default):  # type: ignore[no-untyped-def]
             yield
             return actions
 
@@ -511,10 +516,12 @@ class TestMemeooorrBaseBehaviourGenerators:
             behaviour, "tweet_action", limit=2
         )
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:
             result = e.value
+        assert result is not None
         assert len(result) == 2
         assert result == [{"a": 3}, {"a": 4}]
 
@@ -522,7 +529,7 @@ class TestMemeooorrBaseBehaviourGenerators:
         """Test get_latest_agent_actions returns empty list when value is not list."""
         behaviour = self._make_behaviour()
 
-        def mock_read_json(key, default):
+        def mock_read_json(key, default):  # type: ignore[no-untyped-def]
             yield
             return {"tweet_action": "not a list"}
 
@@ -530,6 +537,7 @@ class TestMemeooorrBaseBehaviourGenerators:
 
         gen = MemeooorrBaseBehaviour.get_latest_agent_actions(behaviour, "tweet_action")
         next(gen)
+        result = None
         try:
             gen.send(None)
         except StopIteration as e:

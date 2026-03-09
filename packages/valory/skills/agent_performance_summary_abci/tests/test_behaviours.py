@@ -19,12 +19,9 @@
 
 """Tests for the behaviours module of the agent_performance_summary_abci skill."""
 
-import pytest
+# pylint: disable=R0903
 
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    BaseBehaviour,
-)
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.agent_performance_summary_abci.behaviours import (
     AgentPerformanceSummaryRoundBehaviour,
     FETCH_FOR_LAST_DAYS,

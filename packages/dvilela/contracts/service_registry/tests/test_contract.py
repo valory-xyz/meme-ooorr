@@ -19,6 +19,8 @@
 
 """Tests for the ServiceRegistry contract."""
 
+# pylint: disable=redefined-outer-name
+
 from unittest.mock import MagicMock, patch
 
 import pytest

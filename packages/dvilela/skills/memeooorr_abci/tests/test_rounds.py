@@ -19,9 +19,10 @@
 
 """Tests for rounds.py."""
 
+# pylint: disable=too-few-public-methods,too-many-public-methods
+
 import json
-from dataclasses import asdict, dataclass
-from typing import Dict, FrozenSet, Optional, Set
+from dataclasses import dataclass
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
@@ -73,7 +74,6 @@ from packages.dvilela.skills.memeooorr_abci.rounds import (
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
-    CollectSameUntilThresholdRound,
     CollectionRound,
     DegenerateRound,
 )
@@ -466,6 +466,8 @@ class TestDataclassEncoder:
 
         @dataclass
         class Sample:
+            """Sample dataclass for testing."""
+
             name: str
             value: int
 
@@ -489,6 +491,8 @@ class TestDataclassEncoder:
 
         @dataclass
         class Sample:
+            """Sample dataclass for testing."""
+
             name: str
 
         encoder = DataclassEncoder()
@@ -2299,8 +2303,8 @@ class TestMemeooorrAbciApp:
 
     def test_db_pre_conditions(self) -> None:
         """Test DB pre-conditions."""
-        for round_cls in MemeooorrAbciApp.db_pre_conditions:
-            assert MemeooorrAbciApp.db_pre_conditions[round_cls] == set()
+        for _, pre_conditions in MemeooorrAbciApp.db_pre_conditions.items():
+            assert pre_conditions == set()
 
     def test_db_post_conditions(self) -> None:
         """Test DB post-conditions."""

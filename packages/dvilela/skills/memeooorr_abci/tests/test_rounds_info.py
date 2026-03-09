@@ -36,22 +36,22 @@ class TestRoundsInfo:
     def test_all_entries_have_name_and_description(self) -> None:
         """Test all entries have 'name' and 'description' keys."""
         for key, value in ROUNDS_INFO.items():
-            assert "name" in value, f"Missing 'name' for round: {key}"
-            assert "description" in value, f"Missing 'description' for round: {key}"
+            assert "name" in value, f"Missing 'name' for round: {key}"  # type: ignore[operator]
+            assert "description" in value, f"Missing 'description' for round: {key}"  # type: ignore[operator]
 
     def test_all_names_are_strings(self) -> None:
         """Test all name values are non-empty strings."""
         for key, value in ROUNDS_INFO.items():
-            assert isinstance(value["name"], str), f"name not str for round: {key}"
-            assert len(value["name"]) > 0, f"empty name for round: {key}"
+            assert isinstance(value["name"], str), f"name not str for round: {key}"  # type: ignore[index]
+            assert len(value["name"]) > 0, f"empty name for round: {key}"  # type: ignore[index]
 
     def test_all_descriptions_are_strings(self) -> None:
         """Test all description values are non-empty strings."""
         for key, value in ROUNDS_INFO.items():
             assert isinstance(
-                value["description"], str
+                value["description"], str  # type: ignore[index]
             ), f"description not str for round: {key}"
-            assert len(value["description"]) > 0, f"empty description for round: {key}"
+            assert len(value["description"]) > 0, f"empty description for round: {key}"  # type: ignore[index]
 
     def test_expected_round_keys_present(self) -> None:
         """Test that key round names from MemeooorrAbciApp are present."""

@@ -19,6 +19,8 @@
 
 """Tests for the rounds module of the agent_performance_summary_abci skill."""
 
+# pylint: disable=R0903
+
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (

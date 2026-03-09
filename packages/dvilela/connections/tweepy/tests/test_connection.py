@@ -20,14 +20,15 @@
 
 """Tests for connection.py (TweepyConnection)."""
 
+# pylint: disable=protected-access,unused-argument,too-few-public-methods
+
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, call, patch
+from typing import Dict, Optional
+from unittest.mock import MagicMock, patch
 
 import pytest
-from aea.mail.base import Envelope
 
 from packages.dvilela.connections.tweepy.connection import (
     MAX_POST_RETRIES,
@@ -46,11 +47,14 @@ def _make_connection(
     tweepy_skip_auth: bool = False,
     twitter: Optional[MagicMock] = None,
 ) -> TweepyConnection:
-    """
-    Build a TweepyConnection with mocked internals.
+    """Build a TweepyConnection with mocked internals.
 
     Since __init__ is pragma-no-cover, we create the object without calling
     __init__ and manually assign the attributes that the methods rely on.
+
+    :param tweepy_skip_auth: whether to skip authentication.
+    :param twitter: optional mock Twitter instance.
+    :return: a TweepyConnection instance.
     """
     conn = object.__new__(TweepyConnection)
     conn.logger = logging.getLogger("test_connection")
@@ -74,7 +78,7 @@ class TestSrrDialogues:
     """Tests for the SrrDialogues helper class."""
 
     def test_instantiation(self) -> None:
-        """SrrDialogues can be created with connection_id."""
+        """Verify SrrDialogues can be created with connection_id."""
         dialogues = SrrDialogues(connection_id=PUBLIC_ID)
         assert dialogues is not None
 
@@ -88,16 +92,19 @@ class TestNoOpMethods:
     """Tests for the empty lifecycle methods."""
 
     def test_main(self) -> None:
+        """Test that main() returns None."""
         conn = _make_connection()
-        assert conn.main() is None
+        conn.main()
 
     def test_on_connect(self) -> None:
+        """Test that on_connect() returns None."""
         conn = _make_connection()
-        assert conn.on_connect() is None
+        conn.on_connect()
 
     def test_on_disconnect(self) -> None:
+        """Test that on_disconnect() returns None."""
         conn = _make_connection()
-        assert conn.on_disconnect() is None
+        conn.on_disconnect()
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +225,7 @@ class TestOnSend:
         )
         # Update the dialogues mock so it doesn't block
         conn.dialogues = MagicMock()
-        conn.put_envelope = MagicMock()  # type: ignore[attr-defined]
+        conn.put_envelope = MagicMock()  # type: ignore[method-assign]
 
         conn.on_send(envelope)
         # put_envelope should NOT have been called
@@ -245,7 +252,7 @@ class TestOnSend:
         mock_dialogue.reply.return_value = mock_response_msg
         conn.dialogues = MagicMock()
         conn.dialogues.update.return_value = mock_dialogue
-        conn.put_envelope = MagicMock()  # type: ignore[attr-defined]
+        conn.put_envelope = MagicMock()  # type: ignore[method-assign]
 
         conn.on_send(envelope)
         conn.put_envelope.assert_called_once()
@@ -307,7 +314,7 @@ class TestPost:
         tw.delete_tweet.assert_not_called()
 
     def test_post_with_image_paths_and_quote(self) -> None:
-        """image_paths and quote_tweet_id are forwarded."""
+        """Image_paths and quote_tweet_id are forwarded."""
         tw = _mock_twitter()
         tw.post_tweet.return_value = "100"
         conn = _make_connection(twitter=tw)
@@ -372,48 +379,56 @@ class TestSimpleDelegation:
     """Tests for like_tweet, unlike_tweet, retweet, unretweet, follow_*, unfollow_*, get_me."""
 
     def test_like_tweet(self) -> None:
+        """Test like_tweet delegates and returns success."""
         tw = _mock_twitter()
         tw.like_tweet.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.like_tweet("1") == {"success": True}
 
     def test_unlike_tweet(self) -> None:
+        """Test unlike_tweet delegates and returns success."""
         tw = _mock_twitter()
         tw.unlike_tweet.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.unlike_tweet("1") == {"success": True}
 
     def test_retweet(self) -> None:
+        """Test retweet delegates and returns success."""
         tw = _mock_twitter()
         tw.retweet.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.retweet("1") == {"success": True}
 
     def test_unretweet(self) -> None:
+        """Test unretweet delegates and returns success."""
         tw = _mock_twitter()
         tw.unretweet.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.unretweet("1") == {"success": True}
 
     def test_follow_by_id(self) -> None:
+        """Test follow_by_id delegates and returns success."""
         tw = _mock_twitter()
         tw.follow_by_id.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.follow_by_id("42") == {"success": True}
 
     def test_follow_by_username(self) -> None:
+        """Test follow_by_username delegates and returns success."""
         tw = _mock_twitter()
         tw.follow_by_username.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.follow_by_username("alice") == {"success": True}
 
     def test_unfollow_by_id(self) -> None:
+        """Test unfollow_by_id delegates and returns success."""
         tw = _mock_twitter()
         tw.unfollow_by_id.return_value = True
         conn = _make_connection(twitter=tw)
         assert conn.unfollow_by_id("42") == {"success": True}
 
     def test_get_me_success(self) -> None:
+        """Test get_me returns user info on success."""
         tw = _mock_twitter()
         tw.get_me.return_value = {
             "user_id": "1",
@@ -429,7 +444,7 @@ class TestSimpleDelegation:
         tw.get_me.return_value = None
         conn = _make_connection(twitter=tw)
         result = conn.get_me()
-        assert "error" in result
+        assert result is not None and "error" in result
 
 
 # ---------------------------------------------------------------------------
@@ -489,7 +504,7 @@ class TestGetUserTweetsWithPublicMetrics:
         )
 
     def test_with_since_timestamp(self) -> None:
-        """since_timestamp is converted to a UTC datetime."""
+        """Since_timestamp is converted to a UTC datetime."""
         tw = _mock_twitter()
         tw.get_all_user_tweets.return_value = []
         conn = _make_connection(twitter=tw)

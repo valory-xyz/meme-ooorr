@@ -19,6 +19,8 @@
 
 """Tests for models.py."""
 
+# pylint: disable=protected-access
+
 from unittest.mock import MagicMock, patch
 
 from packages.dvilela.skills.memeooorr_abci.models import (

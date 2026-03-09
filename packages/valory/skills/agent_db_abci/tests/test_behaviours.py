@@ -19,6 +19,8 @@
 
 """Tests for behaviours.py."""
 
+# pylint: disable=C0415,R0901,W0212
+
 from unittest.mock import MagicMock, patch
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
