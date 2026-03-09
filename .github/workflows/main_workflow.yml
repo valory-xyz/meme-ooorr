@@ -122,6 +122,68 @@ jobs:
       - name: Check spelling
         run: tomte check-spelling
 
+  test:
+    continue-on-error: True
+    needs:
+      - lock_check
+      - copyright_and_dependencies_check
+      - linter_checks
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - if: matrix.os == 'ubuntu-24.04'
+        name: Install dependencies (ubuntu-24.04)
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install tomte[tox]==0.6.2
+          pip install --user --upgrade setuptools
+
+      - if: matrix.os == 'ubuntu-24.04'
+        name: Unit tests ubuntu-24.04
+        run: tox -e py${{ matrix.python-version }}-linux
+
+      - if: matrix.os == 'macos-15'
+        name: Install dependencies (macos-15)
+        run: |
+          pip install tomte[tox]==0.6.2
+
+      - if: matrix.os == 'macos-15'
+        name: Unit tests macos-15
+        run: tox -e py${{ matrix.python-version }}-darwin
+
+      - if: matrix.os == 'windows-2025'
+        name: Install dependencies (windows-2025)
+        run: |
+          pip install tomte[tox]==0.6.2
+
+      - if: matrix.os == 'windows-2025'
+        name: Unit tests windows-2025
+        run: tox -e py${{ matrix.python-version }}-win
+
+      - if: matrix.os == 'ubuntu-24.04'
+        name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+
   scan:
     name: gitleaks
     runs-on: ubuntu-24.04
