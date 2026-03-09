@@ -432,7 +432,9 @@ class AgentDBClient(Model):
         data_type = attribute_definition.data_type
 
         if data_type == "date":
-            attr_value = datetime.fromisoformat(attr_value).astimezone(timezone.utc)
+            attr_value = datetime.fromisoformat(
+                attr_value.replace("Z", "+00:00")
+            ).astimezone(timezone.utc)
         elif data_type == "json":
             pass
         elif data_type == "string":
