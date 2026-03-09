@@ -10,7 +10,7 @@ fingerprint:
   behaviours.py: bafybeiapclfprmrnn3nqtwvblr6pyvyhcghcj64mtfkotoy3jctkce4akm
   composition.py: bafybeigucjhzu4zaxj2kibhzshzneib33ljbkz6vg3hkj3ratjkwczf3pm
   dialogues.py: bafybeiafdqmah2jeff2xgc23ky6jprafp4supctq5vyhlvcxfejrjij3cu
-  fsm_specification.yaml: bafybeicbkr3543gfp52q2xspjs3nra6qqbhxzrpgh3pat4ehyhgnohszo4
+  fsm_specification.yaml: bafybeifqv2mgdsby45gkmvr5ioqvvdfjvklunk5thiuh7zmzhybgcj7ac4
   handlers.py: bafybeifrrhshan44befpkjbo6pp3qfvgqugaw2wt6jbcwdxzkzvudvks5u
   models.py: bafybeiapxquyvz2rw5dupza2avbqlpgcwihtf62np26fehcgfhzcq436da
 fingerprint_ignore_patterns: []
@@ -23,9 +23,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeih6bjalcohxytg6hj3doy5dhkxonrxpqgcnclyf6tnmuyfbom2usy
 - valory/transaction_settlement_abci:0.1.0:bafybeigivknq755rbnelrdemaz3vm4x7jkofvaskm34uh36pbbg6uiquo4
 - valory/termination_abci:0.1.0:bafybeiarjw4hhu2vf56yxqb4jh3kmk4hfxvqahygn6scc3rfnlogjkwwpe
-- dvilela/memeooorr_abci:0.1.0:bafybeiawrmaymzevgkprnzx23zwbh6yjchhiqbund3ove7rzcefeddvbfm
+- dvilela/memeooorr_abci:0.1.0:bafybeibafuqi726oz4jdesbjh7kzh3axs4q6wrwrls27bp6x3zydixs3ny
 - valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
-- valory/agent_performance_summary_abci:0.1.0:bafybeieghfrr643gln7ephwjnz2qwcny4tvpzawfwlfrejcndmxstgnceq
+- valory/agent_performance_summary_abci:0.1.0:bafybeietome3cw7tgvtprfxvmtlk6krqp6fefbbdwsqllu2fp3vo54xsja
 behaviours:
   main:
     args: {}

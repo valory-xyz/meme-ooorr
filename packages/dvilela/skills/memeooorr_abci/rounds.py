@@ -86,6 +86,7 @@ class Event(Enum):
     RETRY = "retry"
     SKIP = "skip"
     INVALID_AUTH = "invalid_auth"
+    NONE = "none"
 
 
 class SynchronizedData(BaseSynchronizedData):
@@ -715,7 +716,7 @@ class PostTxDecisionMakingRound(EventRoundBase):
     extended_requirements = ()
 
     # This needs to be mentioned for static checkers
-    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.ACTION , Event.MECH
+    # Event.DONE, Event.NONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.ACTION, Event.MECH
 
 
 class CallCheckpointRound(CollectSameUntilThresholdRound):
@@ -879,6 +880,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
         9. PostTxDecisionMakingRound
             - done: 15.
             - action: 6.
+            - none: 9.
             - no majority: 9.
             - round timeout: 9.
             - mech: 18.
@@ -995,6 +997,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
         PostTxDecisionMakingRound: {
             Event.DONE: FinishedToResetRound,
             Event.ACTION: ActionPreparationRound,
+            Event.NONE: PostTxDecisionMakingRound,
             Event.NO_MAJORITY: PostTxDecisionMakingRound,
             Event.ROUND_TIMEOUT: PostTxDecisionMakingRound,
             Event.MECH: FinishedForMechResponseRound,
