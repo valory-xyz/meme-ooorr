@@ -358,7 +358,6 @@ class AgentDBClient(Model):
     ) -> Optional[AttributeInstance]:
         """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_instance.attribute_id}"
-        payload = {f"{value_type}_value": value}
         payload = {
             "agent_id": agent_instance.agent_id,
             "attr_def_id": attribute_def.attr_def_id,

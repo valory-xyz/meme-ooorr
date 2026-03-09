@@ -66,7 +66,24 @@ class FinishedReadingRound(DegenerateRound):
 
 
 class AgentDBAbciApp(AbciApp[Event]):
-    """AgentDBAbciApp"""
+    """AgentDBAbciApp
+
+    Initial round: AgentDBRound
+
+    Initial states: {AgentDBRound}
+
+    Transition states:
+        0. AgentDBRound
+            - done: 1.
+            - no majority: 0.
+            - round timeout: 0.
+        1. FinishedReadingRound
+
+    Final states: {FinishedReadingRound}
+
+    Timeouts:
+        round timeout: 30.0
+    """
 
     initial_round_cls: AppState = AgentDBRound
     initial_states: Set[AppState] = {AgentDBRound}

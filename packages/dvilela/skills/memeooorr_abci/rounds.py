@@ -76,20 +76,14 @@ class Event(Enum):
     DONE = "done"
     NO_FUNDS = "no_funds"
     SETTLE = "settle"
-    REFINE = "refine"
     ERROR = "ERROR"
     NO_MAJORITY = "no_majority"
     ROUND_TIMEOUT = "round_timeout"
-    NOT_ENOUGH_FEEDBACK = "not_enough_feedback"
     WAIT = "wait"
-    NO_MEMES = "no_memes"
-    TO_DEPLOY = "to_deploy"
-    TO_ACTION_TWEET = "to_action_tweet"
     ACTION = "action"
     MISSING_TWEET = "missing_tweet"
     MECH = "mech"
     RETRY = "retry"
-    NONE = "none"
     SKIP = "skip"
     INVALID_AUTH = "invalid_auth"
 
@@ -823,7 +817,106 @@ class FinishedForMechResponseRound(DegenerateRound):
 
 
 class MemeooorrAbciApp(AbciApp[Event]):
-    """MemeooorrAbciApp"""
+    """MemeooorrAbciApp
+
+    Initial round: LoadDatabaseRound
+
+    Initial states: {ActionPreparationRound, CheckStakingRound, FailedMechRequestRound, FailedMechResponseRound, LoadDatabaseRound, PostMechResponseRound, PostTxDecisionMakingRound, PullMemesRound, TransactionLoopCheckRound}
+
+    Transition states:
+        0. LoadDatabaseRound
+            - done: 1.
+            - no majority: 0.
+            - round timeout: 0.
+            - invalid auth: 10.
+        1. CheckStakingRound
+            - done: 2.
+            - skip: 10.
+            - no majority: 1.
+            - round timeout: 1.
+        2. PullMemesRound
+            - done: 3.
+            - skip: 3.
+            - no majority: 2.
+            - round timeout: 2.
+        3. CollectFeedbackRound
+            - done: 4.
+            - ERROR: 4.
+            - no majority: 3.
+            - round timeout: 3.
+        4. EngageTwitterRound
+            - done: 5.
+            - invalid auth: 5.
+            - mech: 17.
+            - ERROR: 4.
+            - no majority: 4.
+            - round timeout: 4.
+        5. ActionDecisionRound
+            - done: 6.
+            - wait: 10.
+            - skip: 10.
+            - retry: 5.
+            - no majority: 5.
+            - round timeout: 5.
+        6. ActionPreparationRound
+            - done: 7.
+            - ERROR: 10.
+            - settle: 8.
+            - no majority: 6.
+            - round timeout: 6.
+        7. ActionTweetRound
+            - done: 10.
+            - ERROR: 10.
+            - missing tweet: 10.
+            - no majority: 7.
+            - round timeout: 7.
+        8. CheckFundsRound
+            - done: 16.
+            - no funds: 8.
+            - no majority: 8.
+            - round timeout: 8.
+            - skip: 15.
+        9. PostTxDecisionMakingRound
+            - done: 15.
+            - action: 6.
+            - no majority: 9.
+            - round timeout: 9.
+            - mech: 18.
+        10. CallCheckpointRound
+            - done: 15.
+            - settle: 16.
+            - round timeout: 10.
+            - no majority: 10.
+        11. PostMechResponseRound
+            - done: 4.
+            - no majority: 11.
+            - round timeout: 11.
+            - ERROR: 14.
+        12. TransactionLoopCheckRound
+            - done: 15.
+            - retry: 16.
+            - no majority: 12.
+            - round timeout: 12.
+        13. FailedMechRequestRound
+            - done: 4.
+            - no majority: 4.
+            - round timeout: 4.
+            - ERROR: 4.
+        14. FailedMechResponseRound
+            - done: 4.
+            - no majority: 4.
+            - round timeout: 4.
+            - ERROR: 4.
+        15. FinishedToResetRound
+        16. FinishedToSettlementRound
+        17. FinishedForMechRequestRound
+        18. FinishedForMechResponseRound
+
+    Final states: {FinishedForMechRequestRound, FinishedForMechResponseRound, FinishedToResetRound, FinishedToSettlementRound}
+
+    Timeouts:
+        round timeout: 30
+    """
 
     initial_round_cls: AppState = LoadDatabaseRound
     initial_states: Set[AppState] = {

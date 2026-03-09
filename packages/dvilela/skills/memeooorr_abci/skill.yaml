@@ -16,7 +16,7 @@ fingerprint:
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
   behaviour_classes/base.py: bafybeiecuabrrvpgvdclb3rzkuw6u6yggz4wjtqwzpnhz74nlg7t3ezuvi
-  behaviour_classes/chain.py: bafybeien2sho7pzkcdym7mnls6fhcbgd74ngkxkv2rg4mmbndc2ke4xcze
+  behaviour_classes/chain.py: bafybeie2thkq64mtthxj2mw7dnuwycfydd2gcqb6ufc2lk5ncoes6zndfy
   behaviour_classes/db.py: bafybeihf7jbo6mfkrqlukmmxx5b6uu4wsagotebnbiqexz4qxzl5lyvuoa
   behaviour_classes/llm.py: bafybeict6zq5zdsgkpzkzhxykxvupmcymcimfckbbnnbjmye3llpkkyu7u
   behaviour_classes/mech.py: bafybeidmcudz4gohnuavygwsqg7kenrdegs6yf6nidp4zn6bwrardzudpa
@@ -28,7 +28,7 @@ fingerprint:
   models.py: bafybeiblbn3ew5tpgl4hzcnzzh7khvkjuwkdx7pdtjyhqketeb4cvryk3e
   payloads.py: bafybeifrhbfqwrcxx2q5ekeioz7tl4xjkoirqy5s6tdpioa52b63qg7kva
   prompts.py: bafybeidewp7obapgoikok4vavwlgb6ewdqszq4h3l4jp3nrzqggdi2ttsi
-  rounds.py: bafybeiaep2q76lxmmmgaatu4gnsg7247tpfff2eqaan3znq6gi2zpargnq
+  rounds.py: bafybeigsgiz7lksvtd3qag5264oskct7u3hepibjwmolp2kn4npn3o7y7m
   rounds_info.py: bafybeihojp3e4oeldscpso2v4pwv2rw74sulasnihrejllhnlaazqxf4p4
 fingerprint_ignore_patterns: []
 connections:
@@ -53,7 +53,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeicehi2yqab3lldm7qzoqev3tmqrdk275sbtcabneyorhmzft76z7m
 - valory/transaction_settlement_abci:0.1.0:bafybeigivknq755rbnelrdemaz3vm4x7jkofvaskm34uh36pbbg6uiquo4
 - valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
-- valory/agent_db_abci:0.1.0:bafybeiatkzze24mjprk6xotncs5n3tysocenfiaiwczvhulafebagej7km
+- valory/agent_db_abci:0.1.0:bafybeig7svjrutxyv6ra2ipboiswy2wljktc4mfumafhblud3rlhly44hm
 - valory/funds_manager:0.1.0:bafybeih5k7v6zx7mtkdg4hkgmsyngkz66bbwmrpqqxccnhif666v2hzi6y
 behaviours:
   main:
