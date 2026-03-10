@@ -31,7 +31,7 @@ skills:
 - valory/termination_abci:0.1.0:bafybeiarjw4hhu2vf56yxqb4jh3kmk4hfxvqahygn6scc3rfnlogjkwwpe
 - dvilela/memeooorr_abci:0.1.0:bafybeigzfxtgdno6dxy3luibxlveardqn7poqguh55j6opv55izlb345hq
 - valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
-- valory/agent_performance_summary_abci:0.1.0:bafybeicd7dmamp3nzdj5kxpdcnsl2cg2agidsepbgfgialomjqpn5tvidq
+- valory/agent_performance_summary_abci:0.1.0:bafybeibk6ydaw44m3cbiomtvubu3lwtgxa3i6luvyxgbvbtxeub67bryiy
 behaviours:
   main:
     args: {}
