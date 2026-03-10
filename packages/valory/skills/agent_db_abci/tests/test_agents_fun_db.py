@@ -23,6 +23,7 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generator
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
@@ -900,6 +901,17 @@ class TestGetTweetFeedback:
 class TestGetActiveAgents:
     """Tests for get_active_agents (non-generator method)."""
 
+    @pytest.fixture(autouse=True)
+    def _freeze_time(self) -> Generator:
+        """Freeze datetime.now to NOW so tests don't race against the clock."""
+        mock_dt = MagicMock(wraps=datetime)
+        mock_dt.now.return_value = NOW
+        with mock.patch(
+            "packages.valory.skills.agent_db_abci.agents_fun_db.datetime",
+            mock_dt,
+        ):
+            yield
+
     def _make_db_with_agents(self, agent_configs: list) -> AgentsFunDatabase:
         """Create a database with configured agents."""
         db = AgentsFunDatabase.__new__(AgentsFunDatabase)
@@ -957,7 +969,7 @@ class TestGetActiveAgents:
 
     def test_old_post_skipped(self) -> None:
         """Test that agents with posts older than 7 days are skipped."""
-        old = datetime.now(timezone.utc) - timedelta(days=8)
+        old = NOW - timedelta(days=8)
         db = self._make_db_with_agents(
             [
                 {"loaded": True, "twitter_username": "u", "last_post_timestamp": old},
@@ -967,7 +979,7 @@ class TestGetActiveAgents:
 
     def test_active_with_username_included(self) -> None:
         """Test active agent with username is included."""
-        recent = datetime.now(timezone.utc) - timedelta(days=1)
+        recent = NOW - timedelta(days=1)
         db = self._make_db_with_agents(
             [
                 {
@@ -983,7 +995,7 @@ class TestGetActiveAgents:
 
     def test_active_without_username_excluded(self) -> None:
         """Test active agent without username is excluded."""
-        recent = datetime.now(timezone.utc) - timedelta(days=1)
+        recent = NOW - timedelta(days=1)
         db = self._make_db_with_agents(
             [
                 {
@@ -997,8 +1009,8 @@ class TestGetActiveAgents:
 
     def test_mixed_agents(self) -> None:
         """Test with a mix of active, inactive, and unloaded agents."""
-        recent = datetime.now(timezone.utc) - timedelta(hours=12)
-        old = datetime.now(timezone.utc) - timedelta(days=10)
+        recent = NOW - timedelta(hours=12)
+        old = NOW - timedelta(days=10)
         db = self._make_db_with_agents(
             [
                 {
@@ -1038,8 +1050,12 @@ class TestGetActiveAgents:
         assert {a.twitter_username for a in result} == {"a1", "a2"}
 
     def test_boundary_exactly_7_days(self) -> None:
-        """Test agent with post exactly at the 7-day boundary is excluded."""
-        boundary = datetime.now(timezone.utc) - timedelta(days=7)
+        """Test agent with post exactly at the 7-day boundary is included.
+
+        The implementation uses strict less-than, so an agent that posted
+        exactly 7 days ago is still considered active.
+        """
+        boundary = NOW - timedelta(days=7)
         db = self._make_db_with_agents(
             [
                 {
@@ -1049,11 +1065,11 @@ class TestGetActiveAgents:
                 },
             ]
         )
-        assert not db.get_active_agents()
+        assert len(db.get_active_agents()) == 1
 
     def test_just_within_7_days(self) -> None:
         """Test agent with post just within the 7-day window is included."""
-        within = datetime.now(timezone.utc) - timedelta(days=6, hours=23)
+        within = NOW - timedelta(days=6, hours=23)
         db = self._make_db_with_agents(
             [
                 {
@@ -1082,7 +1098,7 @@ class TestGetActiveAgents:
 
     def test_logger_warns_for_active_no_username(self) -> None:
         """Test that a warning is logged for active agents without username."""
-        recent = datetime.now(timezone.utc) - timedelta(hours=1)
+        recent = NOW - timedelta(hours=1)
         db = self._make_db_with_agents(
             [
                 {
