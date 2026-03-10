@@ -34,15 +34,15 @@ fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeihmppbeo5gh3w7gnr3vff6u4qlurt3dhxd4cn4mnrzyhnrxdr336u
 - dvilela/tweepy:0.1.0:bafybeidkx7lrvn6t43blc3ooydodjpuyj3f6c72sdjhgrn2ga7ockvlmzi
-- dvilela/genai:0.1.0:bafybeic3ydvjmb33addd5ye3et3xl4enhmoug4n4agmutz6xgan7rvpqiq
+- dvilela/genai:0.1.0:bafybeieuwwoww4scfzs7ljzlmotldu5jp24o4h235qy54ovliwxf6zjxai
 - valory/http_server:0.22.0:bafybeid4oqsfkqo36lryoecymjnq4whme3tgupqfq6m4l7lbr5r4yxtswu
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiamcgebbdbm3kzcvpeio4pjobzduz2cdlxrs7ufe4ere2zuompgwe
-- dvilela/meme_factory:0.1.0:bafybeic2vufaoxy45u62wgwmbra3fza6yjh6fylrlv344cpfrt3aq2sctq
-- dvilela/service_registry:0.1.0:bafybeihdlwrponava4wscis7wwi4ctwqh4k4v4nollej53t6lpg7qztljm
-- valory/staking_token:0.1.0:bafybeiai7ymajetb4ai6k6mwalqzyaddjx4dq5wr7ehrxs7iu45endnwby
-- valory/staking_activity_checker:0.1.0:bafybeibkikabwwayupto26mw7kjkgwwwucfll7hsr2c3aenghcuu54jy3a
-- valory/agent_mech:0.1.0:bafybeifamjf76fn3f7qjdv7jm5skrd4xcsnt43kq3zy6e5hnh6kwsjbjvq
+- valory/gnosis_safe:0.1.0:bafybeicdxmqeojifvejur3n464palfdgazhjnzrb7d6rbawyw6vop4ppuy
+- dvilela/meme_factory:0.1.0:bafybeifunn6vwh7ugl2edmvrs3nenpbugyhpfv77igxvsua76shp5bv2y4
+- dvilela/service_registry:0.1.0:bafybeidzgd6lj73dzrgs3svhmxscb3joujo2rxd2pzb7bfraes7crru2du
+- valory/staking_token:0.1.0:bafybeigpjrfxmxiji2p7utvtlju5yfrl6amvwx32n5pzz7guk5bylrct3i
+- valory/staking_activity_checker:0.1.0:bafybeied4vw3gcavvj7hkps2buwrvk3focrfvwwhritxvvbmspyf32rqxy
+- valory/agent_mech:0.1.0:bafybeielgw42wh6sucnquowlqqf3dbvzd7gj4r6vfn322t3i5pkxbbrwz4
 protocols:
 - valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
 - dvilela/kv_store:0.1.0:bafybeib3hyj6om7bdsqqhsc4ro3xdxijp2mk5da7ks4ipfgxiovtc3aqfm
@@ -50,11 +50,11 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicehi2yqab3lldm7qzoqev3tmqrdk275sbtcabneyorhmzft76z7m
-- valory/transaction_settlement_abci:0.1.0:bafybeigivknq755rbnelrdemaz3vm4x7jkofvaskm34uh36pbbg6uiquo4
-- valory/mech_interact_abci:0.1.0:bafybeiae75nslw4o7fgqnctigpxftj2y477hxgnuq5amqadxylsjx5fyse
-- valory/agent_db_abci:0.1.0:bafybeiatkzze24mjprk6xotncs5n3tysocenfiaiwczvhulafebagej7km
-- valory/funds_manager:0.1.0:bafybeih5k7v6zx7mtkdg4hkgmsyngkz66bbwmrpqqxccnhif666v2hzi6y
+- valory/abstract_round_abci:0.1.0:bafybeignxomufl7xwd23gtnmdezgbc4ufjsn2npchvqlomd7hxsfxf6ahq
+- valory/transaction_settlement_abci:0.1.0:bafybeifwkty66c2uxuusjwql4abjgnndsiu4gqgbugrn2dcmnziil7yoiq
+- valory/mech_interact_abci:0.1.0:bafybeiarch34l53dcrfxpfvrxqkq2dp3v5zwbrpj5lr3eyk6yhvap3lcae
+- valory/agent_db_abci:0.1.0:bafybeidysadu3qd3plzq4rarxrkjjhwo64l2abvq5hnxvy7udqnwleqr6q
+- valory/funds_manager:0.1.0:bafybeiarwo77murbzdagnkf7tjt3nemviofj5a3m3yyvbwux4imq7yxclq
 behaviours:
   main:
     args: {}
@@ -290,7 +290,7 @@ dependencies:
   requests:
     version: '>=2.28.1,<2.33.0'
   open-aea-ledger-ethereum:
-    version: '>=2.1.0rc6'
+    version: '>=2.1.0'
   pydantic:
     version: <3,>=2.11.9
 is_abstract: true
