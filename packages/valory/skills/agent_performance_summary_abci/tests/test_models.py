@@ -22,8 +22,8 @@
 # pylint: disable=W0212,E0237
 
 import json
-import os
 from pathlib import Path
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
@@ -187,17 +187,14 @@ class TestAgentPerformanceSummaryParams:
 
     def test_get_store_path_not_writable(self, tmp_path: Path) -> None:
         """Test get_store_path with non-writable directory raises ValueError."""
-        read_only_dir = tmp_path / "readonly"
-        read_only_dir.mkdir()
-        os.chmod(read_only_dir, 0o444)
+        writable_dir = tmp_path / "somedir"
+        writable_dir.mkdir()
         params = AgentPerformanceSummaryParams.__new__(AgentPerformanceSummaryParams)
-        try:
+        with mock.patch("os.access", return_value=False):
             with pytest.raises(
                 ValueError, match="is not a directory or is not writable"
             ):
-                params.get_store_path({"store_path": str(read_only_dir)})
-        finally:
-            os.chmod(read_only_dir, 0o755)  # nosec B103
+                params.get_store_path({"store_path": str(writable_dir)})
 
     def test_get_store_path_missing_key(self) -> None:
         """Test get_store_path with missing key uses empty string default."""
