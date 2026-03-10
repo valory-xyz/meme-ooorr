@@ -3281,13 +3281,13 @@ web3 = ">=7.0.0,<8"
 
 [[package]]
 name = "open-autonomy"
-version = "0.21.12"
+version = "0.21.13"
 description = "A framework for the creation of autonomous agent services."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "open_autonomy-0.21.12-py3-none-any.whl", hash = "sha256:fb35576ac8b2ba3c402d41ce2eea408c43087122f2207f8e0456aecb63362781"},
-    {file = "open_autonomy-0.21.12.tar.gz", hash = "sha256:081f601bbfa8ee3409a551d9a557d3d780a6b2345a3cdf64e12871adab325656"},
+    {file = "open_autonomy-0.21.13-py3-none-any.whl", hash = "sha256:bbb495faeb2a88f47a6f31806af41ae173e19ad82633fcb7e87111ae9260c7fa"},
+    {file = "open_autonomy-0.21.13.tar.gz", hash = "sha256:eedc9bf38f8b07368a4259088afd3064ed459b16360c34b2d55f5b94f7ada5c9"},
 ]
 
 [package.dependencies]
@@ -5700,4 +5700,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.15"
-content-hash = "51910b8252f2d3a23e3e207573558df2ee9f8282e2a0ad4e9fb257ff0e9b443a"
+content-hash = "6d6ee6107ca7fff1d9883867b1a3e5da0291d5b5392ee50651a2cb7f3a8655ad"
