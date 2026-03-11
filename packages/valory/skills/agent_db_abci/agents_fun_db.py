@@ -93,18 +93,6 @@ class AgentsFunAgent:
         self.follows: List[TwitterFollow] = []
         self.loaded = False
 
-    @classmethod
-    def register(cls, agent_name: str, client: AgentDBClient):
-        """Register agent"""
-        agent_type = yield from client.get_agent_type_by_type_name(MEMEOOORR)
-        agent_instance = yield from client.create_agent_instance(
-            agent_name=agent_name,
-            agent_type=agent_type,
-            eth_address=client.address,
-        )
-
-        return cls(client, agent_instance)
-
     def delete(self):
         """Delete agent instance"""
         yield from self.client.delete_agent_instance(self.agent_instance)

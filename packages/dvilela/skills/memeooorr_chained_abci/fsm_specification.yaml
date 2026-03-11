@@ -183,6 +183,7 @@ transition_func:
     (PostTxDecisionMakingRound, ACTION): ActionPreparationRound
     (PostTxDecisionMakingRound, DONE): ResetAndPauseRound
     (PostTxDecisionMakingRound, MECH): MechResponseRound
+    (PostTxDecisionMakingRound, NONE): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, NO_MAJORITY): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, ROUND_TIMEOUT): PostTxDecisionMakingRound
     (PullMemesRound, DONE): CollectFeedbackRound

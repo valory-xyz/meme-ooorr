@@ -853,7 +853,7 @@ class PostTxDecisionMakingBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            event = "None"
+            event = Event.NONE.value
 
             self.context.logger.info(
                 f"Checking the tx submitter is the current round: {self.synchronized_data.tx_submitter}"

@@ -20,18 +20,15 @@
 """This package contains round behaviours of AgentDBAbciApp."""
 
 from abc import ABC
-from typing import Set, Type, Any
-
+from typing import Any, Set, Type
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.agent_db_abci.rounds import (
-    AgentDBAbciApp,
-    AgentDBRound,
-)
+from packages.valory.skills.agent_db_abci.rounds import AgentDBAbciApp, AgentDBRound
+
 
 class AgentDBBehaviour(BaseBehaviour, ABC):
     """AgentDBBehaviour"""
@@ -60,4 +57,4 @@ class AgentDBRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = AgentDBBehaviour
     abci_app_cls = AgentDBAbciApp  # type: ignore
-    behaviours: Set[Type[BaseBehaviour]] = [AgentDBBehaviour]
+    behaviours: Set[Type[BaseBehaviour]] = {AgentDBBehaviour}

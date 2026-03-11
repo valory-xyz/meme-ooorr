@@ -18,7 +18,7 @@ fingerprint_ignore_patterns: []
 contracts: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiaalla55aprhvoumv4u7qt4v6l53fjmgln6wgyjr5e5tw7u4kscja
-- dvilela/memeooorr_abci:0.1.0:bafybeia7abgdigcsbwxxhinqplh4d6b4ix36hcsjzgctflep5fi2uwmz5e
+- dvilela/memeooorr_abci:0.1.0:bafybeic6sld5xi7lzomj3vtxgpwts5zkwprcpadp4zhx4tlpkuznopjcxe
 handlers:
   abci:
     args: {}
@@ -43,6 +43,9 @@ handlers:
     class_name: TendermintHandler
 behaviours: {}
 models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
   state:
     args: {}
     class_name: SharedState

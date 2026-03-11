@@ -44,11 +44,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeigspkourznaiagdkedyxjbjl6svhuhdwbvejr3jv3e3dil2hslose
 - valory/registration_abci:0.1.0:bafybeiayry7tzttlivibbfnwikilbgdl54g3btvc4uhl4x5qqdv6a673o4
 - valory/reset_pause_abci:0.1.0:bafybeibsdhil35py7zjhielonaycxo7gp34jfufe2ynprjv2etwxnzcxqy
-- dvilela/memeooorr_abci:0.1.0:bafybeia7abgdigcsbwxxhinqplh4d6b4ix36hcsjzgctflep5fi2uwmz5e
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeib2wlptmvkqf65hyugnxhro77h4ra52mdvkutzfkyao3ltvsznr6a
+- dvilela/memeooorr_abci:0.1.0:bafybeic6sld5xi7lzomj3vtxgpwts5zkwprcpadp4zhx4tlpkuznopjcxe
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeiftzv22gpp2sef3pxkosxar2tneya75d4f7anltivwjh26tbfubum
 - valory/mech_interact_abci:0.1.0:bafybeiduf3h73xhv4q5vbdn6ek2tyal3haym5of4mq2ucm2zhqbclr35le
-- valory/agent_db_abci:0.1.0:bafybeiczyxckg2hsn7tmxtncs2zlm55lk2fp3623wvninv5ssctuiohmqe
-- valory/agent_performance_summary_abci:0.1.0:bafybeial5ri556ulw7dcitsak5eejtg6a7p4ybgk42j7fvig2keaxsfiam
+- valory/agent_db_abci:0.1.0:bafybeihcrkwhrc7zt4ijemomhl4tfmpyeqnm3whujj6l4yxj73qai4jxqe
+- valory/agent_performance_summary_abci:0.1.0:bafybeiewpgxlo4yxlmidxnqizcvgf7z2c2lvo3gk7nqfjbrldpwpmnblci
 - valory/funds_manager:0.1.0:bafybeibid2nm7qoysj44foptkisf5ajguvacxsuoaix4og4ehotal47mcy
 default_ledger: ethereum
 required_ledgers:
