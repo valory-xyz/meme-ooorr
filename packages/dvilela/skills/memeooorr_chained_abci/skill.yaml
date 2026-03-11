@@ -313,5 +313,5 @@ dependencies:
   requests:
     version: '>=2.28.1,<2.33.0'
   open-aea-ledger-ethereum:
-    version: '>=2.1.0rc6'
+    version: '>=2.1.0'
 is_abstract: false
