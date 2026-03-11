@@ -65,8 +65,8 @@ jobs:
                 exit 1
             fi
             echo VERSION=$TAG> env.sh
-            echo AUTHOR=$(grep 'service/' packages/packages.json | awk -F/ '{print $2}' | head -1) >> env.sh
-            echo SERVICE=$(grep 'service/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
+            echo AUTHOR=$(grep 'service/valory/' packages/packages.json | awk -F/ '{print $2}' | head -1) >> env.sh
+            echo SERVICE=$(grep 'service/valory/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
             echo AGENT=$(grep 'agent/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
             echo DEFAULT_IMAGE_TAG=$(cat packages/packages.json | grep agent/ | awk -F: '{print $2}' | tr -d '", ' | head -n 1) >> env.sh
             cat env.sh
@@ -82,8 +82,7 @@ jobs:
             cd /work
             source env.sh || exit 1
             echo "Building images for $AUTHOR for service $SERVICE"
-            echo "TODO: Remove hardcoding of author to valory and use $AUTHOR"
-            autonomy init --reset --author valory --ipfs --remote
+            autonomy init --reset --author $AUTHOR --ipfs --remote
             autonomy fetch $AUTHOR/$SERVICE --service --local || exit 1
             cd $SERVICE || exit 1
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin || exit 1

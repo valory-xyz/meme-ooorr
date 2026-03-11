@@ -10,7 +10,8 @@
         "skill/valory/agent_db_abci/0.1.0": "bafybeiczyxckg2hsn7tmxtncs2zlm55lk2fp3623wvninv5ssctuiohmqe",
         "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeial5ri556ulw7dcitsak5eejtg6a7p4ybgk42j7fvig2keaxsfiam",
         "agent/dvilela/memeooorr/0.1.0": "bafybeieojhp4jpylzb444vdz5ug2vwcds7s3x7djqmhnsl624x3m6u3yfq",
-        "service/dvilela/memeooorr/0.1.0": "bafybeicxzihgqbagihlxaywif2tle3xofo3k7dj5eqgl5kj73gat2abwta"
+        "service/dvilela/memeooorr/0.1.0": "bafybeicxzihgqbagihlxaywif2tle3xofo3k7dj5eqgl5kj73gat2abwta",
+        "service/valory/memeooorr/0.1.0": "bafybeieg7b3nibgsebsk5222w26wtduqxbsjubaubxljbs7m3o333sejh4"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
