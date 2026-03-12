@@ -285,7 +285,7 @@ class TestPost:
         assert result == ["100", "200", "300"]
 
         # Second tweet should have reply_to set
-        calls = tw.post_tweet.call_args_list
+        calls = tw.post_tweet.call_args_list  # pylint: disable=no-member
         assert calls[1][1].get("in_reply_to_tweet_id") == "100"
         assert calls[2][1].get("in_reply_to_tweet_id") == "200"
 
@@ -323,7 +323,7 @@ class TestPost:
             tweets=[{"text": "t1", "image_paths": ["a.png"], "quote_tweet_id": "50"}]
         )
         assert result == ["100"]
-        tw.post_tweet.assert_called_once_with(
+        tw.post_tweet.assert_called_once_with(  # pylint: disable=no-member
             text="t1",
             image_paths=["a.png"],
             in_reply_to_tweet_id=None,

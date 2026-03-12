@@ -7,10 +7,11 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeicrwqrdownfmeyvvzu45fllxouiwvtynrzs5fhbpt3wndyyhn66eu
-  connection.py: bafybeidghrtkgowcxf5gzp5peqddokunrvvmvqrlmv6x5jgfll5wovkfja
+  connection.py: bafybeieemonxg4holmxt2yufy7b634dl4vfgyqew3fz7ha3iy3sc4jdbh4
   readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
   tests/__init__.py: bafybeiho5lb35xnjilzxrzy5jj2e2rnt6pccwy5qw52svzbsroevg54pmm
-  tests/test_connection.py: bafybeifpujaj4vbw4mfo64na4hi7gpgtt3drraifaeyjh4v5bydxvc7ey4
+  tests/conftest.py: bafybeigwj6wzhg6q2zcdlx3imt7op3nnyrgtdcbd5ikruforqfq5rwkp6i
+  tests/test_connection.py: bafybeia6gycpjqzalax7rq4oy6ez3uqavy6jp55cef4cb3ypjbyqrfrv5y
   tests/test_tweepy_wrapper.py: bafybeifoimijwnkfusxosc4bisycp53x4d7kqw23mcxqxihzioqrqx35lq
   tweepy_wrapper.py: bafybeihkzdmuetsdempakljiuaf5pzjhbccecqklqhhlnbeerdyl5lkfum
 fingerprint_ignore_patterns: []

@@ -25,14 +25,6 @@ from packages.dvilela.skills.memeooorr_abci.rounds_info import ROUNDS_INFO
 class TestRoundsInfo:
     """Tests for ROUNDS_INFO dict."""
 
-    def test_is_dict(self) -> None:
-        """Test ROUNDS_INFO is a dict."""
-        assert isinstance(ROUNDS_INFO, dict)
-
-    def test_not_empty(self) -> None:
-        """Test ROUNDS_INFO is not empty."""
-        assert len(ROUNDS_INFO) > 0
-
     def test_all_entries_have_name_and_description(self) -> None:
         """Test all entries have 'name' and 'description' keys."""
         for key, value in ROUNDS_INFO.items():

@@ -1084,3 +1084,213 @@ class TestUploadMedia:
             assert result is None
         finally:
             os.unlink(temp_path)
+
+    @pytest.mark.asyncio
+    async def test_upload_media_returns_none(self) -> None:
+        """Upload returns None media_id, exhausts retries."""
+        conn = _make_connection()
+        conn.client.upload_media = AsyncMock(return_value=None)
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            with patch(
+                "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+                return_value=0,
+            ), patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+                result = await conn.upload_media(temp_path)
+            assert result is None
+        finally:
+            os.unlink(temp_path)
+
+
+# ---------------------------------------------------------------------------
+# send + _handle_envelope (async dispatch pipeline)
+# ---------------------------------------------------------------------------
+
+
+class TestSendAndHandleEnvelope:
+    """Tests for send() and _handle_envelope()."""
+
+    @pytest.mark.asyncio
+    async def test_send_dispatches_and_queues_response(self) -> None:
+        """send() dispatches _get_response via task and queues result."""
+        conn = _make_connection()
+        object.__setattr__(conn, "_loop", asyncio.get_running_loop())
+
+        response_msg = SrrMessage(
+            performative=SrrMessage.Performative.RESPONSE,
+            payload="{}",
+            error=False,
+        )
+
+        async def mock_get_response(srr_message: Any, dialogue: Any) -> SrrMessage:
+            return response_msg
+
+        conn._get_response = mock_get_response  # type: ignore[assignment]
+
+        msg = _make_srr_request({"method": "search", "kwargs": {}})
+        msg.sender = "agent"
+        msg.to = str(PUBLIC_ID)
+
+        envelope = MagicMock()
+        envelope.message = msg
+        envelope.sender = str(PUBLIC_ID)
+        envelope.to = str(PUBLIC_ID)
+        envelope.context = None
+
+        await conn.send(envelope)
+
+        # Wait for the background task to complete
+        tasks = list(conn.task_to_request.keys())
+        assert len(tasks) == 1
+        await tasks[0]
+
+        # _handle_done_task callback should have queued the response
+        assert conn._response_envelopes is not None
+        assert not conn._response_envelopes.empty()
+
+
+# ---------------------------------------------------------------------------
+# _get_response rate-limit branch
+# ---------------------------------------------------------------------------
+
+
+class TestGetResponseRateLimit:
+    """Tests for _get_response rate-limit loop."""
+
+    def _setup_dialogue(self, conn: TwikitConnection, msg: SrrMessage) -> Any:
+        """Create a mock dialogue."""
+        msg.sender = "agent"
+        msg.to = str(PUBLIC_ID)
+
+        def _reply(**kwargs: Any) -> SrrMessage:
+            return SrrMessage(
+                performative=kwargs["performative"],
+                payload=kwargs["payload"],
+                error=kwargs.get("error", False),
+            )
+
+        dialogue = MagicMock()
+        dialogue.reply = _reply
+        return dialogue
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_sleep(self) -> None:
+        """Rate limit loop sleeps when last_call is recent."""
+        conn = _make_connection()
+        # Set last_call to now so the rate-limit loop fires
+        conn.last_call = datetime.now(timezone.utc)
+
+        msg = _make_srr_request({"method": "search", "kwargs": {"query": "test"}})
+        dialogue = self._setup_dialogue(conn, msg)
+
+        sleep_calls = []
+
+        def mock_sleep(seconds: float) -> None:
+            sleep_calls.append(seconds)
+            # After first sleep, advance last_call so loop exits
+            conn.last_call = datetime(2020, 1, 1, tzinfo=timezone.utc)
+
+        with patch.object(
+            conn, "search", new_callable=AsyncMock, return_value=[{"id": "1"}]
+        ), patch(
+            "packages.dvilela.connections.twikit.connection.time.sleep",
+            side_effect=mock_sleep,
+        ), patch(
+            "packages.dvilela.connections.twikit.connection.secrets.randbelow",
+            return_value=0,
+        ):
+            result = await conn._get_response(msg, dialogue)
+
+        # Verify the rate-limit sleep was called at least once
+        assert len(sleep_calls) >= 1
+        assert result.error is False
+
+
+# ---------------------------------------------------------------------------
+# twikit_login additional paths
+# ---------------------------------------------------------------------------
+
+
+class TestTwikitLoginAdditionalPaths:
+    """Tests for uncovered twikit_login paths."""
+
+    @pytest.mark.asyncio
+    async def test_login_validation_fails_triggers_relogin(self) -> None:
+        """Cookies load OK, but validate_login returns False → ValueError → re-login."""
+        conn = _make_connection(logged_in=False)
+        conn.cookies_path.parent.mkdir(parents=True, exist_ok=True)
+        conn.cookies_path.write_text("{}")
+        conn.client.login = AsyncMock()
+
+        validate_results = [False, True]
+
+        async def mock_validate() -> bool:
+            return validate_results.pop(0)
+
+        with patch.object(conn, "validate_login", side_effect=mock_validate):
+            await conn.twikit_login()
+
+        assert conn.logged_in is True
+
+    @pytest.mark.asyncio
+    async def test_relogin_validation_fails(self) -> None:
+        """Re-login succeeds but validate_login returns False → stays logged out."""
+        conn = _make_connection(logged_in=False)
+        conn.cookies_path.parent.mkdir(parents=True, exist_ok=True)
+        conn.cookies_path.write_text("{}")
+        conn.client.login = AsyncMock()
+
+        with patch.object(
+            conn,
+            "validate_login",
+            new_callable=AsyncMock,
+            return_value=False,
+        ):
+            await conn.twikit_login()
+
+        assert conn.logged_in is False
+
+
+# ---------------------------------------------------------------------------
+# post_tweet: create_tweet returns result with id=None
+# ---------------------------------------------------------------------------
+
+
+class TestPostTweetNullId:
+    """Tests for post_tweet when create_tweet returns a result with id=None."""
+
+    @pytest.mark.asyncio
+    async def test_post_tweet_null_tweet_id(self) -> None:
+        """create_tweet succeeds but result.id is None → retries exhaust → returns None."""
+        conn = _make_connection()
+        mock_result = MagicMock()
+        mock_result.id = None
+        conn.client.create_tweet = AsyncMock(return_value=mock_result)
+
+        result = await conn.post_tweet(text="hello")
+        assert result is None
+
+
+# ---------------------------------------------------------------------------
+# delete_tweet: all retries exhausted
+# ---------------------------------------------------------------------------
+
+
+class TestDeleteTweetAllRetriesFail:
+    """Tests for delete_tweet when all retries are exhausted."""
+
+    @pytest.mark.asyncio
+    async def test_delete_tweet_all_retries_exhausted(self) -> None:
+        """All delete retries fail — function completes without raising."""
+        conn = _make_connection()
+        conn.client.delete_tweet = AsyncMock(
+            side_effect=RuntimeError("persistent failure")
+        )
+
+        with patch("packages.dvilela.connections.twikit.connection.time.sleep"):
+            await conn.delete_tweet("tweet_123")
+
+        assert conn.client.delete_tweet.await_count == 5  # MAX_POST_RETRIES

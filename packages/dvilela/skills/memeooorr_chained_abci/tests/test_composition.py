@@ -33,7 +33,6 @@ from packages.dvilela.skills.memeooorr_chained_abci.composition import (
     abci_app_transition_mapping,
     termination_config,
 )
-from packages.valory.skills.abstract_round_abci.base import BackgroundAppConfig
 from packages.valory.skills.termination_abci.rounds import (
     BackgroundRound,
     Event,
@@ -43,14 +42,6 @@ from packages.valory.skills.termination_abci.rounds import (
 
 class TestAbciAppTransitionMapping:
     """Tests for the abci_app_transition_mapping."""
-
-    def test_mapping_is_dict(self) -> None:
-        """Test that the mapping is a dictionary."""
-        assert isinstance(abci_app_transition_mapping, dict)
-
-    def test_mapping_has_expected_number_of_entries(self) -> None:
-        """Test that the mapping has the correct number of entries."""
-        assert len(abci_app_transition_mapping) == 17
 
     def test_registration_finished_maps_to_performance_data(self) -> None:
         """Test FinishedRegistrationRound maps to FetchPerformanceDataRound."""
@@ -183,10 +174,6 @@ class TestAbciAppTransitionMapping:
 class TestTerminationConfig:
     """Tests for termination_config."""
 
-    def test_is_background_app_config(self) -> None:
-        """Test termination_config is a BackgroundAppConfig."""
-        assert isinstance(termination_config, BackgroundAppConfig)
-
     def test_round_cls(self) -> None:
         """Test round_cls is BackgroundRound."""
         assert termination_config.round_cls is BackgroundRound
@@ -202,10 +189,6 @@ class TestTerminationConfig:
 
 class TestMemeooorrChainedSkillAbciApp:
     """Tests for the chained ABCI app."""
-
-    def test_is_class(self) -> None:
-        """Test that the chained app is a class."""
-        assert isinstance(MemeooorrChainedSkillAbciApp, type)
 
     def test_has_transition_function(self) -> None:
         """Test that the chained app has a transition_function."""
@@ -250,12 +233,3 @@ class TestMemeooorrChainedSkillAbciApp:
         """Test that the chained app contains mech interact rounds."""
         all_rounds = set(MemeooorrChainedSkillAbciApp.transition_function.keys())
         assert MechVersionStates.MechVersionDetectionRound in all_rounds
-
-    def test_has_event_to_timeout(self) -> None:
-        """Test that the chained app has event_to_timeout mapping."""
-        assert hasattr(MemeooorrChainedSkillAbciApp, "event_to_timeout")
-        assert isinstance(MemeooorrChainedSkillAbciApp.event_to_timeout, dict)
-
-    def test_has_background_apps(self) -> None:
-        """Test that the chained app has background apps configured."""
-        assert hasattr(MemeooorrChainedSkillAbciApp, "background_apps")

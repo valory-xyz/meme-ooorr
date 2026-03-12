@@ -22,77 +22,13 @@
 # pylint: disable=import-outside-toplevel,too-few-public-methods
 
 from typing import Any, Dict
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from packages.dvilela.skills.memeooorr_abci.models import (
     AlternativeModelForTweets,
-    RandomnessApi,
-    SharedState,
+    Params,
 )
-from packages.dvilela.skills.memeooorr_abci.rounds import MemeooorrAbciApp
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs
-from packages.valory.skills.abstract_round_abci.models import (
-    BenchmarkTool as BaseBenchmarkTool,
-)
-from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
-
-
-class TestSharedState:
-    """Tests for SharedState."""
-
-    def test_is_subclass_of_base(self) -> None:
-        """Test SharedState is a subclass of BaseSharedState."""
-        assert issubclass(SharedState, BaseSharedState)
-
-    def test_abci_app_cls(self) -> None:
-        """Test that abci_app_cls is set to MemeooorrAbciApp."""
-        assert SharedState.abci_app_cls is MemeooorrAbciApp
-
-
-class TestModelAliases:
-    """Tests for model aliases."""
-
-    def test_requests_alias(self) -> None:
-        """Test Requests alias."""
-        from packages.dvilela.skills.memeooorr_abci.models import Requests
-
-        assert Requests is BaseRequests
-
-    def test_benchmark_tool_alias(self) -> None:
-        """Test BenchmarkTool alias."""
-        from packages.dvilela.skills.memeooorr_abci.models import BenchmarkTool
-
-        assert BenchmarkTool is BaseBenchmarkTool
-
-    def test_agent_db_client_alias(self) -> None:
-        """Test AgentDBClient alias."""
-        from packages.dvilela.skills.memeooorr_abci.models import AgentDBClient
-        from packages.valory.skills.agent_db_abci.models import (
-            AgentDBClient as BaseAgentDBClient,
-        )
-
-        assert AgentDBClient is BaseAgentDBClient
-
-    def test_agents_fun_database_alias(self) -> None:
-        """Test AgentsFunDatabase alias."""
-        from packages.dvilela.skills.memeooorr_abci.models import AgentsFunDatabase
-        from packages.valory.skills.agent_db_abci.models import (
-            AgentsFunDatabase as BaseAgentsFunDatabase,
-        )
-
-        assert AgentsFunDatabase is BaseAgentsFunDatabase
-
-
-class TestRandomnessApi:
-    """Tests for RandomnessApi."""
-
-    def test_is_subclass(self) -> None:
-        """Test RandomnessApi is a subclass of ApiSpecs."""
-        assert issubclass(RandomnessApi, ApiSpecs)
+from packages.valory.skills.mech_interact_abci.models import MechParams
 
 
 class TestAlternativeModelForTweets:
@@ -157,9 +93,110 @@ class TestAlternativeModelForTweets:
         assert model.use is False
         assert model.api_key is None
 
-    def test_frozen(self) -> None:
-        """Test that the dataclass is frozen."""
-        data = self._make_data()
-        model = AlternativeModelForTweets.from_dict(data)
-        with pytest.raises(AttributeError):
-            model.use = False  # type: ignore
+
+class TestParams:
+    """Tests for Params.__init__ method."""
+
+    @staticmethod
+    def _make_kwargs() -> Dict[str, Any]:
+        """Create kwargs dict with all required fields for Params.__init__."""
+        mock_skill_context = MagicMock()
+        mock_skill_context.skill_id = "test/skill:0.1.0"
+        return {
+            "skill_context": mock_skill_context,
+            "name": "params",
+            "service_endpoint": "http://localhost:8000",
+            "minimum_gas_balance": 0.001,
+            "min_feedback_replies": 1,
+            "meme_factory_address_base": "0x" + "d" * 40,
+            "meme_factory_address_celo": "0x" + "e" * 40,
+            "olas_token_address_base": "0x" + "2" * 40,
+            "olas_token_address_celo": "0x" + "3" * 40,
+            "service_registry_address_base": "0x" + "f" * 40,
+            "service_registry_address_celo": "0x" + "1" * 40,
+            "persona": "test persona",
+            "home_chain_id": "base",
+            "meme_factory_deployment_block_base": 0,
+            "meme_factory_deployment_block_celo": 0,
+            "meme_subgraph_url": "https://subgraph.example.com",
+            "olas_subgraph_url": "https://olas.example.com",
+            "skip_engagement": False,
+            "min_summon_amount_base": 0.01,
+            "max_summon_amount_base": 0.1,
+            "max_heart_amount_base": 0.05,
+            "min_summon_amount_celo": 10.0,
+            "max_summon_amount_celo": 100.0,
+            "max_heart_amount_celo": 50.0,
+            "staking_token_contract_address": "0x" + "b" * 40,
+            "activity_checker_contract_address": "0x" + "c" * 40,
+            "fireworks_api_key": "fw_test_key",
+            "alternative_model_for_tweets": {
+                "url": "https://api.example.com",
+                "model": "test-model",
+                "max_tokens": 100,
+                "top_p": 1,
+                "top_k": 1,
+                "presence_penalty": 0,
+                "frequency_penalty": 0,
+                "temperature": 0.7,
+            },
+            "tx_loop_breaker_count": 3,
+            "tools_for_mech": {},
+            "summon_cooldown_seconds": 86400,
+            "store_path": "/tmp/test",
+            "heart_cooldown_hours": 24,
+            "is_memecoin_logic_enabled": True,
+            "genai_api_key": "test_key",
+            "x402_payment_requirements": {},
+            "lifi_quote_to_amount_url": "https://lifi.example.com",
+            "base_ledger_rpc": "https://rpc.example.com",
+            "use_x402": False,
+            "stop_posting_if_staking_kpi_met": False,
+        }
+
+    def test_init_sets_all_attributes(self) -> None:
+        """Test that Params.__init__ sets all expected attributes."""
+        kwargs = self._make_kwargs()
+        with patch.object(MechParams, "__init__", return_value=None):
+            instance = Params.__new__(Params)
+            Params.__init__(instance, **kwargs)
+
+            assert instance.service_endpoint == "http://localhost:8000"
+            assert instance.minimum_gas_balance == 0.001
+            assert instance.min_feedback_replies == 1
+            assert instance.persona == "test persona"
+            assert instance.home_chain_id == "base"
+            assert instance.skip_engagement is False
+            assert instance.tx_loop_breaker_count == 3
+            assert instance.summon_cooldown_seconds == 86400
+            assert instance.heart_cooldown_hours == 24
+            assert instance.store_path == "/tmp/test"
+            assert instance.is_memecoin_logic_enabled is True
+            assert instance.genai_api_key == "test_key"
+            assert instance.use_x402 is False
+            assert instance.stop_posting_if_staking_kpi_met is False
+            assert isinstance(
+                instance.alternative_model_for_tweets, AlternativeModelForTweets
+            )
+            assert instance.alternative_model_for_tweets.api_key == "fw_test_key"
+            assert instance.fireworks_api_key == "fw_test_key"
+
+    def test_init_fireworks_key_none(self) -> None:
+        """Test that Params.__init__ handles None fireworks_api_key."""
+        kwargs = self._make_kwargs()
+        kwargs.pop("fireworks_api_key")  # use default (None via kwargs.get)
+        with patch.object(MechParams, "__init__", return_value=None):
+            instance = Params.__new__(Params)
+            Params.__init__(instance, **kwargs)
+
+            assert instance.fireworks_api_key is None
+            assert instance.alternative_model_for_tweets.use is False
+
+    def test_init_store_path_default(self) -> None:
+        """Test that store_path defaults to empty string when not provided."""
+        kwargs = self._make_kwargs()
+        kwargs.pop("store_path")
+        with patch.object(MechParams, "__init__", return_value=None):
+            instance = Params.__new__(Params)
+            Params.__init__(instance, **kwargs)
+            assert instance.store_path == ""

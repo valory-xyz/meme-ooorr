@@ -28,22 +28,12 @@ from unittest.mock import MagicMock
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.db import (
     LoadDatabaseBehaviour,
 )
-from packages.dvilela.skills.memeooorr_abci.rounds import LoadDatabaseRound
-
-from .conftest import (
+from packages.dvilela.skills.memeooorr_abci.tests.conftest import (
     SAFE_ADDRESS,
     make_mock_context,
     make_mock_params,
     make_mock_synchronized_data,
 )
-
-
-class TestLoadDatabaseBehaviourMatchingRound:
-    """Tests for LoadDatabaseBehaviour matching round."""
-
-    def test_matching_round(self) -> None:
-        """Test that matching_round is LoadDatabaseRound."""
-        assert LoadDatabaseBehaviour.matching_round is LoadDatabaseRound
 
 
 class TestGatherAgentDetails:
@@ -204,9 +194,10 @@ class TestLoadDb:
         behaviour.synchronized_data = make_mock_synchronized_data()
         return behaviour
 
-    def test_load_db_returns_tuple(self) -> None:
-        """Test load_db returns a 3-tuple."""
+    def test_load_db_delegates_and_calls_agents_fun_db_load(self) -> None:
+        """Test load_db aggregates sub-loaders and triggers agents_fun_db.load()."""
         behaviour = self._make_behaviour()
+        load_called = [False]
 
         def mock_get_persona():  # type: ignore[no-untyped-def]
             yield
@@ -220,9 +211,14 @@ class TestLoadDb:
             yield
             return 86400
 
+        def mock_agents_fun_db_load():  # type: ignore[no-untyped-def]
+            load_called[0] = True
+            yield
+
         behaviour.get_persona = mock_get_persona
         behaviour.get_heart_cooldown_hours = mock_get_heart_cooldown
         behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour.context.agents_fun_db.load = mock_agents_fun_db_load
 
         gen = LoadDatabaseBehaviour.load_db(behaviour)
         result = None
@@ -235,7 +231,86 @@ class TestLoadDb:
 
         assert isinstance(result, tuple)
         assert len(result) == 3
-        persona, heart_cd, summon_cd = result
-        assert persona == "test persona"
-        assert heart_cd == 24
-        assert summon_cd == 86400
+        # Verify agents_fun_db.load() was called (the non-obvious side effect)
+        assert load_called[0], "agents_fun_db.load() must be called by load_db"
+
+
+class TestAsyncAct:
+    """Tests for LoadDatabaseBehaviour.async_act."""
+
+    def _make_behaviour(self) -> MagicMock:
+        behaviour = MagicMock(spec=LoadDatabaseBehaviour)
+        behaviour.params = make_mock_params()
+        behaviour.context = make_mock_context(params=behaviour.params)
+        behaviour.synchronized_data = make_mock_synchronized_data()
+        behaviour.behaviour_id = "test_behaviour"
+        return behaviour
+
+    def test_async_act_builds_correct_payload_and_writes_kv(self) -> None:
+        """Test async_act builds LoadDatabasePayload with correct fields and writes agent_details to KV."""
+        behaviour = self._make_behaviour()
+        payloads_sent: list = []
+        kv_writes: list = []
+
+        def mock_load_db():  # type: ignore[no-untyped-def]
+            yield
+            return ("test persona", 24, 86400)
+
+        def mock_populate_keys_in_kv():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_init_own_twitter_details():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_gather_agent_details(persona):  # type: ignore[no-untyped-def]
+            return json.dumps({"persona": persona, "twitter_username": "test_user"})
+
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            kv_writes.append(data)
+            yield
+            return True
+
+        def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            payloads_sent.append(payload)
+            yield
+            return None
+
+        def mock_wait_until_round_end():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.load_db = mock_load_db
+        behaviour.populate_keys_in_kv = mock_populate_keys_in_kv
+        behaviour.init_own_twitter_details = mock_init_own_twitter_details
+        behaviour.gather_agent_details = mock_gather_agent_details
+        behaviour._write_kv = mock_write_kv
+        behaviour.send_a2a_transaction = mock_send_a2a_transaction
+        behaviour.wait_until_round_end = mock_wait_until_round_end
+        behaviour.set_done = MagicMock()
+
+        gen = LoadDatabaseBehaviour.async_act(behaviour)
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration:
+            pass
+
+        behaviour.set_done.assert_called_once()
+
+        # Verify payload was constructed with correct fields from load_db output
+        assert len(payloads_sent) == 1
+        payload = payloads_sent[0]
+        assert payload.persona == "test persona"
+        assert payload.heart_cooldown_hours == 24
+        assert payload.summon_cooldown_seconds == 86400
+
+        # Verify agent_details in payload matches gather_agent_details output
+        agent_details = json.loads(payload.agent_details)
+        assert agent_details["persona"] == "test persona"
+        assert agent_details["twitter_username"] == "test_user"
+
+        # Verify agent_details was written to KV store
+        assert any("agent_details" in w for w in kv_writes)

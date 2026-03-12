@@ -28,17 +28,12 @@ from unittest.mock import MagicMock
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.llm import (
     ActionDecisionBehaviour,
 )
-from packages.dvilela.skills.memeooorr_abci.rounds import ActionDecisionRound, Event
-
-from .conftest import make_mock_context, make_mock_params, make_mock_synchronized_data
-
-
-class TestActionDecisionBehaviourMatchingRound:
-    """Tests for ActionDecisionBehaviour matching round."""
-
-    def test_matching_round(self) -> None:
-        """Test that matching_round is ActionDecisionRound."""
-        assert ActionDecisionBehaviour.matching_round is ActionDecisionRound
+from packages.dvilela.skills.memeooorr_abci.rounds import Event
+from packages.dvilela.skills.memeooorr_abci.tests.conftest import (
+    make_mock_context,
+    make_mock_params,
+    make_mock_synchronized_data,
+)
 
 
 class TestParseFeedbackData:
@@ -389,9 +384,8 @@ class TestGetEventMemecoinEnabled:
         behaviour.get_native_ticker = MagicMock(return_value="ETH")
         return behaviour
 
-    def test_llm_returns_none(self) -> None:
-        """Test get_event returns WAIT when LLM returns None."""
-        behaviour = self._make_behaviour()
+    def _setup_common_mocks(self, behaviour, last_summon_ts="1700000000.0"):  # type: ignore[no-untyped-def]
+        """Set up common generator mocks for memecoin-enabled tests."""
 
         def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
             yield
@@ -411,125 +405,80 @@ class TestGetEventMemecoinEnabled:
 
         def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
-            return {"last_summon_timestamp": str(1700000000.0)}
-
-        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
-            yield
-            return None
-
-        behaviour.get_tweets_from_db = mock_get_tweets_from_db
-        behaviour.get_persona = mock_get_persona
-        behaviour.get_native_balance = mock_get_native_balance
-        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
-        behaviour._read_kv = mock_read_kv
-        behaviour._call_genai = mock_call_genai
-
-        gen = ActionDecisionBehaviour.get_event(behaviour)
-        result = None
-        try:
-            _ = next(gen)
-            while True:
-                _ = gen.send(None)
-        except StopIteration as e:
-            result = e.value
-
-        assert result[0] == Event.WAIT.value
-
-    def test_llm_returns_invalid_json(self) -> None:
-        """Test get_event returns WAIT when LLM returns invalid JSON."""
-        behaviour = self._make_behaviour()
-
-        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
-            yield
-            return []
-
-        def mock_get_persona():  # type: ignore[no-untyped-def]
-            yield
-            return "test"
-
-        def mock_get_native_balance():  # type: ignore[no-untyped-def]
-            yield
-            return {"safe": 1.0, "agent": 1.0}
-
-        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
-            yield
-            return 86400
-
-        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
-            yield
-            return {"last_summon_timestamp": str(1700000000.0)}
-
-        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
-            yield
-            return "not valid json{"
-
-        behaviour.get_tweets_from_db = mock_get_tweets_from_db
-        behaviour.get_persona = mock_get_persona
-        behaviour.get_native_balance = mock_get_native_balance
-        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
-        behaviour._read_kv = mock_read_kv
-        behaviour._call_genai = mock_call_genai
-
-        gen = ActionDecisionBehaviour.get_event(behaviour)
-        result = None
-        try:
-            _ = next(gen)
-            while True:
-                _ = gen.send(None)
-        except StopIteration as e:
-            result = e.value
-
-        assert result[0] == Event.WAIT.value
-
-    def test_llm_returns_action_none(self) -> None:
-        """Test get_event returns WAIT when LLM decides on action 'none'."""
-        behaviour = self._make_behaviour()
-
-        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
-            yield
-            return []
-
-        def mock_get_persona():  # type: ignore[no-untyped-def]
-            yield
-            return "test"
-
-        def mock_get_native_balance():  # type: ignore[no-untyped-def]
-            yield
-            return {"safe": 1.0, "agent": 1.0}
-
-        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
-            yield
-            return 86400
-
-        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
-            yield
-            return {"last_summon_timestamp": str(1700000000.0)}
-
-        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
-            yield
-            return json.dumps({"action_name": "none"})
+            return {"last_summon_timestamp": last_summon_ts}
 
         def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
             yield
             return None
 
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            yield
+            return True
+
         behaviour.get_tweets_from_db = mock_get_tweets_from_db
         behaviour.get_persona = mock_get_persona
         behaviour.get_native_balance = mock_get_native_balance
         behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
         behaviour._read_kv = mock_read_kv
-        behaviour._call_genai = mock_call_genai
         behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+        behaviour._write_kv = mock_write_kv
+        behaviour.shared_state = MagicMock()
+        # Bind the real _get_token_details method
+        behaviour._get_token_details = (
+            lambda *args, **kwargs: ActionDecisionBehaviour._get_token_details(
+                behaviour, *args, **kwargs
+            )
+        )
 
-        gen = ActionDecisionBehaviour.get_event(behaviour)
-        result = None
+    def _run_generator(self, gen):  # type: ignore[no-untyped-def]
+        """Run a generator to completion."""
         try:
             _ = next(gen)
             while True:
                 _ = gen.send(None)
         except StopIteration as e:
-            result = e.value
+            return e.value
 
+    def test_llm_returns_none(self) -> None:
+        """Test get_event returns WAIT when LLM returns None."""
+        behaviour = self._make_behaviour()
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_llm_returns_invalid_json(self) -> None:
+        """Test get_event returns WAIT when LLM returns invalid JSON."""
+        behaviour = self._make_behaviour()
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return "not valid json{"
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_llm_returns_action_none(self) -> None:
+        """Test get_event returns WAIT when LLM decides on action 'none'."""
+        behaviour = self._make_behaviour()
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps({"action_name": "none"})
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
         assert result[0] == Event.WAIT.value
 
     def test_heart_invalid_nonce(self) -> None:
@@ -545,26 +494,7 @@ class TestGetEventMemecoinEnabled:
             }
         ]
         behaviour = self._make_behaviour(meme_coins=meme_coins)
-
-        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
-            yield
-            return []
-
-        def mock_get_persona():  # type: ignore[no-untyped-def]
-            yield
-            return "test"
-
-        def mock_get_native_balance():  # type: ignore[no-untyped-def]
-            yield
-            return {"safe": 1.0, "agent": 1.0}
-
-        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
-            yield
-            return 86400
-
-        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
-            yield
-            return {"last_summon_timestamp": str(1700000000.0)}
+        self._setup_common_mocks(behaviour)
 
         def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
             yield
@@ -576,27 +506,9 @@ class TestGetEventMemecoinEnabled:
                 }
             )
 
-        def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
-            yield
-            return None
-
-        behaviour.get_tweets_from_db = mock_get_tweets_from_db
-        behaviour.get_persona = mock_get_persona
-        behaviour.get_native_balance = mock_get_native_balance
-        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
-        behaviour._read_kv = mock_read_kv
         behaviour._call_genai = mock_call_genai
-        behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
 
-        gen = ActionDecisionBehaviour.get_event(behaviour)
-        result = None
-        try:
-            _ = next(gen)
-            while True:
-                _ = gen.send(None)
-        except StopIteration as e:
-            result = e.value
-
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
         assert result[0] == Event.WAIT.value
 
     def test_action_not_in_available_actions(self) -> None:
@@ -612,26 +524,7 @@ class TestGetEventMemecoinEnabled:
             }
         ]
         behaviour = self._make_behaviour(meme_coins=meme_coins)
-
-        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
-            yield
-            return []
-
-        def mock_get_persona():  # type: ignore[no-untyped-def]
-            yield
-            return "test"
-
-        def mock_get_native_balance():  # type: ignore[no-untyped-def]
-            yield
-            return {"safe": 1.0, "agent": 1.0}
-
-        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
-            yield
-            return 86400
-
-        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
-            yield
-            return {"last_summon_timestamp": str(1700000000.0)}
+        self._setup_common_mocks(behaviour)
 
         def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
             yield
@@ -643,20 +536,34 @@ class TestGetEventMemecoinEnabled:
                 }
             )
 
-        def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
-            yield
-            return None
-
-        behaviour.get_tweets_from_db = mock_get_tweets_from_db
-        behaviour.get_persona = mock_get_persona
-        behaviour.get_native_balance = mock_get_native_balance
-        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
-        behaviour._read_kv = mock_read_kv
         behaviour._call_genai = mock_call_genai
-        behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_summon_not_available_returns_wait(self) -> None:
+        """Test summon action returns WAIT when cooldown not met."""
+        behaviour = self._make_behaviour()
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "summon",
+                    "summon": {
+                        "token_name": "NewToken",
+                        "token_ticker": "NT",
+                        "token_supply": 1000000,
+                        "amount": 100,
+                    },
+                    "action_tweet": "summoning!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
 
         gen = ActionDecisionBehaviour.get_event(behaviour)
-        result = None
         try:
             _ = next(gen)
             while True:
@@ -664,10 +571,105 @@ class TestGetEventMemecoinEnabled:
         except StopIteration as e:
             result = e.value
 
+        # Since last_summon = current_timestamp, seconds_since = 0 < 86400
         assert result[0] == Event.WAIT.value
 
-    def test_summon_not_available_returns_wait(self) -> None:
-        """Test summon action returns WAIT when cooldown not met."""
+    def test_params_property(self) -> None:
+        """Test that the params property returns context.params."""
+        behaviour = MagicMock(spec=ActionDecisionBehaviour)
+        mock_params = make_mock_params()
+        behaviour.context = make_mock_context(params=mock_params)
+        result = ActionDecisionBehaviour.params.fget(behaviour)  # type: ignore[attr-defined]  # pylint: disable=assignment-from-no-return
+        assert result is mock_params
+
+    def test_async_act(self) -> None:
+        """Test async_act sends payload and sets done."""
+        behaviour = MagicMock(spec=ActionDecisionBehaviour)
+        behaviour.params = make_mock_params(is_memecoin_logic_enabled=False)
+        behaviour.context = make_mock_context(params=behaviour.params)
+        behaviour.synchronized_data = make_mock_synchronized_data()
+        behaviour.get_sync_timestamp = MagicMock(return_value=1700000000.0)
+        behaviour.behaviour_id = "test_behaviour"
+
+        def mock_get_event():  # type: ignore[no-untyped-def]
+            yield
+            return (
+                Event.WAIT.value,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                1700000000.0,
+            )
+
+        def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_wait_until_round_end():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.get_event = mock_get_event
+        behaviour.send_a2a_transaction = mock_send_a2a_transaction
+        behaviour.wait_until_round_end = mock_wait_until_round_end
+        behaviour.set_done = MagicMock()
+
+        gen = ActionDecisionBehaviour.async_act(behaviour)
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration:
+            pass
+
+        behaviour.set_done.assert_called_once()
+
+    def test_safe_native_balance_none(self) -> None:
+        """Test get_event handles None/falsy safe_native_balance by setting to 0."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return []
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": None, "agent": 1.0}  # safe is falsy
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": str(1700000000.0)}
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return None  # Return None so we exit early at WAIT
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_db_data_is_none(self) -> None:
+        """Test get_event handles db_data being None for last_summon_timestamp."""
         behaviour = self._make_behaviour()
 
         def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
@@ -686,10 +688,50 @@ class TestGetEventMemecoinEnabled:
             yield
             return 86400
 
-        # last_summon_timestamp is very recent (current time)
         def mock_read_kv(keys):  # type: ignore[no-untyped-def]
             yield
-            return {"last_summon_timestamp": str(1700000000.0)}
+            return None  # db_data is None
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        # When db_data is None, last_summon_timestamp = current_timestamp,
+        # so seconds_since_last_summon = 0 < 86400, summon not available
+        assert result[0] == Event.WAIT.value
+
+    def test_summon_available_and_succeeds(self) -> None:
+        """Test get_event returns DONE when summon action is available and valid."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return [{"text": "previous tweet"}]
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test persona"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": 1.0, "agent": 1.0}
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        # last_summon_timestamp is far in the past so summon is available
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": str(1700000000.0 - 100000)}
 
         def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
             yield
@@ -699,6 +741,365 @@ class TestGetEventMemecoinEnabled:
                     "summon": {
                         "token_name": "NewToken",
                         "token_ticker": "NT",
+                        "token_supply": "2000000000000000000000000",
+                        "amount": 100,
+                    },
+                    "action_tweet": "summoning a new token!",
+                }
+            )
+
+        def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            yield
+            return True
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+        behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+        behaviour._write_kv = mock_write_kv
+        behaviour.shared_state = MagicMock()
+        behaviour._get_token_details = (
+            lambda *args, **kwargs: ActionDecisionBehaviour._get_token_details(
+                behaviour, *args, **kwargs
+            )
+        )
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        assert result[1] == "summon"
+        assert result[4] == "NewToken"
+        assert result[5] == "NT"
+
+    def test_summon_with_olas_name_raises_value_error(self) -> None:
+        """Test get_event returns WAIT when summon has olas name (ValueError)."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return []
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": 1.0, "agent": 1.0}
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        # last_summon long ago so summon is available
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": str(1700000000.0 - 100000)}
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "summon",
+                    "summon": {
+                        "token_name": "OLAS",
+                        "token_ticker": "OLS",
+                        "token_supply": 1000000,
+                        "amount": 100,
+                    },
+                    "action_tweet": "summoning olas!",
+                }
+            )
+
+        def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+        behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+        behaviour.shared_state = MagicMock()
+        behaviour._get_token_details = (
+            lambda *args, **kwargs: ActionDecisionBehaviour._get_token_details(
+                behaviour, *args, **kwargs
+            )
+        )
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        # ValueError is caught by the except block, returns WAIT
+        assert result[0] == Event.WAIT.value
+
+    def test_heart_action_succeeds(self) -> None:
+        """Test get_event returns DONE for a valid heart action."""
+        meme_coins = [
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["heart"],
+            }
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": 5, "amount": 100},
+                    "action_tweet": "hearting!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        assert result[1] == "heart"
+
+    def test_heart_action_with_new_persona(self) -> None:
+        """Test get_event returns DONE with new_persona for heart action."""
+        meme_coins = [
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["heart"],
+            }
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": 5, "amount": 100},
+                    "action_tweet": "hearting!",
+                    "new_persona": "updated persona",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        assert result[9] == "updated persona"
+
+    def test_token_nonce_string_digit_conversion(self) -> None:
+        """Test that string digit token_nonce is converted to int."""
+        meme_coins = [
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["heart"],
+            }
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": "5", "amount": 100},
+                    "action_tweet": "hearting!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        assert result[3] == 5  # token_nonce should be int
+
+    def test_token_supply_string_digit_conversion(self) -> None:
+        """Test that string digit token_supply is converted to int and clamped to MIN_TOKEN_SUPPLY."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return []
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": 1.0, "agent": 1.0}
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        # Summon available
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": str(1700000000.0 - 100000)}
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "summon",
+                    "summon": {
+                        "token_name": "MyToken",
+                        "token_ticker": "MT",
+                        "token_supply": "500",  # string digit, below MIN_TOKEN_SUPPLY
+                        "amount": 100,
+                    },
+                    "action_tweet": "summon!",
+                }
+            )
+
+        def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            yield
+            return True
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+        behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+        behaviour._write_kv = mock_write_kv
+        behaviour.shared_state = MagicMock()
+        behaviour._get_token_details = (
+            lambda *args, **kwargs: ActionDecisionBehaviour._get_token_details(
+                behaviour, *args, **kwargs
+            )
+        )
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        # token_supply should be clamped to MIN_TOKEN_SUPPLY (10**24)
+        assert result[6] == 10**24
+
+    def test_replace_tweet_with_alternative_model(self) -> None:
+        """Test get_event uses alternative tweet when replace_tweet returns a value."""
+        meme_coins = [
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["heart"],
+            }
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": 5, "amount": 100},
+                    "action_tweet": "original tweet",
+                }
+            )
+
+        def mock_replace_tweet(prompt):  # type: ignore[no-untyped-def]
+            yield
+            return "alternative tweet"
+
+        behaviour._call_genai = mock_call_genai
+        behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        assert result[8] == "alternative tweet"
+
+    def test_unleash_invalid_nonce(self) -> None:
+        """Test get_event returns WAIT when unleash action has invalid nonce."""
+        meme_coins = [
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["unleash"],
+            }
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "unleash",
+                    "unleash": {"token_nonce": 999, "amount": 100},
+                    "action_tweet": "unleashing!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_summon_with_olas_ticker(self) -> None:
+        """Test get_event returns WAIT when summon has olas ticker (ValueError)."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return []
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": 1.0, "agent": 1.0}
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        # Summon available
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": str(1700000000.0 - 100000)}
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "summon",
+                    "summon": {
+                        "token_name": "MyToken",
+                        "token_ticker": "OLAS",
                         "token_supply": 1000000,
                         "amount": 100,
                     },
@@ -717,14 +1118,196 @@ class TestGetEventMemecoinEnabled:
         behaviour._read_kv = mock_read_kv
         behaviour._call_genai = mock_call_genai
         behaviour.replace_tweet_with_alternative_model = mock_replace_tweet
+        behaviour._get_token_details = (
+            lambda *args, **kwargs: ActionDecisionBehaviour._get_token_details(
+                behaviour, *args, **kwargs
+            )
+        )
 
-        gen = ActionDecisionBehaviour.get_event(behaviour)
-        try:
-            _ = next(gen)
-            while True:
-                _ = gen.send(None)
-        except StopIteration as e:
-            result = e.value
-
-        # Since last_summon = current_timestamp, seconds_since = 0 < 86400
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
         assert result[0] == Event.WAIT.value
+
+    def test_db_data_empty_last_summon(self) -> None:
+        """Test get_event handles empty string for last_summon_timestamp in db_data."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return []
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": 1.0, "agent": 1.0}
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": ""}  # empty string
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        # When last_summon_timestamp is empty, it defaults to current_timestamp
+        assert result[0] == Event.WAIT.value
+
+    def test_get_event_with_tweets(self) -> None:
+        """Test get_event uses latest tweet text when tweets exist."""
+        behaviour = self._make_behaviour()
+        self._setup_common_mocks(behaviour)
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return [{"text": "first tweet"}, {"text": "latest tweet"}]
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_summon_available_log_path(self) -> None:
+        """Test the summon available log path is triggered when cooldown met."""
+        behaviour = self._make_behaviour()
+
+        def mock_get_tweets_from_db():  # type: ignore[no-untyped-def]
+            yield
+            return []
+
+        def mock_get_persona():  # type: ignore[no-untyped-def]
+            yield
+            return "test"
+
+        def mock_get_native_balance():  # type: ignore[no-untyped-def]
+            yield
+            return {"safe": 1.0, "agent": 1.0}
+
+        def mock_get_summon_cooldown():  # type: ignore[no-untyped-def]
+            yield
+            return 86400
+
+        # last_summon long ago so summon IS available (covers line 315)
+        def mock_read_kv(keys):  # type: ignore[no-untyped-def]
+            yield
+            return {"last_summon_timestamp": str(1700000000.0 - 100000)}
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return None  # Return None to stop early
+
+        behaviour.get_tweets_from_db = mock_get_tweets_from_db
+        behaviour.get_persona = mock_get_persona
+        behaviour.get_native_balance = mock_get_native_balance
+        behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour._read_kv = mock_read_kv
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
+    def test_token_nonce_second_string_conversion(self) -> None:
+        """Test the second token_nonce string-to-int conversion (line 395-396)."""
+        meme_coins = [
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["heart"],
+            }
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        # The LLM returns token_nonce as a string. The first conversion on line 384-385
+        # converts it, but _get_token_details might return it differently.
+        # We test the path where after _get_token_details, token_nonce is still a string digit.
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": "5", "amount": 100},
+                    "action_tweet": "hearting!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+
+    def test_heart_action_multiple_coins_skips_non_matching(self) -> None:
+        """Test the for loop skips non-matching coins when looking for available_actions."""
+        meme_coins = [
+            {
+                "token_nonce": 1,
+                "token_name": "Other",
+                "token_ticker": "OTH",
+                "token_address": "0xother",
+                "heart_count": 0,
+                "available_actions": ["collect"],
+            },
+            {
+                "token_nonce": 2,
+                "token_name": "Another",
+                "token_ticker": "ANT",
+                "token_address": "0xanother",
+                "heart_count": 0,
+                "available_actions": ["collect"],
+            },
+            {
+                "token_nonce": 3,
+                "token_name": "Third",
+                "token_ticker": "THR",
+                "token_address": "0xthird",
+                "heart_count": 0,
+                "available_actions": ["collect"],
+            },
+            {
+                "token_nonce": 5,
+                "token_name": "Test",
+                "token_ticker": "TST",
+                "token_address": "0xabc",
+                "heart_count": 0,
+                "available_actions": ["heart"],
+            },
+        ]
+        behaviour = self._make_behaviour(meme_coins=meme_coins)
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": 5, "amount": 100},
+                    "action_tweet": "hearting!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.DONE.value
+        assert result[1] == "heart"

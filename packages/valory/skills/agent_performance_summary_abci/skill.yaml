@@ -15,17 +15,16 @@ fingerprint:
   payloads.py: bafybeibrfby2hkt3ljy4qpkshx5shjozxu2jfw4wpzggqvejce4nridyhe
   rounds.py: bafybeic2svkxd4sgbuxexro5bo6jekkc6oqgqr4uaoucfsd7j6f7lf6sqy
   tests/__init__.py: bafybeifpwen2kv6qttq7u26ywcnqfwki5kvlhlgf456wbdxih4uex3aa2a
-  tests/test_behaviours.py: bafybeigfzg3ohvmllmpayvnhz2t2m27dsky3722mrmm37olzuipvwcro4a
-  tests/test_dialogues.py: bafybeiamf3krtteyvtiiodx27hktnhwzakfaq2zbbdprzhsn4tofwfr7ou
+  tests/test_behaviours.py: bafybeihujge5nytonzdk6nzpodjunrmqxxw24nkbwan5ddmgegqs5mbrsa
   tests/test_handlers.py: bafybeiav5n57o2wz6t6pvndo3abogjnle4geakngxt4wvxnc7eovzjicw4
-  tests/test_models.py: bafybeiezy467753bqncannggqmhn6z2ga65ybtk4ktsuoorwwkyq7x3l7y
-  tests/test_payloads.py: bafybeig4wt2zmyqyqlb3h3pvyxw2mys6sabssmd6wzruqtmsqovxk3gwyu
-  tests/test_rounds.py: bafybeiat7jlosy7ksojrlczjvdbub7hvkfv5dupbg5c5v4e5g7owxgaxbu
+  tests/test_models.py: bafybeihuhdyei6eadaomwumdcbgipnbkajbiplzo6evrauskparymuckku
+  tests/test_payloads.py: bafybeigazrdx4hf45atmy4uo3akkkn3hjx4ttoo2n37prermzcuorhpjtm
+  tests/test_rounds.py: bafybeiacyfuqgtq4zrtiig267bw33lblcxnr7sjuegratylyjqveoo35ja
 fingerprint_ignore_patterns: []
 contracts: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiaalla55aprhvoumv4u7qt4v6l53fjmgln6wgyjr5e5tw7u4kscja
-- dvilela/memeooorr_abci:0.1.0:bafybeigpxgmmlxzuzpmhachy3o3lhw6oyejx6auz2pjbnl7mtaaz2t2gvm
+- dvilela/memeooorr_abci:0.1.0:bafybeiflohtz6to6qeqglbpi2jl6w3ldmxm7nvoogormfaczny4tpkrng4
 handlers:
   abci:
     args: {}

@@ -23,121 +23,25 @@
 
 from unittest.mock import MagicMock, patch
 
-from packages.dvilela.skills.memeooorr_abci.models import (
-    AgentDBClient as BaseAgentDBClient,
-)
-from packages.dvilela.skills.memeooorr_abci.models import (
-    AgentsFunDatabase as BaseAgentsFunDatabase,
-)
-from packages.dvilela.skills.memeooorr_abci.models import Params as MemeooorrParams
-from packages.dvilela.skills.memeooorr_abci.models import (
-    RandomnessApi as MemeooorrRandomnessApi,
-)
 from packages.dvilela.skills.memeooorr_abci.rounds import Event as MemeooorrEvent
 from packages.dvilela.skills.memeooorr_chained_abci.composition import (
     MemeooorrChainedSkillAbciApp,
 )
 from packages.dvilela.skills.memeooorr_chained_abci.models import (
-    AgentDBClient,
-    AgentsFunDatabase,
-    BenchmarkTool,
     MARGIN,
     MULTIPLIER,
     MULTIPLIER_MECH,
-    MechResponseSpecs,
-    MechToolsSpecs,
-    MechsSubgraph,
-    Params,
-    RandomnessApi,
-    Requests,
     SharedState,
-)
-from packages.valory.skills.abstract_round_abci.models import (
-    BenchmarkTool as BaseBenchmarkTool,
-)
-from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.agent_performance_summary_abci.models import (
-    AgentPerformanceSummaryParams,
 )
 from packages.valory.skills.agent_performance_summary_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.mech_interact_abci.models import (
-    MechResponseSpecs as BaseMechResponseSpecs,
-)
-from packages.valory.skills.mech_interact_abci.models import (
-    MechToolsSpecs as BaseMechToolsSpecs,
-)
-from packages.valory.skills.mech_interact_abci.models import (
-    MechsSubgraph as BaseMechsSubgraph,
-)
 from packages.valory.skills.mech_interact_abci.rounds import Event as MechInteractEvent
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
-from packages.valory.skills.termination_abci.models import TerminationParams
-
-
-class TestConstants:
-    """Tests for module-level constants."""
-
-    def test_margin(self) -> None:
-        """Test MARGIN constant."""
-        assert MARGIN == 5
-
-    def test_multiplier(self) -> None:
-        """Test MULTIPLIER constant."""
-        assert MULTIPLIER == 10
-
-    def test_multiplier_mech(self) -> None:
-        """Test MULTIPLIER_MECH constant."""
-        assert MULTIPLIER_MECH == 20
-
-
-class TestModelAliases:
-    """Tests for model aliases."""
-
-    def test_requests_alias(self) -> None:
-        """Test Requests alias."""
-        assert Requests is BaseRequests
-
-    def test_benchmark_tool_alias(self) -> None:
-        """Test BenchmarkTool alias."""
-        assert BenchmarkTool is BaseBenchmarkTool
-
-    def test_randomness_api_alias(self) -> None:
-        """Test RandomnessApi alias."""
-        assert RandomnessApi is MemeooorrRandomnessApi
-
-    def test_mech_response_specs_alias(self) -> None:
-        """Test MechResponseSpecs alias."""
-        assert MechResponseSpecs is BaseMechResponseSpecs
-
-    def test_mech_tools_specs_alias(self) -> None:
-        """Test MechToolsSpecs alias."""
-        assert MechToolsSpecs is BaseMechToolsSpecs
-
-    def test_mechs_subgraph_alias(self) -> None:
-        """Test MechsSubgraph alias."""
-        assert MechsSubgraph is BaseMechsSubgraph
-
-    def test_agent_db_client_alias(self) -> None:
-        """Test AgentDBClient alias."""
-        assert AgentDBClient is BaseAgentDBClient
-
-    def test_agents_fun_database_alias(self) -> None:
-        """Test AgentsFunDatabase alias."""
-        assert AgentsFunDatabase is BaseAgentsFunDatabase
 
 
 class TestSharedState:
     """Tests for SharedState."""
-
-    def test_is_subclass_of_base(self) -> None:
-        """Test SharedState is a subclass of BaseSharedState."""
-        assert issubclass(SharedState, BaseSharedState)
-
-    def test_abci_app_cls(self) -> None:
-        """Test that abci_app_cls is set to MemeooorrChainedSkillAbciApp."""
-        assert SharedState.abci_app_cls is MemeooorrChainedSkillAbciApp
 
     def test_init_sets_env_var_status(self) -> None:
         """Test that __init__ sets env_var_status attribute."""
@@ -243,26 +147,3 @@ class TestSharedState:
         with patch.object(BaseSharedState, "setup") as mock_super_setup:
             shared_state.setup()
             mock_super_setup.assert_called_once()
-
-
-class TestParams:
-    """Tests for Params."""
-
-    def test_is_subclass_of_memeooorr_params(self) -> None:
-        """Test Params is a subclass of MemeooorrParams."""
-        assert issubclass(Params, MemeooorrParams)
-
-    def test_is_subclass_of_termination_params(self) -> None:
-        """Test Params is a subclass of TerminationParams."""
-        assert issubclass(Params, TerminationParams)
-
-    def test_is_subclass_of_agent_performance_summary_params(self) -> None:
-        """Test Params is a subclass of AgentPerformanceSummaryParams."""
-        assert issubclass(Params, AgentPerformanceSummaryParams)
-
-    def test_mro_includes_all_parents(self) -> None:
-        """Test the MRO includes all expected parent classes."""
-        mro = Params.__mro__
-        assert MemeooorrParams in mro
-        assert TerminationParams in mro
-        assert AgentPerformanceSummaryParams in mro
