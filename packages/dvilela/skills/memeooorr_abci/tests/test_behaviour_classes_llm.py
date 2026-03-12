@@ -370,7 +370,7 @@ class TestGetEventMemecoinDisabled:
         assert new_persona == "new personality"
 
 
-class TestGetEventMemecoinEnabled:
+class TestGetEventMemecoinEnabled:  # pylint: disable=too-many-public-methods
     """Tests for get_event when memecoin logic is enabled."""
 
     def _make_behaviour(self, meme_coins: Optional[List] = None) -> MagicMock:
