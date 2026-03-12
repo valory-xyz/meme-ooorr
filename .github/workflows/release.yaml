@@ -30,14 +30,10 @@ jobs:
             autonomy init --reset --author $AUTHOR --ipfs --remote
             autonomy push-all
   publish-images:
-    name: Publish Docker Images
-    runs-on: ${{ matrix.os }}
+    name: Publish Docker Images (amd64)
+    runs-on: ubuntu-24.04
     needs:
       - "publish-packages"
-    strategy:
-      matrix:
-        os: [ubuntu-24.04]
-        python-version: ["3.10"]
     env:
       DOCKER_USER: ${{secrets.DOCKER_USER}}
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
@@ -45,7 +41,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - name: Set up tag and vars
         uses: addnab/docker-run-action@v3
@@ -88,8 +83,108 @@ jobs:
             cd $SERVICE || exit 1
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin || exit 1
             docker buildx create --name multiarch-builder --driver docker-container --bootstrap --use
-            autonomy build-image --builder multiarch-builder --platform linux/amd64,linux/arm64,linux/arm/v7 --pre-install-command "apt update && apt upgrade -y && apt install -y libffi-dev libssl-dev" -e open-autonomy==0.21.13 --version $VERSION --push || exit 1
-            docker buildx imagetools create $AUTHOR/oar-$SERVICE:$VERSION --tag $AUTHOR/oar-$SERVICE:$DEFAULT_IMAGE_TAG || exit 1
+            autonomy build-image --builder multiarch-builder --platform linux/amd64 --pre-install-command "apt update && apt upgrade -y && apt install -y libffi-dev libssl-dev" -e open-autonomy==0.21.13 --version $VERSION-amd64 --push || exit 1
+
+  publish-images-arm:
+    name: Publish Docker Images (arm64 + arm/v7)
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - "publish-packages"
+    env:
+      DOCKER_USER: ${{secrets.DOCKER_USER}}
+      DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: docker/setup-buildx-action@v3
+      - name: Set up tag and vars
+        uses: addnab/docker-run-action@v3
+        with:
+          image: valory/open-autonomy-user:0.21.13
+          options: -v ${{ github.workspace }}:/work
+          run: |
+            echo "Setting Tag Images"
+            cd /work
+            apt-get update && apt-get install git -y || exit 1
+            git config --global --add safe.directory /work
+            export TAG=$(git describe --exact-match --tags $(git rev-parse HEAD)) || exit 1
+            if [ $? -eq 0 ]; then
+                export TAG=`echo $TAG | sed 's/^v//'`
+            else
+                echo "You are not on a tagged branch"
+                exit 1
+            fi
+            echo VERSION=$TAG> env.sh
+            echo AUTHOR=$(grep 'service/' packages/packages.json | awk -F/ '{print $2}' | head -1) >> env.sh
+            echo SERVICE=$(grep 'service/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
+            echo AGENT=$(grep 'agent/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
+            echo DEFAULT_IMAGE_TAG=$(cat packages/packages.json | grep agent/ | awk -F: '{print $2}' | tr -d '", ' | head -n 1) >> env.sh
+            cat env.sh
+
+      - uses: addnab/docker-run-action@v3
+        name: Build Images
+        with:
+          image: valory/open-autonomy-user:0.21.13
+          options: -v ${{ github.workspace }}:/work -e DOCKER_USER -e DOCKER_PASSWORD
+          shell: bash
+          run: |
+            echo "Building Docker Images"
+            cd /work
+            source env.sh || exit 1
+            echo "Building images for $AUTHOR for service $SERVICE"
+            echo "TODO: Remove hardcoding of author to valory and use $AUTHOR"
+            autonomy init --reset --author valory --ipfs --remote
+            autonomy fetch $AUTHOR/$SERVICE --service --local || exit 1
+            cd $SERVICE || exit 1
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin || exit 1
+            docker buildx create --name multiarch-builder --driver docker-container --bootstrap --use
+            autonomy build-image --builder multiarch-builder --platform linux/arm64,linux/arm/v7 --pre-install-command "apt update && apt upgrade -y && apt install -y libffi-dev libssl-dev" -e open-autonomy==0.21.13 --version $VERSION-arm --push || exit 1
+
+  merge-image-manifests:
+    name: Merge Multi-arch Image Manifests
+    runs-on: ubuntu-24.04
+    needs:
+      - "publish-images"
+      - "publish-images-arm"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Set up tag and vars
+        uses: addnab/docker-run-action@v3
+        with:
+          image: valory/open-autonomy-user:0.21.13
+          options: -v ${{ github.workspace }}:/work
+          run: |
+            echo "Setting Tag Images"
+            cd /work
+            apt-get update && apt-get install git -y || exit 1
+            git config --global --add safe.directory /work
+            export TAG=$(git describe --exact-match --tags $(git rev-parse HEAD)) || exit 1
+            if [ $? -eq 0 ]; then
+                export TAG=`echo $TAG | sed 's/^v//'`
+            else
+                echo "You are not on a tagged branch"
+                exit 1
+            fi
+            echo VERSION=$TAG> env.sh
+            echo AUTHOR=$(grep 'service/' packages/packages.json | awk -F/ '{print $2}' | head -1) >> env.sh
+            echo SERVICE=$(grep 'service/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
+            echo DEFAULT_IMAGE_TAG=$(cat packages/packages.json | grep agent/ | awk -F: '{print $2}' | tr -d '", ' | head -n 1) >> env.sh
+            cat env.sh
+
+      - name: Merge manifests
+        run: |
+          source env.sh || exit 1
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin || exit 1
+          docker buildx imagetools create \
+            $AUTHOR/oar-$SERVICE:$VERSION-amd64 \
+            $AUTHOR/oar-$SERVICE:$VERSION-arm \
+            --tag $AUTHOR/oar-$SERVICE:$VERSION || exit 1
+          docker buildx imagetools create \
+            $AUTHOR/oar-$SERVICE:$VERSION \
+            --tag $AUTHOR/oar-$SERVICE:$DEFAULT_IMAGE_TAG || exit 1
 
   build-agent-runner:
     needs:
