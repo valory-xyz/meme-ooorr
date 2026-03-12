@@ -1257,6 +1257,11 @@ class TestCheckFundsRound(MemeooorrRoundTestBase):
         assert result is not None
         assert result[1] == Event.SKIP
 
+    def test_round_unrecognized_event_falls_through(self) -> None:
+        """Test round returns None when event is neither NO_FUNDS nor DONE."""
+        result = self._run_check_funds_round("unexpected_event", 0)
+        assert result is None
+
     def test_round_none_threshold_not_reached(self) -> None:
         """Test round returns None when threshold not reached."""
         test_round = CheckFundsRound(

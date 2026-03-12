@@ -127,7 +127,7 @@ class SrrDialogues(Model, BaseSrrDialogues):
             :param receiver_address: the address of the receiving agent
             :return: The role of the agent
             """
-            return SrrDialogue.Role.SKILL
+            return SrrDialogue.Role.SKILL  # pragma: no cover  # framework callback, tested via integration
 
         BaseSrrDialogues.__init__(
             self,
@@ -159,7 +159,7 @@ class KvStoreDialogues(Model, BaseKvStoreDialogues):
             :param receiver_address: the address of the receiving agent
             :return: The role of the agent
             """
-            return KvStoreDialogue.Role.SKILL
+            return KvStoreDialogue.Role.SKILL  # pragma: no cover  # framework callback, tested via integration
 
         BaseKvStoreDialogues.__init__(
             self,

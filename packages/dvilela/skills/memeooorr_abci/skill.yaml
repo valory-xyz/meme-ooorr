@@ -22,7 +22,7 @@ fingerprint:
   behaviour_classes/mech.py: bafybeidmcudz4gohnuavygwsqg7kenrdegs6yf6nidp4zn6bwrardzudpa
   behaviour_classes/twitter.py: bafybeibzoiplgdls6bibzj7m47z6jgy7uk47ou7e5tljlfqqklxgbflv5u
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
-  dialogues.py: bafybeiczyi7ygutsp55gafvrwky4ft7v752bl5hcueiohk7lynxygomcfm
+  dialogues.py: bafybeie4eefzjjkj2rvhpyfhv6gf2yugvmljntqhqi6kit3g54rmdt6ldq
   fsm_specification.yaml: bafybeifwiuidpnkj6c3tsez2athqjefzssfomswb7lz3xvld5iemr745ya
   handlers.py: bafybeiho7pphmpg5brheqh2i4cbpx5mcmbvdukpsgc5s5lpqplet5z6oue
   models.py: bafybeiblbn3ew5tpgl4hzcnzzh7khvkjuwkdx7pdtjyhqketeb4cvryk3e
@@ -33,7 +33,7 @@ fingerprint:
   tests/__init__.py: bafybeidlj2wjoc2yfeuyeyrwlcpawz3rc7lcuma64ioavgyaktcj7mfkf4
   tests/conftest.py: bafybeidse4fdakvzvq7gdt5rhasecmmgaqxxvv5ddylyhvj3cvdl6s2piq
   tests/test_behaviour_classes_base.py: bafybeienpbyacic6bhfxoqdnupxoxmqqzx7u7vsuihwzxt5souo6r4litq
-  tests/test_behaviour_classes_chain.py: bafybeia5lgyypxipb7fqtsekww4fiey7lmzm2sa4bsthtjbvcq77f7wlqm
+  tests/test_behaviour_classes_chain.py: bafybeialckmgv3psagfdfh3edxbt5lnm5jm2776glk5lepzop3bbhqrxsi
   tests/test_behaviour_classes_db.py: bafybeifnanhxfnpgtsyyibqrvfvfk7ll64pqqdstpk6mpaqkihbeachoia
   tests/test_behaviour_classes_llm.py: bafybeidp5bhdoxlmxt23lq7zmkp6q5et7qaefhd2gzwl5upcpyirco2lg4
   tests/test_behaviour_classes_mech.py: bafybeicbvwqqxv6ft74nt5n2qea4axieuoaobr5f7d5iwutus625atqy6u
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_handlers.py: bafybeihe3khefbpxlkuy37qc5hwqmeqm3kmjexqxnixhtiwd5u5zn6dzuq
   tests/test_models.py: bafybeifrluqmvll7cnwoek6wqsqsq64q2htuwgb3vynqagvxyxsl65myqq
   tests/test_prompts.py: bafybeifubyvxd3f3pnmiw6luakyo5gl6xmnk2hg56hyuhht2ccveegmogy
-  tests/test_rounds.py: bafybeibyejx4f36dxopvxche3k5tcqujirqd42o3e3dt7537wxcvmt4oeu
+  tests/test_rounds.py: bafybeibr7y5m6d3kwt5qobljpqbwd4kdl7j6yp3dozkkjhplzanc7ziuam
   tests/test_rounds_info.py: bafybeihcyaf6vnhohdp6a5t6stdegym7cmqkwuflk56gnaeaacbckmt5e4
 fingerprint_ignore_patterns: []
 connections:

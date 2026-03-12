@@ -384,22 +384,74 @@ class TestCheckFundsBehaviourGetEvent:
         assert result == Event.DONE.value
 
 
-class TestPostTxDecisionMakingBehaviour:
-    """Tests for PostTxDecisionMakingBehaviour."""
+class TestPostTxDecisionMakingAsyncActPayload:
+    """Tests for PostTxDecisionMakingBehaviour.async_act payload construction."""
+
+    def _make_behaviour(self, tx_submitter: str = "") -> MagicMock:
+        behaviour = MagicMock(spec=PostTxDecisionMakingBehaviour)
+        behaviour.params = make_mock_params()
+        behaviour.context = make_mock_context(params=behaviour.params)
+        behaviour.synchronized_data = make_mock_synchronized_data(
+            tx_submitter=tx_submitter
+        )
+        behaviour.behaviour_id = "test_behaviour"
+        return behaviour
+
+    def _run_async_act(self, tx_submitter: str) -> str:
+        """Run async_act and return the event field from the payload."""
+        from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import (
+            MechRequestBehaviour,
+        )
+
+        behaviour = self._make_behaviour(tx_submitter=tx_submitter)
+        payloads_sent: list = []
+
+        def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            payloads_sent.append(payload)
+            yield
+            return None
+
+        def mock_wait_until_round_end():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.send_a2a_transaction = mock_send_a2a_transaction
+        behaviour.wait_until_round_end = mock_wait_until_round_end
+        behaviour.set_done = MagicMock()
+
+        gen = PostTxDecisionMakingBehaviour.async_act(behaviour)
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration:
+            pass
+
+        behaviour.set_done.assert_called_once()
+        assert len(payloads_sent) == 1
+        return payloads_sent[0].event
 
     def test_event_done_for_checkpoint(self) -> None:
-        """Test returns DONE when tx_submitter matches CallCheckpointBehaviour."""
-        behaviour = MagicMock(spec=PostTxDecisionMakingBehaviour)
-        behaviour.context = make_mock_context()
-        round_id = CallCheckpointBehaviour.matching_round.auto_round_id()
-        behaviour.synchronized_data = make_mock_synchronized_data(tx_submitter=round_id)
-        # The logic is straightforward; test the conditional path
-        assert round_id == CallCheckpointRound.auto_round_id()
+        """Test payload event is DONE when tx_submitter matches CallCheckpointBehaviour."""
+        tx_submitter = CallCheckpointBehaviour.matching_round.auto_round_id()
+        event = self._run_async_act(tx_submitter)
+        assert event == Event.DONE.value
 
     def test_event_action_for_action_preparation(self) -> None:
-        """Test returns ACTION when tx_submitter matches ActionPreparationBehaviour."""
-        round_id = ActionPreparationBehaviour.matching_round.auto_round_id()
-        assert round_id == ActionPreparationRound.auto_round_id()
+        """Test payload event is ACTION when tx_submitter matches ActionPreparationBehaviour."""
+        tx_submitter = ActionPreparationBehaviour.matching_round.auto_round_id()
+        event = self._run_async_act(tx_submitter)
+        assert event == Event.ACTION.value
+
+    def test_event_mech_for_mech_request(self) -> None:
+        """Test payload event is MECH when tx_submitter matches MechRequestBehaviour."""
+        from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import (
+            MechRequestBehaviour,
+        )
+
+        tx_submitter = MechRequestBehaviour.matching_round.auto_round_id()
+        event = self._run_async_act(tx_submitter)
+        assert event == Event.MECH.value
 
 
 class TestBuildSafeTxHash:
