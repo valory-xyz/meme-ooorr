@@ -93,6 +93,7 @@ class TestAlternativeModelForTweets:
         assert model.use is False
         assert model.api_key is None
 
+
 class TestParams:
     """Tests for Params.__init__ method."""
 

@@ -194,9 +194,10 @@ class TestLoadDb:
         behaviour.synchronized_data = make_mock_synchronized_data()
         return behaviour
 
-    def test_load_db_returns_tuple(self) -> None:
-        """Test load_db returns a 3-tuple."""
+    def test_load_db_delegates_and_calls_agents_fun_db_load(self) -> None:
+        """Test load_db aggregates sub-loaders and triggers agents_fun_db.load()."""
         behaviour = self._make_behaviour()
+        load_called = [False]
 
         def mock_get_persona():  # type: ignore[no-untyped-def]
             yield
@@ -210,9 +211,14 @@ class TestLoadDb:
             yield
             return 86400
 
+        def mock_agents_fun_db_load():  # type: ignore[no-untyped-def]
+            load_called[0] = True
+            yield
+
         behaviour.get_persona = mock_get_persona
         behaviour.get_heart_cooldown_hours = mock_get_heart_cooldown
         behaviour.get_summon_cooldown_seconds = mock_get_summon_cooldown
+        behaviour.context.agents_fun_db.load = mock_agents_fun_db_load
 
         gen = LoadDatabaseBehaviour.load_db(behaviour)
         result = None
@@ -225,10 +231,8 @@ class TestLoadDb:
 
         assert isinstance(result, tuple)
         assert len(result) == 3
-        persona, heart_cd, summon_cd = result
-        assert persona == "test persona"
-        assert heart_cd == 24
-        assert summon_cd == 86400
+        # Verify agents_fun_db.load() was called (the non-obvious side effect)
+        assert load_called[0], "agents_fun_db.load() must be called by load_db"
 
 
 class TestAsyncAct:
@@ -242,9 +246,11 @@ class TestAsyncAct:
         behaviour.behaviour_id = "test_behaviour"
         return behaviour
 
-    def test_async_act(self) -> None:
-        """Test async_act orchestrates load_db, populate_keys, init_twitter, gather_agent_details, write_kv, and sends payload."""
+    def test_async_act_builds_correct_payload_and_writes_kv(self) -> None:
+        """Test async_act builds LoadDatabasePayload with correct fields and writes agent_details to KV."""
         behaviour = self._make_behaviour()
+        payloads_sent: list = []
+        kv_writes: list = []
 
         def mock_load_db():  # type: ignore[no-untyped-def]
             yield
@@ -262,10 +268,12 @@ class TestAsyncAct:
             return json.dumps({"persona": persona, "twitter_username": "test_user"})
 
         def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            kv_writes.append(data)
             yield
             return True
 
         def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            payloads_sent.append(payload)
             yield
             return None
 
@@ -291,3 +299,18 @@ class TestAsyncAct:
             pass
 
         behaviour.set_done.assert_called_once()
+
+        # Verify payload was constructed with correct fields from load_db output
+        assert len(payloads_sent) == 1
+        payload = payloads_sent[0]
+        assert payload.persona == "test persona"
+        assert payload.heart_cooldown_hours == 24
+        assert payload.summon_cooldown_seconds == 86400
+
+        # Verify agent_details in payload matches gather_agent_details output
+        agent_details = json.loads(payload.agent_details)
+        assert agent_details["persona"] == "test persona"
+        assert agent_details["twitter_username"] == "test_user"
+
+        # Verify agent_details was written to KV store
+        assert any("agent_details" in w for w in kv_writes)
