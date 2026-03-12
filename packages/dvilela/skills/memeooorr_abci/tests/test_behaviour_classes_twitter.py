@@ -1251,64 +1251,6 @@ class TestEngageTwitterBehaviour:
         result = _drive_gen_with_side_effects(gen)
         assert result[0] == Event.ERROR.value
 
-    def test_interact_twitter_stored_prompt_retry(self) -> None:
-        """Test interact_twitter uses stored prompt on retry after JSON decode error."""
-        behaviour = self._make_behaviour()
-        behaviour.get_persona = _make_gen_return("test persona")
-        behaviour._read_value_from_kv = _make_gen_return("stored_prompt")
-        behaviour._prepare_prompt_data = _make_gen_return(("new_prompt", None))
-        behaviour._validate_llm_response = MagicMock(return_value=True)
-
-        # First call returns invalid JSON, second returns valid
-        call_count = [0]
-
-        def _get_llm_decision_gen(
-            *args: Any, **kwargs: Any
-        ) -> Generator[Any, None, Any]:
-            call_count[0] += 1
-            if False:  # pylint: disable=using-constant-test  # pragma: no cover
-                yield
-            if call_count[0] == 1:
-                return "invalid{json"
-            return json.dumps({"tweet_action": {"action": "tweet", "text": "Hello"}})
-
-        behaviour._get_llm_decision = _get_llm_decision_gen
-        behaviour._handle_tweet_actions = _make_gen_return((Event.DONE.value, [], []))
-
-        gen = EngageTwitterBehaviour.interact_twitter(behaviour, {})
-        result = _drive_gen_with_side_effects(gen)
-        assert result[0] == Event.DONE.value
-
-    def test_interact_twitter_invalid_format_with_stored_prompt(self) -> None:
-        """Test interact_twitter uses stored prompt on retry after invalid format."""
-        behaviour = self._make_behaviour()
-        behaviour.get_persona = _make_gen_return("test persona")
-        behaviour._read_value_from_kv = _make_gen_return("stored_prompt")
-        behaviour._prepare_prompt_data = _make_gen_return(("new_prompt", None))
-
-        # First call returns invalid format, second returns valid
-        call_count = [0]
-
-        def _validate_side_effect(resp: Any) -> bool:
-            call_count[0] += 1
-            return call_count[0] > 1
-
-        behaviour._validate_llm_response = MagicMock(side_effect=_validate_side_effect)
-
-        def _get_llm_decision_gen(
-            *args: Any, **kwargs: Any
-        ) -> Generator[Any, None, Any]:
-            if False:  # pylint: disable=using-constant-test  # pragma: no cover
-                yield
-            return json.dumps({"tweet_action": {"action": "tweet", "text": "Hello"}})
-
-        behaviour._get_llm_decision = _get_llm_decision_gen
-        behaviour._handle_tweet_actions = _make_gen_return((Event.DONE.value, [], []))
-
-        gen = EngageTwitterBehaviour.interact_twitter(behaviour, {})
-        result = _drive_gen_with_side_effects(gen)
-        assert result[0] == Event.DONE.value
-
     # ----- _prepare_prompt_data -----
 
     def test_prepare_prompt_data_mech(self) -> None:
@@ -2644,27 +2586,6 @@ class TestAdditionalBranches:
         # Since neither 42 nor "string_item" match TwitterPost or dict isinstance checks,
         # they produce no formatted tweets
         assert result == ""
-
-    def test_interact_twitter_invalid_format_no_stored_prompt(self) -> None:
-        """Test interact_twitter with invalid format and no stored prompt (stored_prompt is None)."""
-        behaviour = self._make_engage_behaviour()
-        behaviour.get_persona = _make_gen_return("test persona")
-        behaviour._read_value_from_kv = _make_gen_return(None)  # No stored prompt
-        behaviour._prepare_prompt_data = _make_gen_return(("prompt", None))
-        behaviour._validate_llm_response = MagicMock(return_value=False)
-
-        def _get_llm_decision_gen(
-            *args: Any, **kwargs: Any
-        ) -> Generator[Any, None, Any]:
-            if False:  # pylint: disable=using-constant-test  # pragma: no cover
-                yield
-            return json.dumps({"bad": "format"})
-
-        behaviour._get_llm_decision = _get_llm_decision_gen
-
-        gen = EngageTwitterBehaviour.interact_twitter(behaviour, {})
-        result = _drive_gen_with_side_effects(gen)
-        assert result[0] == Event.ERROR.value
 
     def test_prepare_standard_prompt_data_posts_neither_type(self) -> None:
         """Test _prepare_standard_prompt_data with posts that are neither TwitterPost nor dict."""

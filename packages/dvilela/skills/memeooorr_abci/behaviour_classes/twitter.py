@@ -775,10 +775,6 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         valid_response = False
         json_response = None
 
-        # Try to get the previously stored prompt first
-        stored_prompt = yield from self._read_value_from_kv("last_prompt", None)
-
-        # Generate a new prompt and store it
         prompt, previous_tweets = yield from self._prepare_prompt_data(
             pending_tweets, persona
         )
@@ -807,17 +803,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                     self.context.logger.warning(
                         f"Invalid response format from LLM (attempt {retry_count}/{max_retries})"
                     )
-                    # If we need to retry, use the stored prompt
-                    if retry_count > 0 and stored_prompt:
-                        prompt = stored_prompt
-
             except json.JSONDecodeError as e:
                 self.context.logger.error(f"Error decoding LLM response: {e}")
                 self.context.logger.error(f"LLM Response: {llm_response}")
                 retry_count += 1
-                # If we need to retry, use the stored prompt
-                if retry_count > 0 and stored_prompt:
-                    prompt = stored_prompt
                 continue
 
         # If we couldn't get a valid response after max retries
