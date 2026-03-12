@@ -48,7 +48,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 
-class TestMemeooorrChainedConsensusBehaviour:
+class TestMemeooorrChainedConsensusBehaviour:  # pylint: disable=R0903
     """Tests for MemeooorrChainedConsensusBehaviour."""
 
     def test_all_sub_behaviours_combined(self) -> None:
