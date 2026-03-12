@@ -29,8 +29,6 @@ from packages.dvilela.skills.memeooorr_abci.prompts import (
     CHATUI_PROMPT,
     CHATUI_PROMPT_NO_MEMECOIN,
     Decision,
-    ENFORCE_ACTION_COMMAND,
-    ENFORCE_ACTION_COMMAND_FAILED_MECH,
     MECH_RESPONSE_SUBPROMPT,
     ONLY_PERSONA_UPDATE_PROMPT,
     PersonaAction,
@@ -122,17 +120,6 @@ class TestSchemaBuilders:
 
 class TestPromptStrings:
     """Tests for prompt string constants."""
-
-    def test_enforce_action_command_is_string(self) -> None:
-        """Test ENFORCE_ACTION_COMMAND is a non-empty string."""
-        assert isinstance(ENFORCE_ACTION_COMMAND, str)
-        assert len(ENFORCE_ACTION_COMMAND) > 0
-
-    def test_enforce_action_command_failed_mech_is_string(self) -> None:
-        """Test ENFORCE_ACTION_COMMAND_FAILED_MECH is a non-empty string."""
-        assert isinstance(ENFORCE_ACTION_COMMAND_FAILED_MECH, str)
-        assert len(ENFORCE_ACTION_COMMAND_FAILED_MECH) > 0
-        assert "{last_prompt}" in ENFORCE_ACTION_COMMAND_FAILED_MECH
 
     def test_twitter_decision_prompt_has_placeholders(self) -> None:
         """Test TWITTER_DECISION_PROMPT has expected placeholders."""

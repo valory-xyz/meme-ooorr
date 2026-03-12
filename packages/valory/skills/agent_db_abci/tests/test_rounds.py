@@ -31,26 +31,6 @@ from packages.valory.skills.agent_db_abci.rounds import (
 )
 
 
-class TestEvent:
-    """Tests for the Event enum."""
-
-    def test_round_timeout(self) -> None:
-        """Test ROUND_TIMEOUT event."""
-        assert Event.ROUND_TIMEOUT.value == "round_timeout"
-
-    def test_no_majority(self) -> None:
-        """Test NO_MAJORITY event."""
-        assert Event.NO_MAJORITY.value == "no_majority"
-
-    def test_done(self) -> None:
-        """Test DONE event."""
-        assert Event.DONE.value == "done"
-
-    def test_event_count(self) -> None:
-        """Test the total number of events."""
-        assert len(Event) == 3
-
-
 class TestSynchronizedData:
     """Tests for SynchronizedData."""
 

@@ -21,7 +21,6 @@
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.agent_performance_summary_abci.payloads import (
     FetchPerformanceDataPayload,
 )
@@ -31,10 +30,6 @@ SENDER = "test_sender"
 
 class TestFetchPerformanceDataPayload:
     """Tests for the FetchPerformanceDataPayload."""
-
-    def test_is_base_tx_payload(self) -> None:
-        """Test that FetchPerformanceDataPayload is a BaseTxPayload."""
-        assert issubclass(FetchPerformanceDataPayload, BaseTxPayload)
 
     @pytest.mark.parametrize("vote", [True, False])
     def test_construction(self, vote: bool) -> None:

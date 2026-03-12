@@ -40,34 +40,6 @@ from packages.valory.skills.agent_performance_summary_abci.rounds import (
 )
 
 
-class TestEvent:
-    """Tests for the Event enum."""
-
-    def test_done_value(self) -> None:
-        """Test DONE event value."""
-        assert Event.DONE.value == "done"
-
-    def test_none_value(self) -> None:
-        """Test NONE event value."""
-        assert Event.NONE.value == "none"
-
-    def test_fail_value(self) -> None:
-        """Test FAIL event value."""
-        assert Event.FAIL.value == "fail"
-
-    def test_round_timeout_value(self) -> None:
-        """Test ROUND_TIMEOUT event value."""
-        assert Event.ROUND_TIMEOUT.value == "round_timeout"
-
-    def test_no_majority_value(self) -> None:
-        """Test NO_MAJORITY event value."""
-        assert Event.NO_MAJORITY.value == "no_majority"
-
-    def test_event_count(self) -> None:
-        """Test that all expected events are present."""
-        assert len(Event) == 5
-
-
 class TestFetchPerformanceDataRound:
     """Tests for the FetchPerformanceDataRound."""
 

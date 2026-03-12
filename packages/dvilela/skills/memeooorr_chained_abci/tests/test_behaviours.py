@@ -51,70 +51,19 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 class TestMemeooorrChainedConsensusBehaviour:
     """Tests for MemeooorrChainedConsensusBehaviour."""
 
-    def test_initial_behaviour_cls(self) -> None:
-        """Test initial_behaviour_cls is RegistrationStartupBehaviour."""
+    def test_all_sub_behaviours_combined(self) -> None:
+        """Test that all sub-behaviour sets are combined into the behaviours set."""
         assert (
             MemeooorrChainedConsensusBehaviour.initial_behaviour_cls
             is RegistrationStartupBehaviour
         )
-
-    def test_abci_app_cls(self) -> None:
-        """Test abci_app_cls is MemeooorrChainedSkillAbciApp."""
         assert (
             MemeooorrChainedConsensusBehaviour.abci_app_cls
             is MemeooorrChainedSkillAbciApp
         )
-
-    def test_behaviours_contains_registration(self) -> None:
-        """Test behaviours contains AgentRegistrationRoundBehaviour behaviours."""
-        assert AgentRegistrationRoundBehaviour.behaviours.issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_behaviours_contains_performance_summary(self) -> None:
-        """Test behaviours contains AgentPerformanceSummaryRoundBehaviour behaviours."""
-        assert AgentPerformanceSummaryRoundBehaviour.behaviours.issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_behaviours_contains_reset_pause(self) -> None:
-        """Test behaviours contains ResetPauseABCIConsensusBehaviour behaviours."""
-        assert ResetPauseABCIConsensusBehaviour.behaviours.issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_behaviours_contains_memeooorr(self) -> None:
-        """Test behaviours contains MemeooorrRoundBehaviour behaviours."""
-        assert set(MemeooorrRoundBehaviour.behaviours).issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_behaviours_contains_termination(self) -> None:
-        """Test behaviours contains TerminationAbciBehaviours behaviours."""
-        assert TerminationAbciBehaviours.behaviours.issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_behaviours_contains_transaction_settlement(self) -> None:
-        """Test behaviours contains TransactionSettlementRoundBehaviour behaviours."""
-        assert TransactionSettlementRoundBehaviour.behaviours.issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_behaviours_contains_mech_interact(self) -> None:
-        """Test behaviours contains MechInteractRoundBehaviour behaviours."""
-        assert MechInteractRoundBehaviour.behaviours.issubset(
-            MemeooorrChainedConsensusBehaviour.behaviours
-        )
-
-    def test_background_behaviours_cls(self) -> None:
-        """Test background_behaviours_cls contains BackgroundBehaviour."""
         assert MemeooorrChainedConsensusBehaviour.background_behaviours_cls == {
             BackgroundBehaviour
         }
-
-    def test_all_sub_behaviours_combined(self) -> None:
-        """Test that all sub-behaviour sets are combined into the behaviours set."""
         expected = (
             set(AgentRegistrationRoundBehaviour.behaviours)
             | set(AgentPerformanceSummaryRoundBehaviour.behaviours)

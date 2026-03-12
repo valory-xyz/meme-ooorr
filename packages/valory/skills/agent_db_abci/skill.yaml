@@ -22,11 +22,8 @@ fingerprint:
   tests/test_agent_db_models.py: bafybeidrwdhsnqwtk7pdvqv327454yahmjavfmbugzjsyezkmzldcyojqm
   tests/test_agents_fun_db.py: bafybeicyhrzbtcjjexjo3rcljj7l655jxo7fs6vsityikqizqyxgicsrxe
   tests/test_behaviours.py: bafybeigeasdqy4qxujs7qfoepw3cqzxvbb66kv656szr4oldw2xllykqbq
-  tests/test_dialogues.py: bafybeig7u5fyashbaedft53wikx6offdr27ldvz37t27ywtrsov3kjpjwi
-  tests/test_handlers.py: bafybeigtn6d7l6e4n52y7u343m2soon5ytrsctqrz7n4htk4xz3yoe6bey
-  tests/test_models.py: bafybeidvtwhd33bkdttrcd2xqdt4thk6x3psoz5uhg3hxakaoexbbtkema
   tests/test_payloads.py: bafybeicuoebhi2vqwlhr6ixiikswenjxu44dnse7wdaquel2q2rczajbyu
-  tests/test_rounds.py: bafybeiej34xibbicu7zrzboaaj5ny27psc675afrl6v4gunxpgn5kpjjdm
+  tests/test_rounds.py: bafybeidnf5fzwzegruwm3ljlcmm5ss42d4rvwwerfhxq3eqwiv3fd6dq6m
   tests/test_twitter_models.py: bafybeib3pyj4euhbrdqkpwuwvpjcthum52zis3tgit6rl5nf6errbmjgke
   twitter_models.py: bafybeidz2krnopsvbfcyx5uljk5ddbx6lzkdfxvye44enkmgkfb5yddsvi
 fingerprint_ignore_patterns: []

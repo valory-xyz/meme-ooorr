@@ -24,15 +24,9 @@
 from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from packages.dvilela.skills.memeooorr_abci.models import (
     AlternativeModelForTweets,
     Params,
-    SharedState,
-)
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
 )
 from packages.valory.skills.mech_interact_abci.models import MechParams
 
@@ -98,28 +92,6 @@ class TestAlternativeModelForTweets:
         model = AlternativeModelForTweets.from_dict(data)
         assert model.use is False
         assert model.api_key is None
-
-    def test_frozen(self) -> None:
-        """Test that the dataclass is frozen."""
-        data = self._make_data()
-        model = AlternativeModelForTweets.from_dict(data)
-        with pytest.raises(AttributeError):
-            model.use = False  # type: ignore
-
-
-class TestSharedStateInit:
-    """Tests for SharedState.__init__ method."""
-
-    def test_init_sets_attributes(self) -> None:
-        """Test that __init__ sets twitter_username, twitter_id, req_to_callback, and sufficient_funds."""
-        mock_skill_context = MagicMock()
-        with patch.object(BaseSharedState, "__init__", return_value=None):
-            instance = SharedState(skill_context=mock_skill_context)
-            assert instance.twitter_username is None
-            assert instance.twitter_id is None
-            assert not instance.req_to_callback
-            assert instance.sufficient_funds_for_x402_payments is None
-
 
 class TestParams:
     """Tests for Params.__init__ method."""

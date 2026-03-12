@@ -4,13 +4,13 @@
         "contract/dvilela/service_registry/0.1.0": "bafybeic43ryb7vnlyes3djm4cgiw5mvaid4v24xzin6jt4s25nhe3wxzre",
         "connection/dvilela/twikit/0.1.0": "bafybeicwca5snc3dc4cgljeif5pfghuzj5pv37sqvkshubinqba563t77i",
         "connection/dvilela/mirror_db/0.1.0": "bafybeidurgcdx5wy35pj4hhyuuc5uisedtk24bwuhtiosvc4clxdcsxzgm",
-        "connection/dvilela/tweepy/0.1.0": "bafybeie2hifdp5etvowqehg3tcidwajrqckbtspvi22clatm2myjc2qozm",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeia5be6rojpv2rixxtk5dfcbhazi3i3b6txyv2yyuqv3yerowwxb3u",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeighbzzg5lnnfx3vyff4s7vpirqkbtu2m4kpn7ygebqmcpzi4ucm5m",
-        "skill/valory/agent_db_abci/0.1.0": "bafybeidkmk4uxwxhhbnym7vkefori2rpf4fg4obhr7swj443edvgutm6oy",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeih6vds4mztku44fucnmeqfo3fdmqppuk7x3oy6luh5gk2bufwkkde",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeifiefkdn2cdbgiyvns7fitmeuxmjj4i5dcpgntiu4uizfjxsf3cfi",
-        "service/dvilela/memeooorr/0.1.0": "bafybeihzxs4wxxwge7koaaahzcegs6pw4g3amkqvjwdfljibew3r67inpm"
+        "connection/dvilela/tweepy/0.1.0": "bafybeieiz7eyg4gdliaxho3yzasm7dkpkveddvvjaaefkvy3muy3npzmqm",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeihiopuutpe5kim55ydda7sg7ptfyej4yxdghp2hsntskehwqlqigq",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeifneccc3noasbhb4k6gyo4lntrsrkdb75h2swaxbh33pectaljz2a",
+        "skill/valory/agent_db_abci/0.1.0": "bafybeig524almagfvq2t4k7hydjp3cazjqqdpmfnwy2um2ney4uaqvtvqy",
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeigmiftglwhykjsz7asapfg3isylds6lvpco6hpui76oi46jsrcfcq",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeifirp62eyugx3ik5g2e7pxaofod5xsiribfgy653ui3yf4pwr4sbi",
+        "service/dvilela/memeooorr/0.1.0": "bafybeiasacisxqsozg4h4naoqf63lflg7q2j3ypaczd665gxvxe2rv66p4"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
