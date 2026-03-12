@@ -27,9 +27,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeibsdhil35py7zjhielonaycxo7gp34jfufe2ynprjv2etwxnzcxqy
 - valory/transaction_settlement_abci:0.1.0:bafybeigspkourznaiagdkedyxjbjl6svhuhdwbvejr3jv3e3dil2hslose
 - valory/termination_abci:0.1.0:bafybeic3jppoya7jkmylbl5evcssl5qhppl6hadxebfxcxmi5o7qysce6a
-- dvilela/memeooorr_abci:0.1.0:bafybeihiopuutpe5kim55ydda7sg7ptfyej4yxdghp2hsntskehwqlqigq
+- dvilela/memeooorr_abci:0.1.0:bafybeidw5pobgoicdqaiki6broon2f7m32arhy7du5tq2fepwv36cddzde
 - valory/mech_interact_abci:0.1.0:bafybeiduf3h73xhv4q5vbdn6ek2tyal3haym5of4mq2ucm2zhqbclr35le
-- valory/agent_performance_summary_abci:0.1.0:bafybeigmiftglwhykjsz7asapfg3isylds6lvpco6hpui76oi46jsrcfcq
+- valory/agent_performance_summary_abci:0.1.0:bafybeidlaxdbntlasvjjg4p4oaezlidwtuxik7di4yb2vbgyk5gbsgc4hm
 behaviours:
   main:
     args: {}

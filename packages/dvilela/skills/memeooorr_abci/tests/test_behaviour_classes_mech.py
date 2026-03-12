@@ -30,6 +30,7 @@ from packages.dvilela.skills.memeooorr_abci.behaviour_classes.mech import (
     FailedMechResponseBehaviour,
     PostMechResponseBehaviour,
 )
+from packages.dvilela.skills.memeooorr_abci.payloads import MechPayload
 from packages.dvilela.skills.memeooorr_abci.rounds import Event, SynchronizedData
 from packages.dvilela.skills.memeooorr_abci.tests.conftest import (
     MemeooorrFSMBehaviourBaseCase,
@@ -279,6 +280,67 @@ class TestProcessMechResponseAndFetchMedia:
         assert result is False
 
 
+class TestPostMechResponseAsyncActPayload:
+    """Tests for PostMechResponseBehaviour.async_act payload construction."""
+
+    def _make_behaviour(self) -> MagicMock:
+        behaviour = MagicMock(spec=PostMechResponseBehaviour)
+        behaviour.params = make_mock_params()
+        behaviour.context = make_mock_context(params=behaviour.params)
+        behaviour.synchronized_data = make_mock_synchronized_data()
+        behaviour.behaviour_id = "test_behaviour"
+        return behaviour
+
+    def _run_async_act(self, process_result: bool) -> MechPayload:
+        """Run async_act with a mocked _process_mech_response_and_fetch_media result."""
+        behaviour = self._make_behaviour()
+        payloads_sent: list = []
+
+        def mock_process_mech_response_and_fetch_media(mech_responses):  # type: ignore[no-untyped-def]
+            yield
+            return process_result
+
+        def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            payloads_sent.append(payload)
+            yield
+            return None
+
+        def mock_wait_until_round_end():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour._process_mech_response_and_fetch_media = (
+            mock_process_mech_response_and_fetch_media
+        )
+        behaviour.send_a2a_transaction = mock_send_a2a_transaction
+        behaviour.wait_until_round_end = mock_wait_until_round_end
+        behaviour.set_done = MagicMock()
+
+        gen = PostMechResponseBehaviour.async_act(behaviour)
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration:
+            pass
+
+        behaviour.set_done.assert_called_once()
+        assert len(payloads_sent) == 1
+        return payloads_sent[0]
+
+    def test_async_act_success_path(self) -> None:
+        """Test payload when mech response processed successfully (covers line 67)."""
+        payload = self._run_async_act(process_result=True)
+        assert payload.mech_for_twitter is True
+        assert payload.failed_mech is False
+
+    def test_async_act_failure_path(self) -> None:
+        """Test payload when mech response processing fails."""
+        payload = self._run_async_act(process_result=False)
+        assert payload.mech_for_twitter is False
+        assert payload.failed_mech is True
+
+
 class TestSaveMediaInfo:
     """Tests for _save_media_info."""
 
@@ -288,15 +350,19 @@ class TestSaveMediaInfo:
         behaviour.context = make_mock_context(params=behaviour.params)
         return behaviour
 
-    def test_save_media_info_success(self) -> None:
-        """Test _save_media_info returns True on success."""
+    def test_save_media_info_constructs_and_stores_correctly(self) -> None:
+        """Test _save_media_info builds the right media_info dict and writes it to KV."""
         behaviour = self._make_behaviour()
+        stored_infos: list = []
+        kv_writes: list = []
 
         def mock_store_media_info_list(media_info):  # type: ignore[no-untyped-def]
+            stored_infos.append(media_info)
             yield
             return None
 
         def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            kv_writes.append(data)
             yield
             return True
 
@@ -314,6 +380,19 @@ class TestSaveMediaInfo:
         except StopIteration as e:
             result = e.value
         assert result is True
+
+        # Verify media_info dict is constructed from args
+        expected_info = {
+            "path": "/tmp/test.png",
+            "type": "image",
+            "ipfs_hash": "QmHash",
+        }
+        assert stored_infos == [expected_info]
+
+        # Verify KV write serializes the same dict under "latest_media_info"
+        assert len(kv_writes) == 1
+        assert "latest_media_info" in kv_writes[0]
+        assert json.loads(kv_writes[0]["latest_media_info"]) == expected_info
 
     def test_save_media_info_exception(self) -> None:
         """Test _save_media_info returns False on exception."""
@@ -368,7 +447,7 @@ class TestDownloadAndSaveMedia:
     @patch("os.makedirs")
     @patch("os.fsync")
     def test_successful_download(self, mock_fsync: Any, mock_makedirs: Any) -> None:
-        """Test returns path on successful download."""
+        """Test returns path, writes chunks, and fsyncs on successful download."""
         behaviour = self._make_behaviour()
         response = MagicMock()
         response.iter_content.return_value = [b"chunk1", b"chunk2"]
@@ -388,6 +467,18 @@ class TestDownloadAndSaveMedia:
             )
         assert result is not None
         assert result.endswith(".png")
+        assert "QmHash" in result
+
+        # Verify chunks were written
+        assert mock_file.write.call_count == 2
+        mock_file.write.assert_any_call(b"chunk1")
+        mock_file.write.assert_any_call(b"chunk2")
+
+        # Verify fsync for durability
+        mock_fsync.assert_called_once_with(3)
+
+        # Verify storage directory was created
+        mock_makedirs.assert_called_once()
 
     @patch("os.makedirs")
     def test_io_error(self, mock_makedirs: Any) -> None:
