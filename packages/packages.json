@@ -2,15 +2,15 @@
     "dev": {
         "contract/dvilela/meme_factory/0.1.0": "bafybeiar7qhrfnlg26muwkavvglch6uas55ujmvqm7q4qg7kzt6xw67ota",
         "contract/dvilela/service_registry/0.1.0": "bafybeicmfxyhb4m4fddnd4kukkfexow2twcfss7svzokukh3djfbnt5gwi",
-        "connection/dvilela/twikit/0.1.0": "bafybeicwca5snc3dc4cgljeif5pfghuzj5pv37sqvkshubinqba563t77i",
+        "connection/dvilela/twikit/0.1.0": "bafybeidhwnqvgufwwpplhkw5yihtwol4nfsb7wobyfirwahy75u7ozmxpa",
         "connection/dvilela/mirror_db/0.1.0": "bafybeidurgcdx5wy35pj4hhyuuc5uisedtk24bwuhtiosvc4clxdcsxzgm",
-        "connection/dvilela/tweepy/0.1.0": "bafybeieiz7eyg4gdliaxho3yzasm7dkpkveddvvjaaefkvy3muy3npzmqm",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeictpdee7gmh75jinzedmgtyiyatj2d4tys4nzaaclzcdwb7cx6evm",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeiemsco6l3ypcyukhlklplqa4zyoygrcbco45awu4o4rdh5xws25e4",
+        "connection/dvilela/tweepy/0.1.0": "bafybeibsu4zcwzjjmurquymayt3cx4finh3ft43owqgvxi6ub4v4vryife",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeie7fuj7mhrwjuhg4uchyggteqah36ttapjre7khku32cbreiokzaa",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeiefiscdg2jzelrc2u3ojbn3gl5zcn3fnidb7aztytaf5zrdevf4vi",
         "skill/valory/agent_db_abci/0.1.0": "bafybeig524almagfvq2t4k7hydjp3cazjqqdpmfnwy2um2ney4uaqvtvqy",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeieo6ay5q6anq3zevrwjb4mnftn7fzce55w7bf74heivlmo3mw6c7e",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeict6cazy6en7pcmdzkdggity6nob6wf57rujdyg7caw6whrnccm2q",
-        "service/dvilela/memeooorr/0.1.0": "bafybeid5sea33qjzbdzjfjdxi2uljnjrlo4ufix4odaqgidl3lh6kdm2pe"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeiaxcoxxh5wnwaxafgac5od75evgvrtb3nlfjasf7lrur5gagmmjla",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeib4nv5g2plgk3mjdez3txtdwv4hmkfzciyveqpfl3n76724ordklq",
+        "service/dvilela/memeooorr/0.1.0": "bafybeigzgiudgcpgfaxps6w7hygdvapj5jolpnlscstmwgh3basntcfmxi"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",

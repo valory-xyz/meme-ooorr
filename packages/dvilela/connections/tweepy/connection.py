@@ -63,7 +63,7 @@ class SrrDialogues(BaseSrrDialogues):
             :param receiver_address: the address of the receiving agent
             :return: The role of the agent
             """
-            return SrrDialogue.Role.CONNECTION
+            return SrrDialogue.Role.CONNECTION  # pragma: no cover  # framework callback
 
         BaseSrrDialogues.__init__(
             self,
