@@ -399,10 +399,6 @@ class TestPostTxDecisionMakingAsyncActPayload:
 
     def _run_async_act(self, tx_submitter: str) -> str:
         """Run async_act and return the event field from the payload."""
-        from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import (
-            MechRequestBehaviour,
-        )
-
         behaviour = self._make_behaviour(tx_submitter=tx_submitter)
         payloads_sent: list = []
 

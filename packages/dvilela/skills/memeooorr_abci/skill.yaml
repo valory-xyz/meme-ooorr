@@ -22,7 +22,7 @@ fingerprint:
   behaviour_classes/mech.py: bafybeidmcudz4gohnuavygwsqg7kenrdegs6yf6nidp4zn6bwrardzudpa
   behaviour_classes/twitter.py: bafybeibzoiplgdls6bibzj7m47z6jgy7uk47ou7e5tljlfqqklxgbflv5u
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
-  dialogues.py: bafybeie4eefzjjkj2rvhpyfhv6gf2yugvmljntqhqi6kit3g54rmdt6ldq
+  dialogues.py: bafybeibmmp2kce2t6fzju6ovrntbh4uq2wdd7yc5jyfnnivgxox56awzye
   fsm_specification.yaml: bafybeifwiuidpnkj6c3tsez2athqjefzssfomswb7lz3xvld5iemr745ya
   handlers.py: bafybeiho7pphmpg5brheqh2i4cbpx5mcmbvdukpsgc5s5lpqplet5z6oue
   models.py: bafybeiblbn3ew5tpgl4hzcnzzh7khvkjuwkdx7pdtjyhqketeb4cvryk3e
@@ -33,7 +33,7 @@ fingerprint:
   tests/__init__.py: bafybeidlj2wjoc2yfeuyeyrwlcpawz3rc7lcuma64ioavgyaktcj7mfkf4
   tests/conftest.py: bafybeidse4fdakvzvq7gdt5rhasecmmgaqxxvv5ddylyhvj3cvdl6s2piq
   tests/test_behaviour_classes_base.py: bafybeienpbyacic6bhfxoqdnupxoxmqqzx7u7vsuihwzxt5souo6r4litq
-  tests/test_behaviour_classes_chain.py: bafybeialckmgv3psagfdfh3edxbt5lnm5jm2776glk5lepzop3bbhqrxsi
+  tests/test_behaviour_classes_chain.py: bafybeiboiza75xhcsp4ppxx4iuffkl4cfwjk7fve5zj7qrfneae2ghmjty
   tests/test_behaviour_classes_db.py: bafybeifnanhxfnpgtsyyibqrvfvfk7ll64pqqdstpk6mpaqkihbeachoia
   tests/test_behaviour_classes_llm.py: bafybeidp5bhdoxlmxt23lq7zmkp6q5et7qaefhd2gzwl5upcpyirco2lg4
   tests/test_behaviour_classes_mech.py: bafybeicbvwqqxv6ft74nt5n2qea4axieuoaobr5f7d5iwutus625atqy6u
