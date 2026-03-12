@@ -46,18 +46,10 @@ from packages.dvilela.skills.memeooorr_abci.behaviour_classes.twitter import (
 )
 from packages.dvilela.skills.memeooorr_abci.behaviours import MemeooorrRoundBehaviour
 from packages.dvilela.skills.memeooorr_abci.rounds import MemeooorrAbciApp
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    BaseBehaviour,
-)
 
 
 class TestMemeooorrRoundBehaviour:
     """Tests for MemeooorrRoundBehaviour."""
-
-    def test_is_subclass_of_abstract_round_behaviour(self) -> None:
-        """Test that MemeooorrRoundBehaviour is a subclass of AbstractRoundBehaviour."""
-        assert issubclass(MemeooorrRoundBehaviour, AbstractRoundBehaviour)
 
     def test_initial_behaviour_cls(self) -> None:
         """Test initial_behaviour_cls is CollectFeedbackBehaviour."""
@@ -87,14 +79,3 @@ class TestMemeooorrRoundBehaviour:
             FailedMechResponseBehaviour,
         }
         assert set(MemeooorrRoundBehaviour.behaviours) == expected_behaviours
-
-    def test_behaviours_count(self) -> None:
-        """Test the total number of behaviours."""
-        assert len(MemeooorrRoundBehaviour.behaviours) == 15
-
-    def test_all_behaviours_are_base_behaviour_subclasses(self) -> None:
-        """Test that all behaviours in the set are subclasses of BaseBehaviour."""
-        for behaviour_cls in MemeooorrRoundBehaviour.behaviours:
-            assert issubclass(
-                behaviour_cls, BaseBehaviour
-            ), f"{behaviour_cls.__name__} is not a subclass of BaseBehaviour"

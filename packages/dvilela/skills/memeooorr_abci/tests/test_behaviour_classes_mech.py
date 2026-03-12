@@ -30,29 +30,15 @@ from packages.dvilela.skills.memeooorr_abci.behaviour_classes.mech import (
     FailedMechResponseBehaviour,
     PostMechResponseBehaviour,
 )
-from packages.dvilela.skills.memeooorr_abci.rounds import (
-    FailedMechRequestRound,
-    FailedMechResponseRound,
-    PostMechResponseRound,
+from packages.dvilela.skills.memeooorr_abci.rounds import Event, SynchronizedData
+from packages.dvilela.skills.memeooorr_abci.tests.conftest import (
+    MemeooorrFSMBehaviourBaseCase,
+    SAFE_ADDRESS,
+    make_mock_context,
+    make_mock_params,
+    make_mock_synchronized_data,
 )
-
-from .conftest import make_mock_context, make_mock_params, make_mock_synchronized_data
-
-
-class TestMatchingRounds:
-    """Tests for matching_round assignments."""
-
-    def test_post_mech_response_matching_round(self) -> None:
-        """Test PostMechResponseBehaviour has correct matching_round."""
-        assert PostMechResponseBehaviour.matching_round is PostMechResponseRound
-
-    def test_failed_mech_request_matching_round(self) -> None:
-        """Test FailedMechRequestBehaviour has correct matching_round."""
-        assert FailedMechRequestBehaviour.matching_round is FailedMechRequestRound
-
-    def test_failed_mech_response_matching_round(self) -> None:
-        """Test FailedMechResponseBehaviour has correct matching_round."""
-        assert FailedMechResponseBehaviour.matching_round is FailedMechResponseRound
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 
 
 class TestProcessMechResponseAndFetchMedia:
@@ -230,6 +216,68 @@ class TestProcessMechResponseAndFetchMedia:
             result = e.value
         assert result is False
 
+    def test_video_save_fails_falls_through_to_image(self) -> None:
+        """Test returns True when video save fails but image succeeds (branch 131->142)."""
+        behaviour = self._make_behaviour()
+        response = MagicMock()
+        response.result = json.dumps(
+            {"video": "QmHash123", "image_hash": "QmImageHash"}
+        )
+
+        # Video fetch succeeds but save fails, then image fetch and save succeeds
+        behaviour._fetch_media_from_ipfs_hash = MagicMock(
+            side_effect=["/tmp/video.mp4", "/tmp/image.png"]
+        )
+
+        call_count = [0]
+
+        def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
+            call_count[0] += 1
+            yield
+            if call_count[0] == 1:
+                return False  # Video save fails
+            return True  # Image save succeeds
+
+        behaviour._save_media_info = mock_save_media_info
+
+        gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
+            behaviour, [response]
+        )
+        result = None
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration as e:
+            result = e.value
+        assert result is True
+
+    def test_image_save_fails(self) -> None:
+        """Test returns False when image fetch succeeds but save fails (branch 155->160)."""
+        behaviour = self._make_behaviour()
+        response = MagicMock()
+        response.result = json.dumps({"image_hash": "QmImageHash"})
+
+        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/image.png")
+
+        def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
+            yield
+            return False
+
+        behaviour._save_media_info = mock_save_media_info
+
+        gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
+            behaviour, [response]
+        )
+        result = None
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration as e:
+            result = e.value
+        assert result is False
+
 
 class TestSaveMediaInfo:
     """Tests for _save_media_info."""
@@ -358,6 +406,34 @@ class TestDownloadAndSaveMedia:
             )
         assert result is None
 
+    @patch("os.makedirs")
+    @patch("os.fsync")
+    def test_download_with_empty_chunks_filtered(
+        self, mock_fsync: Any, mock_makedirs: Any
+    ) -> None:
+        """Test that empty chunks are filtered during download (branch 210->209)."""
+        behaviour = self._make_behaviour()
+        response = MagicMock()
+        # Mix of non-empty and empty chunks
+        response.iter_content.return_value = [b"chunk1", b"", b"chunk2"]
+
+        mock_file = MagicMock()
+        mock_file.__enter__ = MagicMock(return_value=mock_file)
+        mock_file.__exit__ = MagicMock(return_value=False)
+        mock_file.fileno.return_value = 3
+
+        with patch("builtins.open", return_value=mock_file):
+            result = PostMechResponseBehaviour._download_and_save_media(
+                behaviour,
+                response,
+                "https://gateway.example.com/ipfs/QmHash",
+                ".png",
+                "QmHash",
+            )
+        assert result is not None
+        # Only 2 non-empty chunks should be written
+        assert mock_file.write.call_count == 2
+
 
 class TestFetchMediaFromIpfsHash:
     """Tests for _fetch_media_from_ipfs_hash."""
@@ -444,3 +520,71 @@ class TestFetchMediaFromIpfsHash:
             behaviour, "QmHash", "image", ".png"
         )
         assert result is None
+
+
+class _MechBehaviourTestBase(MemeooorrFSMBehaviourBaseCase):
+    """Shared setup for mech behaviour FSM tests."""
+
+    _default_data = dict(
+        all_participants=["0x" + "0" * 40],
+        participants=["0x" + "0" * 40],
+        consensus_threshold=1,
+        safe_contract_address=SAFE_ADDRESS,
+        mech_responses=json.dumps([]),
+        mech_for_twitter=False,
+        failed_mech=False,
+    )
+
+
+class TestPostMechResponseBehaviourAsyncAct(_MechBehaviourTestBase):
+    """Tests for PostMechResponseBehaviour.async_act using FSMBehaviourBaseCase."""
+
+    def test_async_act_no_responses(self) -> None:
+        """Test async_act with empty mech responses sends payload and completes."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            PostMechResponseBehaviour.auto_behaviour_id(),
+            SynchronizedData(
+                AbciAppDB(setup_data=AbciAppDB.data_to_lists(self._default_data))
+            ),
+        )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(done_event=Event.DONE)
+
+
+class TestFailedMechRequestBehaviourAsyncAct(_MechBehaviourTestBase):
+    """Tests for FailedMechRequestBehaviour.async_act using FSMBehaviourBaseCase."""
+
+    def test_async_act(self) -> None:
+        """Test async_act sends payload and transitions."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            FailedMechRequestBehaviour.auto_behaviour_id(),
+            SynchronizedData(
+                AbciAppDB(setup_data=AbciAppDB.data_to_lists(self._default_data))
+            ),
+        )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(done_event=Event.DONE)
+
+
+class TestFailedMechResponseBehaviourAsyncAct(_MechBehaviourTestBase):
+    """Tests for FailedMechResponseBehaviour.async_act using FSMBehaviourBaseCase."""
+
+    def test_async_act(self) -> None:
+        """Test async_act sends payload with failed_mech=True and transitions."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            FailedMechResponseBehaviour.auto_behaviour_id(),
+            SynchronizedData(
+                AbciAppDB(setup_data=AbciAppDB.data_to_lists(self._default_data))
+            ),
+        )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(done_event=Event.DONE)

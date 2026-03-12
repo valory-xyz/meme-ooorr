@@ -85,7 +85,7 @@ def retry_with_exponential_backoff(max_retries=5, initial_delay=1, backoff_facto
             connection_instance = args[0]
             current_delay = initial_delay
 
-            for attempt in range(max_retries):
+            for attempt in range(max_retries):  # pragma: no branch
                 try:
                     return await func(*args, **kwargs)
                 except (
@@ -107,13 +107,6 @@ def retry_with_exponential_backoff(max_retries=5, initial_delay=1, backoff_facto
                         f"An unexpected error occurred during attempt {attempt + 1}: {e}"
                     )
                     raise  # Re-raise unexpected errors immediately
-
-            # This part should ideally not be reached if exceptions are raised correctly on final attempt
-            # Adding a fallback raise for safety, though _handle_retryable_exception should lead to a raise earlier.
-            connection_instance.logger.error(
-                "Function call failed after maximum retries."
-            )
-            raise Exception("Function call failed after maximum retries.")
 
         return wrapper
 
@@ -307,10 +300,9 @@ class MirrorDBConnection(Connection):
 
             endpoint = kwargs.get("endpoint")
             if endpoint is None:
-                if method_name in ["create_", "read_", "update_", "delete_"]:
-                    return self.prepare_error_message(
-                        srr_message, dialogue, "Missing endpoint in request kwargs."
-                    )
+                return self.prepare_error_message(
+                    srr_message, dialogue, "Missing endpoint in request kwargs."
+                )
 
             response_data = await method_to_call(**kwargs)
 

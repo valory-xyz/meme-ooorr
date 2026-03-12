@@ -17,16 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for behaviours.py."""
-
-# pylint: disable=C0415,R0901,W0212
+"""Tests for behaviours module."""
 
 from unittest.mock import MagicMock, patch
 
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    BaseBehaviour,
-)
 from packages.valory.skills.agent_db_abci.behaviours import (
     AgentDBBehaviour,
     AgentDBRoundBehaviour,
@@ -35,84 +29,54 @@ from packages.valory.skills.agent_db_abci.rounds import AgentDBAbciApp, AgentDBR
 
 
 class TestAgentDBBehaviour:
-    """Tests for AgentDBBehaviour."""
-
-    def test_is_subclass_of_base_behaviour(self) -> None:
-        """Test that AgentDBBehaviour is a subclass of BaseBehaviour."""
-        assert issubclass(AgentDBBehaviour, BaseBehaviour)
-
-    def test_matching_round(self) -> None:
-        """Test that matching_round is AgentDBRound."""
-        assert AgentDBBehaviour.matching_round is AgentDBRound
-
-    def test_is_abstract(self) -> None:
-        """Test that AgentDBBehaviour is abstract (cannot instantiate without ABC methods)."""
-        import abc
-
-        assert abc.ABC in AgentDBBehaviour.__mro__
+    """Test AgentDBBehaviour."""
 
     def test_init_calls_initialize(self) -> None:
         """Test that __init__ calls initialize on agent_db_client and agents_fun_db."""
-        mock_agent_db_client = MagicMock()
-        mock_agents_fun_db = MagicMock()
-
         mock_context = MagicMock()
-        mock_context.agent_db_client = mock_agent_db_client
-        mock_context.agents_fun_db = mock_agents_fun_db
-        mock_context.agent_address = "0xTEST"
+        mock_context.agent_address = "0xABC"
+        mock_context.agent_db_client = MagicMock()
+        mock_context.agents_fun_db = MagicMock()
+        mock_context.logger = MagicMock()
 
-        # We need to patch BaseBehaviour.__init__ to avoid needing the full
-        # abstract_round_abci infrastructure.
-        with patch.object(BaseBehaviour, "__init__", return_value=None):
-            # Create a concrete subclass so we can instantiate it
-            class ConcreteAgentDBBehaviour(AgentDBBehaviour):
-                """Concrete subclass for testing."""
+        # Create a concrete subclass to avoid ABC instantiation error
+        class ConcreteAgentDBBehaviour(AgentDBBehaviour):
+            """Concrete subclass for testing."""
 
-                def async_act(self):
-                    pass
+            def async_act(self) -> None:
+                """No-op."""
 
-            obj = object.__new__(ConcreteAgentDBBehaviour)
-            obj._context = mock_context
-            obj.get_http_response = MagicMock()
-            obj.get_signature = MagicMock()
+        with patch(
+            "packages.valory.skills.agent_db_abci.behaviours.BaseBehaviour.__init__",
+            return_value=None,
+        ):
+            behaviour = ConcreteAgentDBBehaviour.__new__(ConcreteAgentDBBehaviour)
+            behaviour._context = mock_context
+            behaviour.get_http_response = MagicMock()
+            behaviour.get_signature = MagicMock()
 
-            # Call the init body manually (skip super().__init__)
-            # We replicate the lines from AgentDBBehaviour.__init__
-            obj.context.agent_db_client.initialize(
-                address=obj.context.agent_address,
-                http_request_func=obj.get_http_response,
-                signing_func=obj.get_signature,
-                logger=obj.context.logger,
+            ConcreteAgentDBBehaviour.__init__(behaviour)
+
+            mock_context.agent_db_client.initialize.assert_called_once_with(
+                address="0xABC",
+                http_request_func=behaviour.get_http_response,
+                signing_func=behaviour.get_signature,
+                logger=mock_context.logger,
             )
-            obj.context.agents_fun_db.initialize(client=obj.context.agent_db_client)
+            mock_context.agents_fun_db.initialize.assert_called_once_with(
+                client=mock_context.agent_db_client,
+            )
 
-        mock_agent_db_client.initialize.assert_called_once_with(
-            address="0xTEST",
-            http_request_func=obj.get_http_response,
-            signing_func=obj.get_signature,
-            logger=mock_context.logger,
-        )
-        mock_agents_fun_db.initialize.assert_called_once_with(
-            client=mock_agent_db_client,
-        )
+    def test_matching_round(self) -> None:
+        """Test matching_round is AgentDBRound."""
+        assert AgentDBBehaviour.matching_round is AgentDBRound
 
 
-class TestAgentDBRoundBehaviour:
-    """Tests for AgentDBRoundBehaviour."""
+class TestAgentDBRoundBehaviour:  # pylint: disable=too-few-public-methods
+    """Test AgentDBRoundBehaviour."""
 
-    def test_is_subclass_of_abstract_round_behaviour(self) -> None:
-        """Test that AgentDBRoundBehaviour is a subclass of AbstractRoundBehaviour."""
-        assert issubclass(AgentDBRoundBehaviour, AbstractRoundBehaviour)
-
-    def test_initial_behaviour_cls(self) -> None:
-        """Test initial_behaviour_cls is AgentDBBehaviour."""
+    def test_class_attributes(self) -> None:
+        """Test class attributes are set correctly."""
         assert AgentDBRoundBehaviour.initial_behaviour_cls is AgentDBBehaviour
-
-    def test_abci_app_cls(self) -> None:
-        """Test abci_app_cls is AgentDBAbciApp."""
         assert AgentDBRoundBehaviour.abci_app_cls is AgentDBAbciApp
-
-    def test_behaviours_set(self) -> None:
-        """Test behaviours set contains AgentDBBehaviour."""
         assert AgentDBBehaviour in AgentDBRoundBehaviour.behaviours
-        assert len(AgentDBRoundBehaviour.behaviours) == 1

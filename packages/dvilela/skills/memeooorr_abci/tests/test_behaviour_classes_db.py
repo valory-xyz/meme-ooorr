@@ -28,22 +28,12 @@ from unittest.mock import MagicMock
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.db import (
     LoadDatabaseBehaviour,
 )
-from packages.dvilela.skills.memeooorr_abci.rounds import LoadDatabaseRound
-
-from .conftest import (
+from packages.dvilela.skills.memeooorr_abci.tests.conftest import (
     SAFE_ADDRESS,
     make_mock_context,
     make_mock_params,
     make_mock_synchronized_data,
 )
-
-
-class TestLoadDatabaseBehaviourMatchingRound:
-    """Tests for LoadDatabaseBehaviour matching round."""
-
-    def test_matching_round(self) -> None:
-        """Test that matching_round is LoadDatabaseRound."""
-        assert LoadDatabaseBehaviour.matching_round is LoadDatabaseRound
 
 
 class TestGatherAgentDetails:
@@ -239,3 +229,65 @@ class TestLoadDb:
         assert persona == "test persona"
         assert heart_cd == 24
         assert summon_cd == 86400
+
+
+class TestAsyncAct:
+    """Tests for LoadDatabaseBehaviour.async_act."""
+
+    def _make_behaviour(self) -> MagicMock:
+        behaviour = MagicMock(spec=LoadDatabaseBehaviour)
+        behaviour.params = make_mock_params()
+        behaviour.context = make_mock_context(params=behaviour.params)
+        behaviour.synchronized_data = make_mock_synchronized_data()
+        behaviour.behaviour_id = "test_behaviour"
+        return behaviour
+
+    def test_async_act(self) -> None:
+        """Test async_act orchestrates load_db, populate_keys, init_twitter, gather_agent_details, write_kv, and sends payload."""
+        behaviour = self._make_behaviour()
+
+        def mock_load_db():  # type: ignore[no-untyped-def]
+            yield
+            return ("test persona", 24, 86400)
+
+        def mock_populate_keys_in_kv():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_init_own_twitter_details():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_gather_agent_details(persona):  # type: ignore[no-untyped-def]
+            return json.dumps({"persona": persona, "twitter_username": "test_user"})
+
+        def mock_write_kv(data):  # type: ignore[no-untyped-def]
+            yield
+            return True
+
+        def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        def mock_wait_until_round_end():  # type: ignore[no-untyped-def]
+            yield
+            return None
+
+        behaviour.load_db = mock_load_db
+        behaviour.populate_keys_in_kv = mock_populate_keys_in_kv
+        behaviour.init_own_twitter_details = mock_init_own_twitter_details
+        behaviour.gather_agent_details = mock_gather_agent_details
+        behaviour._write_kv = mock_write_kv
+        behaviour.send_a2a_transaction = mock_send_a2a_transaction
+        behaviour.wait_until_round_end = mock_wait_until_round_end
+        behaviour.set_done = MagicMock()
+
+        gen = LoadDatabaseBehaviour.async_act(behaviour)
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration:
+            pass
+
+        behaviour.set_done.assert_called_once()

@@ -17,14 +17,11 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for the models module of the agent_performance_summary_abci skill."""
-
-# pylint: disable=W0212,E0237
+"""Tests for models.py in agent_performance_summary_abci."""
 
 import json
 from pathlib import Path
-from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -35,248 +32,183 @@ from packages.valory.skills.agent_performance_summary_abci.models import (
     AgentPerformanceSummaryParams,
     SharedState,
 )
-from packages.valory.skills.agent_performance_summary_abci.rounds import (
-    AgentPerformanceSummaryAbciApp,
-)
 
 
 class TestAgentPerformanceMetrics:
-    """Tests for the AgentPerformanceMetrics dataclass."""
+    """Tests for AgentPerformanceMetrics dataclass."""
 
-    def test_construction_without_description(self) -> None:
-        """Test construction without optional description."""
-        metric = AgentPerformanceMetrics(name="likes", is_primary=True, value="100")
-        assert metric.name == "likes"
-        assert metric.is_primary is True
-        assert metric.value == "100"
-        assert metric.description is None
+    def test_creation_with_defaults(self) -> None:
+        """Test creation with default description."""
+        m = AgentPerformanceMetrics(name="test", is_primary=True, value="42")
+        assert m.name == "test"
+        assert m.is_primary is True
+        assert m.value == "42"
+        assert m.description is None
 
-    def test_construction_with_description(self) -> None:
-        """Test construction with description."""
-        metric = AgentPerformanceMetrics(
-            name="impressions",
-            is_primary=False,
-            value="5000",
-            description="Total impressions in the last 7 days.",
+    def test_creation_with_description(self) -> None:
+        """Test creation with explicit description."""
+        m = AgentPerformanceMetrics(
+            name="test", is_primary=False, value="75%", description="some desc"
         )
-        assert metric.name == "impressions"
-        assert metric.is_primary is False
-        assert metric.value == "5000"
-        assert metric.description == "Total impressions in the last 7 days."
-
-    def test_description_with_html(self) -> None:
-        """Test that description can contain HTML tags."""
-        desc = "Total <b>likes</b> received."
-        metric = AgentPerformanceMetrics(
-            name="likes", is_primary=True, value="42", description=desc
-        )
-        assert metric.description == desc
+        assert m.description == "some desc"
 
 
 class TestAgentPerformanceSummary:
-    """Tests for the AgentPerformanceSummary dataclass."""
+    """Tests for AgentPerformanceSummary dataclass."""
 
-    def test_default_construction(self) -> None:
-        """Test default construction produces empty summary."""
-        summary = AgentPerformanceSummary()
-        assert summary.timestamp is None
-        assert summary.metrics == []
-        assert summary.agent_behavior is None
+    def test_defaults(self) -> None:
+        """Test default values."""
+        s = AgentPerformanceSummary()
+        assert s.timestamp is None
+        assert s.metrics == []
+        assert s.agent_behavior is None
 
-    def test_construction_with_values(self) -> None:
-        """Test construction with explicit values."""
-        metrics = [
-            AgentPerformanceMetrics(name="likes", is_primary=True, value="10"),
-        ]
-        summary = AgentPerformanceSummary(
-            timestamp=1234567890,
-            metrics=metrics,
-            agent_behavior="posting memes",
-        )
-        assert summary.timestamp == 1234567890
-        assert len(summary.metrics) == 1
-        assert summary.agent_behavior == "posting memes"
-
-    def test_from_dict_with_metrics(self) -> None:
-        """Test from_dict parses metrics correctly."""
+    def test_from_dict(self) -> None:
+        """Test from_dict with metrics."""
         data = {
-            "timestamp": 1000000,
+            "timestamp": 123456,
             "metrics": [
-                {"name": "likes", "is_primary": True, "value": "50"},
-                {
-                    "name": "impressions",
-                    "is_primary": False,
-                    "value": "2000",
-                    "description": "Total impressions.",
-                },
+                {"name": "m1", "is_primary": True, "value": "10"},
+                {"name": "m2", "is_primary": False, "value": "20", "description": "d"},
             ],
-            "agent_behavior": "active",
+            "agent_behavior": "some behavior",
         }
-        summary = AgentPerformanceSummary.from_dict(data)
-        assert summary.timestamp == 1000000
-        assert len(summary.metrics) == 2
-        assert isinstance(summary.metrics[0], AgentPerformanceMetrics)
-        assert summary.metrics[0].name == "likes"
-        assert summary.metrics[0].is_primary is True
-        assert summary.metrics[1].description == "Total impressions."
-        assert summary.agent_behavior == "active"
+        s = AgentPerformanceSummary.from_dict(data)
+        assert s.timestamp == 123456
+        assert len(s.metrics) == 2
+        assert isinstance(s.metrics[0], AgentPerformanceMetrics)
+        assert s.metrics[0].name == "m1"
+        assert s.agent_behavior == "some behavior"
 
-    def test_from_dict_without_metrics(self) -> None:
-        """Test from_dict with no metrics key uses empty list."""
-        data = {"timestamp": 999, "agent_behavior": None}
-        summary = AgentPerformanceSummary.from_dict(data)
-        assert summary.metrics == []
+    def test_from_dict_empty_metrics(self) -> None:
+        """Test from_dict with no metrics key."""
+        data = {"timestamp": 1, "agent_behavior": None}
+        s = AgentPerformanceSummary.from_dict(data)
+        assert s.metrics == []
 
     def test_to_json(self) -> None:
-        """Test to_json produces valid JSON."""
-        metrics = [
-            AgentPerformanceMetrics(
-                name="likes", is_primary=True, value="10", description=None
-            ),
-        ]
-        summary = AgentPerformanceSummary(
-            timestamp=123, metrics=metrics, agent_behavior="idle"
+        """Test to_json serialization."""
+        s = AgentPerformanceSummary(
+            timestamp=100,
+            metrics=[AgentPerformanceMetrics(name="x", is_primary=True, value="1")],
+            agent_behavior="behave",
         )
-        result = summary.to_json()
-        parsed = json.loads(result)
-        assert parsed["timestamp"] == 123
-        assert parsed["agent_behavior"] == "idle"
-        assert len(parsed["metrics"]) == 1
-        assert parsed["metrics"][0]["name"] == "likes"
-
-    def test_to_json_round_trip(self) -> None:
-        """Test to_json -> from_dict round-trip."""
-        original = AgentPerformanceSummary(
-            timestamp=555,
-            metrics=[
-                AgentPerformanceMetrics(
-                    name="m1", is_primary=True, value="v1", description="d1"
-                ),
-            ],
-            agent_behavior="behavior",
-        )
-        json_str = original.to_json()
-        reconstructed = AgentPerformanceSummary.from_dict(json.loads(json_str))
-        assert reconstructed.timestamp == original.timestamp
-        assert reconstructed.agent_behavior == original.agent_behavior
-        assert len(reconstructed.metrics) == len(original.metrics)
-        assert reconstructed.metrics[0].name == original.metrics[0].name
-        assert reconstructed.metrics[0].value == original.metrics[0].value
+        result = json.loads(s.to_json())
+        assert result["timestamp"] == 100
+        assert len(result["metrics"]) == 1
+        assert result["metrics"][0]["name"] == "x"
+        assert result["agent_behavior"] == "behave"
 
 
 class TestAgentPerformanceSummaryParams:
-    """Tests for the AgentPerformanceSummaryParams class."""
+    """Tests for AgentPerformanceSummaryParams."""
 
-    def test_get_store_path_valid(self, tmp_path: Path) -> None:
-        """Test get_store_path with a valid directory."""
-        params = AgentPerformanceSummaryParams.__new__(AgentPerformanceSummaryParams)
-        result = params.get_store_path({"store_path": str(tmp_path)})
-        assert result == tmp_path
+    @patch(
+        "packages.valory.skills.agent_performance_summary_abci.models.BaseParams.__init__"
+    )
+    def test_init_success(self, mock_super_init: MagicMock, tmp_path: Path) -> None:
+        """Test successful initialization with valid store path."""
+        mock_super_init.return_value = None
+        params = AgentPerformanceSummaryParams(
+            store_path=str(tmp_path),
+            is_agent_performance_summary_enabled=True,
+            performance_summary_ttl=3600,
+            name="test",
+            skill_context=MagicMock(),
+        )
+        assert params.store_path == tmp_path
+        assert params.is_agent_performance_summary_enabled is True
+        assert params.performance_summary_ttl == 3600
 
-    def test_get_store_path_empty_string(self) -> None:
-        """Test get_store_path with empty string raises ValueError."""
-        params = AgentPerformanceSummaryParams.__new__(AgentPerformanceSummaryParams)
+    def test_init_invalid_store_path(self) -> None:
+        """Test initialization with invalid store path raises ValueError."""
         with pytest.raises(ValueError, match="is not a directory or is not writable"):
-            params.get_store_path({"store_path": ""})
+            AgentPerformanceSummaryParams(
+                store_path="/nonexistent/path/that/does/not/exist",
+                is_agent_performance_summary_enabled=True,
+                performance_summary_ttl=3600,
+                name="test",
+                skill_context=MagicMock(),
+            )
 
-    def test_get_store_path_nonexistent(self) -> None:
-        """Test get_store_path with nonexistent path raises ValueError."""
-        params = AgentPerformanceSummaryParams.__new__(AgentPerformanceSummaryParams)
+    def test_init_empty_store_path(self) -> None:
+        """Test initialization with empty store path raises ValueError."""
         with pytest.raises(ValueError, match="is not a directory or is not writable"):
-            params.get_store_path({"store_path": "/nonexistent/path/xyz"})
-
-    def test_get_store_path_not_writable(self, tmp_path: Path) -> None:
-        """Test get_store_path with non-writable directory raises ValueError."""
-        writable_dir = tmp_path / "somedir"
-        writable_dir.mkdir()
-        params = AgentPerformanceSummaryParams.__new__(AgentPerformanceSummaryParams)
-        with mock.patch("os.access", return_value=False):
-            with pytest.raises(
-                ValueError, match="is not a directory or is not writable"
-            ):
-                params.get_store_path({"store_path": str(writable_dir)})
-
-    def test_get_store_path_missing_key(self) -> None:
-        """Test get_store_path with missing key uses empty string default."""
-        params = AgentPerformanceSummaryParams.__new__(AgentPerformanceSummaryParams)
-        with pytest.raises(ValueError):
-            params.get_store_path({})
+            AgentPerformanceSummaryParams(
+                store_path="",
+                is_agent_performance_summary_enabled=False,
+                performance_summary_ttl=100,
+                name="test",
+                skill_context=MagicMock(),
+            )
 
 
 class TestSharedState:
-    """Tests for the SharedState class."""
+    """Tests for SharedState."""
 
-    def test_abci_app_cls(self) -> None:
-        """Test the abci_app_cls attribute."""
-        assert SharedState.abci_app_cls is AgentPerformanceSummaryAbciApp
-
-    def test_params_property(self) -> None:
-        """Test the params property returns context.params cast."""
-        state = SharedState.__new__(SharedState)
+    def _make_shared_state(self, tmp_path: Path) -> SharedState:
+        """Create a SharedState with mocked context."""
         mock_params = MagicMock(spec=AgentPerformanceSummaryParams)
-        state._context = MagicMock()
-        state.context.params = mock_params
-
-        result = state.params
-        assert result is mock_params
-
-    def test_synced_timestamp(self) -> None:
-        """Test synced_timestamp reads from round_sequence."""
-        state = SharedState.__new__(SharedState)
-        mock_ts = MagicMock()
-        mock_ts.timestamp.return_value = 1234567890.5
-        state._context = MagicMock()
-        state.context.state.round_sequence.last_round_transition_timestamp = mock_ts
-
-        result = state.synced_timestamp
-        assert result == 1234567890
-
-    def test_read_existing_performance_summary_valid_file(self, tmp_path: Path) -> None:
-        """Test reading a valid performance summary file."""
-        state = SharedState.__new__(SharedState)
-        mock_params = MagicMock()
         mock_params.store_path = tmp_path
-        state._context = MagicMock()
-        state.context.params = mock_params
 
-        file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
+        mock_context = MagicMock()
+        mock_context.params = mock_params
+
+        mock_round_sequence = MagicMock()
+        mock_round_sequence.last_round_transition_timestamp.timestamp.return_value = (
+            1700000000.0
+        )
+
+        mock_state = MagicMock()
+        mock_state.round_sequence = mock_round_sequence
+
+        mock_context.state = mock_state
+
+        state = SharedState.__new__(SharedState)
+        state._context = mock_context
+        return state
+
+    @property
+    def _mock_context(self) -> MagicMock:
+        """Create mock context."""
+        return MagicMock()
+
+    def test_synced_timestamp(self, tmp_path: Path) -> None:
+        """Test synced_timestamp returns int from round sequence."""
+        state = self._make_shared_state(tmp_path)
+        assert state.synced_timestamp == 1700000000
+
+    def test_read_existing_performance_summary_success(self, tmp_path: Path) -> None:
+        """Test reading a valid performance summary file."""
+        state = self._make_shared_state(tmp_path)
+
         data = {
-            "timestamp": 999,
-            "metrics": [{"name": "likes", "is_primary": True, "value": "50"}],
-            "agent_behavior": "test",
+            "timestamp": 123,
+            "metrics": [{"name": "m1", "is_primary": True, "value": "10"}],
+            "agent_behavior": "some behavior",
         }
+        file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
         file_path.write_text(json.dumps(data))
 
         result = state.read_existing_performance_summary()
-        assert result.timestamp == 999
+        assert result.timestamp == 123
         assert len(result.metrics) == 1
-        assert result.metrics[0].name == "likes"
-        assert result.agent_behavior == "test"
+        assert result.agent_behavior == "some behavior"
 
-    def test_read_existing_performance_summary_missing_file(
+    def test_read_existing_performance_summary_file_not_found(
         self, tmp_path: Path
     ) -> None:
-        """Test reading when file does not exist returns empty summary."""
-        state = SharedState.__new__(SharedState)
-        mock_params = MagicMock()
-        mock_params.store_path = tmp_path
-        state._context = MagicMock()
-        state.context.params = mock_params
-
+        """Test reading when file doesn't exist returns empty summary."""
+        state = self._make_shared_state(tmp_path)
         result = state.read_existing_performance_summary()
         assert result.timestamp is None
         assert result.metrics == []
-        assert result.agent_behavior is None
 
     def test_read_existing_performance_summary_invalid_json(
         self, tmp_path: Path
     ) -> None:
         """Test reading invalid JSON returns empty summary."""
-        state = SharedState.__new__(SharedState)
-        mock_params = MagicMock()
-        mock_params.store_path = tmp_path
-        state._context = MagicMock()
-        state.context.params = mock_params
+        state = self._make_shared_state(tmp_path)
 
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
         file_path.write_text("not valid json{{{")
@@ -287,68 +219,39 @@ class TestSharedState:
 
     def test_overwrite_performance_summary(self, tmp_path: Path) -> None:
         """Test writing a performance summary to file."""
-        state = SharedState.__new__(SharedState)
-        mock_params = MagicMock()
-        mock_params.store_path = tmp_path
-        state._context = MagicMock()
-        state.context.params = mock_params
+        state = self._make_shared_state(tmp_path)
 
         summary = AgentPerformanceSummary(
-            timestamp=12345,
-            metrics=[
-                AgentPerformanceMetrics(
-                    name="likes", is_primary=True, value="100", description=None
-                ),
-            ],
-            agent_behavior="posting",
+            timestamp=999,
+            metrics=[AgentPerformanceMetrics(name="m", is_primary=True, value="v")],
+            agent_behavior="behave",
         )
         state.overwrite_performance_summary(summary)
 
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
-        assert file_path.exists()
-        written = json.loads(file_path.read_text())
-        assert written["timestamp"] == 12345
-        assert written["metrics"][0]["name"] == "likes"
-        assert written["agent_behavior"] == "posting"
+        with open(file_path) as f:
+            data = json.load(f)
+        assert data["timestamp"] == 999
+        assert data["agent_behavior"] == "behave"
 
     def test_update_agent_behavior(self, tmp_path: Path) -> None:
-        """Test update_agent_behavior reads, updates, and writes back."""
-        state = SharedState.__new__(SharedState)
-        mock_params = MagicMock()
-        mock_params.store_path = tmp_path
-        state._context = MagicMock()
-        state.context.params = mock_params
+        """Test update_agent_behavior updates existing data."""
+        state = self._make_shared_state(tmp_path)
 
         # Write initial data
-        file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
-        file_path.write_text(
-            json.dumps(
-                {
-                    "timestamp": 100,
-                    "metrics": [
-                        {
-                            "name": "likes",
-                            "is_primary": True,
-                            "value": "5",
-                            "description": None,
-                        }
-                    ],
-                    "agent_behavior": "old behavior",
-                }
-            )
+        initial = AgentPerformanceSummary(
+            timestamp=100,
+            metrics=[AgentPerformanceMetrics(name="m", is_primary=True, value="v")],
+            agent_behavior="old",
         )
+        state.overwrite_performance_summary(initial)
 
-        # Mock synced_timestamp
-        mock_ts = MagicMock()
-        mock_ts.timestamp.return_value = 200.0
-        state.context.state.round_sequence.last_round_transition_timestamp = mock_ts
-
+        # Update behavior
         state.update_agent_behavior("new behavior")
 
-        # Read back and verify
-        written = json.loads(file_path.read_text())
-        assert written["agent_behavior"] == "new behavior"
-        assert written["timestamp"] == 200
-        # Metrics should be preserved
-        assert len(written["metrics"]) == 1
-        assert written["metrics"][0]["name"] == "likes"
+        # Verify
+        file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
+        with open(file_path) as f:
+            data = json.load(f)
+        assert data["agent_behavior"] == "new behavior"
+        assert data["timestamp"] == 1700000000

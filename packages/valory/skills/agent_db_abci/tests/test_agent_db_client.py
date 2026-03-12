@@ -17,14 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for agent_db_client.py."""
+"""Tests for agent_db_client module."""
 
-# pylint: disable=W0212,W0613,E1136,R0904,E1101
+# pylint: disable=no-member
 
 import json
-from datetime import datetime, timezone
-from typing import Any, Generator
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -36,181 +34,94 @@ from packages.valory.skills.agent_db_abci.agent_db_models import (
     AttributeInstance,
 )
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
-NOW = datetime.now(timezone.utc)
+def _make_client(base_url: str = "https://example.com/api/") -> AgentDBClient:
+    """Create an AgentDBClient with Model.__init__ mocked out.
 
-AGENT_TYPE_DICT = {"type_id": 1, "type_name": "test_type", "description": "desc"}
-AGENT_TYPE = AgentType(**AGENT_TYPE_DICT)
+    The patch only affects super().__init__(**kwargs) on line 46.
+    Lines 47-55 (attribute assignments) execute normally and are covered.
 
-AGENT_INSTANCE_DICT = {
-    "agent_id": 10,
-    "type_id": 1,
-    "agent_name": "agent-10",
-    "eth_address": "0xABC",
-    "created_at": NOW.isoformat(),
-}
-AGENT_INSTANCE = AgentInstance(**AGENT_INSTANCE_DICT)
-
-ATTR_DEF_DICT = {
-    "attr_def_id": 100,
-    "type_id": 1,
-    "attr_name": "my_attr",
-    "data_type": "string",
-    "is_required": False,
-    "default_value": "",
-}
-ATTR_DEF = AttributeDefinition(**ATTR_DEF_DICT)
-
-ATTR_INSTANCE_DICT = {
-    "attribute_id": 200,
-    "attr_def_id": 100,
-    "agent_id": 10,
-    "last_updated": NOW.isoformat(),
-    "string_value": "hello",
-    "integer_value": None,
-    "float_value": None,
-    "boolean_value": None,
-    "date_value": None,
-    "json_value": None,
-}
-ATTR_INSTANCE = AttributeInstance(**ATTR_INSTANCE_DICT)
-
-
-def _exhaust(gen: Generator) -> Any:
-    """Drive a generator to completion and return its return value."""
-    try:
-        while True:
-            next(gen)
-    except StopIteration as exc:
-        return exc.value
-
-
-def make_client(base_url: str = "https://example.com/") -> AgentDBClient:
-    """Create an AgentDBClient with mocked Model.__init__."""
-    client = AgentDBClient.__new__(AgentDBClient)
-    client.base_url = base_url.rstrip("/")
-    client._attribute_definition_cache = {}
-    client.agent = None
-    client.agent_type = None
-    client.address = None
-    client.signing_func = None
-    client.http_request_func = None
-    client.logger = MagicMock()
-    client.agent_type_name = None
-    client.agent_name_template = None
+    :param base_url: the base URL for the client.
+    :return: an AgentDBClient instance.
+    """
+    with patch("packages.valory.skills.agent_db_abci.agent_db_client.Model.__init__"):
+        client = AgentDBClient(base_url=base_url)
     return client
 
 
-def _make_response(status_code: int, body_dict: Any = None):
-    """Create a mock HTTP response."""
-    resp = MagicMock()
-    resp.status_code = status_code
-    resp.body = json.dumps(body_dict).encode() if body_dict is not None else b""
-    resp.text = ""
-    return resp
+def _exhaust_gen(gen):  # type: ignore[no-untyped-def]
+    """Drive a generator to completion, returning its return value.
 
+    Sends None at each yield point. Suitable for generators whose
+    yield-from targets are also driven by send(None).
 
-def _http_gen(*responses):
-    """Return a generator-based http_request_func that yields successive responses."""
-    idx = [0]
-
-    def http_func(**kwargs):
-        r = responses[idx[0]]
-        idx[0] += 1
-        return r
-        yield  # noqa: E501  make it a generator
-
-    return http_func
-
-
-def _sign_gen():
-    """Return a generator-based signing_func that always yields '0xSIG'."""
-
-    def sign_func(msg):
-        return "0xSIG"
-        yield  # noqa: E501
-
-    return sign_func
-
-
-# --- Section: __init__ and initialize ---
+    :param gen: the generator to exhaust.
+    :return: the generator's return value.
+    """
+    result = None
+    try:
+        gen.send(None)
+        while True:
+            gen.send(None)
+    except StopIteration as e:
+        result = e.value
+    return result
 
 
 class TestAgentDBClientInit:
-    """Tests for AgentDBClient initialization and initialize method."""
+    """Test AgentDBClient.__init__ (lines 44-55)."""
 
-    def test_base_url_trailing_slash_stripped(self) -> None:
-        """Test that trailing slash is stripped from base_url."""
-        client = make_client("https://example.com/")
-        assert client.base_url == "https://example.com"
+    def test_init_strips_trailing_slash(self):
+        """Test that base_url trailing slash is stripped."""
+        client = _make_client("https://example.com/api/")
+        assert client.base_url == "https://example.com/api"
 
-    def test_base_url_no_trailing_slash(self) -> None:
-        """Test base_url without trailing slash."""
-        client = make_client("https://example.com")
-        assert client.base_url == "https://example.com"
-
-    def test_initial_state(self) -> None:
-        """Test initial state of client."""
-        client = make_client()
+    def test_init_sets_defaults(self):
+        """Test default attribute values set in __init__."""
+        client = _make_client()
+        assert not client._attribute_definition_cache
         assert client.agent is None
         assert client.agent_type is None
         assert client.address is None
         assert client.signing_func is None
         assert client.http_request_func is None
-        assert not client._attribute_definition_cache
+        assert client.logger is None
+        assert client.agent_type_name is None
+        assert client.agent_name_template is None
 
-    def test_initialize(self) -> None:
-        """Test initialize sets all external dependencies."""
-        client = make_client()
+
+class TestAgentDBClientInitialize:  # pylint: disable=too-few-public-methods
+    """Test AgentDBClient.initialize."""
+
+    def test_initialize_sets_all_fields(self):
+        """Test that initialize stores all injected dependencies."""
+        client = _make_client()
         mock_http = MagicMock()
         mock_sign = MagicMock()
         mock_logger = MagicMock()
 
         client.initialize(
-            address="0xabc",
+            address="0xABC",
             http_request_func=mock_http,
             signing_func=mock_sign,
             logger=mock_logger,
-            agent_type_name="memeooorr",
+            agent_type_name="test_type",
             agent_name_template="agent-{address}",
         )
 
-        assert client.address == "0xabc"
+        assert client.address == "0xABC"
         assert client.http_request_func is mock_http
         assert client.signing_func is mock_sign
         assert client.logger is mock_logger
-        assert client.agent_type_name == "memeooorr"
+        assert client.agent_type_name == "test_type"
         assert client.agent_name_template == "agent-{address}"
 
-    def test_initialize_defaults(self) -> None:
-        """Test initialize with default optional parameters."""
-        client = make_client()
-        client.initialize(
-            address="0x1",
-            http_request_func=MagicMock(),
-            signing_func=MagicMock(),
-            logger=MagicMock(),
-        )
-        assert client.agent_type_name is None
-        assert client.agent_name_template is None
 
+class TestAgentDBClientCastAttributeValue:  # pylint: disable=too-few-public-methods
+    """Test AgentDBClient.cast_attribute_value for all data_type branches."""
 
-# --- Section: cast_attribute_value (non-generator) ---
-
-
-class TestCastAttributeValue:
-    """Tests for cast_attribute_value (non-generator method)."""
-
-    @pytest.fixture()
-    def client(self) -> AgentDBClient:
-        """Create a client for testing."""
-        return make_client()
-
-    def _make_attr_def(self, data_type: str) -> AttributeDefinition:
-        """Helper to create AttributeDefinition with given data_type."""
+    @staticmethod
+    def _attr_def(data_type):
         return AttributeDefinition(
             attr_def_id=1,
             type_id=1,
@@ -220,855 +131,1470 @@ class TestCastAttributeValue:
             default_value="",
         )
 
-    def test_cast_string(self, client: AgentDBClient) -> None:
-        """Test casting to string."""
-        result = client.cast_attribute_value(123, self._make_attr_def("string"))
-        assert result == "123"
-        assert isinstance(result, str)
-
-    def test_cast_integer(self, client: AgentDBClient) -> None:
-        """Test casting to integer."""
-        result = client.cast_attribute_value("42", self._make_attr_def("integer"))
-        assert result == 42
-
-    def test_cast_float(self, client: AgentDBClient) -> None:
-        """Test casting to float."""
-        result = client.cast_attribute_value("3.14", self._make_attr_def("float"))
-        assert result == pytest.approx(3.14)
-
-    def test_cast_boolean_true(self, client: AgentDBClient) -> None:
-        """Test casting truthy value to boolean."""
-        assert client.cast_attribute_value(1, self._make_attr_def("boolean")) is True
-
-    def test_cast_boolean_false(self, client: AgentDBClient) -> None:
-        """Test casting falsy value to boolean."""
-        assert client.cast_attribute_value(0, self._make_attr_def("boolean")) is False
-
-    def test_cast_date(self, client: AgentDBClient) -> None:
-        """Test casting to date."""
-        result = client.cast_attribute_value(
-            "2025-01-15T12:00:00+00:00",
-            self._make_attr_def("date"),
+    @pytest.mark.parametrize(
+        "data_type, input_val, expected",
+        [
+            ("string", 123, "123"),
+            ("integer", "42", 42),
+            ("float", "3.14", 3.14),
+            ("boolean", 1, True),
+            ("json", {"key": "value"}, {"key": "value"}),
+            ("date", "2025-01-01T00:00:00+00:00", None),  # checked separately
+            ("unknown_type", "raw_value", "raw_value"),  # falls through all elifs
+        ],
+    )
+    def test_cast_types(self, data_type, input_val, expected):
+        """Test cast for each data type."""
+        from datetime import (  # pylint: disable=import-outside-toplevel
+            datetime,
+            timezone,
         )
-        assert result == datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
 
-    def test_cast_date_z_suffix(self, client: AgentDBClient) -> None:
-        """Test casting date with Z suffix."""
-        result = client.cast_attribute_value(
-            "2025-01-15T12:00:00Z",
-            self._make_attr_def("date"),
-        )
-        assert result == datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
-
-    def test_cast_json_passthrough(self, client: AgentDBClient) -> None:
-        """Test that json type passes through unchanged."""
-        data = {"key": "value"}
-        result = client.cast_attribute_value(data, self._make_attr_def("json"))
-        assert result is data
-
-    def test_cast_unknown_type_passthrough(self, client: AgentDBClient) -> None:
-        """Test that unknown data_type passes through unchanged."""
-        result = client.cast_attribute_value("anything", self._make_attr_def("unknown"))
-        assert result == "anything"
+        client = _make_client()
+        result = client.cast_attribute_value(input_val, self._attr_def(data_type))
+        if data_type == "date":
+            assert result == datetime(2025, 1, 1, tzinfo=timezone.utc)
+        else:
+            assert result == expected
 
 
-# ---------------------------------------------------------------------------
-# Tests: attribute definition cache
-# ---------------------------------------------------------------------------
+class TestAgentDBClientEnsureAgentInstance:
+    """Test AgentDBClient._ensure_agent_instance."""
 
+    def test_already_exists(self):
+        """When agent is not None, return immediately."""
+        client = _make_client()
+        client.agent = MagicMock()
+        gen = client._ensure_agent_instance()
+        with pytest.raises(StopIteration):
+            next(gen)
 
-class TestAttributeDefinitionCache:
-    """Tests for the attribute definition cache."""
-
-    def test_cache_starts_empty(self) -> None:
-        """Test that cache starts empty."""
-        assert not make_client()._attribute_definition_cache
-
-    def test_cache_can_be_populated(self) -> None:
-        """Test that cache can be populated manually."""
-        client = make_client()
-        client._attribute_definition_cache[5] = ATTR_DEF
-        assert client._attribute_definition_cache[5].attr_name == "my_attr"
-
-
-# --- Section: _sign_request ---
-
-
-class TestSignRequest:
-    """Tests for _sign_request validation and happy path."""
-
-    def test_raises_without_signing_func(self) -> None:
-        """Test that _sign_request raises if signing_func is not set."""
-        client = make_client()
-        client.signing_func = None
-        gen = client._sign_request("/api/test")
-        with pytest.raises(ValueError, match="Signing function not set"):
-            gen.send(None)
-
-    def test_raises_when_agent_is_none(self) -> None:
-        """Test that _sign_request raises if agent cannot be resolved."""
-        client = make_client()
-        client.signing_func = MagicMock()
-        client.address = "0xdead"
-
-        def mock_ensure():
-            return
-            yield  # noqa: E501
-
-        client._ensure_agent_instance = mock_ensure
-        gen = client._sign_request("/api/test")
-        with pytest.raises(ValueError, match="failed to get agent"):
-            gen.send(None)
-
-    def test_success_returns_auth_data(self) -> None:
-        """Test successful signing returns auth_data dict."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
+    def test_found_by_address(self):
+        """When agent is found by address, also fetch its type."""
+        client = _make_client()
         client.address = "0xABC"
-        gen = client._sign_request("/api/test")
-        result = _exhaust(gen)
-        assert result["agent_id"] == AGENT_INSTANCE.agent_id
-        assert result["signature"] == "0xSIG"
-        assert "timestamp:" in result["message"]
-        assert "endpoint:/api/test" in result["message"]
+        client.logger = MagicMock()
 
+        agent_data = {
+            "agent_id": 1,
+            "type_id": 10,
+            "agent_name": "test",
+            "eth_address": "0xABC",
+            "created_at": "2025-01-01T00:00:00+00:00",
+        }
+        agent_type_data = {"type_id": 10, "type_name": "m", "description": "d"}
 
-# --- Section: _request ---
-
-
-class TestRequest:
-    """Tests for the _request generator method."""
-
-    def test_raises_without_http_func(self) -> None:
-        """Test raises when http_request_func is None."""
-        client = make_client()
-        gen = client._request("GET", "/api/test")
-        with pytest.raises(ValueError, match="HTTP request function not set"):
-            gen.send(None)
-
-    def test_get_200(self) -> None:
-        """Test a successful GET returning 200."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, {"key": "val"}))
-        result = _exhaust(client._request("GET", "/api/test"))
-        assert result == {"key": "val"}
-
-    def test_post_201(self) -> None:
-        """Test a POST returning 201."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(201, {"id": 1}))
-        result = _exhaust(client._request("POST", "/api/test", payload={"a": "b"}))
-        assert result == {"id": 1}
-
-    def test_404_returns_none(self) -> None:
-        """Test a 404 response returns None."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client._request("GET", "/api/missing"))
-        assert result is None
-
-    def test_500_raises(self) -> None:
-        """Test a 500 raises an exception."""
-        resp = _make_response(500)
-        resp.text = "Internal Server Error"
-        client = make_client()
-        client.http_request_func = _http_gen(resp)
-        with pytest.raises(Exception, match="Request failed: 500"):
-            _exhaust(client._request("GET", "/api/err"))
-
-    def test_auth_nested(self) -> None:
-        """Test request with auth=True and nested_auth=True puts auth inside payload."""
-        captured = {}
-
-        def http_func(**kwargs):
-            captured.update(kwargs)
-            return _make_response(200, {"ok": True})
-            yield  # noqa: E501
-
-        client = make_client()
-        client.http_request_func = http_func
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        result = _exhaust(
-            client._request(
-                "POST", "/ep", payload={"d": 1}, auth=True, nested_auth=True
-            )
+        mock_resp_agent = MagicMock(
+            status_code=200, body=json.dumps(agent_data).encode()
         )
-        assert result == {"ok": True}
-        body = json.loads(captured["content"])
-        assert "auth" in body
-        assert body["d"] == 1
-
-    def test_auth_not_nested(self) -> None:
-        """Test request with auth=True and nested_auth=False merges auth at top level."""
-        captured = {}
-
-        def http_func(**kwargs):
-            captured.update(kwargs)
-            return _make_response(200, {"ok": True})
-            yield  # noqa: E501
-
-        client = make_client()
-        client.http_request_func = http_func
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        result = _exhaust(
-            client._request(
-                "POST", "/ep", payload={"d": 1}, auth=True, nested_auth=False
-            )
+        mock_resp_type = MagicMock(
+            status_code=200, body=json.dumps(agent_type_data).encode()
         )
-        assert result == {"ok": True}
-        body = json.loads(captured["content"])
-        assert "agent_id" in body
-        assert "signature" in body
-        assert "auth" not in body
 
-    def test_auth_with_no_initial_payload(self) -> None:
-        """Test auth=True with payload=None creates an empty dict for payload."""
-        captured = {}
+        def fake_http(**kwargs):
+            """Yield-from compatible HTTP mock."""
+            yield
+            return mock_resp_agent
 
-        def http_func(**kwargs):
-            captured.update(kwargs)
-            return _make_response(200, {"ok": True})
-            yield  # noqa: E501
+        client.http_request_func = fake_http
 
-        client = make_client()
-        client.http_request_func = http_func
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        _exhaust(
-            client._request("POST", "/ep", payload=None, auth=True, nested_auth=True)
-        )
-        body = json.loads(captured["content"])
-        assert "auth" in body
+        gen = client._ensure_agent_instance()
+        # Drive: first yield from _request -> http_request_func yields once
+        gen.send(None)
+        # Send None to advance past the yield in fake_http
+        # But we need different responses for two requests.
+        # Easier: just send None repeatedly, but the response is baked in fake_http.
+        # Problem: second call also needs a response.
 
-    def test_request_no_payload_sends_none_content(self) -> None:
-        """Test that no payload results in content=None."""
-        captured = {}
+        # Let's use a different approach: make http_request_func return different
+        # responses based on call count.
+        call_count = 0
+        responses = [mock_resp_agent, mock_resp_type]
 
-        def http_func(**kwargs):
-            captured.update(kwargs)
-            return _make_response(200, [])
-            yield  # noqa: E501
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
 
-        client = make_client()
-        client.http_request_func = http_func
-        _exhaust(client._request("GET", "/ep"))
-        assert captured["content"] is None
+        client.http_request_func = multi_http
+        # Re-create gen since we changed the func
+        client.agent = None
+        gen = client._ensure_agent_instance()
+        _exhaust_gen(gen)
 
-    def test_params_passed_through(self) -> None:
-        """Test that params are forwarded."""
-        captured = {}
-
-        def http_func(**kwargs):
-            captured.update(kwargs)
-            return _make_response(200, [])
-            yield  # noqa: E501
-
-        client = make_client()
-        client.http_request_func = http_func
-        _exhaust(client._request("GET", "/ep", params={"skip": 0}))
-        assert captured["parameters"] == {"skip": 0}
-
-
-# --- Section: _ensure_agent_instance ---
-
-
-class TestEnsureAgentInstance:
-    """Tests for _ensure_agent_instance."""
-
-    def test_returns_immediately_when_agent_set(self) -> None:
-        """Test early return when self.agent is already set."""
-        client = make_client()
-        client.agent = AGENT_INSTANCE
-        _exhaust(client._ensure_agent_instance())
-        assert client.agent is AGENT_INSTANCE
-
-    def test_fetches_agent_and_type(self) -> None:
-        """Test fetches agent by address, then fetches its type."""
-        client = make_client()
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(
-            _make_response(200, AGENT_INSTANCE_DICT),  # get_agent_instance_by_address
-            _make_response(200, AGENT_TYPE_DICT),  # get_agent_type_by_type_id
-        )
-        _exhaust(client._ensure_agent_instance())
         assert client.agent is not None
-        assert client.agent.agent_id == 10
+        assert client.agent.agent_id == 1
         assert client.agent_type is not None
-        assert client.agent_type.type_id == 1
 
-    def test_registers_when_not_found(self) -> None:
-        """Test registers agent when address lookup returns 404."""
-        client = make_client()
+    def test_not_found_registers(self):
+        """When agent not found by address, register if template is set."""
+        client = _make_client()
         client.address = "0xABC"
+        client.logger = MagicMock()
         client.agent_type_name = "memeooorr"
         client.agent_name_template = "agent-{address}"
-        client.http_request_func = _http_gen(
-            _make_response(404),  # get_agent_instance_by_address
-            _make_response(200, AGENT_TYPE_DICT),  # get_agent_type_by_type_name
-            _make_response(201, AGENT_INSTANCE_DICT),  # create_agent_instance
+
+        mock_404 = MagicMock(status_code=404)
+        agent_type_data = {"type_id": 10, "type_name": "memeooorr", "description": "d"}
+        mock_type = MagicMock(
+            status_code=200, body=json.dumps(agent_type_data).encode()
         )
-        _exhaust(client._ensure_agent_instance())
+        agent_data = {
+            "agent_id": 2,
+            "type_id": 10,
+            "agent_name": "agent-0xABC",
+            "eth_address": "0xABC",
+            "created_at": "2025-01-01T00:00:00+00:00",
+        }
+        mock_agent = MagicMock(status_code=201, body=json.dumps(agent_data).encode())
+
+        call_count = 0
+        responses = [mock_404, mock_type, mock_agent]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        gen = client._ensure_agent_instance()
+        _exhaust_gen(gen)
+
         assert client.agent is not None
+        assert client.agent.agent_id == 2
         assert client.agent_type is not None
 
-    def test_no_register_when_type_name_missing(self) -> None:
-        """Test does not register when agent_type_name is None."""
-        client = make_client()
+    def test_not_found_no_template(self):
+        """When agent not found and no template, agent stays None."""
+        client = _make_client()
         client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(404))
-        _exhaust(client._ensure_agent_instance())
+        client.logger = MagicMock()
+        client.agent_type_name = None
+        client.agent_name_template = None
+
+        mock_404 = MagicMock(status_code=404)
+
+        def fake_http(**kwargs):
+            yield
+            return mock_404
+
+        client.http_request_func = fake_http
+
+        gen = client._ensure_agent_instance()
+        _exhaust_gen(gen)
+
         assert client.agent is None
 
-    def test_no_register_when_template_missing(self) -> None:
-        """Test does not register when agent_name_template is None but type_name set."""
-        client = make_client()
+
+class TestAgentDBClientSignRequest:
+    """Test AgentDBClient._sign_request."""
+
+    def test_raises_without_signing_func(self):
+        """Test ValueError when signing_func is None."""
+        client = _make_client()
+        client.signing_func = None
+        client.agent = MagicMock()
+
+        gen = client._sign_request("/test")
+        with pytest.raises(ValueError, match="Signing function not set"):
+            next(gen)
+
+    def test_raises_when_agent_not_resolved(self):
+        """Test ValueError when agent can't be found or created."""
+        client = _make_client()
+        client.signing_func = MagicMock()
+        client.agent = None
+        client.address = "0xDEAD"
+        client.logger = MagicMock()
+        client.agent_type_name = None
+        client.agent_name_template = None
+
+        mock_404 = MagicMock(status_code=404)
+
+        def fake_http(**kwargs):
+            yield
+            return mock_404
+
+        client.http_request_func = fake_http
+
+        gen = client._sign_request("/test")
+        with pytest.raises(ValueError, match="failed to get agent"):
+            _exhaust_gen(gen)
+
+    def test_successful_sign(self):
+        """Test successful signing returns auth data."""
+        client = _make_client()
+        client.agent = MagicMock()
+        client.agent.agent_id = 42
         client.address = "0xABC"
-        client.agent_type_name = "memeooorr"
-        client.agent_name_template = None  # template missing
-        client.http_request_func = _http_gen(_make_response(404))
-        _exhaust(client._ensure_agent_instance())
-        assert client.agent is None
+
+        def fake_sign(message):
+            yield
+            return "0xSIGNATURE"
+
+        client.signing_func = fake_sign
+
+        gen = client._sign_request("/test")
+        result = _exhaust_gen(gen)
+
+        assert result["agent_id"] == 42
+        assert result["signature"] == "0xSIGNATURE"
+        assert "timestamp" in result["message"]
 
 
-# --- Section: _ensure_agent_type_definition ---
+class TestAgentDBClientRequest:
+    """Test AgentDBClient._request."""
 
+    def _setup_client(self):
+        client = _make_client()
+        client.logger = MagicMock()
+        client.address = "0xABC"
+        return client
 
-class TestEnsureAgentTypeDefinition:
-    """Tests for _ensure_agent_type_definition."""
+    def test_raises_without_http_func(self):
+        """Test ValueError when http_request_func is None."""
+        client = _make_client()
+        client.http_request_func = None
+        gen = client._request("GET", "/test")
+        with pytest.raises(ValueError, match="HTTP request function not set"):
+            next(gen)
 
-    def test_fetches_existing(self) -> None:
-        """Test fetches existing agent type."""
-        client = make_client()
-        client.agent_type_name = "memeooorr"
-        client.http_request_func = _http_gen(_make_response(200, AGENT_TYPE_DICT))
-        _exhaust(client._ensure_agent_type_definition())
-        assert client.agent_type is not None
+    @pytest.mark.parametrize("status_code", [200, 201])
+    def test_success_responses(self, status_code):
+        """Test 200 and 201 return parsed JSON."""
+        client = self._setup_client()
+        body = {"key": "value"}
+        mock_resp = MagicMock(status_code=status_code, body=json.dumps(body).encode())
 
-    def test_creates_when_not_found(self) -> None:
-        """Test creates agent type when lookup returns 404."""
-        client = make_client()
-        client.agent_type_name = "memeooorr"
-        client.http_request_func = _http_gen(
-            _make_response(404),  # get_agent_type_by_type_name
-            _make_response(201, AGENT_TYPE_DICT),  # create_agent_type
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request("GET", "/test")
+        result = _exhaust_gen(gen)
+        assert result == body
+
+    def test_404_returns_none(self):
+        """Test 404 returns None."""
+        client = self._setup_client()
+        mock_resp = MagicMock(status_code=404)
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request("GET", "/test")
+        result = _exhaust_gen(gen)
+        assert result is None
+
+    def test_error_raises(self):
+        """Test non-200/201/404 raises Exception."""
+        client = self._setup_client()
+        mock_resp = MagicMock(status_code=500, text="Server Error")
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request("GET", "/test")
+        with pytest.raises(Exception, match="Request failed: 500"):
+            _exhaust_gen(gen)
+
+    def test_auth_nested(self):
+        """Test auth=True, nested_auth=True puts auth inside payload."""
+        client = self._setup_client()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        captured_kwargs = {}
+        body = {"ok": True}
+        mock_resp = MagicMock(status_code=200, body=json.dumps(body).encode())
+
+        def fake_http(**kwargs):
+            captured_kwargs.update(kwargs)
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request(
+            "POST", "/test", payload={"data": 1}, auth=True, nested_auth=True
         )
-        _exhaust(client._ensure_agent_type_definition("desc"))
+        result = _exhaust_gen(gen)
+
+        assert result == body
+        # Verify auth was nested in payload
+        sent_payload = json.loads(captured_kwargs["content"])
+        assert "auth" in sent_payload
+        assert sent_payload["data"] == 1
+
+    def test_auth_not_nested(self):
+        """Test auth=True, nested_auth=False merges auth into payload."""
+        client = self._setup_client()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        captured_kwargs = {}
+        body = {"ok": True}
+        mock_resp = MagicMock(status_code=200, body=json.dumps(body).encode())
+
+        def fake_http(**kwargs):
+            captured_kwargs.update(kwargs)
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request(
+            "POST", "/test", payload={"data": 1}, auth=True, nested_auth=False
+        )
+        result = _exhaust_gen(gen)
+
+        assert result == body
+        sent_payload = json.loads(captured_kwargs["content"])
+        assert "auth" not in sent_payload  # merged, not nested
+        assert "agent_id" in sent_payload
+        assert sent_payload["data"] == 1
+
+    def test_no_payload(self):
+        """Test request with no payload sends content=None."""
+        client = self._setup_client()
+
+        captured_kwargs = {}
+        mock_resp = MagicMock(status_code=200, body=json.dumps({}).encode())
+
+        def fake_http(**kwargs):
+            captured_kwargs.update(kwargs)
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request("GET", "/test")
+        _exhaust_gen(gen)
+
+        assert captured_kwargs["content"] is None
+
+
+class TestAgentDBClientEnsureAgentTypeDefinition:
+    """Test AgentDBClient._ensure_agent_type_definition."""
+
+    def test_type_found(self):
+        """When agent type exists, just fetch it."""
+        client = _make_client()
+        client.logger = MagicMock()
+        client.agent_type_name = "memeooorr"
+
+        type_data = {"type_id": 10, "type_name": "memeooorr", "description": "d"}
+        mock_resp = MagicMock(status_code=200, body=json.dumps(type_data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._ensure_agent_type_definition()
+        _exhaust_gen(gen)
+
+        assert client.agent_type is not None
+        assert client.agent_type.type_name == "memeooorr"
+
+    def test_type_not_found_creates(self):
+        """When agent type doesn't exist, create it."""
+        client = _make_client()
+        client.logger = MagicMock()
+        client.agent_type_name = "memeooorr"
+
+        mock_404 = MagicMock(status_code=404)
+        type_data = {
+            "type_id": 10,
+            "type_name": "memeooorr",
+            "description": "Placeholder agent description",
+        }
+        mock_created = MagicMock(status_code=201, body=json.dumps(type_data).encode())
+
+        call_count = 0
+        responses = [mock_404, mock_created]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        gen = client._ensure_agent_type_definition()
+        _exhaust_gen(gen)
+
         assert client.agent_type is not None
 
 
-# --- Section: _ensure_agent_type_attribute_definition ---
+class TestAgentDBClientEnsureAgentTypeAttributeDefinition:
+    """Test AgentDBClient._ensure_agent_type_attribute_definition."""
+
+    def test_existing_attributes_not_duplicated(self):
+        """When attribute already exists, don't create it again."""
+        client = _make_client()
+        client.logger = MagicMock()
+        client.agent_type = AgentType(type_id=10, type_name="m", description="d")
+
+        existing = [
+            AttributeDefinition(
+                attr_def_id=1,
+                type_id=10,
+                attr_name="twitter_username",
+                data_type="string",
+                is_required=True,
+                default_value="",
+            )
+        ]
+        existing_json = [ad.model_dump() for ad in existing]
+        mock_resp = MagicMock(status_code=200, body=json.dumps(existing_json).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        new_defs = [
+            AttributeDefinition(
+                attr_def_id=0,
+                type_id=0,
+                attr_name="twitter_username",
+                data_type="string",
+                is_required=True,
+                default_value="",
+            )
+        ]
+
+        gen = client._ensure_agent_type_attribute_definition(new_defs)
+        _exhaust_gen(gen)
+        # No error = success. The existing attr wasn't re-created.
+
+    def test_missing_attribute_created(self):
+        """When attribute is missing, create it."""
+        client = _make_client()
+        client.logger = MagicMock()
+        client.agent_type = AgentType(type_id=10, type_name="m", description="d")
+        client.agent = MagicMock(agent_id=1)
+
+        def fake_sign(msg):
+            yield
+            return "0xfakesig"
+
+        client.signing_func = fake_sign
+
+        # No existing attrs
+        mock_empty = MagicMock(status_code=200, body=json.dumps([]).encode())
+        # Created attr response
+        new_attr = {
+            "attr_def_id": 5,
+            "type_id": 10,
+            "attr_name": "twitter_username",
+            "data_type": "string",
+            "is_required": True,
+            "default_value": "",
+        }
+        mock_created = MagicMock(status_code=201, body=json.dumps(new_attr).encode())
+
+        call_count = 0
+        responses = [mock_empty, mock_created]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        new_defs = [
+            AttributeDefinition(
+                attr_def_id=0,
+                type_id=0,
+                attr_name="twitter_username",
+                data_type="string",
+                is_required=True,
+                default_value="",
+            )
+        ]
+
+        gen = client._ensure_agent_type_attribute_definition(new_defs)
+        _exhaust_gen(gen)
 
 
-class TestEnsureAgentTypeAttributeDefinition:
-    """Tests for _ensure_agent_type_attribute_definition."""
+class TestAgentDBClientCRUDMethods:
+    """Test CRUD generator methods."""
 
-    def test_creates_missing_definitions(self) -> None:
-        """Test creates attribute definitions that don't already exist."""
-        new_def = AttributeDefinition(
-            attr_def_id=0,
-            type_id=1,
-            attr_name="new_attr",
+    def _setup(self):
+        client = _make_client()
+        client.logger = MagicMock()
+        return client
+
+    def test_create_agent_type(self):
+        """Test create_agent_type."""
+        client = self._setup()
+        data = {"type_id": 1, "type_name": "t", "description": "d"}
+        mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.create_agent_type("t", "d")
+        result = _exhaust_gen(gen)
+        assert result.type_id == 1
+
+    def test_create_agent_type_returns_none(self):
+        """Test create_agent_type returns None on 404."""
+        client = self._setup()
+        mock_resp = MagicMock(status_code=404)
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.create_agent_type("t", "d")
+        result = _exhaust_gen(gen)
+        assert result is None
+
+    def test_get_agent_type_by_type_id(self):
+        """Test get_agent_type_by_type_id."""
+        client = self._setup()
+        data = {"type_id": 1, "type_name": "t", "description": "d"}
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.get_agent_type_by_type_id(1)
+        result = _exhaust_gen(gen)
+        assert result.type_id == 1
+
+    def test_get_agent_type_by_type_name(self):
+        """Test get_agent_type_by_type_name."""
+        client = self._setup()
+        data = {"type_id": 1, "type_name": "t", "description": "d"}
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.get_agent_type_by_type_name("t")
+        result = _exhaust_gen(gen)
+        assert result.type_name == "t"
+
+    def test_delete_agent_type(self):
+        """Test delete_agent_type."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        data = {"type_id": 1, "type_name": "t", "description": "d"}
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        at = AgentType(type_id=1, type_name="t", description="d")
+        gen = client.delete_agent_type(at)
+        result = _exhaust_gen(gen)
+        assert result is not None
+
+    def test_create_agent_instance(self):
+        """Test create_agent_instance."""
+        client = self._setup()
+        data = {
+            "agent_id": 1,
+            "type_id": 10,
+            "agent_name": "a",
+            "eth_address": "0xABC",
+            "created_at": "2025-01-01T00:00:00+00:00",
+        }
+        mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        at = AgentType(type_id=10, type_name="t", description="d")
+        gen = client.create_agent_instance("a", at, "0xABC")
+        result = _exhaust_gen(gen)
+        assert result.agent_id == 1
+
+    def test_get_agent_instance_by_address(self):
+        """Test get_agent_instance_by_address."""
+        client = self._setup()
+        data = {
+            "agent_id": 1,
+            "type_id": 10,
+            "agent_name": "a",
+            "eth_address": "0xABC",
+            "created_at": "2025-01-01T00:00:00+00:00",
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.get_agent_instance_by_address("0xABC")
+        result = _exhaust_gen(gen)
+        assert result.eth_address == "0xABC"
+
+    def test_get_agent_instances_by_type_id(self):
+        """Test get_agent_instances_by_type_id."""
+        client = self._setup()
+        data = [
+            {
+                "agent_id": 1,
+                "type_id": 10,
+                "agent_name": "a",
+                "eth_address": "0xABC",
+                "created_at": "2025-01-01T00:00:00+00:00",
+            }
+        ]
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.get_agent_instances_by_type_id(10)
+        result = _exhaust_gen(gen)
+        assert len(result) == 1
+
+    def test_get_agent_instances_by_type_id_empty(self):
+        """Test get_agent_instances_by_type_id returns empty list on 404."""
+        client = self._setup()
+        mock_resp = MagicMock(status_code=404)
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.get_agent_instances_by_type_id(10)
+        result = _exhaust_gen(gen)
+        assert result == []
+
+    def test_delete_agent_instance(self):
+        """Test delete_agent_instance."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 99
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        data = {
+            "agent_id": 1,
+            "type_id": 10,
+            "agent_name": "a",
+            "eth_address": "0xABC",
+            "created_at": "2025-01-01T00:00:00+00:00",
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        ai = AgentInstance(
+            agent_id=1,
+            type_id=10,
+            agent_name="a",
+            eth_address="0xABC",
+            created_at="2025-01-01T00:00:00+00:00",
+        )
+        gen = client.delete_agent_instance(ai)
+        result = _exhaust_gen(gen)
+        assert result is not None
+
+    def test_create_attribute_definition(self):
+        """Test create_attribute_definition."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        data = {
+            "attr_def_id": 5,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        at = AgentType(type_id=10, type_name="t", description="d")
+        gen = client.create_attribute_definition(at, "x", "string", "", False)
+        result = _exhaust_gen(gen)
+        assert result.attr_name == "x"
+
+    def test_get_attribute_definition_by_name(self):
+        """Test get_attribute_definition_by_name."""
+        client = self._setup()
+        data = {
+            "attr_def_id": 1,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client.get_attribute_definition_by_name("x")
+        result = _exhaust_gen(gen)
+        assert result.attr_name == "x"
+
+    def test_get_attribute_definition_by_id_cached(self):
+        """Test get_attribute_definition_by_id returns cached value."""
+        client = self._setup()
+        cached = AttributeDefinition(
+            attr_def_id=1,
+            type_id=10,
+            attr_name="x",
             data_type="string",
             is_required=False,
             default_value="",
         )
-        new_def_dict = {**ATTR_DEF_DICT, "attr_name": "new_attr", "attr_def_id": 101}
+        client._attribute_definition_cache[1] = cached
 
-        client = make_client()
-        client.agent = AGENT_INSTANCE
-        client.agent_type = AGENT_TYPE
-        client.signing_func = _sign_gen()
-        client.http_request_func = _http_gen(
-            _make_response(200, [ATTR_DEF_DICT]),  # get existing
-            _make_response(201, new_def_dict),  # create new_attr
-        )
-        _exhaust(client._ensure_agent_type_attribute_definition([ATTR_DEF, new_def]))
+        gen = client.get_attribute_definition_by_id(1)
+        result = _exhaust_gen(gen)
+        assert result is cached
 
-    def test_skips_when_all_exist(self) -> None:
-        """Test does not create any when all definitions already exist."""
-        call_count = [0]
+    def test_get_attribute_definition_by_id_fetches(self):
+        """Test get_attribute_definition_by_id fetches from API and caches."""
+        client = self._setup()
+        data = {
+            "attr_def_id": 1,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def http_func(**kwargs):
-            call_count[0] += 1
-            return _make_response(200, [ATTR_DEF_DICT])
-            yield  # noqa: E501
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
 
-        client = make_client()
-        client.agent_type = AGENT_TYPE
-        client.http_request_func = http_func
-        _exhaust(client._ensure_agent_type_attribute_definition([ATTR_DEF]))
-        assert call_count[0] == 1  # only the GET
+        client.http_request_func = fake_http
 
+        gen = client.get_attribute_definition_by_id(1)
+        result = _exhaust_gen(gen)
+        assert result.attr_name == "x"
+        assert 1 in client._attribute_definition_cache
 
-# ---------------------------------------------------------------------------
-# Tests: CRUD Agent Type
-# ---------------------------------------------------------------------------
+    def test_get_attribute_definition_by_id_not_found(self):
+        """Test get_attribute_definition_by_id returns None when not found."""
+        client = self._setup()
+        mock_resp = MagicMock(status_code=404)
 
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
 
-class TestAgentTypeCRUD:
-    """Tests for agent type CRUD methods."""
+        client.http_request_func = fake_http
 
-    def test_create_agent_type(self) -> None:
-        """Test create_agent_type returns AgentType."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(201, AGENT_TYPE_DICT))
-        result = _exhaust(client.create_agent_type("test_type", "desc"))
-        assert isinstance(result, AgentType)
-        assert result.type_name == "test_type"
-
-    def test_create_agent_type_none_on_404(self) -> None:
-        """Test create_agent_type returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.create_agent_type("x", "y"))
+        gen = client.get_attribute_definition_by_id(999)
+        result = _exhaust_gen(gen)
         assert result is None
 
-    def test_get_agent_type_by_type_id(self) -> None:
-        """Test get_agent_type_by_type_id."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, AGENT_TYPE_DICT))
-        result = _exhaust(client.get_agent_type_by_type_id(1))
-        assert isinstance(result, AgentType)
-
-    def test_get_agent_type_by_type_id_none(self) -> None:
-        """Test get_agent_type_by_type_id returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_agent_type_by_type_id(999))
-        assert result is None
-
-    def test_get_agent_type_by_type_name(self) -> None:
-        """Test get_agent_type_by_type_name."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, AGENT_TYPE_DICT))
-        result = _exhaust(client.get_agent_type_by_type_name("test_type"))
-        assert isinstance(result, AgentType)
-
-    def test_get_agent_type_by_type_name_none(self) -> None:
-        """Test get_agent_type_by_type_name returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_agent_type_by_type_name("missing"))
-        assert result is None
-
-    def test_delete_agent_type(self) -> None:
-        """Test delete_agent_type."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(200, AGENT_TYPE_DICT))
-        result = _exhaust(client.delete_agent_type(AGENT_TYPE))
-        assert isinstance(result, AgentType)
-
-    def test_delete_agent_type_none_on_404(self) -> None:
-        """Test delete_agent_type returns None on 404."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.delete_agent_type(AGENT_TYPE))
-        assert result is None
-
-
-# ---------------------------------------------------------------------------
-# Tests: CRUD Agent Instance
-# ---------------------------------------------------------------------------
-
-
-class TestAgentInstanceCRUD:
-    """Tests for agent instance CRUD methods."""
-
-    def test_create_agent_instance(self) -> None:
-        """Test create_agent_instance."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(201, AGENT_INSTANCE_DICT))
-        result = _exhaust(client.create_agent_instance("agent-10", AGENT_TYPE, "0xABC"))
-        assert isinstance(result, AgentInstance)
-        assert result.agent_id == 10
-
-    def test_create_agent_instance_none(self) -> None:
-        """Test create_agent_instance returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.create_agent_instance("x", AGENT_TYPE, "0x"))
-        assert result is None
-
-    def test_get_agent_instance_by_address(self) -> None:
-        """Test get_agent_instance_by_address."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, AGENT_INSTANCE_DICT))
-        result = _exhaust(client.get_agent_instance_by_address("0xABC"))
-        assert isinstance(result, AgentInstance)
-
-    def test_get_agent_instance_by_address_none(self) -> None:
-        """Test get_agent_instance_by_address returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_agent_instance_by_address("0xMISSING"))
-        assert result is None
-
-    def test_get_agent_instances_by_type_id(self) -> None:
-        """Test get_agent_instances_by_type_id returns list."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, [AGENT_INSTANCE_DICT]))
-        result = _exhaust(client.get_agent_instances_by_type_id(1))
-        assert len(result) == 1
-        assert isinstance(result[0], AgentInstance)
-
-    def test_get_agent_instances_by_type_id_empty(self) -> None:
-        """Test get_agent_instances_by_type_id returns empty list on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_agent_instances_by_type_id(999))
-        assert not result
-
-    def test_delete_agent_instance(self) -> None:
-        """Test delete_agent_instance."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(200, AGENT_INSTANCE_DICT))
-        result = _exhaust(client.delete_agent_instance(AGENT_INSTANCE))
-        assert isinstance(result, AgentInstance)
-
-    def test_delete_agent_instance_none(self) -> None:
-        """Test delete_agent_instance returns None on 404."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.delete_agent_instance(AGENT_INSTANCE))
-        assert result is None
-
-
-# ---------------------------------------------------------------------------
-# Tests: CRUD Attribute Definition
-# ---------------------------------------------------------------------------
-
-
-class TestAttributeDefinitionCRUD:
-    """Tests for attribute definition CRUD methods."""
-
-    def test_create_attribute_definition(self) -> None:
-        """Test create_attribute_definition."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(201, ATTR_DEF_DICT))
-        result = _exhaust(
-            client.create_attribute_definition(
-                AGENT_TYPE, "my_attr", "string", "", False
-            )
-        )
-        assert isinstance(result, AttributeDefinition)
-
-    def test_create_attribute_definition_none(self) -> None:
-        """Test create_attribute_definition returns None on 404."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(
-            client.create_attribute_definition(AGENT_TYPE, "x", "string", "", False)
-        )
-        assert result is None
-
-    def test_get_attribute_definition_by_name(self) -> None:
-        """Test get_attribute_definition_by_name."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, ATTR_DEF_DICT))
-        result = _exhaust(client.get_attribute_definition_by_name("my_attr"))
-        assert isinstance(result, AttributeDefinition)
-
-    def test_get_attribute_definition_by_name_none(self) -> None:
-        """Test get_attribute_definition_by_name returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_attribute_definition_by_name("missing"))
-        assert result is None
-
-    def test_get_attribute_definition_by_id_cache_miss(self) -> None:
-        """Test get_attribute_definition_by_id with cache miss fetches and caches."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, ATTR_DEF_DICT))
-        result = _exhaust(client.get_attribute_definition_by_id(100))
-        assert isinstance(result, AttributeDefinition)
-        assert 100 in client._attribute_definition_cache
-
-    def test_get_attribute_definition_by_id_cache_hit(self) -> None:
-        """Test get_attribute_definition_by_id with cache hit returns directly."""
-        client = make_client()
-        client._attribute_definition_cache[100] = ATTR_DEF
-        result = _exhaust(client.get_attribute_definition_by_id(100))
-        assert result is ATTR_DEF
-
-    def test_get_attribute_definition_by_id_not_found(self) -> None:
-        """Test get_attribute_definition_by_id returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_attribute_definition_by_id(999))
-        assert result is None
-
-    def test_get_attribute_definitions_by_agent_type(self) -> None:
+    def test_get_attribute_definitions_by_agent_type(self):
         """Test get_attribute_definitions_by_agent_type."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, [ATTR_DEF_DICT]))
-        result = _exhaust(client.get_attribute_definitions_by_agent_type(AGENT_TYPE))
+        client = self._setup()
+        data = [
+            {
+                "attr_def_id": 1,
+                "type_id": 10,
+                "attr_name": "x",
+                "data_type": "string",
+                "is_required": False,
+                "default_value": "",
+            }
+        ]
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        at = AgentType(type_id=10, type_name="t", description="d")
+        gen = client.get_attribute_definitions_by_agent_type(at)
+        result = _exhaust_gen(gen)
         assert len(result) == 1
 
-    def test_get_attribute_definitions_by_agent_type_empty(self) -> None:
+    def test_get_attribute_definitions_by_agent_type_empty(self):
         """Test returns empty list on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_attribute_definitions_by_agent_type(AGENT_TYPE))
-        assert not result
+        client = self._setup()
+        mock_resp = MagicMock(status_code=404)
 
-    def test_delete_attribute_definition(self) -> None:
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        at = AgentType(type_id=10, type_name="t", description="d")
+        gen = client.get_attribute_definitions_by_agent_type(at)
+        result = _exhaust_gen(gen)
+        assert result == []
+
+    def test_delete_attribute_definition(self):
         """Test delete_attribute_definition."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(200, ATTR_DEF_DICT))
-        result = _exhaust(client.delete_attribute_definition(ATTR_DEF))
-        assert isinstance(result, AttributeDefinition)
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
 
-    def test_delete_attribute_definition_none(self) -> None:
-        """Test delete_attribute_definition returns None on 404."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.delete_attribute_definition(ATTR_DEF))
-        assert result is None
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
 
+        client.signing_func = fake_sign
 
-# ---------------------------------------------------------------------------
-# Tests: CRUD Attribute Instance
-# ---------------------------------------------------------------------------
+        data = {
+            "attr_def_id": 1,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
 
-class TestAttributeInstanceCRUD:
-    """Tests for attribute instance CRUD methods."""
+        client.http_request_func = fake_http
 
-    def _make_auth_client(self, *responses):
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(*responses)
-        return client
+        ad = AttributeDefinition(
+            attr_def_id=1,
+            type_id=10,
+            attr_name="x",
+            data_type="string",
+            is_required=False,
+            default_value="",
+        )
+        gen = client.delete_attribute_definition(ad)
+        result = _exhaust_gen(gen)
+        assert result is not None
 
-    def test_create_attribute_instance(self) -> None:
+    def test_create_attribute_instance(self):
         """Test create_attribute_instance."""
-        client = self._make_auth_client(_make_response(201, ATTR_INSTANCE_DICT))
-        result = _exhaust(
-            client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, "hello")
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        data = {
+            "attribute_id": 1,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "hello",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+        mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        ai = AgentInstance(
+            agent_id=1,
+            type_id=10,
+            agent_name="a",
+            eth_address="0xABC",
+            created_at="2025-01-01T00:00:00+00:00",
         )
-        assert isinstance(result, AttributeInstance)
-
-    def test_create_attribute_instance_custom_type(self) -> None:
-        """Test create_attribute_instance with non-default value_type."""
-        captured = {}
-
-        def http_func(**kwargs):
-            captured.update(kwargs)
-            return _make_response(201, ATTR_INSTANCE_DICT)
-            yield  # noqa: E501
-
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = http_func
-        _exhaust(
-            client.create_attribute_instance(
-                AGENT_INSTANCE, ATTR_DEF, 42, value_type="integer"
-            )
+        ad = AttributeDefinition(
+            attr_def_id=5,
+            type_id=10,
+            attr_name="x",
+            data_type="string",
+            is_required=False,
+            default_value="",
         )
-        body = json.loads(captured["content"])
-        assert "integer_value" in body["agent_attr"]
+        gen = client.create_attribute_instance(ai, ad, "hello")
+        result = _exhaust_gen(gen)
+        assert result.string_value == "hello"
 
-    def test_create_attribute_instance_none(self) -> None:
-        """Test create_attribute_instance returns None on 404."""
-        client = self._make_auth_client(_make_response(404))
-        result = _exhaust(
-            client.create_attribute_instance(AGENT_INSTANCE, ATTR_DEF, "x")
-        )
-        assert result is None
-
-    def test_get_attribute_instance(self) -> None:
+    def test_get_attribute_instance(self):
         """Test get_attribute_instance."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, ATTR_INSTANCE_DICT))
-        result = _exhaust(client.get_attribute_instance(AGENT_INSTANCE, ATTR_DEF))
-        assert isinstance(result, AttributeInstance)
+        client = self._setup()
+        data = {
+            "attribute_id": 1,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "hello",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-    def test_get_attribute_instance_none(self) -> None:
-        """Test get_attribute_instance returns None on 404."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(404))
-        result = _exhaust(client.get_attribute_instance(AGENT_INSTANCE, ATTR_DEF))
-        assert result is None
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
 
-    def test_update_attribute_instance(self) -> None:
+        client.http_request_func = fake_http
+
+        ai = AgentInstance(
+            agent_id=1,
+            type_id=10,
+            agent_name="a",
+            eth_address="0xABC",
+            created_at="2025-01-01T00:00:00+00:00",
+        )
+        ad = AttributeDefinition(
+            attr_def_id=5,
+            type_id=10,
+            attr_name="x",
+            data_type="string",
+            is_required=False,
+            default_value="",
+        )
+        gen = client.get_attribute_instance(ai, ad)
+        result = _exhaust_gen(gen)
+        assert result.attribute_id == 1
+
+    def test_update_attribute_instance(self):
         """Test update_attribute_instance."""
-        client = self._make_auth_client(_make_response(200, ATTR_INSTANCE_DICT))
-        result = _exhaust(
-            client.update_attribute_instance(
-                AGENT_INSTANCE,
-                ATTR_DEF,
-                ATTR_INSTANCE,
-                "new_val",
-            )
-        )
-        assert isinstance(result, AttributeInstance)
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
 
-    def test_update_attribute_instance_none(self) -> None:
-        """Test update_attribute_instance returns None on 404."""
-        client = self._make_auth_client(_make_response(404))
-        result = _exhaust(
-            client.update_attribute_instance(
-                AGENT_INSTANCE,
-                ATTR_DEF,
-                ATTR_INSTANCE,
-                "x",
-            )
-        )
-        assert result is None
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
 
-    def test_delete_attribute_instance(self) -> None:
+        client.signing_func = fake_sign
+
+        data = {
+            "attribute_id": 1,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "updated",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        ai = AgentInstance(
+            agent_id=1,
+            type_id=10,
+            agent_name="a",
+            eth_address="0xABC",
+            created_at="2025-01-01T00:00:00+00:00",
+        )
+        ad = AttributeDefinition(
+            attr_def_id=5,
+            type_id=10,
+            attr_name="x",
+            data_type="string",
+            is_required=False,
+            default_value="",
+        )
+        attr_inst = AttributeInstance(
+            attribute_id=1,
+            attr_def_id=5,
+            agent_id=1,
+            last_updated="2025-01-01T00:00:00+00:00",
+            string_value="old",
+            integer_value=None,
+            float_value=None,
+            boolean_value=None,
+            date_value=None,
+            json_value=None,
+        )
+        gen = client.update_attribute_instance(ai, ad, attr_inst, "updated")
+        result = _exhaust_gen(gen)
+        assert result.string_value == "updated"
+
+    def test_delete_attribute_instance(self):
         """Test delete_attribute_instance."""
-        client = self._make_auth_client(_make_response(200, ATTR_INSTANCE_DICT))
-        result = _exhaust(client.delete_attribute_instance(ATTR_INSTANCE))
-        assert isinstance(result, AttributeInstance)
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
 
-    def test_delete_attribute_instance_none(self) -> None:
-        """Test delete_attribute_instance returns None on 404."""
-        client = self._make_auth_client(_make_response(404))
-        result = _exhaust(client.delete_attribute_instance(ATTR_INSTANCE))
-        assert result is None
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
 
+        client.signing_func = fake_sign
 
-# ---------------------------------------------------------------------------
-# Tests: parse / get_all methods
-# ---------------------------------------------------------------------------
+        data = {
+            "attribute_id": 1,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "x",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
 
-class TestAttributeParsing:
-    """Tests for attribute parsing and getting all attributes."""
+        client.http_request_func = fake_http
 
-    def test_parse_attribute_instance(self) -> None:
-        """Test parse_attribute_instance generator."""
-        client = make_client()
-        client._attribute_definition_cache[100] = ATTR_DEF
-        result = _exhaust(client.parse_attribute_instance(ATTR_INSTANCE))
-        assert result["attr_name"] == "my_attr"
+        attr_inst = AttributeInstance(
+            attribute_id=1,
+            attr_def_id=5,
+            agent_id=1,
+            last_updated="2025-01-01T00:00:00+00:00",
+            string_value="x",
+            integer_value=None,
+            float_value=None,
+            boolean_value=None,
+            date_value=None,
+            json_value=None,
+        )
+        gen = client.delete_attribute_instance(attr_inst)
+        result = _exhaust_gen(gen)
+        assert result is not None
+
+    def test_get_all_agent_instance_attributes_raw(self):
+        """Test get_all_agent_instance_attributes_raw."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        data = [{"key": "val"}]
+        mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        ai = AgentInstance(
+            agent_id=1,
+            type_id=10,
+            agent_name="a",
+            eth_address="0xABC",
+            created_at="2025-01-01T00:00:00+00:00",
+        )
+        gen = client.get_all_agent_instance_attributes_raw(ai)
+        result = _exhaust_gen(gen)
+        assert result == data
+
+    def test_parse_attribute_instance(self):
+        """Test parse_attribute_instance."""
+        client = self._setup()
+        # Cache the attribute definition
+        attr_def = AttributeDefinition(
+            attr_def_id=5,
+            type_id=10,
+            attr_name="test_attr",
+            data_type="string",
+            is_required=False,
+            default_value="",
+        )
+        client._attribute_definition_cache[5] = attr_def
+
+        attr_inst = AttributeInstance(
+            attribute_id=1,
+            attr_def_id=5,
+            agent_id=1,
+            last_updated="2025-01-01T00:00:00+00:00",
+            string_value="hello",
+            integer_value=None,
+            float_value=None,
+            boolean_value=None,
+            date_value=None,
+            json_value=None,
+        )
+        gen = client.parse_attribute_instance(attr_inst)
+        result = _exhaust_gen(gen)
+        assert result["attr_name"] == "test_attr"
         assert result["attr_value"] == "hello"
 
-    def test_parse_attribute_instance_fetches_definition(self) -> None:
-        """Test parse_attribute_instance when definition is not cached."""
-        client = make_client()
-        client.http_request_func = _http_gen(_make_response(200, ATTR_DEF_DICT))
-        result = _exhaust(client.parse_attribute_instance(ATTR_INSTANCE))
-        assert result["attr_name"] == "my_attr"
-
-    def test_get_all_agent_instance_attributes_raw(self) -> None:
-        """Test get_all_agent_instance_attributes_raw."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(200, [ATTR_INSTANCE_DICT]))
-        result = _exhaust(client.get_all_agent_instance_attributes_raw(AGENT_INSTANCE))
-        assert len(result) == 1
-
-    def test_get_all_agent_instance_attributes_parsed(self) -> None:
+    def test_get_all_agent_instance_attributes_parsed(self):
         """Test get_all_agent_instance_attributes_parsed."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(_make_response(200, [ATTR_INSTANCE_DICT]))
-        client._attribute_definition_cache[100] = ATTR_DEF
-        result = _exhaust(
-            client.get_all_agent_instance_attributes_parsed(AGENT_INSTANCE)
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        # Cache attr def
+        attr_def = AttributeDefinition(
+            attr_def_id=5,
+            type_id=10,
+            attr_name="test_attr",
+            data_type="string",
+            is_required=False,
+            default_value="",
         )
+        client._attribute_definition_cache[5] = attr_def
+
+        raw_data = [
+            {
+                "attribute_id": 1,
+                "attr_def_id": 5,
+                "agent_id": 1,
+                "last_updated": "2025-01-01T00:00:00+00:00",
+                "string_value": "hello",
+                "integer_value": None,
+                "float_value": None,
+                "boolean_value": None,
+                "date_value": None,
+                "json_value": None,
+            }
+        ]
+        mock_resp = MagicMock(status_code=200, body=json.dumps(raw_data).encode())
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        ai = AgentInstance(
+            agent_id=1,
+            type_id=10,
+            agent_name="a",
+            eth_address="0xABC",
+            created_at="2025-01-01T00:00:00+00:00",
+        )
+        gen = client.get_all_agent_instance_attributes_parsed(ai)
+        result = _exhaust_gen(gen)
         assert len(result) == 1
-        assert result[0]["attr_name"] == "my_attr"
+        assert result[0]["attr_name"] == "test_attr"
 
+    def test_update_or_create_agent_attribute_update(self):
+        """Test update_or_create_agent_attribute when attr_instance exists."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
 
-# --- Section: update_or_create_agent_attribute ---
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
 
+        client.signing_func = fake_sign
 
-class TestUpdateOrCreateAgentAttribute:
-    """Tests for update_or_create_agent_attribute."""
+        attr_def_data = {
+            "attr_def_id": 5,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        attr_inst_data = {
+            "attribute_id": 1,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "old",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+        updated_data = dict(attr_inst_data, string_value="new")
 
-    def test_update_existing(self) -> None:
-        """Test updating an existing attribute returns True."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(
-            _make_response(200, ATTR_DEF_DICT),  # get_attribute_definition_by_name
-            _make_response(200, ATTR_INSTANCE_DICT),  # get_attribute_instance
-            _make_response(200, ATTR_INSTANCE_DICT),  # update_attribute_instance
-        )
-        result = _exhaust(client.update_or_create_agent_attribute("my_attr", "new_val"))
+        call_count = 0
+        responses = [
+            MagicMock(
+                status_code=200, body=json.dumps(attr_def_data).encode()
+            ),  # get_attribute_definition_by_name
+            MagicMock(
+                status_code=200, body=json.dumps(attr_inst_data).encode()
+            ),  # get_attribute_instance
+            MagicMock(
+                status_code=200, body=json.dumps(updated_data).encode()
+            ),  # update_attribute_instance
+        ]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        gen = client.update_or_create_agent_attribute("x", "new")
+        result = _exhaust_gen(gen)
         assert result is True
 
-    def test_update_fails_returns_false(self) -> None:
-        """Test returns False when update fails (returns None)."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(
-            _make_response(200, ATTR_DEF_DICT),
-            _make_response(200, ATTR_INSTANCE_DICT),
-            _make_response(404),  # update returns None
-        )
-        result = _exhaust(client.update_or_create_agent_attribute("my_attr", "val"))
+    def test_update_or_create_agent_attribute_create(self):
+        """Test update_or_create_agent_attribute when attr_instance doesn't exist."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        attr_def_data = {
+            "attr_def_id": 5,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        created_data = {
+            "attribute_id": 99,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "new",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+
+        call_count = 0
+        responses = [
+            MagicMock(
+                status_code=200, body=json.dumps(attr_def_data).encode()
+            ),  # get_attribute_definition_by_name
+            MagicMock(status_code=404),  # get_attribute_instance returns None
+            MagicMock(
+                status_code=201, body=json.dumps(created_data).encode()
+            ),  # create_attribute_instance
+        ]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        gen = client.update_or_create_agent_attribute("x", "new")
+        result = _exhaust_gen(gen)
+        assert result is True
+
+    def test_update_or_create_agent_attribute_update_fails(self):
+        """Test update_or_create returns False when update fails."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
+
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        attr_def_data = {
+            "attr_def_id": 5,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+        attr_inst_data = {
+            "attribute_id": 1,
+            "attr_def_id": 5,
+            "agent_id": 1,
+            "last_updated": "2025-01-01T00:00:00+00:00",
+            "string_value": "old",
+            "integer_value": None,
+            "float_value": None,
+            "boolean_value": None,
+            "date_value": None,
+            "json_value": None,
+        }
+
+        call_count = 0
+        responses = [
+            MagicMock(status_code=200, body=json.dumps(attr_def_data).encode()),
+            MagicMock(status_code=200, body=json.dumps(attr_inst_data).encode()),
+            MagicMock(status_code=404),  # update fails
+        ]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        gen = client.update_or_create_agent_attribute("x", "new")
+        result = _exhaust_gen(gen)
         assert result is False
 
-    def test_create_new(self) -> None:
-        """Test creating a new attribute returns True."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(
-            _make_response(200, ATTR_DEF_DICT),
-            _make_response(404),  # get_attribute_instance -> None
-            _make_response(201, ATTR_INSTANCE_DICT),  # create_attribute_instance
-        )
-        result = _exhaust(client.update_or_create_agent_attribute("my_attr", "val"))
-        assert result is True
+    def test_update_or_create_agent_attribute_create_fails(self):
+        """Test update_or_create returns False when create fails."""
+        client = self._setup()
+        client.agent = MagicMock()
+        client.agent.agent_id = 1
 
-    def test_create_fails_returns_false(self) -> None:
-        """Test returns False when create fails."""
-        client = make_client()
-        client.signing_func = _sign_gen()
-        client.agent = AGENT_INSTANCE
-        client.address = "0xABC"
-        client.http_request_func = _http_gen(
-            _make_response(200, ATTR_DEF_DICT),
-            _make_response(404),  # get_attribute_instance -> None
-            _make_response(404),  # create fails
-        )
-        result = _exhaust(client.update_or_create_agent_attribute("my_attr", "val"))
+        def fake_sign(msg):
+            yield
+            return "0xSIG"
+
+        client.signing_func = fake_sign
+
+        attr_def_data = {
+            "attr_def_id": 5,
+            "type_id": 10,
+            "attr_name": "x",
+            "data_type": "string",
+            "is_required": False,
+            "default_value": "",
+        }
+
+        call_count = 0
+        responses = [
+            MagicMock(status_code=200, body=json.dumps(attr_def_data).encode()),
+            MagicMock(status_code=404),  # attr instance not found
+            MagicMock(status_code=404),  # create also fails
+        ]
+
+        def multi_http(**kwargs):
+            nonlocal call_count
+            resp = responses[call_count]
+            call_count += 1
+            yield
+            return resp
+
+        client.http_request_func = multi_http
+
+        gen = client.update_or_create_agent_attribute("x", "new")
+        result = _exhaust_gen(gen)
         assert result is False

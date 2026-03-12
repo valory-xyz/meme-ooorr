@@ -756,10 +756,6 @@ class ActionPreparationBehaviour(ChainBehaviour):  # pylint: disable=too-many-an
         data_hex = data_bytes.hex()
         self.context.logger.info(f"Tx data is {data_hex}")
 
-        # Check for errors
-        if data_hex is None:
-            return None
-
         # Prepare safe transaction
         value = (
             ZERO_VALUE
@@ -787,7 +783,7 @@ class ActionPreparationBehaviour(ChainBehaviour):  # pylint: disable=too-many-an
             self.context.logger.error("Token nonce is none")
             return
 
-        if token_action == "summon":  # nosec
+        if token_action.get("action") == "summon":  # nosec
             # Read previous tokens from db
             db_data = yield from self._read_kv(keys=("tokens",))
 

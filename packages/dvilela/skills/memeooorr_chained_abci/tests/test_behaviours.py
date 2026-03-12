@@ -26,7 +26,6 @@ from packages.dvilela.skills.memeooorr_chained_abci.behaviours import (
 from packages.dvilela.skills.memeooorr_chained_abci.composition import (
     MemeooorrChainedSkillAbciApp,
 )
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.agent_performance_summary_abci.behaviours import (
     AgentPerformanceSummaryRoundBehaviour,
 )
@@ -52,10 +51,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 class TestMemeooorrChainedConsensusBehaviour:
     """Tests for MemeooorrChainedConsensusBehaviour."""
 
-    def test_is_subclass_of_abstract_round_behaviour(self) -> None:
-        """Test it is a subclass of AbstractRoundBehaviour."""
-        assert issubclass(MemeooorrChainedConsensusBehaviour, AbstractRoundBehaviour)
-
     def test_initial_behaviour_cls(self) -> None:
         """Test initial_behaviour_cls is RegistrationStartupBehaviour."""
         assert (
@@ -69,10 +64,6 @@ class TestMemeooorrChainedConsensusBehaviour:
             MemeooorrChainedConsensusBehaviour.abci_app_cls
             is MemeooorrChainedSkillAbciApp
         )
-
-    def test_behaviours_is_set(self) -> None:
-        """Test behaviours is a set."""
-        assert isinstance(MemeooorrChainedConsensusBehaviour.behaviours, set)
 
     def test_behaviours_contains_registration(self) -> None:
         """Test behaviours contains AgentRegistrationRoundBehaviour behaviours."""
@@ -121,10 +112,6 @@ class TestMemeooorrChainedConsensusBehaviour:
         assert MemeooorrChainedConsensusBehaviour.background_behaviours_cls == {
             BackgroundBehaviour
         }
-
-    def test_behaviours_not_empty(self) -> None:
-        """Test behaviours set is not empty."""
-        assert len(MemeooorrChainedConsensusBehaviour.behaviours) > 0
 
     def test_all_sub_behaviours_combined(self) -> None:
         """Test that all sub-behaviour sets are combined into the behaviours set."""

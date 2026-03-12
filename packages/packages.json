@@ -3,14 +3,14 @@
         "contract/dvilela/meme_factory/0.1.0": "bafybeidc6xyqzwemju6f6maxvo5yc66npdmbbdctjdmaz7jn47voexrkbi",
         "contract/dvilela/service_registry/0.1.0": "bafybeihaba3baz53qni2kc4zq7pkyyntyvpehciqsmaf2nmy7gnj65ioqu",
         "connection/dvilela/twikit/0.1.0": "bafybeicwca5snc3dc4cgljeif5pfghuzj5pv37sqvkshubinqba563t77i",
-        "connection/dvilela/mirror_db/0.1.0": "bafybeigy5xagir7wly2c6fv6nvc72wtwjj5kdl6plewsdzzg7jcge7bs4e",
-        "connection/dvilela/tweepy/0.1.0": "bafybeifkussiegj5c5uclo65at3bgjruro7wl2ahxsd66rqnlqc3yvna4u",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeigpxgmmlxzuzpmhachy3o3lhw6oyejx6auz2pjbnl7mtaaz2t2gvm",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeiafbcbgtkmhoxqjqbkmefnnefku5k3tgwfgkjzvnqayera4alid5y",
-        "skill/valory/agent_db_abci/0.1.0": "bafybeidkteofkgmiqm64lb3uvxmsjljm2rboxl5ra3cyroyspaqpa44mhe",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeibdduvbisoffba2qiyxqx6qs5tjzdyggmg7vidlc64o5neajkgqgm",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeifaii33ndbj7i3ooa66vpfurvrrv7o4cet7hlm7rrepkswbkwmley",
-        "service/dvilela/memeooorr/0.1.0": "bafybeiemtt3cdyy2lflq2hf36lyabnqyd4kmilpb7w647eazxofh4qfqzi"
+        "connection/dvilela/mirror_db/0.1.0": "bafybeidurgcdx5wy35pj4hhyuuc5uisedtk24bwuhtiosvc4clxdcsxzgm",
+        "connection/dvilela/tweepy/0.1.0": "bafybeie2hifdp5etvowqehg3tcidwajrqckbtspvi22clatm2myjc2qozm",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeihmguicw6tsbbdemmt53463asthpqdeugqi6eoapwvbs4knufoqdu",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeic3qzexlrshy2k7lb3pw4am4lkshlr2splxz4yuvhvfxpdlhyk3cy",
+        "skill/valory/agent_db_abci/0.1.0": "bafybeidkmk4uxwxhhbnym7vkefori2rpf4fg4obhr7swj443edvgutm6oy",
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeicidc246jol2lndgolnsjktxanel2ajazwi7j7ou6bochzou5cq5e",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeidjkwvj472hkc54dfw6uwufbvvftnzj4bvlthuhjdmsjh4ztdgree",
+        "service/dvilela/memeooorr/0.1.0": "bafybeidwaumyqmo6xg4toyksb7r4i4efju2sprgmaixw2tu4boog4rux6i"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
