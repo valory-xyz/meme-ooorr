@@ -73,7 +73,9 @@ class SrrDialogues(BaseSrrDialogues):
         )
 
 
-class TweepyConnection(BaseSyncConnection):
+class TweepyConnection(
+    BaseSyncConnection
+):  # pylint: disable=too-many-instance-attributes
     """Proxy to the functionality of the Tweepy library."""
 
     MAX_WORKER_THREADS = 1
@@ -266,7 +268,7 @@ class TweepyConnection(BaseSyncConnection):
             self.logger.info(f"Tweepy response: {str(response)[100:]}")
             return response
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             return {"error": str(e)}
 
     def post(self, tweets: List[Dict]) -> List[Optional[str]]:
@@ -314,10 +316,10 @@ class TweepyConnection(BaseSyncConnection):
             success = self.twitter.delete_tweet(tweet_id)  # type: ignore
             if success:
                 break
-            else:
-                self.logger.error("Failed to delete the tweet. Retrying...")
-                retries += 1
-                time.sleep(3)
+
+            self.logger.error("Failed to delete the tweet. Retrying...")
+            retries += 1
+            time.sleep(3)
 
     def like_tweet(self, tweet_id: str) -> Dict:
         """Like a tweet"""

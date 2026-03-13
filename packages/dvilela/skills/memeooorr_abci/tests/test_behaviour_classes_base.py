@@ -19,7 +19,7 @@
 
 """Tests for packages.dvilela.skills.memeooorr_abci.behaviour_classes.base"""
 
-# pylint: disable=unsupported-membership-test,unsubscriptable-object
+# pylint: disable=unsupported-membership-test,unsubscriptable-object,protected-access,unused-argument
 
 import json
 import tempfile
@@ -239,7 +239,7 @@ def _make_concrete_instance() -> Any:
         AgentDBBehaviour,
     )
 
-    class _TestBehaviour(MemeooorrBaseBehaviour):
+    class _TestBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-ancestors
         """Test _TestBehaviour."""
 
         matching_round = MagicMock()

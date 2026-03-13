@@ -20,6 +20,9 @@
 
 """Tests for MirrorDB connection."""
 
+# pylint: disable=protected-access,unused-argument
+
+
 import asyncio
 import json
 from typing import Any, Tuple, cast

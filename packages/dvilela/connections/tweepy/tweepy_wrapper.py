@@ -42,7 +42,7 @@ def is_twitter_id(twitter_id: str) -> bool:
 class Twitter:
     """A class to interact with Twitter API using Tweepy."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         self,
         consumer_key: str,
         consumer_secret: str,

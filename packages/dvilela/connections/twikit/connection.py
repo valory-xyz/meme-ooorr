@@ -20,6 +20,8 @@
 
 """Twikit connection."""
 
+# pylint: disable=broad-exception-caught
+
 import asyncio
 import json
 import os
@@ -36,7 +38,6 @@ from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
-from aea.protocols.dialogue.base import Dialogue
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
 from packages.valory.protocols.srr.dialogues import SrrDialogue
@@ -62,7 +63,7 @@ class SrrDialogues(BaseSrrDialogues):
 
         def role_from_first_message(  # pylint: disable=unused-argument
             message: Message, receiver_address: Address
-        ) -> Dialogue.Role:
+        ) -> BaseDialogue.Role:
             """Infer the role of the agent from an incoming/outgoing first message
 
             :param message: an incoming/outgoing first message
@@ -79,7 +80,7 @@ class SrrDialogues(BaseSrrDialogues):
         )
 
 
-class TwikitConnection(Connection):
+class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attributes
     """Proxy to the functionality of the Twikit library."""
 
     MAX_WORKER_THREADS = 1
@@ -229,7 +230,7 @@ class TwikitConnection(Connection):
         # not handling `asyncio.QueueFull` exception, because the maxsize we defined for the Queue is infinite
         self.response_envelopes.put_nowait(response_envelope)
 
-    async def _get_response(
+    async def _get_response(  # pylint: disable=too-many-return-statements
         self, srr_message: SrrMessage, dialogue: Optional[BaseDialogue]
     ) -> SrrMessage:
         """Get response from Genai."""

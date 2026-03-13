@@ -146,7 +146,7 @@ class TestABIConsistency:
         functions: set = set()
         events: set = set()
         for abi_file in PACKAGE_DIR.glob("build/*.json"):
-            with open(abi_file) as f:
+            with open(abi_file) as f:  # pylint: disable=unspecified-encoding
                 data = json.load(f)
             abi = data.get("abi", data)
             for entry in abi:

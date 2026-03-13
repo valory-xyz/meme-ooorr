@@ -19,6 +19,8 @@
 
 """Tests for twitter behaviour classes."""
 
+# pylint: disable=protected-access,unused-argument
+
 import json
 from collections.abc import Generator
 from datetime import datetime, timezone
@@ -148,7 +150,7 @@ class TestInteractionContext:  # pylint: disable=too-few-public-methods
 # ============================================================================
 
 
-class TestBaseTweetBehaviour:
+class TestBaseTweetBehaviour:  # pylint: disable=too-many-public-methods
     """Tests for BaseTweetBehaviour methods."""
 
     def _make_behaviour(self, **kwargs: Any) -> MagicMock:
@@ -818,7 +820,7 @@ class TestCollectFeedbackBehaviour:
 # ============================================================================
 
 
-class TestEngageTwitterBehaviour:
+class TestEngageTwitterBehaviour:  # pylint: disable=too-many-public-methods
     """Tests for EngageTwitterBehaviour."""
 
     def _make_behaviour(

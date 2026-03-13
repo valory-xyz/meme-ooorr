@@ -11,7 +11,7 @@ fingerprint:
   build/MemeFactory.json: bafybeiacut6r6o7sl26x2dwv3hy26zmmvt42nqxdu2njmt3lvbta7tyzvu
   contract.py: bafybeib6k3ukxmlcalgtqcaqt5h74gpvgtbz72cgicimnca3uarmygcmhi
   tests/__init__.py: bafybeihmuvedq3lsfgncle7fvcd3lzomkhil2ctbwur2jj6yrzz6w5l7ie
-  tests/test_contract.py: bafybeidpz5vkkljvzjw7bu4j6xgrk2k5y2pgobzmcsw3flvyarhhbcbytm
+  tests/test_contract.py: bafybeiaycv757bglqpoecdjsoyoi5svukyvtvutc6vsrzuxir7fbhhohfm
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: MemeFactoryContract

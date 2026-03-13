@@ -156,7 +156,7 @@ def get_participant_to_engage_twitter(
     }
 
 
-def get_participant_to_action_decision(
+def get_participant_to_action_decision(  # pylint: disable=too-many-positional-arguments, too-many-arguments
     participants: FrozenSet[str],
     event: str = "done",
     action: Optional[str] = "summon",

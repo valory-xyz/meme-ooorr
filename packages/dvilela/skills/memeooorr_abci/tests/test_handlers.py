@@ -19,7 +19,7 @@
 
 """Tests for handlers.py"""
 
-# pylint: disable=no-member
+# pylint: disable=no-member,protected-access
 
 import json
 from datetime import datetime
@@ -296,7 +296,7 @@ def _make_http_handler() -> MagicMock:
     return handler
 
 
-def _make_http_msg(
+def _make_http_msg(  # pylint: disable=too-many-arguments, too-many-positional-arguments
     method: str = "get",
     url: str = "http://localhost:8000/healthcheck",
     body: bytes = b"",

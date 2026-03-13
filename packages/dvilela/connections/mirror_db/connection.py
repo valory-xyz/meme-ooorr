@@ -20,6 +20,8 @@
 
 """MirrorDB connection."""
 
+# pylint: disable=protected-access,unused-argument,broad-exception-caught
+
 import asyncio
 import json
 import ssl
@@ -32,7 +34,6 @@ from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
-from aea.protocols.dialogue.base import Dialogue
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
 from packages.valory.protocols.srr.dialogues import SrrDialogue
@@ -125,7 +126,7 @@ class SrrDialogues(BaseSrrDialogues):
 
         def role_from_first_message(  # pylint: disable=unused-argument
             message: Message, receiver_address: Address
-        ) -> Dialogue.Role:
+        ) -> BaseDialogue.Role:
             """Infer the role of the agent from an incoming/outgoing first message
 
             :param message: an incoming/outgoing first message
@@ -266,7 +267,7 @@ class MirrorDBConnection(Connection):
         self.response_envelopes.put_nowait(response_envelope)
 
     # New _get_response using getattr pattern
-    async def _get_response(
+    async def _get_response(  # pylint: disable=too-many-return-statements
         self, srr_message: SrrMessage, dialogue: Optional[BaseDialogue]
     ) -> SrrMessage:
         """Get response from the backend service by dispatching to internal methods."""
@@ -337,7 +338,9 @@ class MirrorDBConnection(Connection):
             return
         error_content = await response.json()
         detail = error_content.get("detail", error_content)
-        raise Exception(f"Error {action}: {detail} (HTTP {response.status})")
+        raise Exception(  # pylint: disable=broad-exception-raised
+            f"Error {action}: {detail} (HTTP {response.status})"
+        )
 
     # --- Internal API call methods ---
 
