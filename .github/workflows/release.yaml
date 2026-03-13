@@ -169,7 +169,8 @@ jobs:
                 exit 1
             fi
             echo VERSION=$TAG> env.sh
-            echo AUTHOR=$(grep 'service/' packages/packages.json | awk -F/ '{print $2}' | head -1) >> env.sh
+            # TODO: derive author from packages.json once package author matches Docker Hub org
+            echo AUTHOR=valory >> env.sh
             echo SERVICE=$(grep 'service/' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
             echo DEFAULT_IMAGE_TAG=$(cat packages/packages.json | grep agent/ | awk -F: '{print $2}' | tr -d '", ' | head -n 1) >> env.sh
             cat env.sh
