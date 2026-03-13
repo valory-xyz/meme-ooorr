@@ -1,0 +1,31 @@
+[run]
+branch = True
+source =
+    packages/dvilela
+    packages/valory
+omit =
+    */tests/*
+    */__pycache__/*
+    */*_pb2.py
+    */*_pb2_grpc.py
+    packages/dvilela/protocols/kv_store/*
+    packages/dvilela/connections/genai/*
+    packages/dvilela/connections/kv_store/*
+    # Pure re-exports of upstream framework classes — no logic to test
+    packages/valory/skills/agent_db_abci/dialogues.py
+    packages/valory/skills/agent_db_abci/handlers.py
+    packages/valory/skills/agent_performance_summary_abci/__init__.py
+    packages/valory/skills/agent_performance_summary_abci/dialogues.py
+
+[report]
+fail_under = 100
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    @abstractmethod
+    pass
+
+[html]
+directory = htmlcov

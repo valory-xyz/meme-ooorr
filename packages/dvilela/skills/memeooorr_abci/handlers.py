@@ -1430,10 +1430,6 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
             eoa_address = eoa_account.address
 
             usdc_address = USDC_ADDRESS
-            if not usdc_address:
-                self.context.logger.error(f"No USDC address for {chain}")
-                self.shared_state.sufficient_funds_for_x402_payments = False
-                return False
 
             usdc_balance = self._check_usdc_balance(eoa_address, chain, usdc_address)
 

@@ -6,18 +6,26 @@ description: A skill that serves as a base skill for others to interact with Age
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeiaxb63hpickyjxvsrkzcmophtdzd27rqwvznngdrye465to4fufii
-  agent_db_client.py: bafybeiel7kauvve3hnei7sptkyvanq2zyrsafgq6zb4xut6ujxtcxzcyea
-  agent_db_models.py: bafybeidapsnrvbvdudotirz352cxf2y7mxa3lx5dpnc7xvg3ymi4dzk6hm
-  agents_fun_db.py: bafybeifomru23js6c4m7udvfprxbzz3qpo3ga5idvre6moyaxiv35zwmwa
+  __init__.py: bafybeibxbokhkdjtrvljnu2mwxtrpl6oyfdgqsxjcgdlqxnkfhlm4dalsa
+  agent_db_client.py: bafybeigdk7jruluxf2cuivlgxjlo3ag3csub5tlfndnxqgniqlvdl2uqee
+  agent_db_models.py: bafybeigagleadveksxmm3petkptro2pym7gytef5yjcfvgvevpgqgz5hqu
+  agents_fun_db.py: bafybeibdx3bz542syyczc5udexok3ajvswhhteew6xit4cejj7byhq4kai
   behaviours.py: bafybeigrqgoqccyuymvjskvi7hxrs27eg2tvixmagnunuoclix5d5dzdli
-  dialogues.py: bafybeifmodah5c75hcwa4vygcvmk5cvj4kpmfy5qwyov7kvgqn6gipupqi
+  dialogues.py: bafybeih57xagxye334om37q4dbgmbpqvvtj4wicn44xxvzriotxl32ndda
   fsm_specification.yaml: bafybeigiboab2knxjw7jj7k7bne6osbnhs7rreo3mgtq5nfkrtpw47thze
-  handlers.py: bafybeicdplfliyfjuc5zfblbsusibw6sz7brk7jioby36zwt2thv2efrza
-  models.py: bafybeidqqwrap3vgawpdzmff2txlw5k4iwlhzpefgr3f2owdakyso4szhe
+  handlers.py: bafybeiblytfpf7hqlxl7silzogulqmgkwl6o6uzvhoeybyqbkoer75lire
+  models.py: bafybeiehe3d6wbuqcmpclnwkun6ap5ealv43ue22wx53ph7fklyzeaf5k4
   payloads.py: bafybeiczq2m2uoprcxya7r2wbgsoira5b4mhkbcupudqqqvc3mytx6iyya
   rounds.py: bafybeierehnr6oavmbefi5zs7zukzzwqkrrvh2yk53gw5ofvguuozyoyvy
-  twitter_models.py: bafybeiadshpnusuis3bngpmyl57smsfbcl654t4gsq6v6gu2bnscoovdhe
+  tests/__init__.py: bafybeifkhjm5vh5whoxg2l35oa6bsvrenxn3jfswqfru35yjfqlnmg4cpm
+  tests/test_agent_db_client.py: bafybeibonsclge6gxl4l7f5usp55xcshnxgjnwrhboxuola45amxh64ynm
+  tests/test_agent_db_models.py: bafybeidrwdhsnqwtk7pdvqv327454yahmjavfmbugzjsyezkmzldcyojqm
+  tests/test_agents_fun_db.py: bafybeicyhrzbtcjjexjo3rcljj7l655jxo7fs6vsityikqizqyxgicsrxe
+  tests/test_behaviours.py: bafybeigeasdqy4qxujs7qfoepw3cqzxvbb66kv656szr4oldw2xllykqbq
+  tests/test_payloads.py: bafybeicuoebhi2vqwlhr6ixiikswenjxu44dnse7wdaquel2q2rczajbyu
+  tests/test_rounds.py: bafybeidnf5fzwzegruwm3ljlcmm5ss42d4rvwwerfhxq3eqwiv3fd6dq6m
+  tests/test_twitter_models.py: bafybeib3pyj4euhbrdqkpwuwvpjcthum52zis3tgit6rl5nf6errbmjgke
+  twitter_models.py: bafybeidz2krnopsvbfcyx5uljk5ddbx6lzkdfxvye44enkmgkfb5yddsvi
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []

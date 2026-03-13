@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 
 """Tweepy connection."""
+
 import json
 import time
 from datetime import datetime, timezone
@@ -35,7 +36,6 @@ from packages.dvilela.connections.tweepy.tweepy_wrapper import Twitter
 from packages.valory.protocols.srr.dialogues import SrrDialogue
 from packages.valory.protocols.srr.dialogues import SrrDialogues as BaseSrrDialogues
 from packages.valory.protocols.srr.message import SrrMessage
-
 
 PUBLIC_ID = PublicId.from_str("dvilela/tweepy:0.1.0")
 
@@ -63,7 +63,7 @@ class SrrDialogues(BaseSrrDialogues):
             :param receiver_address: the address of the receiving agent
             :return: The role of the agent
             """
-            return SrrDialogue.Role.CONNECTION
+            return SrrDialogue.Role.CONNECTION  # pragma: no cover  # framework callback
 
         BaseSrrDialogues.__init__(
             self,

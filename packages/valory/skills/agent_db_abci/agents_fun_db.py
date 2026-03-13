@@ -37,7 +37,6 @@ from packages.valory.skills.agent_db_abci.twitter_models import (
     TwitterRewtweet,
 )
 
-
 MEMEOOORR = "memeooorr"
 AGENT_TYPE_DESCRIPTION = "Agent type for Memeooorr skill"
 

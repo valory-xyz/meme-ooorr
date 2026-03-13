@@ -6,19 +6,25 @@ type: skill
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeifrlephtnp4zdqlmovozy25ztjsfyvopm2pinkzyxtc65hmg53b5m
-  behaviours.py: bafybeie6zunl7hx2rlid4zcz5nwmt4omdzxnftcgm2x3jndoxhhfauadve
-  dialogues.py: bafybeihqnuqcqbrxzedx5iq5bkjg7r54f2bzcwu4frwtym3o4cggscx36m
+  __init__.py: bafybeidwijw5a2fisvlobwslucfwdfeyb3pulekabl6a4nlrojncrznrz4
+  behaviours.py: bafybeiavr2wqoqz3gbtgxtos4vacmpxbqfob6vhklbtq3tj6did6jdvkwi
+  dialogues.py: bafybeihhotmeh6tcqippp7fikpjg6xfdgee3iftrxgxglzszwdisjp4qle
   fsm_specification.yaml: bafybeieh2wmnqfkrpfeyvkoojbvd7tbjg36edhnisi6mycdjugymgut3vi
-  handlers.py: bafybeiedgxcptl2pydqttyx6hd2vhpjkh7vrlaxf7qgwov3uu64wfvnc64
-  models.py: bafybeida77oribwezrzmpzmw6xwncnr6ludh5zmi522vuuvrmbkawbgef4
+  handlers.py: bafybeigizje5m4t24deuk2ejwqzcmqtbozkgrm6aekph223fub2kq4yt5m
+  models.py: bafybeia4krrjagdgjnc7sr57rkzbzus7jqh5w2utpbfmdg7rkaso3vnn5q
   payloads.py: bafybeibrfby2hkt3ljy4qpkshx5shjozxu2jfw4wpzggqvejce4nridyhe
-  rounds.py: bafybeifkvdespxwx5m2kvnaiidplx6brotpp3xiay3xahqmlasq7uvxcxe
+  rounds.py: bafybeic2svkxd4sgbuxexro5bo6jekkc6oqgqr4uaoucfsd7j6f7lf6sqy
+  tests/__init__.py: bafybeifpwen2kv6qttq7u26ywcnqfwki5kvlhlgf456wbdxih4uex3aa2a
+  tests/test_behaviours.py: bafybeihujge5nytonzdk6nzpodjunrmqxxw24nkbwan5ddmgegqs5mbrsa
+  tests/test_handlers.py: bafybeiav5n57o2wz6t6pvndo3abogjnle4geakngxt4wvxnc7eovzjicw4
+  tests/test_models.py: bafybeihuhdyei6eadaomwumdcbgipnbkajbiplzo6evrauskparymuckku
+  tests/test_payloads.py: bafybeigazrdx4hf45atmy4uo3akkkn3hjx4ttoo2n37prermzcuorhpjtm
+  tests/test_rounds.py: bafybeiacyfuqgtq4zrtiig267bw33lblcxnr7sjuegratylyjqveoo35ja
 fingerprint_ignore_patterns: []
 contracts: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiaalla55aprhvoumv4u7qt4v6l53fjmgln6wgyjr5e5tw7u4kscja
-- dvilela/memeooorr_abci:0.1.0:bafybeic6sld5xi7lzomj3vtxgpwts5zkwprcpadp4zhx4tlpkuznopjcxe
+- dvilela/memeooorr_abci:0.1.0:bafybeiflohtz6to6qeqglbpi2jl6w3ldmxm7nvoogormfaczny4tpkrng4
 handlers:
   abci:
     args: {}

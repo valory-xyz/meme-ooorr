@@ -392,9 +392,6 @@ class ActionDecisionBehaviour(
                 token_address,
             ) = self._get_token_details(action_name, action, token_nonce)
 
-            if isinstance(token_nonce, str) and token_nonce.isdigit():
-                token_nonce = int(token_nonce)
-
             if isinstance(token_supply, str) and token_supply.isdigit():
                 token_supply = int(token_supply)
 

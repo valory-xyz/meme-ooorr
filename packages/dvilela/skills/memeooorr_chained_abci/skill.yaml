@@ -13,6 +13,10 @@ fingerprint:
   fsm_specification.yaml: bafybeifqv2mgdsby45gkmvr5ioqvvdfjvklunk5thiuh7zmzhybgcj7ac4
   handlers.py: bafybeifrrhshan44befpkjbo6pp3qfvgqugaw2wt6jbcwdxzkzvudvks5u
   models.py: bafybeiapxquyvz2rw5dupza2avbqlpgcwihtf62np26fehcgfhzcq436da
+  tests/__init__.py: bafybeihk33mhdgfwpqzfuggfswd7ulnmrjhfnbrtaufnti6o2oww4335eq
+  tests/test_behaviours.py: bafybeigms6wz2raureigeeq2y6q3slnkdsydun2n2ngvdjqscafthrh22y
+  tests/test_composition.py: bafybeidebp6xmilodxto6yt7mszzz4jeo6eote2rsdbrzfnc4lqqnflz5i
+  tests/test_models.py: bafybeibbce4cbmporagphld3fcisls5i5pip4ctlutjt4v5q2lpehdvleu
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
@@ -23,9 +27,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeibsdhil35py7zjhielonaycxo7gp34jfufe2ynprjv2etwxnzcxqy
 - valory/transaction_settlement_abci:0.1.0:bafybeigspkourznaiagdkedyxjbjl6svhuhdwbvejr3jv3e3dil2hslose
 - valory/termination_abci:0.1.0:bafybeic3jppoya7jkmylbl5evcssl5qhppl6hadxebfxcxmi5o7qysce6a
-- dvilela/memeooorr_abci:0.1.0:bafybeic6sld5xi7lzomj3vtxgpwts5zkwprcpadp4zhx4tlpkuznopjcxe
+- dvilela/memeooorr_abci:0.1.0:bafybeiflohtz6to6qeqglbpi2jl6w3ldmxm7nvoogormfaczny4tpkrng4
 - valory/mech_interact_abci:0.1.0:bafybeiduf3h73xhv4q5vbdn6ek2tyal3haym5of4mq2ucm2zhqbclr35le
-- valory/agent_performance_summary_abci:0.1.0:bafybeiewpgxlo4yxlmidxnqizcvgf7z2c2lvo3gk7nqfjbrldpwpmnblci
+- valory/agent_performance_summary_abci:0.1.0:bafybeicc2qjcoy3y6tazp4nyz5gfy2qxudlyphh57qkmdoidgmkpwssjdu
 behaviours:
   main:
     args: {}
@@ -209,7 +213,7 @@ models:
         top_k: 40
         presence_penalty: 0
         frequency_penalty: 0
-        temperature": 0.6
+        temperature: 0.6
       fireworks_api_key: null
       is_memecoin_logic_enabled: false
       use_x402: false

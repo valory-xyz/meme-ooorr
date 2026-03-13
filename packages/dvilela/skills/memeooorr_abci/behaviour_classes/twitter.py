@@ -162,7 +162,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
             elif tweepy_method_name == "retweet":
                 action_type = "retweet"
                 action_data["tweet_id"] = str(target_identifier)
-            elif tweepy_method_name == "follow_by_username":
+            elif tweepy_method_name == "follow_by_username":  # pragma: no branch
                 action_type = "follow"
                 action_data["username"] = str(target_identifier)
 
@@ -177,7 +177,7 @@ class BaseTweetBehaviour(MemeooorrBaseBehaviour):  # pylint: disable=too-many-an
 
             return True  # Indicates overall success (Tweepy and DB)
 
-        return False  # Should not be reached if response["success"] is true, but as a fallback
+        return False  # pragma: no cover  # Defensive fallback: unreachable because success=True always enters the if block above
 
     def _create_twitter_content(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
         self,
@@ -775,22 +775,9 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
         valid_response = False
         json_response = None
 
-        # Try to get the previously stored prompt first
-        stored_prompt = yield from self._read_value_from_kv("last_prompt", None)
-
-        # Check if we should use a stored prompt or generate a new one
-        if stored_prompt and retry_count > 0:
-            self.context.logger.info("Using previously stored prompt")
-            prompt = stored_prompt
-            # We still need previous_tweets for potential media handling
-            previous_tweets = yield from self._read_json_from_kv(
-                "previous_tweets_for_tw_mech", []
-            )
-        else:
-            # Generate a new prompt and store it
-            prompt, previous_tweets = yield from self._prepare_prompt_data(
-                pending_tweets, persona
-            )
+        prompt, previous_tweets = yield from self._prepare_prompt_data(
+            pending_tweets, persona
+        )
 
         while not valid_response and retry_count < max_retries:
             # Get LLM decision about how to interact with tweets
@@ -816,17 +803,10 @@ class EngageTwitterBehaviour(BaseTweetBehaviour):  # pylint: disable=too-many-an
                     self.context.logger.warning(
                         f"Invalid response format from LLM (attempt {retry_count}/{max_retries})"
                     )
-                    # If we need to retry, use the stored prompt
-                    if retry_count > 0 and stored_prompt:
-                        prompt = stored_prompt
-
             except json.JSONDecodeError as e:
                 self.context.logger.error(f"Error decoding LLM response: {e}")
                 self.context.logger.error(f"LLM Response: {llm_response}")
                 retry_count += 1
-                # If we need to retry, use the stored prompt
-                if retry_count > 0 and stored_prompt:
-                    prompt = stored_prompt
                 continue
 
         # If we couldn't get a valid response after max retries

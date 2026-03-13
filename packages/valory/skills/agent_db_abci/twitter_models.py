@@ -19,11 +19,11 @@
 
 """This module contains definitions for Twitter models."""
 
-from pydantic import BaseModel
-from datetime import datetime
-from typing import Any, Dict, Literal, Optional
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
+from typing import Any, Dict, Literal, Optional
+
+from pydantic import BaseModel
 
 
 class TwitterAction(BaseModel):

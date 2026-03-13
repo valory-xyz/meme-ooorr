@@ -8,8 +8,10 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeies3iafkjwo4xvqtqpdxvood7pf2wgto4t76dqswy55rya7vl5zgu
   __init__.py: bafybeiddslgyschgiuwsfiovqgxqqbkazdy6h3d4swwnq3tvpqaxzy37si
-  build/MemeFactory.json: bafybeiholsk2gmpvayfftai7envnllozw3rjdsxrmpplht2fw5g6qiht3e
+  build/MemeFactory.json: bafybeiacut6r6o7sl26x2dwv3hy26zmmvt42nqxdu2njmt3lvbta7tyzvu
   contract.py: bafybeib6k3ukxmlcalgtqcaqt5h74gpvgtbz72cgicimnca3uarmygcmhi
+  tests/__init__.py: bafybeihmuvedq3lsfgncle7fvcd3lzomkhil2ctbwur2jj6yrzz6w5l7ie
+  tests/test_contract.py: bafybeidpz5vkkljvzjw7bu4j6xgrk2k5y2pgobzmcsw3flvyarhhbcbytm
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: MemeFactoryContract

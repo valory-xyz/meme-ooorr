@@ -27,7 +27,6 @@ from typing import Dict, List, Optional
 
 import tweepy  # type: ignore[import]
 
-
 DEFAULT_LOGGER = logging.getLogger(__name__)
 
 
