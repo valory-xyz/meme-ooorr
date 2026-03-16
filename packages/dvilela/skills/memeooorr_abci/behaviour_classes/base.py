@@ -636,7 +636,13 @@ class MemeooorrBaseBehaviour(
             return None
 
         # Parse the response body
-        response_body = json.loads(response.body)  # type: ignore
+        try:
+            response_body = json.loads(response.body)  # type: ignore
+        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
+            self.context.logger.error(
+                f"Failed to parse JSON from subgraph response: {response.body}"  # type: ignore
+            )
+            return None
 
         # Check if 'data' key exists in the response
         if "data" not in response_body:
@@ -736,8 +742,16 @@ class MemeooorrBaseBehaviour(
                 )
                 continue
 
-            metadata = json.loads(response.body)
-            match = re.match(MEMEOOORR_DESCRIPTION_PATTERN, metadata["description"])
+            try:
+                metadata = json.loads(response.body)
+            except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
+                self.context.logger.error(
+                    f"Failed to parse IPFS metadata JSON: {response.body}"  # type: ignore
+                )
+                continue
+            match = re.match(
+                MEMEOOORR_DESCRIPTION_PATTERN, metadata.get("description", "")
+            )
 
             if not match:
                 continue
@@ -789,7 +803,21 @@ class MemeooorrBaseBehaviour(
             )
             return []
 
-        response_json = json.loads(response.body)
+        try:
+            response_json = json.loads(response.body)
+        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
+            self.context.logger.error(
+                f"Failed to parse JSON from meme subgraph response: {response.body!r}"
+            )
+            return []
+
+        items = (response_json.get("data") or {}).get("memeTokens", {}).get("items", [])
+        if not items:
+            self.context.logger.warning(
+                "No meme token items found in subgraph response"
+            )
+            return []
+
         tokens = [
             {
                 "token_name": t["name"],
@@ -810,7 +838,7 @@ class MemeooorrBaseBehaviour(
                 "token_nonce": int(t["memeNonce"]),
                 "hearters": t["hearters"],
             }
-            for t in response_json["data"]["memeTokens"]["items"]
+            for t in items
             if t["chain"] == self.get_chain_id()
             # to only include the updated factory contract address's token data
             and int(t["memeNonce"]) > 0
@@ -967,6 +995,7 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(
                 f"Error while pulling the price from Fireworks: {response}"
             )
+            return None
 
         # Load the response
         api_data = json.loads(response.body)

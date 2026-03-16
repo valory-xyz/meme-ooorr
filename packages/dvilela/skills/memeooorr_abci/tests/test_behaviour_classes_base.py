@@ -1642,8 +1642,8 @@ class TestReplaceTweet:
             is None
         )
 
-    def test_http_error_no_api_error(self) -> None:
-        """HTTP error but body has no 'error' key -- hits the status_code branch then continues."""
+    def test_http_error_returns_none(self) -> None:
+        """HTTP error returns None early without parsing the body."""
         b = _make_behaviour()
         b.params.alternative_model_for_tweets = self._make_alt_config()
 
@@ -1660,8 +1660,173 @@ class TestReplaceTweet:
             _exhaust(
                 MemeooorrBaseBehaviour.replace_tweet_with_alternative_model(b, "p")
             )
-            == "ok"
+            is None
         )
+
+
+# ---------------------------------------------------------------------------
+# Resilience fixes — additional tests
+# ---------------------------------------------------------------------------
+
+
+class TestGetPackagesJsonParseError:  # pylint: disable=too-few-public-methods
+    """Tests for get_packages when the subgraph returns non-JSON on 200."""
+
+    def test_non_json_body_returns_none(self) -> None:
+        """A 200 response with invalid JSON returns None instead of crashing."""
+        b = _make_behaviour()
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return a 200 response with non-JSON body."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = b"<html>gateway error</html>"
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
+        b.context.logger.error.assert_called()
+
+
+class TestGetMemeCoinsSubgraphResilience:
+    """Tests for meme subgraph defensive handling."""
+
+    def test_non_json_body_returns_empty(self) -> None:
+        """A 200 response with invalid JSON returns [] instead of crashing."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return invalid JSON."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = b"not json"
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+        b.context.logger.error.assert_called()
+
+    def test_missing_data_key_returns_empty(self) -> None:
+        """Response JSON with no 'data' key returns [] instead of crashing."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON without 'data' key."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"errors": [{"message": "bad query"}]})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+
+    def test_null_data_key_returns_empty(self) -> None:
+        """Response JSON with data=null returns [] instead of crashing."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON with data=null."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"data": None})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+
+    def test_missing_meme_tokens_key_returns_empty(self) -> None:
+        """Response JSON with data but no memeTokens returns []."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON with data but no memeTokens."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"data": {"other": "stuff"}})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+
+
+class TestIpfsMetadataResilience:
+    """Tests for IPFS metadata JSON parse resilience (Fix #3)."""
+
+    def _setup_behaviour(self) -> Any:
+        """Create behaviour with service registry data."""
+        b = _make_behaviour()
+        b.context.state.twitter_username = "mybot"
+
+        response_msg = MagicMock()
+        response_msg.performative = ContractApiMessage.Performative.STATE
+        response_msg.state = MagicMock()
+        response_msg.state.body = {
+            "services_data": [
+                {"ipfs_hash": "QmHash1"},
+                {"ipfs_hash": "QmHash2"},
+            ]
+        }
+
+        def fake_contract(**kw: Any) -> Generator[Any, None, Any]:
+            """Return a contract api response."""
+            yield
+            return response_msg
+
+        b.get_contract_api_response = MagicMock(side_effect=fake_contract)
+        b.get_service_registry_address = MagicMock(return_value="0xsr_base")
+        b.get_chain_id = MagicMock(return_value="base")
+        return b
+
+    def test_non_json_ipfs_response_continues(self) -> None:
+        """Non-JSON IPFS response is skipped, not crashed."""
+        b = self._setup_behaviour()
+        call_count = 0
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return different responses per call."""
+            nonlocal call_count
+            r = MagicMock()
+            if call_count == 0:
+                # First IPFS fetch: invalid JSON
+                r.status_code = HTTP_OK
+                r.body = b"not-json"
+            else:
+                # Second IPFS fetch: valid but no match
+                r.status_code = HTTP_OK
+                r.body = json.dumps({"description": "Other service"})
+            call_count += 1
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_memeooorr_handles_from_chain(b))
+        # Should not crash; returns empty list since nothing matched
+        assert not result
+
+    def test_missing_description_key_continues(self) -> None:
+        """IPFS metadata without 'description' key doesn't crash."""
+        b = self._setup_behaviour()
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return metadata without description."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"name": "test", "version": "1.0"})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_memeooorr_handles_from_chain(b))
+        assert not result
 
 
 # ---------------------------------------------------------------------------

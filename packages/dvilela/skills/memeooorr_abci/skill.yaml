@@ -15,7 +15,7 @@ fingerprint:
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeicjks4kxsb2r6a4armmaqxyxngwm3pouegq3fycm37rbe7otiwsre
-  behaviour_classes/base.py: bafybeiecuabrrvpgvdclb3rzkuw6u6yggz4wjtqwzpnhz74nlg7t3ezuvi
+  behaviour_classes/base.py: bafybeig2y2ylti4oj3s3ui6t5g6werem6pde6ppuomebll45unceoxfaae
   behaviour_classes/chain.py: bafybeiaazx6k3u2y3tnknzihjsco6t2mfmn5tzmmlu7ggylrk5qgiudrzu
   behaviour_classes/db.py: bafybeihf7jbo6mfkrqlukmmxx5b6uu4wsagotebnbiqexz4qxzl5lyvuoa
   behaviour_classes/llm.py: bafybeididjdxf5rhk6fv4afcsdypao74hspnhk5eaegea5j7h7xdll5owy
@@ -24,7 +24,7 @@ fingerprint:
   behaviours.py: bafybeicsif4jpkuq4a5ijgj63s5zn4mskmakuddgiquqb4vrlz3trqa7fu
   dialogues.py: bafybeibmmp2kce2t6fzju6ovrntbh4uq2wdd7yc5jyfnnivgxox56awzye
   fsm_specification.yaml: bafybeifwiuidpnkj6c3tsez2athqjefzssfomswb7lz3xvld5iemr745ya
-  handlers.py: bafybeiho7pphmpg5brheqh2i4cbpx5mcmbvdukpsgc5s5lpqplet5z6oue
+  handlers.py: bafybeigtjnvrgeq4yep776dzlcdgztedx6b4sgqgleh6ftkqv4xlypzj2y
   models.py: bafybeiblbn3ew5tpgl4hzcnzzh7khvkjuwkdx7pdtjyhqketeb4cvryk3e
   payloads.py: bafybeifrhbfqwrcxx2q5ekeioz7tl4xjkoirqy5s6tdpioa52b63qg7kva
   prompts.py: bafybeidewp7obapgoikok4vavwlgb6ewdqszq4h3l4jp3nrzqggdi2ttsi
@@ -32,13 +32,13 @@ fingerprint:
   rounds_info.py: bafybeihojp3e4oeldscpso2v4pwv2rw74sulasnihrejllhnlaazqxf4p4
   tests/__init__.py: bafybeidlj2wjoc2yfeuyeyrwlcpawz3rc7lcuma64ioavgyaktcj7mfkf4
   tests/conftest.py: bafybeidse4fdakvzvq7gdt5rhasecmmgaqxxvv5ddylyhvj3cvdl6s2piq
-  tests/test_behaviour_classes_base.py: bafybeiek2giwpq3gfu23y3uny6w76ailn623ypny5zhswav4u2x23v7vhy
+  tests/test_behaviour_classes_base.py: bafybeieefv6zoeesrncc5ugimqi4dneosacrcuvdvkhxxv6tzsivmgahzy
   tests/test_behaviour_classes_chain.py: bafybeiboiza75xhcsp4ppxx4iuffkl4cfwjk7fve5zj7qrfneae2ghmjty
   tests/test_behaviour_classes_db.py: bafybeifnanhxfnpgtsyyibqrvfvfk7ll64pqqdstpk6mpaqkihbeachoia
   tests/test_behaviour_classes_llm.py: bafybeiejff7e5ypwp6a23qhheuuvdgm4ei2cbkv57yznp4rxiina56troq
   tests/test_behaviour_classes_mech.py: bafybeicbvwqqxv6ft74nt5n2qea4axieuoaobr5f7d5iwutus625atqy6u
   tests/test_behaviour_classes_twitter.py: bafybeih2xbgeaulalgoopddl6mauhrbgx66f3rojrzlzbo5hcm7ey3xuey
-  tests/test_handlers.py: bafybeiensflnyzlrqkokd2rwpnldwzlt256vnrcz6mv4z6yjp5ngmsfv2a
+  tests/test_handlers.py: bafybeifuqrtxjggiirlsywjhik62pto5pb6hsirq3msysro573zlw6n7ce
   tests/test_models.py: bafybeifrluqmvll7cnwoek6wqsqsq64q2htuwgb3vynqagvxyxsl65myqq
   tests/test_prompts.py: bafybeifubyvxd3f3pnmiw6luakyo5gl6xmnk2hg56hyuhht2ccveegmogy
   tests/test_rounds.py: bafybeienniiom4ciu4tglgdlo3nhdzewbxn6gvgywag52nc7rceephhpq4
@@ -46,8 +46,8 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - dvilela/kv_store:0.1.0:bafybeihmppbeo5gh3w7gnr3vff6u4qlurt3dhxd4cn4mnrzyhnrxdr336u
-- dvilela/tweepy:0.1.0:bafybeigy7adzljkr42vjeyn6jr2tnmi75uggg5gbwraqifdhgywnl6ub2u
-- dvilela/genai:0.1.0:bafybeieuwwoww4scfzs7ljzlmotldu5jp24o4h235qy54ovliwxf6zjxai
+- dvilela/tweepy:0.1.0:bafybeiemru2oyc5klbef2yuoe4f3qgahz227gdyppbxehv35koiwqcyarm
+- dvilela/genai:0.1.0:bafybeiaiwpo2k3vvug6qjb4s4huhagf3faezsonjx5t2lwz6nc2f74sxzy
 - valory/http_server:0.22.0:bafybeid4oqsfkqo36lryoecymjnq4whme3tgupqfq6m4l7lbr5r4yxtswu
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeico3uzjdwumf2jg2e627ut4rwzwmedjavenw6e2hshi2m6yw642bq

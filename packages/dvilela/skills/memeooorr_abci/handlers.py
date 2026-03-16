@@ -455,7 +455,37 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
                 http_msg.body,
             )
         )
-        handler(http_msg, http_dialogue, **kwargs)
+        try:
+            handler(http_msg, http_dialogue, **kwargs)
+        except Exception as e:  # pylint: disable=broad-except
+            self.context.logger.error(
+                f"Internal server error in handler {handler.__name__}: {e}"
+            )
+            self._handle_internal_server_error(http_msg, http_dialogue)
+
+    def _handle_internal_server_error(
+        self,
+        http_msg: HttpMessage,
+        http_dialogue: HttpDialogue,
+    ) -> None:
+        """
+        Handle an internal server error.
+
+        :param http_msg: the http message
+        :param http_dialogue: the http dialogue
+        """
+        http_response = http_dialogue.reply(
+            performative=HttpMessage.Performative.RESPONSE,
+            target_message=http_msg,
+            version=http_msg.version,
+            status_code=INTERNAL_SERVER_ERROR_CODE,
+            status_text="Internal Server Error",
+            headers=http_msg.headers,
+            body=json.dumps({"error": "Internal server error"}).encode("utf-8"),
+        )
+
+        self.context.logger.info(f"Responding with {INTERNAL_SERVER_ERROR_CODE}")
+        self.context.outbox.put_message(message=http_response)
 
     def _handle_bad_request(
         self,
@@ -1386,7 +1416,7 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
                 self.context.logger.error(
                     "Failed to get Web3 instance for gas estimation"
                 )
-                return False
+                return None
 
             tx_value = (
                 int(tx_request["value"], 16)

@@ -27,7 +27,6 @@ import json
 import os
 import secrets
 import tempfile
-import time
 from asyncio import Task
 from datetime import datetime, timezone
 from pathlib import Path
@@ -216,7 +215,11 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         :param task: the done task.
         """
         request = self.task_to_request.pop(task)
-        response_message: Optional[Message] = task.result()
+        response_message: Optional[Message] = None
+        try:
+            response_message = task.result()
+        except Exception as e:  # pylint: disable=broad-except
+            self.logger.error(f"Task failed with exception: {e}")
 
         response_envelope = None
         if response_message is not None:
@@ -249,7 +252,14 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 "Connection is disabled. Set TWIKIT_SKIP_CONNECTION=false to enable it.",
             )
 
-        payload = json.loads(srr_message.payload)
+        try:
+            payload = json.loads(srr_message.payload)
+        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
+            return self.prepare_error_message(
+                srr_message,
+                dialogue,
+                f"Invalid JSON payload: {srr_message.payload}",
+            )
 
         REQUIRED_PROPERTIES = ["method", "kwargs"]
         AVAILABLE_METHODS = [
@@ -284,7 +294,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
         # Avoid calling more than 1 time per 5 seconds
         while (datetime.now(timezone.utc) - self.last_call).total_seconds() < 5:
-            time.sleep(1)
+            await asyncio.sleep(1)
 
         self.logger.info(f"Calling twikit: {payload}")
 
@@ -298,7 +308,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         try:
             # Add random delay
             delay = secrets.randbelow(5)
-            time.sleep(delay)
+            await asyncio.sleep(delay)
 
             response = await method(**payload.get("kwargs", {}))
             self.logger.info(f"Twikit response: {response}")
@@ -349,7 +359,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                     f"Could not validate the cookies [{retries} / 3 retries]: {e}"
                 )
                 retries += 1
-                time.sleep(3)
+                await asyncio.sleep(3)
                 continue
         if not valid_login:
             self.logger.error("Could not validate the cookies")
@@ -437,7 +447,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
                 # Add random delay
                 delay = secrets.randbelow(5)
-                time.sleep(delay)
+                await asyncio.sleep(delay)
                 await self.delete_tweet(tweet_id)
 
             return [None] * len(tweet_ids)
@@ -474,7 +484,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 return tweet_id
             except twikit.errors.TweetNotAvailable:
                 self.logger.error("Failed to verify the tweet. Retrying...")
-                time.sleep(3)
+                await asyncio.sleep(3)
             finally:
                 retries += 1
 
@@ -492,7 +502,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
             except Exception as e:
                 self.logger.error(f"Failed to delete the tweet: {e}. Retrying...")
                 retries += 1
-                time.sleep(3)
+                await asyncio.sleep(3)
 
     async def get_user_tweets(
         self, twitter_handle: str, tweet_type: str = "Tweets", count: int = 1
@@ -500,7 +510,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         """Get user tweets"""
 
         user = await self.client.get_user_by_screen_name(twitter_handle)
-        time.sleep(1)
+        await asyncio.sleep(1)
         tweets = await self.client.get_user_tweets(
             user_id=user.id, tweet_type=tweet_type, count=count
         )
@@ -552,7 +562,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
             try:
                 # Add random delay
                 delay = secrets.randbelow(5)
-                time.sleep(delay)
+                await asyncio.sleep(delay)
                 await self.client.get_user_by_screen_name(user_name)
                 not_suspendend_users.append(user_name)
             except twikit.errors.TwitterException:
@@ -624,7 +634,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 if retries < MAX_POST_RETRIES:
                     # Add random delay between retries
                     delay = secrets.randbelow(5)
-                    time.sleep(delay)
+                    await asyncio.sleep(delay)
 
         return media_id
 
