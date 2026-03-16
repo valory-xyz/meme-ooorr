@@ -118,9 +118,8 @@ Subgraph returns {"data": null} → get_packages() returns None
 ```
 IPFS returns non-JSON for one service → json.loads crashes
 → Behaviour generator raises JSONDecodeError (uncaught)
-→ Behaviour marked done without payload
-→ Round timeout (300s) fires → round self-loops
-→ Agent stuck in 300s loop until IPFS returns valid JSON
+→ Agent process crashes
+→ Requires external restart; crash-loops if IPFS keeps returning bad data
 ```
 
 ### Bugs found
@@ -187,9 +186,8 @@ None. Error handling is comprehensive with separate except clauses for Timeout, 
 ```
 Subgraph returns {"data": null} → TypeError at line 813
 → Behaviour generator crashes in PullMemesBehaviour
-→ No payload sent
-→ Round timeout (300s) fires → PullMemesRound self-loops
-→ Agent stuck in 300s loop
+→ Agent process crashes
+→ Requires external restart; crash-loops if subgraph keeps returning bad data
 ```
 
 ### Bugs found
@@ -224,9 +222,8 @@ Subgraph returns {"data": null} → TypeError at line 813
 ```
 Fireworks unreachable → status_code=600 → json.loads(traceback) crashes
 → Behaviour (EngageTwitter or ActionDecision) generator raises JSONDecodeError
-→ No payload sent → Round timeout (300s) fires
-→ EngageTwitterRound/ActionDecisionRound self-loops
-→ 300s stuck per attempt
+→ Agent process crashes
+→ Requires external restart; crash-loops if Fireworks stays unreachable
 ```
 
 Called from `twitter.py:1432` (EngageTwitterBehaviour) and `llm.py:371` (ActionDecisionBehaviour).
@@ -464,7 +461,7 @@ This endpoint uses the framework's `get_http_response` path and is managed by th
 
 ## Operational Impact Classification
 
-### A. What can CRASH the agent (behaviour generator crash)
+### A. What can CRASH the agent process
 
 | # | Trigger | Where exception escapes | How external failure causes it |
 |---|---------|------------------------|-------------------------------|
@@ -475,19 +472,16 @@ This endpoint uses the framework's `get_http_response` path and is managed by th
 **What happens after a behaviour crash:**
 
 1. The generator raises an exception (JSONDecodeError/KeyError/TypeError)
-2. The AEA framework's skill handler catches it and logs a traceback
-3. The behaviour is marked as done **without sending a payload**
-4. The round never receives a payload from this agent
-5. For single-agent deployment: the round can never reach consensus
-6. `MemeooorrEvent.ROUND_TIMEOUT` fires after **300 seconds**
-7. The round self-loops (e.g., `PullMemesRound → PullMemesRound`)
-8. The behaviour runs again — if the external service is still failing, the cycle repeats
+2. **The agent process crashes.** An uncaught exception in a behaviour generator is fatal — the agent does not recover automatically.
+3. The agent must be restarted externally (e.g., by a process supervisor, Docker restart policy, or manual intervention).
+4. If the external service is still failing after restart, the agent crashes again immediately upon reaching the same behaviour.
 
 **Net assessment:** Bug #2 (meme subgraph direct key access) is **most likely and impactful** because:
 - The meme subgraph is a custom Railway-hosted service (not infrastructure-grade)
 - It's called every period in `PullMemesRound`
-- A schema change or transient error with `{"data": null}` would crash the agent into a 300s loop
+- A schema change or transient error with `{"data": null}` would crash the agent immediately
 - Triple-nested direct key access (`["data"]["memeTokens"]["items"]`) means three potential crash points
+- **The agent enters a crash loop** if the subgraph continues returning bad data after restart
 
 ---
 
@@ -498,7 +492,6 @@ This endpoint uses the framework's `get_http_response` path and is managed by th
 | 1 | Twikit rate limiting / retries | `time.sleep()` blocks event loop | Up to 30s per verification (10 retries x 3s) | Automatic after sleep completes |
 | 2 | Tweepy hanging HTTP call | No timeout, blocks connection thread | Indefinite | Requires agent restart |
 | 3 | GenAI hanging HTTP call | No timeout, blocks connection thread | Indefinite | Requires agent restart |
-| 4 | Behaviour crash (bugs #1-3) | No payload → round timeout | 300s per cycle | Automatic but loops indefinitely |
 
 **Net assessment:** Bug #4 (twikit `time.sleep()` blocking event loop) is **most impactful** because:
 - It blocks ALL async operations (not just twikit) — healthcheck responses, other connections, Tendermint communication
