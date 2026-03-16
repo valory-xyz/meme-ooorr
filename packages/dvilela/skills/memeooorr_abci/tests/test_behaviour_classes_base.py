@@ -1663,6 +1663,27 @@ class TestReplaceTweet:
             is None
         )
 
+    def test_api_error_key_returns_none(self) -> None:
+        """200 response with 'error' key returns None."""
+        b = _make_behaviour()
+        b.params.alternative_model_for_tweets = self._make_alt_config()
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Test fake_http."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"error": "rate limit exceeded"})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert (
+            _exhaust(
+                MemeooorrBaseBehaviour.replace_tweet_with_alternative_model(b, "p")
+            )
+            is None
+        )
+
 
 # ---------------------------------------------------------------------------
 # Resilience fixes — additional tests
