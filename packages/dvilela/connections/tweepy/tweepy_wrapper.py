@@ -69,7 +69,6 @@ class Twitter:
             consumer_secret=consumer_secret,
             access_token=access_token,
             access_token_secret=access_token_secret,
-            wait_on_rate_limit=True,
         )
         self.logger = logger if logger else DEFAULT_LOGGER
 

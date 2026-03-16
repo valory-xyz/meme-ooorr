@@ -156,27 +156,6 @@ class TestTwitterInit:
         assert twitter_with_logger.logger is not DEFAULT_LOGGER
         assert twitter_with_logger.logger.name == "test_custom"
 
-    def test_client_wait_on_rate_limit(self) -> None:
-        """Verify Client is created with wait_on_rate_limit=True."""
-        with patch(
-            "packages.dvilela.connections.tweepy.tweepy_wrapper.tweepy"
-        ) as mock_tweepy:
-            mock_tweepy.OAuth2BearerHandler.return_value = MagicMock()
-            mock_tweepy.OAuth2AppHandler.return_value = MagicMock()
-            mock_tweepy.OAuth1UserHandler.return_value = MagicMock()
-            mock_tweepy.API.return_value = MagicMock()
-            mock_tweepy.Client.return_value = MagicMock()
-
-            Twitter(
-                consumer_key="ck",
-                consumer_secret="cs",
-                access_token="at",
-                access_token_secret="ats",
-                bearer_token="bt",
-            )
-
-            call_kwargs = mock_tweepy.Client.call_args[1]
-            assert call_kwargs["wait_on_rate_limit"] is True
 
 
 # ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ Deep analysis of every external HTTP dependency: what happens under each failure
 
 ## Fix Status
 
-All 14 individual bugs plus 1 bonus fix have been applied. See commit `90fd85fa`.
+13 of 14 individual bugs plus 1 bonus fix have been applied. Bug #10 (tweepy timeout) is deferred — `tweepy.Client` has no timeout parameter.
 
 | # | Status | Test coverage |
 |---|--------|---------------|
@@ -19,14 +19,14 @@ All 14 individual bugs plus 1 bonus fix have been applied. See commit `90fd85fa`
 | 7 | **FIXED** | No test coverage (genai is a third-party package, not in tox test suite) |
 | 8 | **FIXED** | `TestHandleDoneTask::test_handle_done_task_with_exception` |
 | 9 | **FIXED** | `TestGetResponse::test_invalid_json_payload` |
-| 10 | **FIXED** | `TestTwitterInit::test_client_wait_on_rate_limit` |
+| 10 | **DEFERRED** | Tweepy `Client` has no timeout parameter; needs architectural decision |
 | 11 | **FIXED** | `TestRaiseForResponse::test_error_status_non_json_body` |
 | 12 | **FIXED** | `TestOnSend::test_invalid_json_payload` |
 | 13 | **FIXED** | No test coverage (genai is a third-party package, not in tox test suite) |
 | 14 | **FIXED** | `TestRaiseForResponse::test_session_has_timeout` |
 | CC1 | **DEFERRED** | Architectural — inconsistent retry strategies |
 | CC2 | **DEFERRED** | Architectural — no circuit breaker pattern |
-| CC5 | **DEFERRED** | Architectural — twikit library-level timeout |
+| CC5 | **DEFERRED** | Architectural — twikit and tweepy library-level timeouts |
 
 ---
 
@@ -416,7 +416,7 @@ Tweepy is called via SRR protocol. Errors return `{"error": ...}` dicts. Behavio
 
 | Severity | Location | Bug |
 |---|---|---|
-| ~~**MEDIUM**~~ | `tweepy/connection.py` | ~~**No timeout on tweepy HTTP calls**~~ **FIXED** (Fix #10): added `wait_on_rate_limit=True` to tweepy Client constructor (prevents indefinite hangs on rate limiting) |
+| **MEDIUM** | `tweepy/connection.py` | **No timeout on tweepy HTTP calls** — `tweepy.Client` has no timeout parameter. `BaseSyncConnection` with `MAX_WORKER_THREADS=1` means a hanging call blocks all subsequent requests. **DEFERRED** — needs architectural decision (e.g., wrapping the session with a timeout adapter). |
 | ~~**LOW**~~ | `tweepy/connection.py:204` | ~~`json.loads(srr_message.payload)` outside try-except~~ **FIXED** (Fix #12): wrapped in try-except, sends error response |
 
 ---
@@ -479,7 +479,7 @@ All 14 bugs + 1 bonus fix have been applied. See Fix Status table at top.
 | 7 | **MEDIUM** | `genai/connection.py:165` | `json.loads` outside `_get_response` try-except | **FIXED** (no tests — third-party pkg) |
 | 8 | **MEDIUM** | `twikit/connection.py:219` | `_handle_done_task` doesn't catch exceptions from `task.result()` | **FIXED** |
 | 9 | **MEDIUM** | `twikit/connection.py:252` | `json.loads` outside try-except | **FIXED** |
-| 10 | **MEDIUM** | `tweepy/connection.py` | No timeout on tweepy HTTP calls | **FIXED** |
+| 10 | **MEDIUM** | `tweepy/connection.py` | No timeout on tweepy HTTP calls | **DEFERRED** |
 | 11 | **LOW** | `mirror_db/connection.py:339` | `_raise_for_response` assumes error body is JSON | **FIXED** |
 | 12 | **LOW** | `tweepy/connection.py:204` | `json.loads` outside `_get_response` try-except | **FIXED** |
 | 13 | **LOW** | `genai/connection.py` | No timeout on genai library HTTP calls | **FIXED** (no tests — third-party pkg) |
@@ -508,7 +508,7 @@ All 14 bugs + 1 bonus fix have been applied. See Fix Status table at top.
 | # | Trigger | Status |
 |---|---------|--------|
 | 1 | Twikit rate limiting / retries blocking event loop | **FIXED** — `time.sleep()` → `await asyncio.sleep()` |
-| 2 | Tweepy hanging HTTP call | **FIXED** — `wait_on_rate_limit=True` on Client |
+| 2 | Tweepy hanging HTTP call | **DEFERRED** — `tweepy.Client` has no timeout parameter |
 | 3 | GenAI hanging HTTP call | **FIXED** — timeouts added (30s x402, 120s generate_content) |
 
 **Remaining risk:** Twikit library-level timeout (CC5) — twikit's internal HTTP calls have no explicit timeout. This depends on twikit library internals and is deferred as an architectural decision.
@@ -558,7 +558,7 @@ When an external service is down, the agent retries every period (300s round tim
 
 | Component | Missing timeout | Status |
 |-----------|----------------|--------|
-| Tweepy (BaseSyncConnection, 1 thread) | requests calls | **FIXED** — `wait_on_rate_limit=True` |
+| Tweepy (BaseSyncConnection, 1 thread) | requests calls | **DEFERRED** — `tweepy.Client` has no timeout param |
 | GenAI (BaseSyncConnection, 1 thread) | genai library calls | **FIXED** — explicit timeouts added |
 | MirrorDB (aiohttp) | Session-level timeout | **FIXED** — `ClientTimeout(total=60)` |
 | Twikit | twikit library calls | **DEFERRED** — depends on twikit internals |
@@ -571,7 +571,7 @@ When an external service is down, the agent retries every period (300s round tim
 
 ## Combined Priority Matrix
 
-All individual bugs (P0–P4) have been fixed. Only architectural/systemic issues remain.
+All individual bugs (P0–P4) have been fixed except #10 (tweepy timeout — deferred, no timeout param available). Systemic issues also remain.
 
 | Priority | Issue | Category | Status |
 |----------|-------|----------|--------|
@@ -584,7 +584,7 @@ All individual bugs (P0–P4) have been fixed. Only architectural/systemic issue
 | **P2** | #7: GenAI json.loads outside try | Stuck | **FIXED** (no tests — third-party pkg) |
 | **P2** | #8: Twikit _handle_done_task | Stuck | **FIXED** |
 | **P2** | #9: Twikit json.loads outside try | Stuck | **FIXED** |
-| **P2** | #10: Tweepy no timeout | Stuck | **FIXED** |
+| **P2** | #10: Tweepy no timeout | Stuck | **DEFERRED** |
 | **P3** | CC1: Inconsistent retries | Systemic | **DEFERRED** |
 | **P3** | CC2: No circuit breaker | Systemic | **DEFERRED** |
 | **P3** | CC5: Twikit library-level timeout | Systemic | **DEFERRED** |
