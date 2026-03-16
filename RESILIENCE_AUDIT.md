@@ -437,7 +437,7 @@ GenAI is called via SRR protocol from behaviours. Errors return `{"error": ...}`
 | **Called from** | Via `AgentDBBehaviour` parent class |
 | **Purpose** | Store/retrieve agent performance data |
 
-This endpoint uses the framework's `get_http_response` path and is managed by the `agent_db_abci` skill. Error handling is within the upstream Valory package. Not analyzed in detail as it's not custom code.
+This endpoint uses the framework's `get_http_response` path and is managed by the `agent_db_abci` skill. Although `agent_db_abci` is a dev package (valory-authored, listed in `packages.json` under `dev`), its error handling follows standard framework patterns. Not analyzed in detail as it uses the standard `AgentDBBehaviour` base class.
 
 ---
 
