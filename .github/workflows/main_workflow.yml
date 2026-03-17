@@ -79,6 +79,8 @@ jobs:
           --url-skips https://li.quest/v1/quote/toAmount
           --url-skips https://1rpc.io/base
           --url-skips https://afmdb.autonolas.tech
+          --url-skips https://api.subgraph.autonolas.tech/api/proxy/autonolas-base
+          --url-skips https://api.subgraph.autonolas.tech/api/proxy/marketplace-base
       - name: Check doc IPFS hashes
         run: tox -e check-doc-hashes
 
