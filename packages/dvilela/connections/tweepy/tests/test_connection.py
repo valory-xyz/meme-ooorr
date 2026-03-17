@@ -274,9 +274,9 @@ class TestOnSend:
         conn.put_envelope.assert_called_once()
         # Verify the response indicates an error
         mock_dialogue.reply.assert_called_once()  # pylint: disable=no-member
-        payload_str = mock_dialogue.reply.call_args[1][
+        payload_str = mock_dialogue.reply.call_args[1][  # pylint: disable=no-member
             "payload"
-        ]  # pylint: disable=no-member
+        ]
         assert "error" in payload_str.lower()
 
 
