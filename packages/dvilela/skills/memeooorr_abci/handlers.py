@@ -20,6 +20,7 @@
 """This module contains the handlers for the skill of MemeooorrAbciApp."""
 
 import atexit
+import concurrent.futures
 import json
 import mimetypes
 import re
@@ -248,13 +249,16 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
         self.executor = ThreadPoolExecutor(max_workers=1)
         atexit.register(self._executor_shutdown)
 
+        # Guard against duplicate x402 swap submissions
+        self._x402_swap_future: Optional[concurrent.futures.Future] = None
+
     def setup(self) -> None:
         """Implement the setup."""
 
         # Only check funds if using X402
         if self.params.use_x402:
             self.shared_state.sufficient_funds_for_x402_payments = False
-            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
+            self._submit_x402_swap_if_idle()
 
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
@@ -1222,12 +1226,21 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
     ) -> None:
         """Handle a fund status request."""
         if self.params.use_x402:
-            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
+            self._submit_x402_swap_if_idle()
 
         self._send_ok_response(
             http_msg,
             http_dialogue,
             self.funds_status.get_response_body(),
+        )
+
+    def _submit_x402_swap_if_idle(self) -> None:
+        """Submit x402 swap task only if no swap is currently in progress."""
+        if self._x402_swap_future is not None and not self._x402_swap_future.done():
+            self.context.logger.debug("x402 swap task already in progress, skipping")
+            return
+        self._x402_swap_future = self.executor.submit(
+            self._ensure_sufficient_funds_for_x402_payments
         )
 
     def _get_eoa_account(self) -> Optional[LocalAccount]:

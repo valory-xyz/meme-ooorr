@@ -5,7 +5,7 @@ Deep analysis of every external HTTP dependency: what happens under each failure
 
 ## Fix Status
 
-13 of 14 individual bugs plus 1 bonus fix have been applied. Bug #10 (tweepy timeout) is deferred — `tweepy.Client` has no timeout parameter.
+11 of 14 original bugs plus 1 bonus fix have been applied. Bug #10 (tweepy timeout) is deferred. Bugs #7 and #13 (genai) are unfixed — genai is a third-party package, should be fixed upstream. 5 new bugs found in follow-up audit (2026-03-17).
 
 | # | Status | Test coverage |
 |---|--------|---------------|
@@ -16,14 +16,19 @@ Deep analysis of every external HTTP dependency: what happens under each failure
 | 4 | **FIXED** | Existing twikit tests updated (`time.sleep` → `asyncio.sleep` mocks) |
 | 5 | **FIXED** | `TestEstimateGas::test_no_web3` (updated assertion) |
 | 6 | **FIXED** | `TestHttpHandlerHandle::test_handler_exception_returns_500`, `TestHttpHandlerResponses::test_handle_internal_server_error` |
-| 7 | **FIXED** | No test coverage (genai is a third-party package, not in tox test suite) |
+| 7 | **UNFIXED** | Third-party package — should be fixed upstream |
 | 8 | **FIXED** | `TestHandleDoneTask::test_handle_done_task_with_exception` |
 | 9 | **FIXED** | `TestGetResponse::test_invalid_json_payload` |
 | 10 | **DEFERRED** | Tweepy `Client` has no timeout parameter; needs architectural decision |
 | 11 | **FIXED** | `TestRaiseForResponse::test_error_status_non_json_body` |
 | 12 | **FIXED** | `TestOnSend::test_invalid_json_payload` |
-| 13 | **FIXED** | No test coverage (genai is a third-party package, not in tox test suite) |
+| 13 | **UNFIXED** | Third-party package — should be fixed upstream |
 | 14 | **FIXED** | `TestRaiseForResponse::test_session_has_timeout` |
+| 15 | **NEW** | `base.py:731-733` — `services_data` can be `None`, iterating crashes agent |
+| 16 | **NEW** | `base.py:821-845` — Token fields use direct `t["key"]` access, `KeyError` crashes agent |
+| 17 | **NEW** | `handlers.py:1225` — No deduplication of x402 executor task submissions |
+| 18 | ~~NEW~~ **NOT A BUG** | `twikit/connection.py:234` — `None` envelope in queue is safely ignored by the AEA multiplexer's `_receiving_loop` |
+| 19 | **NEW** | `handlers.py:567` — Pre-FSM `synchronized_data` access in health handler (mitigated by try-except) |
 | CC1 | **DEFERRED** | Architectural — inconsistent retry strategies |
 | CC2 | **DEFERRED** | Architectural — no circuit breaker pattern |
 | CC5 | **DEFERRED** | Architectural — twikit and tweepy library-level timeouts |
@@ -153,6 +158,7 @@ IPFS returns non-JSON for one service → json.loads crashes
 |---|---|---|
 | ~~**HIGH**~~ | `base.py:739` | ~~`json.loads(response.body)` can crash on non-JSON 200 response~~ **FIXED** (Fix #3): wrapped in try-except → `continue` |
 | ~~**HIGH**~~ | `base.py:740` | ~~`metadata["description"]` — direct key access~~ **FIXED** (Fix #3): uses `.get("description", "")` |
+| **HIGH** | `base.py:731-733` | **NEW (Bug #15):** `services_data = cast(dict, response_msg.state.body.get("services_data", None))` followed by `for service_data in services_data:`. If the contract API returns no `services_data` key, this is `None`. Then `for service_data in None` → `TypeError` → **crashes agent process**. Fix: `services_data = response_msg.state.body.get("services_data") or []` |
 
 ---
 
@@ -221,6 +227,7 @@ Subgraph returns {"data": null} → TypeError at line 813
 |---|---|---|
 | ~~**HIGH**~~ | `base.py:792` | ~~`json.loads(response.body)` can crash on non-JSON 200 response~~ **FIXED** (Fix #2): wrapped in try-except → returns `[]` |
 | ~~**HIGH**~~ | `base.py:813` | ~~`response_json["data"]["memeTokens"]["items"]` — triple direct key access~~ **FIXED** (Fix #2): defensive `.get()` chain with null guards |
+| **HIGH** | `base.py:821-845` | **NEW (Bug #16):** Token list comprehension uses direct `t["name"]`, `t["symbol"]`, `t["blockNumber"]`, etc. (17 direct key accesses). If the indexer returns a token with any missing field, `KeyError` escapes the list comprehension → **crashes agent process**. The response-level parsing (Fix #2) only guards the path to `items`; individual token records are not guarded. Fix: wrap the list comprehension in try-except, or use `.get()` with defaults for each field. |
 
 ---
 
@@ -290,7 +297,9 @@ LiFi unreachable → returns None → _ensure_sufficient_funds returns False
 
 ### Bugs found
 
-None. Broad `except Exception` catches all failures. Timeout of 30s configured.
+| Severity | Location | Bug |
+|---|---|---|
+| **LOW** | `handlers.py:1225` | **NEW (Bug #17):** Every `/funds-status` request calls `self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)`. The `Future` is discarded — no check if one is already running. If multiple requests arrive quickly, duplicate swap transactions could be queued. The single-thread executor serializes them, and the second check would likely see sufficient balance, but this is not guaranteed if both start before the first swap confirms. Fix: track the `Future`, skip if already running. |
 
 ---
 
@@ -388,6 +397,7 @@ Twikit is called from behaviours via SRR protocol. Errors result in error respon
 |---|---|---|
 | ~~**HIGH**~~ | `twikit/connection.py:287,301,352,439,477,495,503,555,627` | ~~**`time.sleep()` in async methods blocks the entire event loop**~~ **FIXED** (Fix #4): all 9 `time.sleep()` calls replaced with `await asyncio.sleep()`, removed `import time` |
 | ~~**MEDIUM**~~ | `twikit/connection.py:219` | ~~`_handle_done_task` calls `task.result()` without try-except~~ **FIXED** (Fix #8): wrapped in try-except, logs error and puts `None` envelope |
+| ~~MEDIUM~~ | `twikit/connection.py:234` | ~~Bug #18~~ **NOT A BUG:** `None` envelope in the response queue is safely ignored by the AEA multiplexer's `_receiving_loop` (line `if envelope is not None:` in `aea/multiplexer.py`). The behaviour times out via the round timeout. Same pattern used by mirror_db connection. |
 | ~~**MEDIUM**~~ | `twikit/connection.py:252` | ~~`json.loads(srr_message.payload)` outside try-except~~ **FIXED** (Fix #9): wrapped in try-except, returns error SrrMessage |
 
 ---
@@ -446,8 +456,8 @@ GenAI is called via SRR protocol from behaviours. Errors return `{"error": ...}`
 
 | Severity | Location | Bug |
 |---|---|---|
-| ~~**MEDIUM**~~ | `genai/connection.py:165` | ~~**BP14: `json.loads(srr_message.payload)` outside try-except**~~ **FIXED** (Fix #7): wrapped in try-except, sends error response. Note: genai is a third-party package — no test coverage in tox suite. |
-| ~~**LOW**~~ | `genai/connection.py` | ~~**No timeout on genai library HTTP calls**~~ **FIXED** (Fix #13): added `timeout=30` to x402 `session.post()`, `request_options={"timeout": 120}` to `model.generate_content()`. Note: genai is a third-party package — no test coverage in tox suite. |
+| **MEDIUM** | `genai/connection.py:165` | `json.loads(srr_message.payload)` is outside try-except in current code. If payload is malformed, `JSONDecodeError` escapes `on_send()`. Since `BaseSyncConnection` dispatches `on_send` via `_run_in_pool`, the `_task_done_callback` logs the exception but **no response envelope is sent** — the behaviour waiting for the response times out. **Should be fixed upstream** — genai is a third-party package. |
+| **HIGH** | `genai/connection.py:219,295` | Current code shows `session.post(url, ...)` at line 219 with **no timeout parameter**, and `model.generate_content()` at line 295 with **no `request_options`**. If the x402 server is unreachable, `session.post()` hangs indefinitely, blocking the single Genai worker thread permanently. All subsequent LLM requests queue forever. The FSM round timeout fires, but Genai is functionally dead until agent restart. **Should be fixed upstream** — genai is a third-party package. |
 
 ---
 
@@ -465,7 +475,7 @@ This endpoint uses the framework's `get_http_response` path and is managed by th
 
 ## Summary: All Bugs Found
 
-All 14 bugs + 1 bonus fix have been applied. See Fix Status table at top.
+14 original bugs + 1 bonus fix applied. 2 regressions identified + 5 new bugs found (2026-03-17 follow-up audit).
 
 | # | Severity | Location | Bug | Status |
 |---|----------|----------|-----|--------|
@@ -476,14 +486,19 @@ All 14 bugs + 1 bonus fix have been applied. See Fix Status table at top.
 | 4 | **HIGH** | `twikit/connection.py:287+` | `time.sleep()` in async methods blocks entire event loop | **FIXED** |
 | 5 | **MEDIUM** | `handlers.py:1389` | `_estimate_gas` returns `False` instead of `None` | **FIXED** |
 | 6 | **MEDIUM** | `handlers.py:458` | Handler dispatch without global try-except | **FIXED** |
-| 7 | **MEDIUM** | `genai/connection.py:165` | `json.loads` outside `_get_response` try-except | **FIXED** (no tests — third-party pkg) |
+| 7 | **MEDIUM** | `genai/connection.py:165` | `json.loads` outside `_get_response` try-except | **UNFIXED** — should be fixed upstream |
 | 8 | **MEDIUM** | `twikit/connection.py:219` | `_handle_done_task` doesn't catch exceptions from `task.result()` | **FIXED** |
 | 9 | **MEDIUM** | `twikit/connection.py:252` | `json.loads` outside try-except | **FIXED** |
 | 10 | **MEDIUM** | `tweepy/connection.py` | No timeout on tweepy HTTP calls | **DEFERRED** |
 | 11 | **LOW** | `mirror_db/connection.py:339` | `_raise_for_response` assumes error body is JSON | **FIXED** |
 | 12 | **LOW** | `tweepy/connection.py:204` | `json.loads` outside `_get_response` try-except | **FIXED** |
-| 13 | **LOW** | `genai/connection.py` | No timeout on genai library HTTP calls | **FIXED** (no tests — third-party pkg) |
+| 13 | **HIGH** | `genai/connection.py:219,295` | No timeout on genai HTTP calls (x402 + generate_content) | **UNFIXED** — should be fixed upstream |
 | 14 | **LOW** | `mirror_db/connection.py:181` | No explicit timeout on aiohttp session | **FIXED** |
+| 15 | **HIGH** | `base.py:731-733` | `services_data` can be `None` → `TypeError` iterating → crashes agent | **NEW** |
+| 16 | **HIGH** | `base.py:821-845` | Token fields use direct `t["key"]` (17 accesses) → `KeyError` → crashes agent | **NEW** |
+| 17 | **LOW** | `handlers.py:1225` | No deduplication of x402 fund check executor tasks → duplicate swaps possible | **NEW** |
+| ~~18~~ | ~~MEDIUM~~ | `twikit/connection.py:234` | ~~`None` envelope in response queue~~ Not a bug — multiplexer ignores `None` | ~~NEW~~ |
+| 19 | **INFO** | `handlers.py:567` | Pre-FSM `synchronized_data` access in health handler — mitigated by try-except at line 458 | **NEW** |
 
 ---
 
@@ -491,25 +506,31 @@ All 14 bugs + 1 bonus fix have been applied. See Fix Status table at top.
 
 ### A. What can CRASH the agent process
 
-**All crash bugs have been fixed.** Previously:
+Most original crash bugs have been fixed. **2 new crash paths discovered:**
 
 | # | Trigger | Status |
 |---|---------|--------|
 | 1 | Fireworks API unreachable or returns non-JSON | **FIXED** — early `return None` on non-200 |
 | 2 | Meme subgraph returns `{"data": null}` or missing keys | **FIXED** — defensive `.get()` chain |
 | 3 | IPFS gateway returns non-JSON or metadata missing "description" | **FIXED** — try-except + `.get()` |
+| 15 | Contract API returns no `services_data` key → `for service_data in None` | **NEW — crashes agent** |
+| 16 | Indexer returns token with missing field → `t["name"]` KeyError in list comprehension | **NEW — crashes agent** |
+
+**Bug #15 detail:** `base.py:731` — `services_data = cast(dict, response_msg.state.body.get("services_data", None))`. If the contract call returns a body without `services_data`, this is `None`. Then `for service_data in services_data:` at line 733 raises `TypeError`. This is in `get_memeooorr_handles_from_chain()`, a behaviour generator — the exception propagates uncaught and **kills the agent process**.
+
+**Bug #16 detail:** `base.py:821-845` — The token list comprehension accesses 17 fields via direct `t["key"]` syntax. The response-level parsing was hardened (Fix #2 guards the path to `items`), but individual token records are not validated. A single malformed token record from the indexer crashes the agent.
 
 ---
 
 ### B. What can get the agent STUCK
 
-**All blocking bugs have been fixed.** Previously:
+**1 regression re-opens a previously fixed stuck scenario:**
 
 | # | Trigger | Status |
 |---|---------|--------|
 | 1 | Twikit rate limiting / retries blocking event loop | **FIXED** — `time.sleep()` → `await asyncio.sleep()` |
 | 2 | Tweepy hanging HTTP call | **DEFERRED** — `tweepy.Client` has no timeout parameter |
-| 3 | GenAI hanging HTTP call | **FIXED** — timeouts added (30s x402, 120s generate_content) |
+| 13 | GenAI x402 `session.post()` hangs indefinitely (no timeout) | **UNFIXED** — should be fixed upstream (third-party package). Blocks single Genai worker thread permanently. |
 
 **Remaining risk:** Twikit library-level timeout (CC5) — twikit's internal HTTP calls have no explicit timeout. This depends on twikit library internals and is deferred as an architectural decision.
 
@@ -517,13 +538,14 @@ All 14 bugs + 1 bonus fix have been applied. See Fix Status table at top.
 
 ### C. Agent keeps running with UNINTENDED SIDE-EFFECTS
 
-**All side-effect bugs have been fixed.**
+Most original side-effect bugs have been fixed. **2 new findings:**
 
 | # | Trigger | Status |
 |---|---------|--------|
 | 1 | `_estimate_gas` returns `False` | **FIXED** — returns `None` |
 | 2 | Handler crash (no try-except) | **FIXED** — returns HTTP 500 |
 | 3 | Meme subgraph returns `[]` (empty) | Not a bug — graceful degradation by design |
+| 17 | Rapid `/funds-status` requests queue duplicate x402 swap tasks | **NEW** — duplicate ETH→USDC swaps waste gas |
 
 ---
 
@@ -571,24 +593,29 @@ When an external service is down, the agent retries every period (300s round tim
 
 ## Combined Priority Matrix
 
-All individual bugs (P0–P4) have been fixed except #10 (tweepy timeout — deferred, no timeout param available). Systemic issues also remain.
+Most original bugs fixed. Bugs #7 and #13 (genai, third-party) should be fixed upstream. 5 new bugs found.
 
-| Priority | Issue | Category | Status |
-|----------|-------|----------|--------|
-| **P0** | #1: Fireworks json.loads on non-200 | Crash | **FIXED** |
-| **P0** | #2: Meme subgraph direct key access | Crash | **FIXED** |
-| **P0** | #3: IPFS metadata crash | Crash | **FIXED** |
-| **P0** | #4: Twikit time.sleep() blocks event loop | Stuck | **FIXED** |
-| **P1** | #5: _estimate_gas returns False | Side-effect | **FIXED** |
-| **P2** | #6: Handler dispatch no try-except | Crash (handler) | **FIXED** |
-| **P2** | #7: GenAI json.loads outside try | Stuck | **FIXED** (no tests — third-party pkg) |
-| **P2** | #8: Twikit _handle_done_task | Stuck | **FIXED** |
-| **P2** | #9: Twikit json.loads outside try | Stuck | **FIXED** |
-| **P2** | #10: Tweepy no timeout | Stuck | **DEFERRED** |
-| **P3** | CC1: Inconsistent retries | Systemic | **DEFERRED** |
-| **P3** | CC2: No circuit breaker | Systemic | **DEFERRED** |
-| **P3** | CC5: Twikit library-level timeout | Systemic | **DEFERRED** |
-| **P4** | #11: MirrorDB error JSON assumption | Handler | **FIXED** |
-| **P4** | #12: Tweepy json.loads outside try | Defensive | **FIXED** |
-| **P4** | #13: GenAI no timeout | Config | **FIXED** (no tests — third-party pkg) |
-| **P4** | #14: MirrorDB session timeout | Config | **FIXED** |
+| Priority | Issue | Category | Status | Fix |
+|----------|-------|----------|--------|-----|
+| **P0** | #15: `services_data` None iteration crash | Crash | **NEW** | `services_data = response_msg.state.body.get("services_data") or []` |
+| **P0** | #16: Token field `KeyError` in list comprehension | Crash | **NEW** | Wrap in try-except per token, skip malformed entries |
+| **P0** | #13: GenAI x402 no timeout | Stuck | **UNFIXED** — should be fixed upstream | Add `timeout=30` to `session.post()` at line 219; add `request_options={"timeout": 120}` to `generate_content()` at line 295 |
+| **P0** | #1: Fireworks json.loads on non-200 | Crash | **FIXED** | |
+| **P0** | #2: Meme subgraph direct key access | Crash | **FIXED** | |
+| **P0** | #3: IPFS metadata crash | Crash | **FIXED** | |
+| **P0** | #4: Twikit time.sleep() blocks event loop | Stuck | **FIXED** | |
+| **P1** | #5: _estimate_gas returns False | Side-effect | **FIXED** | |
+| **P2** | #7: GenAI json.loads outside try | Stuck | **UNFIXED** — should be fixed upstream | Wrap `json.loads` at line 165 in try-except, return error response |
+| ~~P2~~ | ~~#18: Twikit `None` envelope~~ | ~~Side-effect~~ | Not a bug — multiplexer safely ignores `None` | |
+| **P2** | #6: Handler dispatch no try-except | Crash (handler) | **FIXED** | |
+| **P2** | #8: Twikit _handle_done_task | Stuck | **FIXED** | |
+| **P2** | #9: Twikit json.loads outside try | Stuck | **FIXED** | |
+| **P2** | #10: Tweepy no timeout | Stuck | **DEFERRED** | |
+| **P3** | #17: x402 fund check deduplication | Side-effect | **NEW** | Track `Future`, skip if already running |
+| **P3** | CC1: Inconsistent retries | Systemic | **DEFERRED** | |
+| **P3** | CC2: No circuit breaker | Systemic | **DEFERRED** | |
+| **P3** | CC5: Twikit library-level timeout | Systemic | **DEFERRED** | |
+| **P4** | #19: Pre-FSM health handler access | Quality | **NEW** (mitigated) | Already inside try-except; returns 500 |
+| **P4** | #11: MirrorDB error JSON assumption | Handler | **FIXED** | |
+| **P4** | #12: Tweepy json.loads outside try | Defensive | **FIXED** | |
+| **P4** | #14: MirrorDB session timeout | Config | **FIXED** | |

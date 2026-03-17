@@ -1778,6 +1778,52 @@ class TestGetMemeCoinsSubgraphResilience:
         b.get_http_response = MagicMock(side_effect=fake_http)
         assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
 
+    def test_malformed_token_entry_skipped(self) -> None:
+        """A token entry with missing keys is skipped instead of crashing."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+        b.get_burnable_amount = MagicMock(
+            side_effect=lambda: (x for x in [None, 0])  # type: ignore
+        )
+
+        good_token = {
+            "name": "Good",
+            "symbol": "GD",
+            "blockNumber": "1",
+            "chain": "base",
+            "memeToken": "0x123",
+            "liquidity": "100",
+            "heartCount": "5",
+            "isUnleashed": True,
+            "isPurged": False,
+            "lpPairAddress": "0xLP",
+            "owner": "0xOwner",
+            "timestamp": "1234567890",
+            "memeNonce": "2",
+            "summonTime": "100",
+            "unleashTime": "200",
+            "hearters": [],
+        }
+        bad_token = {"chain": "base", "memeNonce": "3"}  # missing most keys
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return response with one good and one bad token."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps(
+                {"data": {"memeTokens": {"items": [good_token, bad_token]}}}
+            )
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+
+        # The good token is kept, the bad one is skipped
+        assert len(result) == 1
+        assert result[0]["token_name"] == "Good"
+        b.context.logger.warning.assert_called()
+
 
 class TestIpfsMetadataResilience:
     """Tests for IPFS metadata JSON parse resilience (Fix #3)."""

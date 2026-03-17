@@ -385,6 +385,10 @@ class TestHttpHandlerSetup:
         handler.context.params.use_x402 = True
         handler.params = handler.context.params
         handler.shared_state = handler.context.state
+        handler._x402_swap_future = None
+        handler._submit_x402_swap_if_idle = (
+            lambda: HttpHandler._submit_x402_swap_if_idle(handler)
+        )
 
         with patch(
             "packages.dvilela.skills.memeooorr_abci.handlers.load_fsm_spec"
@@ -396,7 +400,10 @@ class TestHttpHandlerSetup:
             }
             HttpHandler.setup(handler)
 
-        handler.executor.submit.assert_called_once()
+        handler.executor.submit.assert_called_once_with(
+            handler._ensure_sufficient_funds_for_x402_payments
+        )
+        assert handler._x402_swap_future is not None
 
 
 class TestHttpHandlerProperties:
@@ -1963,6 +1970,10 @@ class TestHttpHandlerFundsStatus:
         handler = _make_http_handler()
         handler.params = MagicMock()
         handler.params.use_x402 = True
+        handler._x402_swap_future = None
+        handler._submit_x402_swap_if_idle = (
+            lambda: HttpHandler._submit_x402_swap_if_idle(handler)
+        )
         handler.funds_status = MagicMock()
         handler.funds_status.get_response_body.return_value = {"status": "ok"}
         handler._send_ok_response = MagicMock()
@@ -1971,7 +1982,34 @@ class TestHttpHandlerFundsStatus:
 
         HttpHandler._handle_get_funds_status(handler, msg, dialogue)
 
-        handler.executor.submit.assert_called_once()
+        handler.executor.submit.assert_called_once_with(
+            handler._ensure_sufficient_funds_for_x402_payments
+        )
+        assert handler._x402_swap_future is not None
+        handler._send_ok_response.assert_called_once()
+
+    def test_funds_status_x402_dedup(self) -> None:
+        """Test that duplicate x402 swap submissions are skipped."""
+        handler = _make_http_handler()
+        handler.params = MagicMock()
+        handler.params.use_x402 = True
+        handler.funds_status = MagicMock()
+        handler.funds_status.get_response_body.return_value = {"status": "ok"}
+        handler._send_ok_response = MagicMock()
+        handler.context.logger = MagicMock()
+        # Simulate a future already in progress
+        running_future = MagicMock()
+        running_future.done.return_value = False
+        handler._x402_swap_future = running_future
+        handler._submit_x402_swap_if_idle = (
+            lambda: HttpHandler._submit_x402_swap_if_idle(handler)
+        )
+        msg = _make_http_msg()
+        dialogue = _make_http_dialogue()
+
+        HttpHandler._handle_get_funds_status(handler, msg, dialogue)
+
+        handler.executor.submit.assert_not_called()
         handler._send_ok_response.assert_called_once()
 
 

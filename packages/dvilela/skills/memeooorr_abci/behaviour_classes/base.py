@@ -728,7 +728,7 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(f"Could not get the service data: {response_msg}")
             return []
 
-        services_data = cast(dict, response_msg.state.body.get("services_data", None))
+        services_data = response_msg.state.body.get("services_data") or []
 
         for service_data in services_data:
             response = yield from self.get_http_response(  # type: ignore
@@ -818,31 +818,35 @@ class MemeooorrBaseBehaviour(
             )
             return []
 
-        tokens = [
-            {
-                "token_name": t["name"],
-                "token_ticker": t["symbol"],
-                "block_number": int(t["blockNumber"]),
-                "chain": t["chain"],
-                "token_address": t["memeToken"],
-                "liquidity": int(t["liquidity"]),
-                "heart_count": int(t["heartCount"]),
-                "is_unleashed": t["isUnleashed"],
-                "is_purged": t["isPurged"],
-                "lp_pair_address": t["lpPairAddress"],
-                "owner": t["owner"],
-                "timestamp": t["timestamp"],
-                "meme_nonce": int(t["memeNonce"]),
-                "summon_time": int(t["summonTime"]),
-                "unleash_time": int(t["unleashTime"]),
-                "token_nonce": int(t["memeNonce"]),
-                "hearters": t["hearters"],
-            }
-            for t in items
-            if t["chain"] == self.get_chain_id()
-            # to only include the updated factory contract address's token data
-            and int(t["memeNonce"]) > 0
-        ]
+        tokens = []
+        for t in items:
+            try:
+                if t["chain"] != self.get_chain_id() or int(t["memeNonce"]) <= 0:
+                    continue
+                tokens.append(
+                    {
+                        "token_name": t["name"],
+                        "token_ticker": t["symbol"],
+                        "block_number": int(t["blockNumber"]),
+                        "chain": t["chain"],
+                        "token_address": t["memeToken"],
+                        "liquidity": int(t["liquidity"]),
+                        "heart_count": int(t["heartCount"]),
+                        "is_unleashed": t["isUnleashed"],
+                        "is_purged": t["isPurged"],
+                        "lp_pair_address": t["lpPairAddress"],
+                        "owner": t["owner"],
+                        "timestamp": t["timestamp"],
+                        "meme_nonce": int(t["memeNonce"]),
+                        "summon_time": int(t["summonTime"]),
+                        "unleash_time": int(t["unleashTime"]),
+                        "token_nonce": int(t["memeNonce"]),
+                        "hearters": t["hearters"],
+                    }
+                )
+            except (KeyError, ValueError, TypeError) as e:
+                self.context.logger.warning(f"Skipping malformed token entry: {e}")
+                continue
 
         burnable_amount = yield from self.get_burnable_amount()
 
