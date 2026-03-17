@@ -728,7 +728,7 @@ class MemeooorrBaseBehaviour(
             self.context.logger.error(f"Could not get the service data: {response_msg}")
             return []
 
-        services_data = response_msg.state.body.get("services_data") or []
+        services_data = cast(list, response_msg.state.body.get("services_data") or [])
 
         for service_data in services_data:
             response = yield from self.get_http_response(  # type: ignore
