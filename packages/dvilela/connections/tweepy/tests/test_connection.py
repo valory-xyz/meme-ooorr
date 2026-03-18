@@ -257,6 +257,28 @@ class TestOnSend:
         conn.on_send(envelope)
         conn.put_envelope.assert_called_once()
 
+    @patch("packages.dvilela.connections.tweepy.connection.Envelope")
+    def test_invalid_json_payload(self, mock_envelope_cls: MagicMock) -> None:
+        """Invalid JSON payload sends error response instead of crashing."""
+        conn = _make_connection(twitter=_mock_twitter())
+        envelope = self._make_envelope(payload="not-valid-json{{{")
+
+        mock_dialogue = MagicMock()
+        mock_response_msg = MagicMock()
+        mock_dialogue.reply.return_value = mock_response_msg
+        conn.dialogues = MagicMock()
+        conn.dialogues.update.return_value = mock_dialogue
+        conn.put_envelope = MagicMock()  # type: ignore[method-assign]
+
+        conn.on_send(envelope)
+        conn.put_envelope.assert_called_once()
+        # Verify the response indicates an error
+        mock_dialogue.reply.assert_called_once()  # pylint: disable=no-member
+        payload_str = mock_dialogue.reply.call_args[1][  # pylint: disable=no-member
+            "payload"
+        ]
+        assert "error" in payload_str.lower()
+
 
 # ---------------------------------------------------------------------------
 # post (thread posting with rollback)

@@ -200,9 +200,18 @@ class TweepyConnection(
             )
             return
 
-        response = self._get_response(
-            payload=json.loads(srr_message.payload),
-        )
+        try:
+            parsed_payload = json.loads(srr_message.payload)
+        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
+            self.logger.error(f"Invalid JSON payload: {srr_message.payload}")
+            parsed_payload = None
+
+        if parsed_payload is None:
+            response = {"error": "Invalid JSON payload"}
+        else:
+            response = self._get_response(
+                payload=parsed_payload,
+            )
 
         response_message = cast(
             SrrMessage,

@@ -385,6 +385,10 @@ class TestHttpHandlerSetup:
         handler.context.params.use_x402 = True
         handler.params = handler.context.params
         handler.shared_state = handler.context.state
+        handler._x402_swap_future = None
+        handler._submit_x402_swap_if_idle = (
+            lambda: HttpHandler._submit_x402_swap_if_idle(handler)
+        )
 
         with patch(
             "packages.dvilela.skills.memeooorr_abci.handlers.load_fsm_spec"
@@ -396,7 +400,10 @@ class TestHttpHandlerSetup:
             }
             HttpHandler.setup(handler)
 
-        handler.executor.submit.assert_called_once()
+        handler.executor.submit.assert_called_once_with(
+            handler._ensure_sufficient_funds_for_x402_payments
+        )
+        assert handler._x402_swap_future is not None
 
 
 class TestHttpHandlerProperties:
@@ -727,6 +734,24 @@ class TestHttpHandlerHandle:
         HttpHandler.handle(handler, msg)
         route_handler.assert_called_once()
 
+    def test_handler_exception_returns_500(self) -> None:
+        """Test that an exception in a route handler returns 500 instead of crashing."""
+        handler = _make_http_handler()
+        route_handler = MagicMock(
+            __name__="exploding_handler",
+            side_effect=RuntimeError("boom"),
+        )
+        handler._get_handler = MagicMock(return_value=(route_handler, {}))
+        dialogue = _make_http_dialogue()
+        handler.context.http_dialogues.update.return_value = dialogue
+        handler._handle_internal_server_error = MagicMock()
+        msg = _make_http_msg()
+
+        # Should not raise
+        HttpHandler.handle(handler, msg)
+        handler.context.logger.error.assert_called()
+        handler._handle_internal_server_error.assert_called_once_with(msg, dialogue)
+
 
 class TestHttpHandlerResponses:
     """Tests for response-sending methods."""
@@ -753,6 +778,19 @@ class TestHttpHandlerResponses:
         HttpHandler._handle_bad_request(handler, msg, dialogue)
 
         dialogue.reply.assert_called_once()
+
+    def test_handle_internal_server_error(self) -> None:
+        """Test _handle_internal_server_error sends 500."""
+        handler = _make_http_handler()
+        msg = _make_http_msg()
+        dialogue = _make_http_dialogue()
+
+        HttpHandler._handle_internal_server_error(handler, msg, dialogue)
+
+        dialogue.reply.assert_called_once()
+        call_kwargs = dialogue.reply.call_args[1]
+        assert call_kwargs["status_code"] == INTERNAL_SERVER_ERROR_CODE
+        handler.context.outbox.put_message.assert_called_once()
 
     def test_send_ok_response_json(self) -> None:
         """Test _send_ok_response with dict data."""
@@ -1932,6 +1970,10 @@ class TestHttpHandlerFundsStatus:
         handler = _make_http_handler()
         handler.params = MagicMock()
         handler.params.use_x402 = True
+        handler._x402_swap_future = None
+        handler._submit_x402_swap_if_idle = (
+            lambda: HttpHandler._submit_x402_swap_if_idle(handler)
+        )
         handler.funds_status = MagicMock()
         handler.funds_status.get_response_body.return_value = {"status": "ok"}
         handler._send_ok_response = MagicMock()
@@ -1940,7 +1982,34 @@ class TestHttpHandlerFundsStatus:
 
         HttpHandler._handle_get_funds_status(handler, msg, dialogue)
 
-        handler.executor.submit.assert_called_once()
+        handler.executor.submit.assert_called_once_with(
+            handler._ensure_sufficient_funds_for_x402_payments
+        )
+        assert handler._x402_swap_future is not None
+        handler._send_ok_response.assert_called_once()
+
+    def test_funds_status_x402_dedup(self) -> None:
+        """Test that duplicate x402 swap submissions are skipped."""
+        handler = _make_http_handler()
+        handler.params = MagicMock()
+        handler.params.use_x402 = True
+        handler.funds_status = MagicMock()
+        handler.funds_status.get_response_body.return_value = {"status": "ok"}
+        handler._send_ok_response = MagicMock()
+        handler.context.logger = MagicMock()
+        # Simulate a future already in progress
+        running_future = MagicMock()
+        running_future.done.return_value = False
+        handler._x402_swap_future = running_future
+        handler._submit_x402_swap_if_idle = (
+            lambda: HttpHandler._submit_x402_swap_if_idle(handler)
+        )
+        msg = _make_http_msg()
+        dialogue = _make_http_dialogue()
+
+        HttpHandler._handle_get_funds_status(handler, msg, dialogue)
+
+        handler.executor.submit.assert_not_called()
         handler._send_ok_response.assert_called_once()
 
 
@@ -2312,15 +2381,14 @@ class TestEstimateGas:
         assert result == int(50000 * 1.2)
 
     def test_no_web3(self) -> None:
-        """Test when Web3 is unavailable (returns False, not None)."""
+        """Test when Web3 is unavailable."""
         handler = _make_http_handler()
         handler._get_web3_instance = MagicMock(return_value=None)
 
         result = HttpHandler._estimate_gas(
             handler, {"to": "0x1", "data": "0x", "value": 0}, "0xeoa", "base"
         )
-        # Note: code returns False here, not None
-        assert result is False
+        assert result is None
 
     def test_exception(self) -> None:
         """Test exception during gas estimation."""

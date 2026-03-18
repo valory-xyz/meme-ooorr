@@ -179,7 +179,8 @@ class MirrorDBConnection(Connection):
         """Connect to the backend service."""
         self._response_envelopes = asyncio.Queue()
         self.session = aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(ssl=self.ssl_context)
+            connector=aiohttp.TCPConnector(ssl=self.ssl_context),
+            timeout=aiohttp.ClientTimeout(total=60),
         )
         self.state = ConnectionStates.connected
 
@@ -336,8 +337,11 @@ class MirrorDBConnection(Connection):
         """Raise exception with relevant message based on the HTTP status code."""
         if response.status == 200:
             return
-        error_content = await response.json()
-        detail = error_content.get("detail", error_content)
+        try:
+            error_content = await response.json()
+            detail = error_content.get("detail", error_content)
+        except (aiohttp.ContentTypeError, Exception):  # pylint: disable=broad-except
+            detail = await response.text()
         raise Exception(  # pylint: disable=broad-exception-raised
             f"Error {action}: {detail} (HTTP {response.status})"
         )
