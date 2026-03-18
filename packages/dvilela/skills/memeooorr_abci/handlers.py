@@ -20,6 +20,7 @@
 """This module contains the handlers for the skill of MemeooorrAbciApp."""
 
 import atexit
+import concurrent.futures
 import json
 import mimetypes
 import re
@@ -248,13 +249,16 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
         self.executor = ThreadPoolExecutor(max_workers=1)
         atexit.register(self._executor_shutdown)
 
+        # Guard against duplicate x402 swap submissions
+        self._x402_swap_future: Optional[concurrent.futures.Future] = None
+
     def setup(self) -> None:
         """Implement the setup."""
 
         # Only check funds if using X402
         if self.params.use_x402:
             self.shared_state.sufficient_funds_for_x402_payments = False
-            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
+            self._submit_x402_swap_if_idle()
 
         config_uri_base_hostname = urlparse(
             self.context.params.service_endpoint
@@ -455,7 +459,37 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
                 http_msg.body,
             )
         )
-        handler(http_msg, http_dialogue, **kwargs)
+        try:
+            handler(http_msg, http_dialogue, **kwargs)
+        except Exception as e:  # pylint: disable=broad-except
+            self.context.logger.error(
+                f"Internal server error in handler {handler.__name__}: {e}"
+            )
+            self._handle_internal_server_error(http_msg, http_dialogue)
+
+    def _handle_internal_server_error(
+        self,
+        http_msg: HttpMessage,
+        http_dialogue: HttpDialogue,
+    ) -> None:
+        """
+        Handle an internal server error.
+
+        :param http_msg: the http message
+        :param http_dialogue: the http dialogue
+        """
+        http_response = http_dialogue.reply(
+            performative=HttpMessage.Performative.RESPONSE,
+            target_message=http_msg,
+            version=http_msg.version,
+            status_code=INTERNAL_SERVER_ERROR_CODE,
+            status_text="Internal Server Error",
+            headers=http_msg.headers,
+            body=json.dumps({"error": "Internal server error"}).encode("utf-8"),
+        )
+
+        self.context.logger.info(f"Responding with {INTERNAL_SERVER_ERROR_CODE}")
+        self.context.outbox.put_message(message=http_response)
 
     def _handle_bad_request(
         self,
@@ -1192,12 +1226,21 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
     ) -> None:
         """Handle a fund status request."""
         if self.params.use_x402:
-            self.executor.submit(self._ensure_sufficient_funds_for_x402_payments)
+            self._submit_x402_swap_if_idle()
 
         self._send_ok_response(
             http_msg,
             http_dialogue,
             self.funds_status.get_response_body(),
+        )
+
+    def _submit_x402_swap_if_idle(self) -> None:
+        """Submit x402 swap task only if no swap is currently in progress."""
+        if self._x402_swap_future is not None and not self._x402_swap_future.done():
+            self.context.logger.debug("x402 swap task already in progress, skipping")
+            return
+        self._x402_swap_future = self.executor.submit(
+            self._ensure_sufficient_funds_for_x402_payments
         )
 
     def _get_eoa_account(self) -> Optional[LocalAccount]:
@@ -1386,7 +1429,7 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
                 self.context.logger.error(
                     "Failed to get Web3 instance for gas estimation"
                 )
-                return False
+                return None
 
             tx_value = (
                 int(tx_request["value"], 16)

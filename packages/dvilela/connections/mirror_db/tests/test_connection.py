@@ -501,6 +501,30 @@ class TestRaiseForResponse:
         with pytest.raises(Exception, match="Not found"):
             await connection._raise_for_response(mock_response, "test")
 
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_error_status_non_json_body(self) -> None:
+        """Test _raise_for_response with non-JSON error body falls back to text."""
+        connection = make_connection()
+        mock_response = AsyncMock()
+        mock_response.status = 502
+        mock_response.json = AsyncMock(
+            side_effect=aiohttp.ContentTypeError(
+                MagicMock(), MagicMock(), message="not json"
+            )
+        )
+        mock_response.text = AsyncMock(return_value="Bad Gateway")
+        with pytest.raises(Exception, match="Bad Gateway"):
+            await connection._raise_for_response(mock_response, "test")
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_session_has_timeout(self) -> None:
+        """Test that connect creates session with a timeout."""
+        connection = make_connection()
+        await connection.connect()
+        assert connection.session is not None
+        assert connection.session.timeout.total == 60
+        await connection.disconnect()
+
 
 class TestCRUDMethods:
     """Tests for create_, read_, update_, delete_ methods."""

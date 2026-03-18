@@ -541,6 +541,26 @@ class TestGetEventMemecoinEnabled:  # pylint: disable=too-many-public-methods
         result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
         assert result[0] == Event.WAIT.value
 
+    def test_action_with_empty_meme_coins(self) -> None:
+        """Test get_event returns WAIT when meme_coins is empty (no token match)."""
+        behaviour = self._make_behaviour(meme_coins=[])
+        self._setup_common_mocks(behaviour)
+
+        def mock_call_genai(prompt, schema=None):  # type: ignore[no-untyped-def]
+            yield
+            return json.dumps(
+                {
+                    "action_name": "heart",
+                    "heart": {"token_nonce": 5, "amount": 100},
+                    "action_tweet": "hearting!",
+                }
+            )
+
+        behaviour._call_genai = mock_call_genai
+
+        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        assert result[0] == Event.WAIT.value
+
     def test_summon_not_available_returns_wait(self) -> None:
         """Test summon action returns WAIT when cooldown not met."""
         behaviour = self._make_behaviour()

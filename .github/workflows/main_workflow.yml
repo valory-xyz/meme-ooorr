@@ -7,6 +7,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lock_check:
     continue-on-error: False
@@ -66,7 +70,21 @@ jobs:
       - name: Check dependencies
         run: tox -e check-dependencies
       - name: Check doc links
-        run: tomte check-doc-links --url-skips https://soft-sly-slug.base-mainnet.quiknode.pro/f13d998d9d68685faeee903499e15b4b386a8b1c/ --url-skips https://developer.x.com/en/portal/dashboard  --url-skips https://tenderly.co/ --url-skips https://foundry.paradigm.xyz --url-skips https://github.com/olas-operate-app
+        run: >
+          tomte check-doc-links
+          --url-skips https://soft-sly-slug.base-mainnet.quiknode.pro/f13d998d9d68685faeee903499e15b4b386a8b1c/
+          --url-skips https://developer.x.com/en/portal/dashboard
+          --url-skips https://tenderly.co/
+          --url-skips https://foundry.paradigm.xyz
+          --url-skips https://github.com/olas-operate-app
+          --url-skips "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
+          --url-skips https://agentsfun-indexer-production.up.railway.app
+          --url-skips https://api.fireworks.ai/inference/v1/chat/completions
+          --url-skips https://li.quest/v1/quote/toAmount
+          --url-skips https://1rpc.io/base
+          --url-skips https://afmdb.autonolas.tech
+          --url-skips https://api.subgraph.autonolas.tech/api/proxy/autonolas-base
+          --url-skips https://api.subgraph.autonolas.tech/api/proxy/marketplace-base
       - name: Check doc IPFS hashes
         run: tox -e check-doc-hashes
 
