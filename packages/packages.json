@@ -1,16 +1,16 @@
 {
     "dev": {
-        "contract/dvilela/meme_factory/0.1.0": "bafybeia3tlimatxsjol6homjnwcudslof74uoocmuuorrpjj6a3on7rxia",
-        "contract/dvilela/service_registry/0.1.0": "bafybeifu53vjv6asdr3uzgab3pzbq7r3glb6e6c6gvd6w4qtq2djdntgba",
+        "contract/dvilela/meme_factory/0.1.0": "bafybeibmxs2iapepd3kzu3t5rhc2zgaeszhe7nmlal26cygb5el6gk5oqq",
+        "contract/dvilela/service_registry/0.1.0": "bafybeiaarjapzyojcj3rjvlgsieelyyhgvifonubutzrlsjybu7vgsse4u",
         "connection/dvilela/twikit/0.1.0": "bafybeiakjcgjql3fyv46rpsco523xgctit3j4ihnj7nzmow2rvldacidgi",
         "connection/dvilela/mirror_db/0.1.0": "bafybeifn2ybe2zpkheuzpn2wdcpcfhan3n2j3b3c7ll35o753wxbtj7hli",
         "connection/dvilela/tweepy/0.1.0": "bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeifgvr6qycanpc7qh5y37oivjgbk72kfcitvzpzj5jyiukxbhwe5iq",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeigajxfq2iadaqb6yvn4c4znyrql4giie4tl26gah6eg52mlkc5rom",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeidfhbvj7ydghxnaj633kv4wrfcjywwkhaowyuuazttv7pah6t5ylq",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeidl26sobjx7j7kgpywugqfxqp7jwse74fj5gjvu6u7wo76wbljhay",
         "skill/valory/agent_db_abci/0.1.0": "bafybeiffuf2doxgilu3bgu46ft5g6msk4da7zr4thdudvbe62z7oehvq6e",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeiceubcjamwg47snc3j3er5qczovkhwl4e6lodivvnjxq7h7fdfoce",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeiff7svfp3ydlszsbrxj725p7nnwnk63dx23f5ba2zhasfl3dqs27i",
-        "service/dvilela/memeooorr/0.1.0": "bafybeibu7xitffyrbzqwqd7bleytxmcclh523tajrrqntpshju2cgxquc4"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeigyjruyikr74ptcug4bwj7isykwnkmjw7jzxzh22o2vf4lk2p435u",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeiax4qaxz3nnfoozgv3hpu2rjdvgdkej6lzgs7o6wr562q3rte3eou",
+        "service/dvilela/memeooorr/0.1.0": "bafybeihre67rnlli3mtfo7abi3aj5owcs5vudwwgis6hifhoh4w7wyh2pi"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",

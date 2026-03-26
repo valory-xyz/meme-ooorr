@@ -51,8 +51,8 @@ connections:
 - valory/http_server:0.22.0:bafybeid4oqsfkqo36lryoecymjnq4whme3tgupqfq6m4l7lbr5r4yxtswu
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeih3uparznz427cy7djs5eo5lqaww3fcasbkrnckerkad6jslipgge
-- dvilela/meme_factory:0.1.0:bafybeia3tlimatxsjol6homjnwcudslof74uoocmuuorrpjj6a3on7rxia
-- dvilela/service_registry:0.1.0:bafybeifu53vjv6asdr3uzgab3pzbq7r3glb6e6c6gvd6w4qtq2djdntgba
+- dvilela/meme_factory:0.1.0:bafybeibmxs2iapepd3kzu3t5rhc2zgaeszhe7nmlal26cygb5el6gk5oqq
+- dvilela/service_registry:0.1.0:bafybeiaarjapzyojcj3rjvlgsieelyyhgvifonubutzrlsjybu7vgsse4u
 - valory/staking_token:0.1.0:bafybeihs3nbjjo2v4pjkcdjow4ftso5aem2yxg4f75xj3gbbgpci5sz27m
 - valory/staking_activity_checker:0.1.0:bafybeieo2vnkqyi2n3zq5oubke3xi34tofijhldxeima3gpbn3wytsxzrm
 - valory/agent_mech:0.1.0:bafybeielgw42wh6sucnquowlqqf3dbvzd7gj4r6vfn322t3i5pkxbbrwz4
