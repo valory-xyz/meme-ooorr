@@ -37,6 +37,36 @@ The user will:
 
 Go [here](https://github.com/dvilelaf/meme-ooorr-quickstart).
 
+## Running the agent (for developers)
+
+### Prerequisites
+
+```bash
+pip install aea-helpers
+```
+
+### Run as a local agent
+
+1. Set up your `.env` file with required environment variables
+2. Place your `ethereum_private_key.txt` in the repo root
+3. Run:
+
+```bash
+aea-helpers run-agent \
+  --name dvilela/memeooorr \
+  --config-replace \
+  --config-mapping config-mapping.json \
+  --connection-key
+```
+
+To run multiple agents on the same machine, add `--free-ports`.
+
+### Run as a service (Docker deployment)
+
+```bash
+aea-helpers run-service --name dvilela/memeooorr --env-file .env --cpu-limit 4.0 --memory-limit 8192 --memory-request 1024 --detach
+```
+
 ## Agent Development
 
 See [here](docs/agents.md).
