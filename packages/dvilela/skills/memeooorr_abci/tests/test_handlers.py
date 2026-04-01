@@ -1458,9 +1458,11 @@ class TestHttpHandlerStaticFile:
         msg = _make_http_msg(url="http://localhost:8000/favicon.ico")
         dialogue = _make_http_dialogue()
 
-        with patch("pathlib.Path.is_file", return_value=True), patch(
-            "builtins.open", mock_open(read_data=b"icon_data")
-        ), patch("mimetypes.guess_type", return_value=("image/x-icon", None)):
+        with (
+            patch("pathlib.Path.is_file", return_value=True),
+            patch("builtins.open", mock_open(read_data=b"icon_data")),
+            patch("mimetypes.guess_type", return_value=("image/x-icon", None)),
+        ):
             HttpHandler._handle_get_static_file(handler, msg, dialogue)
 
         handler._send_ok_response.assert_called_once()
@@ -1480,8 +1482,9 @@ class TestHttpHandlerStaticFile:
             # First call: requested file doesn't exist; second: index.html exists
             return call_count > 1
 
-        with patch("pathlib.Path.is_file", side_effect=is_file_side_effect), patch(
-            "builtins.open", mock_open(read_data="<html>index</html>")
+        with (
+            patch("pathlib.Path.is_file", side_effect=is_file_side_effect),
+            patch("builtins.open", mock_open(read_data="<html>index</html>")),
         ):
             HttpHandler._handle_get_static_file(handler, msg, dialogue)
 
@@ -1506,9 +1509,11 @@ class TestHttpHandlerStaticFile:
         msg = _make_http_msg(url="http://localhost:8000/file.xyz")
         dialogue = _make_http_dialogue()
 
-        with patch("pathlib.Path.is_file", return_value=True), patch(
-            "builtins.open", mock_open(read_data=b"data")
-        ), patch("mimetypes.guess_type", return_value=(None, None)):
+        with (
+            patch("pathlib.Path.is_file", return_value=True),
+            patch("builtins.open", mock_open(read_data=b"data")),
+            patch("mimetypes.guess_type", return_value=(None, None)),
+        ):
             HttpHandler._handle_get_static_file(handler, msg, dialogue)
 
         handler._send_ok_response.assert_called_once()
@@ -1568,12 +1573,15 @@ class TestHttpHandlerGetPromptAndSchema:
         handler.db.atomic.return_value.__exit__ = MagicMock()
         handler._get_value_from_db = MagicMock(return_value="test_value")
 
-        with patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.CHATUI_PROMPT",
-            "prompt {user_prompt} {current_persona} {current_heart_cooldown_hours} {current_summon_cooldown_seconds}",
-        ), patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.build_updated_agent_config_schema",
-            return_value={"schema": True},
+        with (
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.CHATUI_PROMPT",
+                "prompt {user_prompt} {current_persona} {current_heart_cooldown_hours} {current_summon_cooldown_seconds}",
+            ),
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.build_updated_agent_config_schema",
+                return_value={"schema": True},
+            ),
         ):
             prompt, schema = HttpHandler._get_prompt_and_schema(handler, "user input")
 
@@ -1592,12 +1600,15 @@ class TestHttpHandlerGetPromptAndSchema:
         handler.db.atomic.return_value.__exit__ = MagicMock()
         handler._get_value_from_db = MagicMock(return_value="test_persona")
 
-        with patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.CHATUI_PROMPT_NO_MEMECOIN",
-            "no_memecoin {user_prompt} {current_persona}",
-        ), patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.build_updated_agent_config_schema_no_memecoin",
-            return_value={"schema_no_mc": True},
+        with (
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.CHATUI_PROMPT_NO_MEMECOIN",
+                "no_memecoin {user_prompt} {current_persona}",
+            ),
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.build_updated_agent_config_schema_no_memecoin",
+                return_value={"schema_no_mc": True},
+            ),
         ):
             prompt, schema = HttpHandler._get_prompt_and_schema(handler, "user input")
 
@@ -2023,15 +2034,19 @@ class TestGetEoaAccount:
         mock_crypto = MagicMock()
         mock_crypto.private_key = "0x" + "a" * 64
 
-        with patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.get_password_from_args",
-            return_value="pass123",
-        ), patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.EthereumCrypto",
-            return_value=mock_crypto,
-        ), patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.Account.from_key",
-        ) as mock_from_key:
+        with (
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.get_password_from_args",
+                return_value="pass123",
+            ),
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.EthereumCrypto",
+                return_value=mock_crypto,
+            ),
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.Account.from_key",
+            ) as mock_from_key,
+        ):
             mock_from_key.return_value = MagicMock()
             result = HttpHandler._get_eoa_account(handler)
             assert result is not None
@@ -2040,15 +2055,19 @@ class TestGetEoaAccount:
         """Test getting EOA account without password (plaintext key)."""
         handler = _make_http_handler()
 
-        with patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.get_password_from_args",
-            return_value=None,
-        ), patch(
-            "pathlib.Path.open",
-            mock_open(read_data="0x" + "b" * 64),
-        ), patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.Account.from_key",
-        ) as mock_from_key:
+        with (
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.get_password_from_args",
+                return_value=None,
+            ),
+            patch(
+                "pathlib.Path.open",
+                mock_open(read_data="0x" + "b" * 64),
+            ),
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.Account.from_key",
+            ) as mock_from_key,
+        ):
             mock_from_key.return_value = MagicMock()
             result = HttpHandler._get_eoa_account(handler)
             assert result is not None
@@ -2057,15 +2076,19 @@ class TestGetEoaAccount:
         """Test when key is invalid."""
         handler = _make_http_handler()
 
-        with patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.get_password_from_args",
-            return_value=None,
-        ), patch(
-            "pathlib.Path.open",
-            mock_open(read_data="invalid_key"),
-        ), patch(
-            "packages.dvilela.skills.memeooorr_abci.handlers.Account.from_key",
-            side_effect=Exception("Invalid key"),
+        with (
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.get_password_from_args",
+                return_value=None,
+            ),
+            patch(
+                "pathlib.Path.open",
+                mock_open(read_data="invalid_key"),
+            ),
+            patch(
+                "packages.dvilela.skills.memeooorr_abci.handlers.Account.from_key",
+                side_effect=Exception("Invalid key"),
+            ),
         ):
             result = HttpHandler._get_eoa_account(handler)
             assert result is None

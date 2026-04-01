@@ -117,8 +117,9 @@ class MemeooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):
                 return True
             return original_access(p, mode)
 
-        with _patch("os.path.isdir", side_effect=_isdir), _patch(
-            "os.access", side_effect=_access
+        with (
+            _patch("os.path.isdir", side_effect=_isdir),
+            _patch("os.access", side_effect=_access),
         ):
             super().setup_class(**kwargs)
 
