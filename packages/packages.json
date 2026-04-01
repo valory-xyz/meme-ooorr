@@ -2,15 +2,15 @@
     "dev": {
         "contract/dvilela/meme_factory/0.1.0": "bafybeidbhxwo3du73e2bvnprank5lmn67piigh6j2xindipbx3gezyp2am",
         "contract/dvilela/service_registry/0.1.0": "bafybeig7i225avxt34jxxyd4hdlavqp4iuz4pmjgkao3otrqbihy3ggage",
-        "connection/dvilela/twikit/0.1.0": "bafybeiakjcgjql3fyv46rpsco523xgctit3j4ihnj7nzmow2rvldacidgi",
+        "connection/dvilela/twikit/0.1.0": "bafybeihrhfola6xkgfgo7cmk5w27hnw6mspkndfvr4734h2vzqlsnxezkm",
         "connection/dvilela/mirror_db/0.1.0": "bafybeifn2ybe2zpkheuzpn2wdcpcfhan3n2j3b3c7ll35o753wxbtj7hli",
         "connection/dvilela/tweepy/0.1.0": "bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeierto57wsczbma77ojhv73pmmrkw3ygiyg7dosawwmlqbnpscgq4a",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeicanwoypgzgooadom64epl6ssiu2nozp5kv3bjwf227qylwzafl2i",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeihsqlgz4amt6b67j6ikjcr4ee7tptzh35eh3doaurd2w32hjr2yte",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeifovdg76puojenmq2dalvn2klbbik4bzlncogoptthtl27awgkmg4",
         "skill/valory/agent_db_abci/0.1.0": "bafybeicizgbtlm4ixuzqkqmj34zltbuefeqnmq5dw5zwwm3ausjk4aoo6u",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeidgh4qbz7nz7u2zfnfhdk7lved62r4hylnu3nwcdoj3urez2mqeue",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeicsdnomeg5ufhnqdrsmvbzyos44oygy34d5ua6qaxouh627ucaika",
-        "service/dvilela/memeooorr/0.1.0": "bafybeif2wmgc3mltrvyshalewis4xkjpoqh6p7yvqidpvwgon7op37efgy"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeicn7rfcqbxuh3tncy6auf42d6snroo6dhvhnk362pm6ikwyomquyi",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeiabub3f37tavfkuehrtqwtxyvdhup3n4li4cpuhuwxdt5yokdvdri",
+        "service/dvilela/memeooorr/0.1.0": "bafybeifdiy2l5mmqrd5xatszutracg3ghuy6ubxmsgfy3ncx5ohnhjs7rm"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
