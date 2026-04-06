@@ -54,8 +54,6 @@ pip install aea-helpers
 ```bash
 aea-helpers run-agent \
   --name dvilela/memeooorr \
-  --config-replace \
-  --config-mapping config-mapping.json \
   --connection-key
 ```
 
