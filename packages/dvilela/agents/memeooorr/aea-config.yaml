@@ -24,8 +24,8 @@ contracts:
 - valory/multisend:0.1.0:bafybeihx7c3xj6c5v4tgvu3ipnj7seyc4dkmovoyzu4isgbwdrhj2oo6uq
 - dvilela/meme_factory:0.1.0:bafybeidbhxwo3du73e2bvnprank5lmn67piigh6j2xindipbx3gezyp2am
 - dvilela/service_registry:0.1.0:bafybeig7i225avxt34jxxyd4hdlavqp4iuz4pmjgkao3otrqbihy3ggage
-- valory/staking_token:0.1.0:bafybeihs3nbjjo2v4pjkcdjow4ftso5aem2yxg4f75xj3gbbgpci5sz27m
-- valory/staking_activity_checker:0.1.0:bafybeieo2vnkqyi2n3zq5oubke3xi34tofijhldxeima3gpbn3wytsxzrm
+- valory/staking_token:0.1.0:bafybeicze2hv5vybey2mtvw65dkshgpofxxcfphqya2euemhho36hbqa7q
+- valory/staking_activity_checker:0.1.0:bafybeidclig5gxlkkp56ar6fio4unc7j6k77chdxh6oygz2s3r72m2ufe4
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -44,11 +44,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeiajyrszyyo6z4lxogutv4ougiaeoxak6xkq5gtrbey32gbgnirznq
 - valory/registration_abci:0.1.0:bafybeif3gpewppz5wr5mmgyvaowsamjufyons3oif7cb4x5ubvvfb6rtda
 - valory/reset_pause_abci:0.1.0:bafybeidcnf77bc3o7pssa5zesilpbm4ley2k45taii5j5rrvvty7uhu3lq
-- dvilela/memeooorr_abci:0.1.0:bafybeihsqlgz4amt6b67j6ikjcr4ee7tptzh35eh3doaurd2w32hjr2yte
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeifovdg76puojenmq2dalvn2klbbik4bzlncogoptthtl27awgkmg4
+- dvilela/memeooorr_abci:0.1.0:bafybeigdwab6hor23p4o7wvnevz4gbanvfss6bxixccok5cym4vspc76qq
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeidcvk4m5lkek6ofhtgjchpos3lyooaulndoorjtbxolojvpsmlqxi
 - valory/mech_interact_abci:0.1.0:bafybeibrmrdpys5xfivpmlyerbwlu2am2rmqb75bwub3cvcrvfwdbqxv54
 - valory/agent_db_abci:0.1.0:bafybeicizgbtlm4ixuzqkqmj34zltbuefeqnmq5dw5zwwm3ausjk4aoo6u
-- valory/agent_performance_summary_abci:0.1.0:bafybeicn7rfcqbxuh3tncy6auf42d6snroo6dhvhnk362pm6ikwyomquyi
+- valory/agent_performance_summary_abci:0.1.0:bafybeih6hlph4fsgo5tswrdc57qa7cr5dkr2gjct2oov7qwcvsfeoj4hoi
 - valory/funds_manager:0.1.0:bafybeihxaharfszjutbrl5a2i76co22suhdt5bfsryv76ikkltisugqbjm
 default_ledger: ethereum
 required_ledgers:

@@ -5,12 +5,12 @@
         "connection/dvilela/twikit/0.1.0": "bafybeihrhfola6xkgfgo7cmk5w27hnw6mspkndfvr4734h2vzqlsnxezkm",
         "connection/dvilela/mirror_db/0.1.0": "bafybeifn2ybe2zpkheuzpn2wdcpcfhan3n2j3b3c7ll35o753wxbtj7hli",
         "connection/dvilela/tweepy/0.1.0": "bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeihsqlgz4amt6b67j6ikjcr4ee7tptzh35eh3doaurd2w32hjr2yte",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeifovdg76puojenmq2dalvn2klbbik4bzlncogoptthtl27awgkmg4",
+        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeigdwab6hor23p4o7wvnevz4gbanvfss6bxixccok5cym4vspc76qq",
+        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeidcvk4m5lkek6ofhtgjchpos3lyooaulndoorjtbxolojvpsmlqxi",
         "skill/valory/agent_db_abci/0.1.0": "bafybeicizgbtlm4ixuzqkqmj34zltbuefeqnmq5dw5zwwm3ausjk4aoo6u",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeicn7rfcqbxuh3tncy6auf42d6snroo6dhvhnk362pm6ikwyomquyi",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeia6fqregswgvldkt26txuahv7ay23p53flahdozd2bgsoca7vyj6u",
-        "service/dvilela/memeooorr/0.1.0": "bafybeif5os36zgq2jzxtqvsbheverbjtwev2lxzegsgy7gcrde764titam"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeih6hlph4fsgo5tswrdc57qa7cr5dkr2gjct2oov7qwcvsfeoj4hoi",
+        "agent/dvilela/memeooorr/0.1.0": "bafybeieb6ymdor6g5f2izfuokf4ujbdmwr7wu3x6msd7253rapr5bosq7a",
+        "service/dvilela/memeooorr/0.1.0": "bafybeibz32hjh7pgv7bqs6wguvfywujet6gfcl7agnxv7d22femf2y75v4"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
@@ -25,8 +25,8 @@
         "protocol/valory/srr/0.1.0": "bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4",
         "protocol/dvilela/kv_store/0.1.0": "bafybeib3hyj6om7bdsqqhsc4ro3xdxijp2mk5da7ks4ipfgxiovtc3aqfm",
         "contract/valory/multisend/0.1.0": "bafybeihx7c3xj6c5v4tgvu3ipnj7seyc4dkmovoyzu4isgbwdrhj2oo6uq",
-        "contract/valory/staking_token/0.1.0": "bafybeihs3nbjjo2v4pjkcdjow4ftso5aem2yxg4f75xj3gbbgpci5sz27m",
-        "contract/valory/staking_activity_checker/0.1.0": "bafybeieo2vnkqyi2n3zq5oubke3xi34tofijhldxeima3gpbn3wytsxzrm",
+        "contract/valory/staking_token/0.1.0": "bafybeicze2hv5vybey2mtvw65dkshgpofxxcfphqya2euemhho36hbqa7q",
+        "contract/valory/staking_activity_checker/0.1.0": "bafybeidclig5gxlkkp56ar6fio4unc7j6k77chdxh6oygz2s3r72m2ufe4",
         "contract/valory/agent_mech/0.1.0": "bafybeielgw42wh6sucnquowlqqf3dbvzd7gj4r6vfn322t3i5pkxbbrwz4",
         "contract/valory/mech_marketplace_legacy/0.1.0": "bafybeifbrb6zdwon7a4rfdzypy5sjepbx7iyebebhaq5ydx2kdcbmdnba4",
         "contract/valory/mech/0.1.0": "bafybeihquknpac6bgrj5dhynjqnmnugzg6tq72hmj3rxnmgz5ohbirpqj4",
