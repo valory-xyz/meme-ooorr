@@ -45,7 +45,7 @@ fingerprint:
   tests/test_rounds_info.py: bafybeihcyaf6vnhohdp6a5t6stdegym7cmqkwuflk56gnaeaacbckmt5e4
 fingerprint_ignore_patterns: []
 connections:
-- dvilela/kv_store:0.1.0:bafybeihmppbeo5gh3w7gnr3vff6u4qlurt3dhxd4cn4mnrzyhnrxdr336u
+- dvilela/kv_store:0.1.0:bafybeie6yf57aghkaxd27maugjyzfwm4nqar62f4lmj3ysridxijxis5py
 - dvilela/tweepy:0.1.0:bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4
 - dvilela/genai:0.1.0:bafybeieuwwoww4scfzs7ljzlmotldu5jp24o4h235qy54ovliwxf6zjxai
 - valory/http_server:0.22.0:bafybeid4oqsfkqo36lryoecymjnq4whme3tgupqfq6m4l7lbr5r4yxtswu

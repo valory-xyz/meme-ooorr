@@ -81,12 +81,6 @@
     }
     ```
 
-9. [For Tenderly testing only] Create a Base fork on Tenderly, fund your wallets and deploy the MemeBase contract by running the following commands (if you are using a Tenderly free account, you will need to repeat this every 20 blocks):
-    ```
-    python scripts/rebuild_tenderly.py
-    make deploy-contracts
-    ```
-
 #### Run a single agent locally
 
 1. Run the service script:

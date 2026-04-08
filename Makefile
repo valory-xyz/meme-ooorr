@@ -123,16 +123,6 @@ push-packages:
 	make clean  && \
 	autonomy push-all
 
-.PHONY: publish
-publish:
-	make push-packages  && \
-	bash build_image.sh && \
-	make push-image
-
-.PHONY: deploy-contracts
-deploy-contracts:
-	npx hardhat run scripts/deployment/deploy_01_meme_base.js --network base
-
 .PHONY: bump-packages
 bump-packages:
 	@AUTONOMY_VERSION=$$(uv run pip show open-autonomy | grep Version | cut -d':' -f2 | xargs) && \

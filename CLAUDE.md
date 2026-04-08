@@ -13,7 +13,6 @@ Autonomous agent service built on open-aea / open-autonomy (Valory stack).
 - `packages/valory/` — third-party / upstream Valory packages
   - `skills/agent_db_abci`, `skills/agent_performance_summary_abci` — valory-authored dev skills
 - `packages/open_aea/` — upstream open-aea packages
-- `scripts/` — utility & CI scripts
 - `tox.ini` — lint, type-check, and test environments
 
 ## Dependencies
