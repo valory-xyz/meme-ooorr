@@ -10,10 +10,10 @@ requires-python = "<3.15,>=3.10"
 readme = "README.md"
 license = "Apache-2.0"
 dependencies = [
-    "open-autonomy==0.21.16",
-    "open-aea==2.1.0",
-    "open-aea-ledger-ethereum==2.1.0",
-    "open-aea-ledger-cosmos==2.1.0",
+    "open-autonomy==0.21.18",
+    "open-aea==2.2.1",
+    "open-aea-ledger-ethereum==2.2.1",
+    "open-aea-ledger-cosmos==2.2.1",
     "typing_extensions<=4.15.0,>=3.10.0.2",
     "toml==0.10.2",
     "peewee==3.17.5",
@@ -41,7 +41,7 @@ dependencies = [
     "setuptools<=81.0.0",
     "web3<8,>=7.0.0",
     "safe-eth-py==7.19.0",
-    "aea-helpers==0.21.16",
+    "open-aea-helpers==0.21.18",
     "filelock>=3.20.1",
     "httpx<0.28",
     "pip>=24.0",
@@ -52,7 +52,7 @@ Repository = "https://github.com/valory-xyz/meme-ooorr"
 
 [dependency-groups]
 dev = [
-    "tomte[cli, tests]==0.6.2",
+    "tomte[cli, tests]>=0.6.5",
 ]
 
 [tool.uv]

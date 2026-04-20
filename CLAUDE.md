@@ -17,9 +17,9 @@ Autonomous agent service built on open-aea / open-autonomy (Valory stack).
 
 ## Dependencies
 
-- open-aea 2.1.0, open-autonomy 0.21.16
+- open-aea 2.2.1, open-autonomy 0.21.18
 - Python >=3.10, <3.15
-- tomte 0.6.2 (linting / testing meta-package)
+- tomte 0.6.5 (linting / testing meta-package)
 
 ## Running commands
 

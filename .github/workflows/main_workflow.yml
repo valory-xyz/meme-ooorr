@@ -62,7 +62,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox,cli]==0.6.2 tox-uv
+          pip install tomte[tox,cli]==0.6.5 tox-uv
           pip install --upgrade setuptools==60.10.0
       - name: Check copyright headers
         run: tomte check-copyright --author author_name
@@ -110,7 +110,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox,cli]==0.6.2 tox-uv
+          pip install tomte[tox,cli]==0.6.5 tox-uv
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
@@ -171,7 +171,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.6.2 tox-uv
+          pip install tomte[tox]==0.6.5 tox-uv
           pip install --user --upgrade setuptools
 
       - if: matrix.os == 'ubuntu-24.04'
@@ -181,7 +181,7 @@ jobs:
       - if: matrix.os == 'macos-15'
         name: Install dependencies (macos-15)
         run: |
-          pip install tomte[tox]==0.6.2 tox-uv
+          pip install tomte[tox]==0.6.5 tox-uv
 
       - if: matrix.os == 'macos-15'
         name: Unit tests macos-15
@@ -190,7 +190,7 @@ jobs:
       - if: matrix.os == 'windows-2025'
         name: Install dependencies (windows-2025)
         run: |
-          pip install tomte[tox]==0.6.2 tox-uv
+          pip install tomte[tox]==0.6.5 tox-uv
 
       - if: matrix.os == 'windows-2025'
         name: Unit tests windows-2025
@@ -214,7 +214,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.6.2 tox-uv
+          pip install tomte[tox]==0.6.5 tox-uv
           pip install --user --upgrade setuptools
       - name: Check coverage
         run: tox -e coverage
