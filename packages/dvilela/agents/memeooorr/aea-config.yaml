@@ -14,9 +14,9 @@ connections:
 - valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 - dvilela/tweepy:0.1.0:bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4
-- dvilela/kv_store:0.1.0:bafybeihw7ykqq3m3mi4kti6sy3x5btfpw22tdpnhrpty2b7qwwocmma53y
+- valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
-- dvilela/genai:0.1.0:bafybeifjtwmabid2tarptzislpohvt4ip3ql65kehtkugjv6fsrhwc6mb4
+- valory/genai:0.1.0:bafybeif37mudnpbd4yhvi2kvqfvlnnp6klhudbrncws5vsha72jydj5raq
 - valory/x402:0.1.0:bafybeibg4a4drxliwba6ortn5xvqpgnhf6e5e5ji35gufaeg5jx55yrrci
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeicm3rxjpqc4kcjmxoj5ixqfzu6jn4alalyn3xuqxa5y2g22kpp72m
@@ -36,7 +36,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 - valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
-- dvilela/kv_store:0.1.0:bafybeifkwdlyhp2z3ts7yvuvgqsvmuufmx63bjvp4bj6ujg5gzncjni2ay
+- valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
 skills:
 - valory/abstract_abci:0.1.0:bafybeif4jcv22xrmkwiaecyyli7iknmdhtkg6dmzqmwpqekmvxyr7ba3xy
 - valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
@@ -44,11 +44,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeic6f4ujckiutqxueagohb5iv7kgzpamhuhiq7shn6fmiwbkt3cqny
 - valory/registration_abci:0.1.0:bafybeib7midws7obgz34tqsebowa73z46pm34hhsssa3rjet2npp5ekvwm
 - valory/reset_pause_abci:0.1.0:bafybeiezqq76bdcrlgshyo2e544sm3u57amerpwla3sacosle5zivaij24
-- dvilela/memeooorr_abci:0.1.0:bafybeiblgeizeuz4mxqvcfls7lc5dlhisjt5syrf633er7idxugidn2ag4
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeic4dtqea42xhnj5m75zd2psxuvl4eti6frj7b34uwqjhy3omhrk3u
+- dvilela/memeooorr_abci:0.1.0:bafybeiby6lycbh7kh2c442xd664yzc76vprjhx2ggen7kgfjquontn75xa
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeicf4nqq2a2yd4ndilyocautmurlrdt4crwqmrqblvie4dzqhwke5m
 - valory/mech_interact_abci:0.1.0:bafybeicxqsip4uer3o4dnocumvwctplnurlyzsxyzyg6wr4yqwxgnicmca
 - valory/agent_db_abci:0.1.0:bafybeif53ohomy7gkzurp7z53lefvj2vr42jzcfpqvch7o5gl74se5paue
-- valory/agent_performance_summary_abci:0.1.0:bafybeibscdbrtwk775crmov2fehn5ugotmnl5ykugt3eid5bscuqpifqeu
+- valory/agent_performance_summary_abci:0.1.0:bafybeiej4kejg33iwitu4fdhecc47dmo4wklytbavnchvl4zdmrtvcrlti
 - valory/funds_manager:0.1.0:bafybeignvgpt36ph6bui47qmygwad6ii7qz6cdfz5ungy2egg4iicj7ym4
 default_ledger: ethereum
 required_ledgers:
@@ -88,7 +88,7 @@ dependencies:
     version: '>=3.10.0.2'
 default_connection: null
 ---
-public_id: dvilela/kv_store:0.1.0
+public_id: valory/kv_store:0.1.0
 type: connection
 config:
   store_path: ${STORE_PATH:str:null}
@@ -304,7 +304,7 @@ config:
   timeout: ${float:30.0}
   target_skill_id: dvilela/memeooorr_chained_abci:0.1.0
 ---
-public_id: dvilela/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+public_id: valory/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
   genai_api_key: ${GENAI_API_KEY:str:null}

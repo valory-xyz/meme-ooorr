@@ -2423,7 +2423,7 @@ dependencies = [
     { name = "open-aea-helpers" },
     { name = "open-aea-ledger-cosmos" },
     { name = "open-aea-ledger-ethereum" },
-    { name = "open-autonomy" },
+    { name = "open-autonomy", extra = ["cli"] },
     { name = "openai" },
     { name = "openapi-core" },
     { name = "openapi-spec-validator" },
@@ -2469,7 +2469,7 @@ requires-dist = [
     { name = "open-aea-helpers", specifier = "==0.21.18" },
     { name = "open-aea-ledger-cosmos", specifier = "==2.2.1" },
     { name = "open-aea-ledger-ethereum", specifier = "==2.2.1" },
-    { name = "open-autonomy", specifier = "==0.21.18" },
+    { name = "open-autonomy", extras = ["cli"], specifier = "==0.21.18" },
     { name = "openai", specifier = "==1.62.0" },
     { name = "openapi-core", specifier = "==0.22.0" },
     { name = "openapi-spec-validator", specifier = ">=0.7.0,<0.8.0" },
@@ -2724,6 +2724,19 @@ all = [
 ]
 
 [[package]]
+name = "open-aea-cli-ipfs"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "open-aea" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5a/34/b1137359e9aba3f6706f5dea3322c7eb13ab24c7333d1faf61a84d012a00/open_aea_cli_ipfs-2.2.1.tar.gz", hash = "sha256:3bfa4da06c5ddb0d1622be624c6fa60a00b1e691ca8ed5a0f602581883c20f13", size = 29077, upload-time = "2026-04-15T17:40:25.48Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/97/a150b611794c5a8f6d9f2f86cc4fd2ad29c2f9abb23c5170f3cfbecc3c3b/open_aea_cli_ipfs-2.2.1-py3-none-any.whl", hash = "sha256:e81dba96c6661c073ae634e91a2f588d710b58879c3b398f6914d0cf73de9ed1", size = 23903, upload-time = "2026-04-15T17:40:24.533Z" },
+]
+
+[[package]]
 name = "open-aea-helpers"
 version = "0.21.18"
 source = { registry = "https://pypi.org/simple" }
@@ -2816,6 +2829,16 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/70/83/3bdcfae507efcc2df7809a3c2e2059575145c90fe632bdd3fc79abdb9f94/open_autonomy-0.21.18.tar.gz", hash = "sha256:cef49ce9866a05777fbdb6cfef1fa30bfb1e264a384112013f9e4ddbca0d4bd2", size = 907130, upload-time = "2026-04-16T17:43:30.139Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1f/23/e138d01ff004577ca81e2b90ee4a7a9d2ba306fcf1a5bfe1daf0e7a962ec/open_autonomy-0.21.18-py3-none-any.whl", hash = "sha256:f84766bc4679ccf1123f38d985ef870cb7df32db3f14563794442dd19cd470c1", size = 1386503, upload-time = "2026-04-16T17:43:28.447Z" },
+]
+
+[package.optional-dependencies]
+cli = [
+    { name = "click" },
+    { name = "coverage" },
+    { name = "open-aea-cli-ipfs" },
+    { name = "pytest" },
+    { name = "python-dotenv" },
+    { name = "texttable" },
 ]
 
 [[package]]
@@ -4136,6 +4159,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/63/a1/31fc6a5e9e46f2d84f72f12048588feac5464486e526dbfcc4719569cd3e/textblob-0.19.0.tar.gz", hash = "sha256:0a3d06a47cf7759441da3418c4843aed3797a998beba2108c6245a2020f83b01", size = 637872, upload-time = "2025-01-13T23:03:07.352Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/d6/40aa5aead775582ea0cf35870e5a3f16fab4b967f1ad2debe675f673f923/textblob-0.19.0-py3-none-any.whl", hash = "sha256:af6b8827886f1ee839a625f4865e5abb1584eae8db2259627b33a6a0b02ef19d", size = 624280, upload-time = "2025-01-13T23:03:01.034Z" },
+]
+
+[[package]]
+name = "texttable"
+version = "1.6.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/84/4686ee611bb020038375c5f11fe7b6b3bb94ee78614a1faba45effe51591/texttable-1.6.7.tar.gz", hash = "sha256:290348fb67f7746931bcdfd55ac7584ecd4e5b0846ab164333f0794b121760f2", size = 12891, upload-time = "2022-11-23T07:18:44.102Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ba/a7/2c12b543f853dae886286b824200eb9d7cd2466e3d14eff1799fbe8223b9/texttable-1.6.7-py2.py3-none-any.whl", hash = "sha256:b7b68139aa8a6339d2c320ca8b1dc42d13a7831a346b446cb9eb385f0c76310c", size = 10714, upload-time = "2022-11-23T07:18:42.04Z" },
 ]
 
 [[package]]

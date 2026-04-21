@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifngitemoxhahloctciywjzfmlhp373ijuvrocmwbyxl3bate2fne
 fingerprint_ignore_patterns: []
-agent: dvilela/memeooorr:0.1.0:bafybeigmn55prxcmco7ybbb6ami3hb7ugpi7g6ft6pzevmv4u6mq5dhtvm
+agent: dvilela/memeooorr:0.1.0:bafybeigybdiyavczfbjcrclruw6ardhlgjcr4ctboeveeo4ozz3beonxay
 number_of_agents: 1
 deployment:
   agent:
@@ -189,7 +189,7 @@ cert_requests:
   save_path: .certs/acn_cosmos_11000.txt
 is_abstract: true
 ---
-public_id: dvilela/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+public_id: valory/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
   genai_api_key: ${GENAI_API_KEY:str:null}
@@ -206,7 +206,7 @@ config:
   tweepy_access_token_secret: ${TWEEPY_ACCESS_TOKEN_SECRET:str:null}
   tweepy_skip_auth: ${TWEEPY_SKIP_AUTH:bool:false}
 ---
-public_id: dvilela/kv_store:0.1.0
+public_id: valory/kv_store:0.1.0
 type: connection
 config:
   store_path: ${STORE_PATH:str:/data/}

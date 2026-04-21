@@ -28,14 +28,14 @@ from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional
 from unittest.mock import MagicMock, PropertyMock
 
-from packages.dvilela.connections.kv_store.connection import (
-    PUBLIC_ID as KV_STORE_CONNECTION_PUBLIC_ID,
-)
 from packages.dvilela.connections.tweepy.connection import (
     PUBLIC_ID as TWEEPY_CONNECTION_PUBLIC_ID,
 )
-from packages.dvilela.protocols.kv_store.message import KvStoreMessage
 from packages.dvilela.skills.memeooorr_abci.rounds import Event, SynchronizedData
+from packages.valory.connections.kv_store.connection import (
+    PUBLIC_ID as KV_STORE_CONNECTION_PUBLIC_ID,
+)
+from packages.valory.protocols.kv_store.message import KvStoreMessage
 from packages.valory.protocols.srr.message import SrrMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.test_tools.base import (

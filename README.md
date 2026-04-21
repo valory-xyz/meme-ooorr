@@ -42,7 +42,7 @@ Go [here](https://github.com/dvilelaf/meme-ooorr-quickstart).
 ### Prerequisites
 
 ```bash
-pip install aea-helpers
+pip install open-aea-helpers
 ```
 
 ### Run as a local agent
