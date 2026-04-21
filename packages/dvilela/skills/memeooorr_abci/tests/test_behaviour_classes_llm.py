@@ -23,7 +23,7 @@
 
 import json
 from typing import List, Optional
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.llm import (
     ActionDecisionBehaviour,
@@ -1328,6 +1328,12 @@ class TestGetEventMemecoinEnabled:  # pylint: disable=too-many-public-methods
 
         behaviour._call_genai = mock_call_genai
 
-        result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
+        # random.shuffle in get_event reorders meme_coins; pin order so the
+        # matching nonce stays last and the loop exercises the skip branch.
+        with patch(
+            "packages.dvilela.skills.memeooorr_abci.behaviour_classes.llm.random.shuffle",
+            lambda _: None,
+        ):
+            result = self._run_generator(ActionDecisionBehaviour.get_event(behaviour))
         assert result[0] == Event.DONE.value
         assert result[1] == "heart"
