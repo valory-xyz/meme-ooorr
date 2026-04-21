@@ -23,8 +23,8 @@ fingerprint:
 fingerprint_ignore_patterns: []
 contracts: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihygetmlgnhawrbyswvpvv3wpztr2hlhxkljmohp4r7qcmvglpwdq
-- dvilela/memeooorr_abci:0.1.0:bafybeie4qwj4izpzl5tpqq3wppneh27u3w5krbr5ftxag6gecwz2vza5qm
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- dvilela/memeooorr_abci:0.1.0:bafybeibqsvqdzcw7sqpbrc5stvi6txoyhcgqlswysnvdymao3sqj4wz44y
 handlers:
   abci:
     args: {}
