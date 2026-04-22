@@ -22,14 +22,14 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeid5mbtepnuplpzyr4tfplz6ccye6awbnbh4gos7k45nudiqhatxwa
-- valory/registration_abci:0.1.0:bafybeihsldwqwqflspwmd446ypqpbaez57ihzvqskjmtgws66whahupnq4
-- valory/reset_pause_abci:0.1.0:bafybeief7vktcebvnh4ffb3touzxhnltqqtuj333hhs3kvofstioydpmuq
-- valory/transaction_settlement_abci:0.1.0:bafybeicngyslkn6wra7xxx4yh6x63tqofhniwe7hoifxijupptoxgdnue4
-- valory/termination_abci:0.1.0:bafybeigjr47ukytlaazrp4krtiqrpk25v54mu4xbkiauu25kodt5ruwhxe
-- valory/memeooorr_abci:0.1.0:bafybeibtxoxrcy2infssf5qa7ejco3qt6lngffxi5wbik4prfwhdsp6gea
-- valory/mech_interact_abci:0.1.0:bafybeidudmcxstomj4m3vyitt3ebrb534wwxg2rnfmstkbyyvwtne5mlhu
-- valory/agent_performance_summary_abci:0.1.0:bafybeigy6lyctbbehptpkbxnoz5b4cyz33jykzex3kauq2zkbeiy6a43ki
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/registration_abci:0.1.0:bafybeib7midws7obgz34tqsebowa73z46pm34hhsssa3rjet2npp5ekvwm
+- valory/reset_pause_abci:0.1.0:bafybeiezqq76bdcrlgshyo2e544sm3u57amerpwla3sacosle5zivaij24
+- valory/transaction_settlement_abci:0.1.0:bafybeic6f4ujckiutqxueagohb5iv7kgzpamhuhiq7shn6fmiwbkt3cqny
+- valory/termination_abci:0.1.0:bafybeigp6mrueymod7a7arxn2p5mvvz2klvhhda3pls32z4fyxibqjisqu
+- valory/memeooorr_abci:0.1.0:bafybeihm3v6xmyihabomlzlnhzp7kc5hjzttjqruqvc2qx3xy36wd2idp4
+- valory/mech_interact_abci:0.1.0:bafybeicxqsip4uer3o4dnocumvwctplnurlyzsxyzyg6wr4yqwxgnicmca
+- valory/agent_performance_summary_abci:0.1.0:bafybeicwod4e6wdaykfptvf3zmcbhspnxb6a7pw36lrn3i5x4kjou2hfq4
 behaviours:
   main:
     args: {}
