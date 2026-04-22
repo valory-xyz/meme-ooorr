@@ -242,3 +242,20 @@ jobs:
           tar -xzf gitleaks_8.21.2_linux_x64.tar.gz && \
           sudo install gitleaks /usr/bin && \
           gitleaks detect --report-format json --report-path leak_report -v
+
+  all_checks_passed:
+    name: All checks passed
+    if: always()
+    needs:
+      - lock_check
+      - copyright_and_dependencies_check
+      - linter_checks
+      - test
+      - coverage
+      - scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Verify all dependent jobs succeeded
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
+        run: exit 1
