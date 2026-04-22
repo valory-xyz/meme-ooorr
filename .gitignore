@@ -8,13 +8,24 @@ htmlcov
 *.egg-info
 packages/open_aea
 packages/valory/contracts/*
+!packages/valory/contracts/meme_factory
+!packages/valory/contracts/service_registry_l2
 packages/valory/contracts/staking_token
 packages/valory/contracts/staking_activity_checker
 packages/valory/protocols/
 packages/valory/skills/*
 !packages/valory/skills/agent_performance_summary_abci
 !packages/valory/skills/agent_db_abci
+!packages/valory/skills/memeooorr_abci
+!packages/valory/skills/memeooorr_chained_abci
 packages/valory/connections/*
+# Keep the namespace marker so pylint resolves the full module path
+# packages.valory.connections.{twikit,tweepy} and `import twikit` /
+# `import tweepy` inside them don't shadow the pip-installed packages.
+!packages/valory/connections/__init__.py
+!packages/valory/connections/mirror_db
+!packages/valory/connections/tweepy
+!packages/valory/connections/twikit
 !packages/valory/connections/twitter
 leak_report
 .env
