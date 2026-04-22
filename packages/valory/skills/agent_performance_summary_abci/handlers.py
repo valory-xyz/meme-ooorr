@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,11 +23,6 @@
 from typing import cast
 from urllib.parse import urlparse
 
-from packages.dvilela.skills.memeooorr_abci.dialogues import HttpDialogue
-from packages.dvilela.skills.memeooorr_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.dvilela.skills.memeooorr_abci.handlers import HttpMethod
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
@@ -46,6 +41,11 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     TendermintHandler as BaseTendermintHandler,
 )
 from packages.valory.skills.agent_performance_summary_abci.models import SharedState
+from packages.valory.skills.memeooorr_abci.dialogues import HttpDialogue
+from packages.valory.skills.memeooorr_abci.handlers import (
+    HttpHandler as BaseHttpHandler,
+)
+from packages.valory.skills.memeooorr_abci.handlers import HttpMethod
 
 AgentPerformanceSummaryABCIHandler = ABCIRoundHandler
 SigningHandler = BaseSigningHandler

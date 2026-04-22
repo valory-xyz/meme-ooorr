@@ -1,0 +1,310 @@
+name: memeooorr_abci
+author: valory
+version: 0.1.0
+type: skill
+description: A skill that deploys memecoins.
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeid4cllb4ok35fbntt3iay3dyzyz6kx3ztrwjqm7inu2hvoimhdoni
+  agentsfun-ui-build/assets/agentsfun-chat-CQO2MvlO.png: bafybeibm5nhmhfa54gimrsjt7pupvw3bkg2ayr6nul5o5krlj67ivh26oy
+  agentsfun-ui-build/assets/error-DSH8Ua0l.png: bafybeifpj435dufd4wqqlnsq4b57btqxpbqwqky33bhc5n6kkxskoj22nm
+  agentsfun-ui-build/assets/index-Ciy3ywQD.js: bafybeienqranakwkwwtq46utsjz3zex6sgtjvp4dycv73j6ofu37ftptfa
+  agentsfun-ui-build/assets/media-empty-B-lyiAtK.png: bafybeihuag4bulfk7vvoiycjyycvrmpb5k25nizofy6wa5f5v5a3hv7344
+  agentsfun-ui-build/assets/x-activity-empty-eVudZvXV.png: bafybeidv76vrjgsi2xdhie76gqwr2p6t42egap4en4ko7wyumavyrrkify
+  agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
+  agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
+  behaviour_classes/__init__.py: bafybeias427pxcg3ndkjanrczwwaotrqozmvdo2mnchdjbzlw4n6hdkurq
+  behaviour_classes/base.py: bafybeigej6fdsnlaqyxzrl355gezodzzkz35ddkotcuh4q6hwgyjcr6ouu
+  behaviour_classes/chain.py: bafybeicmhvxnufk3jnwxqj5jzkcjh7hw5b6r2yuceyepssemfyy6pagdja
+  behaviour_classes/db.py: bafybeih436vbb3jbryh4siccilzcdwbp4styt6gifpne42zprpy5lacchy
+  behaviour_classes/llm.py: bafybeidedb2wqhvkxqnudgzaxa3kptpg6ak25dhnrnonfjmyyw7dt3jgf4
+  behaviour_classes/mech.py: bafybeicz3qhhw5qrf2qlrptur7auimrmkuh76lyw6qnxvwusphampxy2wq
+  behaviour_classes/twitter.py: bafybeietwinth55mpyyvajq6pwcyoule3qtmu52sgz2uyixsgohqwie6pi
+  behaviours.py: bafybeife2n2g74lrg4nkqncp65fga7qkopvyqy54nbm2m4a2zoupqcuade
+  dialogues.py: bafybeidevvhglynhlnpf6y66xhrxte3wzlfmaf7mjhngy7yea53hgqmmke
+  fsm_specification.yaml: bafybeifwiuidpnkj6c3tsez2athqjefzssfomswb7lz3xvld5iemr745ya
+  handlers.py: bafybeidh3hneesstrwdgmrxtd3t2th5r5qi2ztqsosvgkzseyb62twa7iy
+  models.py: bafybeiegojfhmguimgljre4vw3u5lkenyr4r4fv75g6i2j2mb45a65spci
+  payloads.py: bafybeigsubasnmooyxclbm4byalkj5ctwksbgekujzackgy7v4xx75rmxm
+  prompts.py: bafybeifnelzscaj6vno42jkpgiiyj5y3u5qakrek4j3cns34gpjeryc5ty
+  rounds.py: bafybeihfj56gwv4gf7mrxxxcarbzv7uemuxfo7ro36b23xkzgrkyggwwmm
+  rounds_info.py: bafybeic3lo56wclkjino5g4p76ek4db5ei7qjbnu5gvtfjdlqu7fk2v62i
+  tests/__init__.py: bafybeiep2skhj742bdjbvelskxhshtxofngkmqkb5zrplger6v372pgyai
+  tests/conftest.py: bafybeigysaw5xdif5aucgk66p2d7zmrzerigkta4sbvil24oa5l34vywce
+  tests/test_behaviour_classes_base.py: bafybeig7bg2scwbakfzyyfvun2fna34ucufeg5uqfngihhuezuvxkl4vwq
+  tests/test_behaviour_classes_chain.py: bafybeihkzlcvjt6zbzp5hhuooiul7ehtbfrvwabxyuustkzxqddzuvkes4
+  tests/test_behaviour_classes_db.py: bafybeiasxuxvbor5i2oughvpwbmqeoobbfjrbn5s7ld3i4zc7gupgq5hwa
+  tests/test_behaviour_classes_llm.py: bafybeibxubv6qna7qok2mfvmyo7uh62k7cmljpsyomuror5fslqtduw7hu
+  tests/test_behaviour_classes_mech.py: bafybeibbtak65iptmgtqu5aqji2aijoxbjgxa24htrgyic6rqw4biohxua
+  tests/test_behaviour_classes_twitter.py: bafybeif2md7riupolqcrgixotnqlciy3ckg22gkpb7aehty5nlcnmqpj5i
+  tests/test_handlers.py: bafybeiex2dqhod3vfggoes3uhfmsi4xx4u6jizzpj7rgx3xuuzzha3blrq
+  tests/test_models.py: bafybeiajv7wsqx6p4a5klcvoepg2watg7etgoi4ucjul3cjayx4gosccmu
+  tests/test_prompts.py: bafybeibmdio3tk5fzw2s4ch2fpbugb2z3nfmuo72yo2jnh4dapjtpuhbhq
+  tests/test_rounds.py: bafybeielamakggfrryf67raqy6pazwymofng6v4c5m2zknyo5ib66qzkau
+  tests/test_rounds_info.py: bafybeig7ctx7xngtlhdmvfyrvmddsz74py6g6recmesrshw6dgibgi32zy
+fingerprint_ignore_patterns: []
+connections:
+- valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
+- valory/tweepy:0.1.0:bafybeicxbvepdlmunjxrdcnjaewzveoz6p3pngyg3o2acspjowht2yvlpe
+- valory/genai:0.1.0:bafybeifdzmgwbabwibyc3g5shkgqxt5ky4ru5isyfhw2qf7ermj3d2jfce
+- valory/http_server:0.22.0:bafybeidb3ghedzkdtyhwt4sqddrymofhb6x4gngfqityndzkh2abzt27vq
+contracts:
+- valory/gnosis_safe:0.1.0:bafybeie5cjaidb2drozfaitzti7x7ynflmo5l4dqu6w3mufobav6rvohxu
+- valory/meme_factory:0.1.0:bafybeicg7tg465el2whmbnhmqebrxtp6ufi6kfndhjatxcfyt6bpsuy74u
+- valory/service_registry_l2:0.1.0:bafybeiaodcrxgbkmtnciprf3kd332xjguzmmfaenj5fti7aqnt7cycryge
+- valory/staking_token:0.1.0:bafybeid7uy64tzowfhl3dvcwphyfvb7fozwnmk4fg4ny3tndqubbsedmvi
+- valory/staking_activity_checker:0.1.0:bafybeibe35idywez44a2jbnl5t5gkk7rde7nzklw2oubtsy6sddcnh575m
+- valory/agent_mech:0.1.0:bafybeieogsqxhhogvghhsns3e7i5ugby62v5iwiop2z2yknvwve5sssd3y
+protocols:
+- valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
+- valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
+- valory/http:1.0.0:bafybeickyycie4lqkqfak5cdhjxicwu7msq5hctiklbl72fc6urpwerfyy
+- valory/ledger_api:1.0.0:bafybeib22gporn476oelaqo3rk72zzwzisan3z6yygc2aq47fh7vy7ql34
+- valory/contract_api:1.0.0:bafybeiehaclm4nu7gbkl5zccjifmnwughfidslwpr6n5bpza77ivez4bgu
+skills:
+- valory/abstract_round_abci:0.1.0:bafybeid5mbtepnuplpzyr4tfplz6ccye6awbnbh4gos7k45nudiqhatxwa
+- valory/transaction_settlement_abci:0.1.0:bafybeicngyslkn6wra7xxx4yh6x63tqofhniwe7hoifxijupptoxgdnue4
+- valory/mech_interact_abci:0.1.0:bafybeidudmcxstomj4m3vyitt3ebrb534wwxg2rnfmstkbyyvwtne5mlhu
+- valory/agent_db_abci:0.1.0:bafybeih5l64mb2t4mc6wpr7zbwkyrp2khte2yal6fg5nrfihjssaxk4n7e
+- valory/funds_manager:0.1.0:bafybeib6rg42hsahrcaa3mraelsw66gvpehalhavdw6z2hvgdg62ipjybe
+behaviours:
+  main:
+    args: {}
+    class_name: MemeooorrRoundBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
+  srr:
+    args: {}
+    class_name: SrrHandler
+  kv_store:
+    args: {}
+    class_name: KvStoreHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      genesis_config:
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_duration: '172800000000000'
+            max_age_num_blocks: '100000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        voting_power: '10'
+      history_check_timeout: 1205
+      ipfs_domain_name: null
+      keeper_allowed_retries: 3
+      keeper_timeout: 30.0
+      max_attempts: 10
+      max_healthcheck: 120
+      on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
+      reset_pause_duration: 300
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: memeooorr
+      service_registry_address: null
+      setup:
+        all_participants:
+        - '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+      share_tm_config_on_startup: false
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
+      tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
+      ipfs_address: https://gateway.autonolas.tech/ipfs/
+      validate_timeout: 1205
+      default_chain_id: ethereum
+      service_endpoint: memeooorr.dummy.com/
+      minimum_gas_balance: 5.0e-05
+      min_feedback_replies: 10
+      meme_factory_address_base: '0x82a9c823332518c32a0c0edc050ef00934cf04d4'
+      meme_factory_address_celo: '0xeea5f1e202dc43607273d54101ff8b58fb008a99'
+      meme_factory_deployment_block_base: 23540622
+      meme_factory_deployment_block_celo: 29323752
+      olas_token_address_base: '0x54330d28ca3357F294334BDC454a032e7f353416'
+      olas_token_address_celo: '0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51'
+      persona: a cat lover that is crazy about all-things cats.
+      store_path: /data
+      home_chain_id: BASE
+      service_registry_address_base: '0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE'
+      service_registry_address_celo: '0xE3607b00E75f6405248323A9417ff6b39B244b50'
+      meme_subgraph_url: https://agentsfun-indexer-production.up.railway.app
+      olas_subgraph_url: https://api.subgraph.autonolas.tech/api/proxy/autonolas-base
+      skip_engagement: false
+      min_summon_amount_base: 0.01
+      max_summon_amount_base: 0.02
+      max_heart_amount_base: 0.0002
+      min_summon_amount_celo: 10.0
+      max_summon_amount_celo: 20.0
+      max_heart_amount_celo: 0.2
+      staking_token_contract_address: '0x0000000000000000000000000000000000000000'
+      activity_checker_contract_address: '0x0000000000000000000000000000000000000000'
+      tx_loop_breaker_count: 3
+      tools_for_mech:
+        google_image_gen: This tool generates an image based on a given prompt using
+          the StabilityAI Stable Diffusion v1.6 model
+      multisend_batch_size: 50
+      mech_request_price: 100
+      mech_contract_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
+      mech_chain_id: base
+      mech_interaction_sleep_time: 10
+      use_acn_for_delivers: false
+      use_mech_marketplace: true
+      heart_cooldown_hours: 48
+      summon_cooldown_seconds: 2592000
+      mech_marketplace_config:
+        mech_marketplace_address: '0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020'
+        priority_mech_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
+        response_timeout: 300
+      mech_to_subscription_params:
+        base_url: url
+        did: did
+        escrow_payment_condition_address: address
+        lock_payment_condition_address: address
+        transfer_nft_condition_address: address
+        token_address: address
+        order_address: address
+        nft_amount: amount
+        payment_token: address
+        price: price
+      alternative_model_for_tweets:
+        use: false
+        url: https://api.fireworks.ai/inference/v1/chat/completions
+        api_key: null
+        model: accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new
+        max_tokens: 16384
+        top_p: 1
+        top_k: 40
+        presence_penalty: 0
+        frequency_penalty: 0
+        temperature: 0.6
+      fireworks_api_key: null
+      is_memecoin_logic_enabled: false
+      use_x402: false
+      genai_api_key: ''
+      x402_payment_requirements: {}
+      base_ledger_rpc: https://1rpc.io/base
+      lifi_quote_to_amount_url: https://li.quest/v1/quote/toAmount
+      is_agent_performance_summary_enabled: true
+      performance_summary_ttl: 86400
+      stop_posting_if_staking_kpi_met: true
+    class_name: Params
+  mech_response:
+    args:
+      api_id: mech_response
+      headers:
+        Content-Type: application/json
+      method: GET
+      parameters: {}
+      response_key: result
+      response_type: str
+      retries: 5
+      url: ''
+    class_name: MechResponseSpecs
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+  srr_dialogues:
+    args: {}
+    class_name: SrrDialogues
+  kv_store_dialogues:
+    args: {}
+    class_name: KvStoreDialogues
+  agent_db_client:
+    args:
+      base_url: https://afmdb.autonolas.tech
+    class_name: AgentDBClient
+  agents_fun_db:
+    args: {}
+    class_name: AgentsFunDatabase
+dependencies:
+  peewee:
+    version: ==3.17.5
+  twitter_text_parser:
+    version: ==3.0.0
+  textblob:
+    version: '>=0.18.0.post0'
+  PyYAML:
+    version: '>=3.10,<=6.0.1'
+  eth-account:
+    version: <0.14.0,>=0.13.0
+  web3:
+    version: <8,>=7.0.0
+  requests:
+    version: '>=2.28.1,<2.33.0'
+  open-aea-ledger-ethereum:
+    version: '>=2.1.0'
+  pydantic:
+    version: <3,>=2.11.9
+is_abstract: true
+customs: []

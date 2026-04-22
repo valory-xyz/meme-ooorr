@@ -22,7 +22,7 @@ keys.json
 ethereum_private_key.txt
 memeooorr
 agent
-!packages/dvilela/agents/memeooorr
+!packages/valory/agents/memeooorr
 !packages/dvilela/services/memeooorr
 !packages/valory/services/memeooorr
 packages/__pycache__/

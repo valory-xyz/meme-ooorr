@@ -1,0 +1,33 @@
+name: twikit
+author: valory
+version: 0.1.0
+type: connection
+description: A connection that provides a wrapper around the Twikit library.
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeiex3ng65m74oelq7vzuar6g4laxblo6dojldjqgvo5lgqahzawbji
+  connection.py: bafybeig7s7wgxat4l722aduafzju3atwegf5fonr2tdw57xiiuwfptu4ry
+  readme.md: bafybeihl7k3yi3twtvlkjntaknmib6hnhmyjurn25c4nksffcagrwkx5t4
+  tests/__init__.py: bafybeifmw6jkeghvn7dschq54m5qr3fpcqujhjhnaorkkbj55mlnsao53q
+  tests/test_connection.py: bafybeihglypb5eq44cl6qnxffxdyzllhs5gyymp62v3yxqtv22fg5cmz5y
+fingerprint_ignore_patterns: []
+connections: []
+protocols:
+- valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
+class_name: TwikitConnection
+config:
+  twikit_username: null
+  twikit_email: null
+  twikit_password: null
+  twikit_cookies: null
+  twikit_disable_tweets: false
+  twikit_skip_connection: false
+  store_path: null
+excluded_protocols: []
+restricted_to_protocols: []
+dependencies:
+  twikit:
+    version: ==2.3.2
+is_abstract: false
+cert_requests: []

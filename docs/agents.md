@@ -85,7 +85,7 @@
 1. Run the agent via `aea-helpers`:
 
     ```
-    aea-helpers run-agent --name dvilela/memeooorr --connection-key
+    aea-helpers run-agent --name valory/memeooorr --connection-key
     ```
 
 #### Run the service (4 agents) via Docker Compose deployment

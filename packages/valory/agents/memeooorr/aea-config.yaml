@@ -1,0 +1,338 @@
+agent_name: memeooorr
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: An agent that deploys memecoins.
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeicqvvwure45ldpce5pmuwgpgab67zvyvmdra3sy7ilcdzh7awhhum
+fingerprint_ignore_patterns: []
+connections:
+- valory/ipfs:0.1.0:bafybeib55eb3gqu3d54g3ufwshn5gehdnw4ppkwnuy6tk7hmfyrdcuq2ty
+- valory/abci:0.1.0:bafybeielpozlt3rvhpuaf6bhrmcyb72oyr3bvrkq6xjvdx4eh5cmsxgxla
+- valory/http_client:0.23.0:bafybeidgewhze6r7iau33ed2utxkd72jz6sn3zhhg6ac65mrrza4u7sho4
+- valory/ledger:0.19.0:bafybeigdnpeq2znkv52g2silett2jbxzrzah2f77wmjbsetrqo3cbkl6z4
+- valory/p2p_libp2p_client:0.1.0:bafybeifmnh6z2vv2ef6fpohtepuk4dsviiqfl6gxxq5viamvyjigy2udqu
+- valory/tweepy:0.1.0:bafybeicxbvepdlmunjxrdcnjaewzveoz6p3pngyg3o2acspjowht2yvlpe
+- valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
+- valory/http_server:0.22.0:bafybeidb3ghedzkdtyhwt4sqddrymofhb6x4gngfqityndzkh2abzt27vq
+- valory/genai:0.1.0:bafybeifdzmgwbabwibyc3g5shkgqxt5ky4ru5isyfhw2qf7ermj3d2jfce
+- valory/x402:0.1.0:bafybeibtxsivduvybezfutl3ubq3dcawqarxnkboacagwlcbpgbekwhybq
+contracts:
+- valory/gnosis_safe:0.1.0:bafybeie5cjaidb2drozfaitzti7x7ynflmo5l4dqu6w3mufobav6rvohxu
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeie3a7v3mnk5jyo3btqfsilvnlmkaaox4tt5q6ye2aj2vkz5nq3r4m
+- valory/multisend:0.1.0:bafybeicuug7lstp27iqd6yx7bv4uveleegs32zks2fk5cejqrqhcg5mhqi
+- valory/meme_factory:0.1.0:bafybeicg7tg465el2whmbnhmqebrxtp6ufi6kfndhjatxcfyt6bpsuy74u
+- valory/service_registry_l2:0.1.0:bafybeiaodcrxgbkmtnciprf3kd332xjguzmmfaenj5fti7aqnt7cycryge
+- valory/staking_token:0.1.0:bafybeid7uy64tzowfhl3dvcwphyfvb7fozwnmk4fg4ny3tndqubbsedmvi
+- valory/staking_activity_checker:0.1.0:bafybeibe35idywez44a2jbnl5t5gkk7rde7nzklw2oubtsy6sddcnh575m
+protocols:
+- open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
+- valory/abci:0.1.0:bafybeifmptcoqocbgz5v326cdc4goose2jzblrzza4wsbhvomshvc4falu
+- valory/acn:1.1.0:bafybeic253xon6akvzl6hez45hgj4dkk67wy3qj6nnlsjktyooris53pg4
+- valory/contract_api:1.0.0:bafybeiehaclm4nu7gbkl5zccjifmnwughfidslwpr6n5bpza77ivez4bgu
+- valory/http:1.0.0:bafybeickyycie4lqkqfak5cdhjxicwu7msq5hctiklbl72fc6urpwerfyy
+- valory/ipfs:0.1.0:bafybeiechfdubajnmce4gpkjtbkgsi5unsgdy62clzvq6hgafdwcxdugqu
+- valory/ledger_api:1.0.0:bafybeib22gporn476oelaqo3rk72zzwzisan3z6yygc2aq47fh7vy7ql34
+- valory/tendermint:0.1.0:bafybeidjb4vpuim4vnhtkfhtuvf74s4ggzyah3pngn7ablofo4gj7dyj7q
+- valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
+- valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
+skills:
+- valory/abstract_abci:0.1.0:bafybeiao5amr5qpycack5njrzi6eyea6cma2of7nm67vwjp6pzlrjzavaq
+- valory/abstract_round_abci:0.1.0:bafybeid5mbtepnuplpzyr4tfplz6ccye6awbnbh4gos7k45nudiqhatxwa
+- valory/termination_abci:0.1.0:bafybeigjr47ukytlaazrp4krtiqrpk25v54mu4xbkiauu25kodt5ruwhxe
+- valory/transaction_settlement_abci:0.1.0:bafybeicngyslkn6wra7xxx4yh6x63tqofhniwe7hoifxijupptoxgdnue4
+- valory/registration_abci:0.1.0:bafybeihsldwqwqflspwmd446ypqpbaez57ihzvqskjmtgws66whahupnq4
+- valory/reset_pause_abci:0.1.0:bafybeief7vktcebvnh4ffb3touzxhnltqqtuj333hhs3kvofstioydpmuq
+- valory/memeooorr_abci:0.1.0:bafybeidewc2nmitbdjc3s6c7qvwtzfdk3cglomcjl4gpgdsmsrli4vg73y
+- valory/memeooorr_chained_abci:0.1.0:bafybeig6gnusmjrwhnvsubaczysbeqgro6x7gudkeokyl27tyzlxlfbybm
+- valory/mech_interact_abci:0.1.0:bafybeidudmcxstomj4m3vyitt3ebrb534wwxg2rnfmstkbyyvwtne5mlhu
+- valory/agent_db_abci:0.1.0:bafybeih5l64mb2t4mc6wpr7zbwkyrp2khte2yal6fg5nrfihjssaxk4n7e
+- valory/agent_performance_summary_abci:0.1.0:bafybeidghqx5yywzaz7dods257a64aaux4ysxddugzvfa3r736jtusaubi
+- valory/funds_manager:0.1.0:bafybeib6rg42hsahrcaa3mraelsw66gvpehalhavdw6z2hvgdg62ipjybe
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    logfile:
+      class: logging.handlers.RotatingFileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: ${LOG_LEVEL:str:INFO}
+      maxBytes: ${LOG_MAX_BYTES:int:52428800}
+      backupCount: ${LOG_BACKUP_COUNT:int:1}
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - logfile
+      - console
+      propagate: true
+skill_exception_policy: stop_and_exit
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1
+  typing_extensions:
+    version: '>=3.10.0.2'
+default_connection: null
+---
+public_id: valory/kv_store:0.1.0
+type: connection
+config:
+  store_path: ${STORE_PATH:str:null}
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/memeooorr_chained_abci:0.1.0
+  host: ${str:localhost}
+  port: ${int:26658}
+  use_tendermint: ${bool:false}
+---
+public_id: valory/ledger:0.19.0
+type: connection
+config:
+  ledger_apis:
+    base:
+      address: ${BASE_LEDGER_RPC:str:http://localhost:8545}
+      chain_id: ${BASE_LEDGER_CHAIN_ID:int:8453}
+      poa_chain: ${bool:false}
+      default_gas_price_strategy: ${str:eip1559}
+      gas_price_strategies: &id001
+        gas_station:
+          gas_price_api_key: null
+          gas_price_strategy: fast
+        eip1559:
+          max_gas_fast: 1500
+          fee_history_blocks: 10
+          fee_history_percentile: 5
+          default_priority_fee: ${int:30000000}
+          fallback_estimate:
+            maxFeePerGas: ${int:20000000000}
+            maxPriorityFeePerGas: ${int:3000000000}
+            baseFee: null
+          priority_fee_increase_boundary: ${int:200}
+    celo:
+      address: ${CELO_LEDGER_RPC:str:http://localhost:8545}
+      chain_id: ${CELO_LEDGER_CHAIN_ID:int:42220}
+      poa_chain: ${bool:true}
+      default_gas_price_strategy: ${str:eip1559}
+      gas_price_strategies: *id001
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${str:acn.autonolas.tech:9005}
+    public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2023-01-01'
+  not_before: '2022-01-01'
+  public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  save_path: .certs/acn_cosmos_11000.txt
+is_abstract: true
+---
+public_id: valory/memeooorr_chained_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${LOG_DIR:str:/logs}
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      genesis_config:
+        genesis_time: '2022-09-26T00:00:00.000000000Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
+      keeper_timeout: 30.0
+      max_attempts: 10
+      max_healthcheck: 120
+      multisend_address: ${str:0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761}
+      init_fallback_gas: 800000
+      keeper_allowed_retries: 3
+      reset_pause_duration: ${RESET_PAUSE_DURATION:int:300}
+      on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
+      reset_tendermint_after: ${RESET_TENDERMINT_AFTER:int:2}
+      retry_attempts: 400
+      retry_timeout: 3
+      request_retry_delay: 1.0
+      request_timeout: 10.0
+      round_timeout_seconds: 30.0
+      service_id: memeooorr
+      service_registry_address: ${str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
+      setup:
+        all_participants: ${ALL_PARTICIPANTS:list:["0x8426B9F3e3E6d8ec2E83391CE3Db9Dec69570234"]}
+        safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
+        consensus_threshold: ${int:null}
+      share_tm_config_on_startup: ${bool:false}
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: ${str:http://localhost:8080}
+      tendermint_max_retries: 5
+      tendermint_url: ${str:http://localhost:26657}
+      tendermint_p2p_url: ${str:localhost:26656}
+      use_termination: ${bool:false}
+      tx_timeout: 10.0
+      validate_timeout: 1205
+      finalize_timeout: 60.0
+      history_check_timeout: 1205
+      use_slashing: ${bool:false}
+      slash_cooldown_hours: ${int:3}
+      slash_threshold_amount: ${int:10000000000000000}
+      light_slash_unit_amount: ${int:5000000000000000}
+      serious_slash_unit_amount: ${int:8000000000000000}
+      multisend_batch_size: ${int:50}
+      ipfs_address: ${str:https://gateway.autonolas.tech/ipfs/}
+      default_chain_id: ${str:base}
+      termination_from_block: ${TERMINATION_FROM_BLOCK:int:21629820}
+      minimum_gas_balance: ${MINIMUM_GAS_BALANCE:float:0.00005}
+      min_feedback_replies: ${MIN_FEEDBACK_REPLIES:int:10}
+      meme_factory_address_base: ${str:0x82a9c823332518c32a0c0edc050ef00934cf04d4}
+      meme_factory_address_celo: ${str:0xeea5f1e202dc43607273d54101ff8b58fb008a99}
+      meme_factory_deployment_block_base: ${int:23540622}
+      meme_factory_deployment_block_celo: ${int:29323752}
+      olas_token_address_base: ${str:0x54330d28ca3357F294334BDC454a032e7f353416}
+      olas_token_address_celo: ${str:0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51}
+      persona: ${PERSONA:str:a cat lover that is crazy about all-things cats.}
+      store_path: ${STORE_PATH:str:/data}
+      home_chain_id: ${str:BASE}
+      service_registry_address_base: ${str:0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE}
+      service_registry_address_celo: ${str:0xE3607b00E75f6405248323A9417ff6b39B244b50}
+      meme_subgraph_url: ${str:https://agentsfun-indexer-production.up.railway.app}
+      olas_subgraph_url: ${str:https://api.subgraph.autonolas.tech/api/proxy/autonolas-base}
+      skip_engagement: ${SKIP_ENGAGEMENT:bool:false}
+      min_summon_amount_base: ${float:0.01}
+      max_summon_amount_base: ${float:0.02}
+      max_heart_amount_base: ${float:0.0002}
+      min_summon_amount_celo: ${float:10.0}
+      max_summon_amount_celo: ${float:20.0}
+      max_heart_amount_celo: ${float:0.2}
+      staking_token_contract_address: ${STAKING_TOKEN_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
+      activity_checker_contract_address: ${ACTIVITY_CHECKER_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
+      alternative_model_for_tweets: ${ALTERNATIVE_MODEL_FOR_TWEETS:dict:{"use":false,"url":"https://api.fireworks.ai/inference/v1/chat/completions","api_key":null,"model":"accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new","max_tokens":16384,"top_p":1,"top_k":40,"presence_penalty":0,"frequency_penalty":0,"temperature":0.6}}
+      fireworks_api_key: ${FIREWORKS_API_KEY:str:null}
+      tx_loop_breaker_count: 3
+      tools_for_mech: ${dict:{}}
+      mech_contract_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
+      mech_chain_id: base
+      mech_interaction_sleep_time: 10
+      use_mech_marketplace: true
+      mech_marketplace_config: ${dict:{"mech_marketplace_address":"0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020","priority_mech_address":"0xe535D7AcDEeD905dddcb5443f41980436833cA2B","priority_mech_staking_instance_address":"0x0000000000000000000000000000000000000000","priority_mech_service_id":0,"requester_staking_instance_address":"0x0000000000000000000000000000000000000000","use_dynamic_mech_selection":false,"response_timeout":300}}
+      use_acn_for_delivers: false
+      summon_cooldown_seconds: ${SUMMON_COOLDOWN_SECONDS:int:2592000}
+      heart_cooldown_hours: ${int:48}
+      is_memecoin_logic_enabled: ${IS_MEMECOIN_LOGIC_ENABLED:bool:false}
+      use_x402: ${USE_X402:bool:false}
+      genai_api_key: ${GENAI_API_KEY:str:""}
+      x402_payment_requirements: ${X402_PAYMENT_REQUIREMENTS:dict:{"threshold":200000,"top_up":250000}}
+      base_ledger_rpc: ${BASE_LEDGER_RPC:str:https://1rpc.io/base}
+      lifi_quote_to_amount_url: ${str:https://li.quest/v1/quote/toAmount}
+      is_agent_performance_summary_enabled: ${IS_AGENT_PERFORMANCE_SUMMARY_ENABLED:bool:true}
+      performance_summary_ttl: ${PERFORMANCE_SUMMARY_TTL:int:86400}
+      stop_posting_if_staking_kpi_met: ${STOP_POSTING_IF_STAKING_KPI_MET:bool:true}
+      irrelevant_tools:
+      - openai-text-davinci-002
+      - openai-text-davinci-003
+      - openai-gpt-3.5-turbo
+      - openai-gpt-4
+      - stabilityai-stable-diffusion-v1-5
+      - stabilityai-stable-diffusion-xl-beta-v2-2-2
+      - stabilityai-stable-diffusion-512-v2-1
+      - stabilityai-stable-diffusion-768-v2-1
+      ignored_mechs: []
+      penalize_mech_time_window: 1800
+      mech_wrapped_native_token_address: ${str:0x4200000000000000000000000000000000000006}
+      deliveries_lookback_days: ${int:30}
+  mech_tools:
+    args:
+      headers:
+        Content-Type: ${str:application/json}
+      method: ${str:GET}
+      response_key: ${str:tools}
+      response_type: ${str:list}
+      retries: ${int:5}
+      url: ${str:''}
+  mechs_subgraph:
+    args:
+      headers:
+        Content-Type: ${str:application/json}
+      method: ${str:POST}
+      response_key: ${str:data:meches}
+      response_type: ${str:list}
+      error_key: ${str:errors}
+      error_index: ${int:0}
+      error_type: ${str:dict}
+      retries: ${int:5}
+      url: ${str:https://api.subgraph.autonolas.tech/api/proxy/marketplace-base}
+---
+public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+type: connection
+config:
+  host: ${str:0.0.0.0}
+  port: ${int:8716}
+  timeout: ${float:30.0}
+  target_skill_id: valory/memeooorr_chained_abci:0.1.0
+---
+public_id: valory/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+type: connection
+config:
+  genai_api_key: ${GENAI_API_KEY:str:null}
+  genai_x402_server_base_url: ${GENAI_X402_SERVER_BASE_URL:str:https://x402.olas.autonolas.tech/v1/gemini/base/v1beta}
+  use_x402: ${USE_X402:bool:false}
+---
+public_id: valory/tweepy:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+type: connection
+config:
+  tweepy_consumer_api_key: ${TWEEPY_CONSUMER_API_KEY:str:null}
+  tweepy_consumer_api_key_secret: ${TWEEPY_CONSUMER_API_KEY_SECRET:str:null}
+  tweepy_bearer_token: ${TWEEPY_BEARER_TOKEN:str:null}
+  tweepy_access_token: ${TWEEPY_ACCESS_TOKEN:str:null}
+  tweepy_access_token_secret: ${TWEEPY_ACCESS_TOKEN_SECRET:str:null}
+  tweepy_skip_auth: ${TWEEPY_SKIP_AUTH:bool:false}
+---
+public_id: valory/agent_db_abci:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+type: skill
+models:
+  agent_db_client:
+    args:
+      base_url: https://afmdb.autonolas.tech
+---
+public_id: valory/funds_manager:0.1.0
+type: skill
+models:
+  params:
+    args:
+      fund_requirements: ${dict:{"base":{"agent":{"0x0000000000000000000000000000000000000000":{"topup":325700000000000,"threshold":99000000000000}},"safe":{"0x0000000000000000000000000000000000000000":{"topup":1628500000000000,"threshold":99000000000000}}}}}
+      rpc_urls: ${dict:{"base":"https://1rpc.io/base"}}
+      safe_contract_addresses: ${SAFE_CONTRACT_ADDRESSES:dict:{"base":"0x0000000000000000000000000000000000000000"}}

@@ -53,7 +53,7 @@ pip install open-aea-helpers
 
 ```bash
 aea-helpers run-agent \
-  --name dvilela/memeooorr \
+  --name valory/memeooorr \
   --connection-key
 ```
 

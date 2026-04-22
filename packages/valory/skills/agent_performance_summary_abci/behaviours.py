@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,9 +21,6 @@
 
 from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
-from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
-    MemeooorrBaseBehaviour,
-)
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -41,6 +38,9 @@ from packages.valory.skills.agent_performance_summary_abci.payloads import (
 from packages.valory.skills.agent_performance_summary_abci.rounds import (
     AgentPerformanceSummaryAbciApp,
     FetchPerformanceDataRound,
+)
+from packages.valory.skills.memeooorr_abci.behaviour_classes.base import (
+    MemeooorrBaseBehaviour,
 )
 
 DEFAULT_MECH_FEE = 1e16  # 0.01 ETH

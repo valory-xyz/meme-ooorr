@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type, cast
 
-from packages.dvilela.skills.memeooorr_abci.models import SharedState as BaseSharedState
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.agent_performance_summary_abci.rounds import (
     AgentPerformanceSummaryAbciApp,
 )
+from packages.valory.skills.memeooorr_abci.models import SharedState as BaseSharedState
 
 AGENT_PERFORMANCE_SUMMARY_FILE = "agent_performance.json"
 

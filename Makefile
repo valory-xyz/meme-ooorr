@@ -80,8 +80,8 @@ common-checks-1:
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
 	export PYTHONPATH=${PYTHONPATH}:${PWD}
-	autonomy analyse fsm-specs --update --app-class MemeooorrAbciApp --package packages/dvilela/skills/memeooorr_abci/ || (echo "Failed to check memeooorr_abci abci consistency" && exit 1)
-	autonomy analyse fsm-specs --update --app-class MemeooorrChainedSkillAbciApp --package packages/dvilela/skills/memeooorr_chained_abci/ || (echo "Failed to check memeooorr_chained_abci abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class MemeooorrAbciApp --package packages/valory/skills/memeooorr_abci/ || (echo "Failed to check memeooorr_abci abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class MemeooorrChainedSkillAbciApp --package packages/valory/skills/memeooorr_chained_abci/ || (echo "Failed to check memeooorr_chained_abci abci consistency" && exit 1)
 	autonomy analyse fsm-specs --update --app-class AgentDBAbciApp --package packages/valory/skills/agent_db_abci/ || (echo "Failed to check agent_db_abci abci consistency" && exit 1)
 
 .PHONY: tm
@@ -110,7 +110,7 @@ all-linters:
 
 .PHONY: push-image
 push-image:
-	@AGENT_HASH=$$(jq -r ".dev[\"agent/dvilela/memeooorr/0.1.0\"]" packages/packages.json) && \
+	@AGENT_HASH=$$(jq -r ".dev[\"agent/valory/memeooorr/0.1.0\"]" packages/packages.json) && \
 	SERVICE_HASH=$$(jq -r ".dev[\"service/dvilela/memeooorr/0.1.0\"]" packages/packages.json) && \
 	IMAGE_ID=$$(docker image ls | awk -v tag="$$AGENT_HASH" '$$2 == tag {print $$3}' | head -n 1) && \
 	echo "Tagging image $$IMAGE_ID -> dvilela/oar-memeooorr:$$AGENT_HASH" && \
@@ -138,7 +138,7 @@ run-agent:
 	LATEST_LOG_FILE="./logs/agent_log_latest.log"; \
 	echo "Running agent and logging to $$LOG_FILE"; \
 	aea-helpers run-agent \
-	--name dvilela/memeooorr \
+	--name valory/memeooorr \
 	--connection-key 2>&1 | tee $$LOG_FILE $$LATEST_LOG_FILE'
 
 .PHONY: uv-install
