@@ -5,11 +5,10 @@
 
 ## System requirements
 
-- Python `>=3.10`
+- Python `>=3.10, <3.15`
 - [Tendermint](https://docs.tendermint.com/v0.34/introduction/install.html) `==0.34.19`
 - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==0.6.0`
-- [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Poetry](https://python-poetry.org/)
+- [uv](https://docs.astral.sh/uv/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Set Docker permissions so you can run containers as non-root user](https://docs.docker.com/engine/install/linux-postinstall/)
@@ -29,14 +28,14 @@
 
     ```
     cd meme-ooorr
-    poetry shell
-    poetry install
+    uv sync --all-groups
+    source .venv/bin/activate
     ```
 
 3. Sync packages:
 
     ```
-    autonomy packages sync --update-packages
+    uv run autonomy packages sync --update-packages
     ```
 
 #### Prepare the data
@@ -81,18 +80,12 @@
     }
     ```
 
-9. [For Tenderly testing only] Create a Base fork on Tenderly, fund your wallets and deploy the MemeBase contract by running the following commands (if you are using a Tenderly free account, you will need to repeat this every 20 blocks):
-    ```
-    python scripts/rebuild_tenderly.py
-    make deploy-contracts
-    ```
-
 #### Run a single agent locally
 
-1. Run the service script:
+1. Run the agent via `aea-helpers`:
 
     ```
-    bash run_agent.sh
+    aea-helpers run-agent --name dvilela/memeooorr --connection-key
     ```
 
 #### Run the service (4 agents) via Docker Compose deployment
@@ -103,10 +96,10 @@
     docker
     ```
 
-2. Run the service script:
+2. Run the service via `aea-helpers`:
 
     ```
-    bash run_service.sh
+    aea-helpers run-service --name dvilela/memeooorr --env-file .env
     ```
 
 3. Look at the service logs for one of the agents (on another terminal):

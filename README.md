@@ -42,7 +42,7 @@ Go [here](https://github.com/dvilelaf/meme-ooorr-quickstart).
 ### Prerequisites
 
 ```bash
-pip install aea-helpers
+pip install open-aea-helpers
 ```
 
 ### Run as a local agent
@@ -54,8 +54,6 @@ pip install aea-helpers
 ```bash
 aea-helpers run-agent \
   --name dvilela/memeooorr \
-  --config-replace \
-  --config-mapping config-mapping.json \
   --connection-key
 ```
 

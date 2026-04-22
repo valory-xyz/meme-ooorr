@@ -30,25 +30,25 @@ from typing import Any, Dict, Generator, List, Optional, Tuple, cast
 from aea.protocols.base import Message
 from twitter_text import parse_tweet  # type: ignore
 
-from packages.dvilela.connections.genai.connection import (
-    PUBLIC_ID as GENAI_CONNECTION_PUBLIC_ID,
-)
-from packages.dvilela.connections.kv_store.connection import (
-    PUBLIC_ID as KV_STORE_CONNECTION_PUBLIC_ID,
-)
 from packages.dvilela.connections.tweepy.connection import (
     PUBLIC_ID as TWEEPY_CONNECTION_PUBLIC_ID,
 )
 from packages.dvilela.contracts.meme_factory.contract import MemeFactoryContract
 from packages.dvilela.contracts.service_registry.contract import ServiceRegistryContract
-from packages.dvilela.protocols.kv_store.dialogues import (
+from packages.dvilela.skills.memeooorr_abci.models import Params, SharedState
+from packages.dvilela.skills.memeooorr_abci.rounds import SynchronizedData
+from packages.valory.connections.genai.connection import (
+    PUBLIC_ID as GENAI_CONNECTION_PUBLIC_ID,
+)
+from packages.valory.connections.kv_store.connection import (
+    PUBLIC_ID as KV_STORE_CONNECTION_PUBLIC_ID,
+)
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.kv_store.dialogues import (
     KvStoreDialogue,
     KvStoreDialogues,
 )
-from packages.dvilela.protocols.kv_store.message import KvStoreMessage
-from packages.dvilela.skills.memeooorr_abci.models import Params, SharedState
-from packages.dvilela.skills.memeooorr_abci.rounds import SynchronizedData
-from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.kv_store.message import KvStoreMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.srr.dialogues import SrrDialogue, SrrDialogues
 from packages.valory.protocols.srr.message import SrrMessage

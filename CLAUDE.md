@@ -13,23 +13,22 @@ Autonomous agent service built on open-aea / open-autonomy (Valory stack).
 - `packages/valory/` — third-party / upstream Valory packages
   - `skills/agent_db_abci`, `skills/agent_performance_summary_abci` — valory-authored dev skills
 - `packages/open_aea/` — upstream open-aea packages
-- `scripts/` — utility & CI scripts
 - `tox.ini` — lint, type-check, and test environments
 
 ## Dependencies
 
-- open-aea 2.1.0, open-autonomy 0.21.16
+- open-aea 2.2.1, open-autonomy 0.21.18
 - Python >=3.10, <3.15
-- tomte 0.6.2 (linting / testing meta-package)
+- tomte 0.6.5 (linting / testing meta-package)
 
 ## Running commands
 
-All commands (`tox`, `autonomy`, `pytest`, etc.) must be run through Poetry:
+All commands (`tox`, `autonomy`, `pytest`, etc.) must be run through uv:
 
 ```bash
-poetry run tox -e black-check
-poetry run autonomy packages lock
-poetry run pytest packages/dvilela/skills/memeooorr_abci/tests
+uv run tox -e black-check
+uv run autonomy packages lock
+uv run pytest packages/dvilela/skills/memeooorr_abci/tests
 ```
 
 ## Package management
@@ -37,13 +36,13 @@ poetry run pytest packages/dvilela/skills/memeooorr_abci/tests
 **Do NOT use `autonomy packages sync --all`.** Use only `--update-packages`:
 
 ```bash
-poetry run autonomy packages sync --update-packages
+uv run autonomy packages sync --update-packages
 ```
 
 After any package file change (including lint-only changes), re-lock hashes:
 
 ```bash
-poetry run autonomy packages lock
+uv run autonomy packages lock
 ```
 
 Package hashes live in `packages/packages.json`.
@@ -53,29 +52,29 @@ Package hashes live in `packages/packages.json`.
 Tests run via tox. To run all package tests locally:
 
 ```bash
-poetry run tox -e py3.12-linux
+uv run tox -e py3.12-linux
 ```
 
 Individual package tests:
 
 ```bash
-poetry run pytest packages/dvilela/skills/memeooorr_abci/tests
+uv run pytest packages/dvilela/skills/memeooorr_abci/tests
 ```
 
 ## Linting
 
 ```bash
-poetry run tox -e black-check   # formatting check
-poetry run tox -e isort-check    # import order check
-poetry run tox -e flake8         # style
-poetry run tox -e mypy           # type checking
-poetry run tox -e pylint         # static analysis
+uv run tox -e black-check   # formatting check
+uv run tox -e isort-check    # import order check
+uv run tox -e flake8         # style
+uv run tox -e mypy           # type checking
+uv run tox -e pylint         # static analysis
 ```
 
 Fix formatting:
 
 ```bash
-poetry run tox -e black && poetry run tox -e isort
+uv run tox -e black && uv run tox -e isort
 ```
 
 ## Hash management
@@ -83,13 +82,13 @@ poetry run tox -e black && poetry run tox -e isort
 After editing any file under `packages/`, regenerate and lock hashes:
 
 ```bash
-poetry run autonomy packages lock
+uv run autonomy packages lock
 ```
 
 To check hashes without modifying:
 
 ```bash
-poetry run autonomy packages lock --check
+uv run autonomy packages lock --check
 ```
 
 ## Key conventions

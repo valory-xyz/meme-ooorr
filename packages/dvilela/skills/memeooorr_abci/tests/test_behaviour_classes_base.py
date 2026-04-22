@@ -30,7 +30,6 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
-from packages.dvilela.protocols.kv_store.message import KvStoreMessage
 from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
     AttributeDefinitionParams,
     HTTP_OK,
@@ -39,6 +38,7 @@ from packages.dvilela.skills.memeooorr_abci.behaviour_classes.base import (
     is_tweet_valid,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
+from packages.valory.protocols.kv_store.message import KvStoreMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.protocols.srr.message import SrrMessage
 

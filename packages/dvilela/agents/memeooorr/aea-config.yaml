@@ -8,24 +8,24 @@ fingerprint:
   __init__.py: bafybeid4555nbqrben3bbz62jsycrtssy5mqso4w23q7bjorln3qur7baq
 fingerprint_ignore_patterns: []
 connections:
-- valory/ipfs:0.1.0:bafybeib44s5rdz5xwzwuncm2gwo6zvqsy6yefvbf5znmjc4mw3goql23ha
-- valory/abci:0.1.0:bafybeigjmetusztbj3ikgsimj55rc3nn6m2j6ns6ciew5twjtgip2axdme
+- valory/ipfs:0.1.0:bafybeiddxbjccmzkknny5pbfupxgexp4w4pwiu2rny4a6vnlxwqs3mmfo4
+- valory/abci:0.1.0:bafybeihgtguy5ljj2rwgwoxeor5d565alwfggnuevss7malhzdats6nfqi
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ledger:0.19.0:bafybeid5uwx4uqxkiibw6kazr7my5mk5kcqg2dx2owtcf7kcpbs2jrns2e
+- valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 - dvilela/tweepy:0.1.0:bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4
-- dvilela/kv_store:0.1.0:bafybeihmppbeo5gh3w7gnr3vff6u4qlurt3dhxd4cn4mnrzyhnrxdr336u
-- valory/http_server:0.22.0:bafybeid4oqsfkqo36lryoecymjnq4whme3tgupqfq6m4l7lbr5r4yxtswu
-- dvilela/genai:0.1.0:bafybeieuwwoww4scfzs7ljzlmotldu5jp24o4h235qy54ovliwxf6zjxai
+- valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
+- valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
+- valory/genai:0.1.0:bafybeif37mudnpbd4yhvi2kvqfvlnnp6klhudbrncws5vsha72jydj5raq
 - valory/x402:0.1.0:bafybeibg4a4drxliwba6ortn5xvqpgnhf6e5e5ji35gufaeg5jx55yrrci
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeice337zvg3ol4cwpw2iikxcukmthwmw32ytwtdnkcju222qfc323y
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeieonbkuskzg2rwgbqwmouusnfdd4npow2pzasimetiebo3jhwjh7m
+- valory/gnosis_safe:0.1.0:bafybeicm3rxjpqc4kcjmxoj5ixqfzu6jn4alalyn3xuqxa5y2g22kpp72m
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeihif56mb6ulfhdq7mjkftcjzg2xhk63isptumakp2b46azridsmzu
 - valory/multisend:0.1.0:bafybeihx7c3xj6c5v4tgvu3ipnj7seyc4dkmovoyzu4isgbwdrhj2oo6uq
-- dvilela/meme_factory:0.1.0:bafybeidbhxwo3du73e2bvnprank5lmn67piigh6j2xindipbx3gezyp2am
-- dvilela/service_registry:0.1.0:bafybeig7i225avxt34jxxyd4hdlavqp4iuz4pmjgkao3otrqbihy3ggage
-- valory/staking_token:0.1.0:bafybeihs3nbjjo2v4pjkcdjow4ftso5aem2yxg4f75xj3gbbgpci5sz27m
-- valory/staking_activity_checker:0.1.0:bafybeieo2vnkqyi2n3zq5oubke3xi34tofijhldxeima3gpbn3wytsxzrm
+- dvilela/meme_factory:0.1.0:bafybeihk3pzakcxl2hujl5hczqlme3n7q7kfe3obf2djmh7xmkt4s2ahte
+- dvilela/service_registry:0.1.0:bafybeihobahiywsu7ofn6ykp6noylotrczighk2k4lrh6j25nai5cwn3ra
+- valory/staking_token:0.1.0:bafybeid7uy64tzowfhl3dvcwphyfvb7fozwnmk4fg4ny3tndqubbsedmvi
+- valory/staking_activity_checker:0.1.0:bafybeibe35idywez44a2jbnl5t5gkk7rde7nzklw2oubtsy6sddcnh575m
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -36,20 +36,20 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 - valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
-- dvilela/kv_store:0.1.0:bafybeib3hyj6om7bdsqqhsc4ro3xdxijp2mk5da7ks4ipfgxiovtc3aqfm
+- valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
 skills:
-- valory/abstract_abci:0.1.0:bafybeict6h3wfmddpvam5gmmanqzuokup6ppoev3t4j5uyl7xxahjaols4
-- valory/abstract_round_abci:0.1.0:bafybeihygetmlgnhawrbyswvpvv3wpztr2hlhxkljmohp4r7qcmvglpwdq
-- valory/termination_abci:0.1.0:bafybeia33hlouukdpwaxctunauudv5gpfdxndimra7yqiof4a3skcwdqkq
-- valory/transaction_settlement_abci:0.1.0:bafybeiajyrszyyo6z4lxogutv4ougiaeoxak6xkq5gtrbey32gbgnirznq
-- valory/registration_abci:0.1.0:bafybeif3gpewppz5wr5mmgyvaowsamjufyons3oif7cb4x5ubvvfb6rtda
-- valory/reset_pause_abci:0.1.0:bafybeidcnf77bc3o7pssa5zesilpbm4ley2k45taii5j5rrvvty7uhu3lq
-- dvilela/memeooorr_abci:0.1.0:bafybeihsqlgz4amt6b67j6ikjcr4ee7tptzh35eh3doaurd2w32hjr2yte
-- dvilela/memeooorr_chained_abci:0.1.0:bafybeifovdg76puojenmq2dalvn2klbbik4bzlncogoptthtl27awgkmg4
-- valory/mech_interact_abci:0.1.0:bafybeibrmrdpys5xfivpmlyerbwlu2am2rmqb75bwub3cvcrvfwdbqxv54
-- valory/agent_db_abci:0.1.0:bafybeicizgbtlm4ixuzqkqmj34zltbuefeqnmq5dw5zwwm3ausjk4aoo6u
-- valory/agent_performance_summary_abci:0.1.0:bafybeicn7rfcqbxuh3tncy6auf42d6snroo6dhvhnk362pm6ikwyomquyi
-- valory/funds_manager:0.1.0:bafybeihxaharfszjutbrl5a2i76co22suhdt5bfsryv76ikkltisugqbjm
+- valory/abstract_abci:0.1.0:bafybeif4jcv22xrmkwiaecyyli7iknmdhtkg6dmzqmwpqekmvxyr7ba3xy
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/termination_abci:0.1.0:bafybeigp6mrueymod7a7arxn2p5mvvz2klvhhda3pls32z4fyxibqjisqu
+- valory/transaction_settlement_abci:0.1.0:bafybeic6f4ujckiutqxueagohb5iv7kgzpamhuhiq7shn6fmiwbkt3cqny
+- valory/registration_abci:0.1.0:bafybeib7midws7obgz34tqsebowa73z46pm34hhsssa3rjet2npp5ekvwm
+- valory/reset_pause_abci:0.1.0:bafybeiezqq76bdcrlgshyo2e544sm3u57amerpwla3sacosle5zivaij24
+- dvilela/memeooorr_abci:0.1.0:bafybeiby6lycbh7kh2c442xd664yzc76vprjhx2ggen7kgfjquontn75xa
+- dvilela/memeooorr_chained_abci:0.1.0:bafybeicf4nqq2a2yd4ndilyocautmurlrdt4crwqmrqblvie4dzqhwke5m
+- valory/mech_interact_abci:0.1.0:bafybeicxqsip4uer3o4dnocumvwctplnurlyzsxyzyg6wr4yqwxgnicmca
+- valory/agent_db_abci:0.1.0:bafybeif53ohomy7gkzurp7z53lefvj2vr42jzcfpqvch7o5gl74se5paue
+- valory/agent_performance_summary_abci:0.1.0:bafybeiej4kejg33iwitu4fdhecc47dmo4wklytbavnchvl4zdmrtvcrlti
+- valory/funds_manager:0.1.0:bafybeignvgpt36ph6bui47qmygwad6ii7qz6cdfz5ungy2egg4iicj7ym4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -83,15 +83,15 @@ logging_config:
 skill_exception_policy: stop_and_exit
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.1.0
+    version: ==2.2.1
   typing_extensions:
     version: '>=3.10.0.2'
 default_connection: null
 ---
-public_id: dvilela/kv_store:0.1.0
+public_id: valory/kv_store:0.1.0
 type: connection
 config:
-  store_path: ${str:null}
+  store_path: ${STORE_PATH:str:null}
 ---
 public_id: valory/abci:0.1.0
 type: connection
@@ -106,8 +106,8 @@ type: connection
 config:
   ledger_apis:
     base:
-      address: ${str:http://localhost:8545}
-      chain_id: ${int:8453}
+      address: ${BASE_LEDGER_RPC:str:http://localhost:8545}
+      chain_id: ${BASE_LEDGER_CHAIN_ID:int:8453}
       poa_chain: ${bool:false}
       default_gas_price_strategy: ${str:eip1559}
       gas_price_strategies: &id001
@@ -125,8 +125,8 @@ config:
             baseFee: null
           priority_fee_increase_boundary: ${int:200}
     celo:
-      address: ${str:http://localhost:8545}
-      chain_id: ${int:42220}
+      address: ${CELO_LEDGER_RPC:str:http://localhost:8545}
+      chain_id: ${CELO_LEDGER_CHAIN_ID:int:42220}
       poa_chain: ${bool:true}
       default_gas_price_strategy: ${str:eip1559}
       gas_price_strategies: *id001
@@ -152,7 +152,7 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${str:/logs}
+      log_dir: ${LOG_DIR:str:/logs}
   params:
     args:
       cleanup_history_depth: 1
@@ -181,9 +181,9 @@ models:
       multisend_address: ${str:0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761}
       init_fallback_gas: 800000
       keeper_allowed_retries: 3
-      reset_pause_duration: ${int:300}
-      on_chain_service_id: ${int:null}
-      reset_tendermint_after: ${int:2}
+      reset_pause_duration: ${RESET_PAUSE_DURATION:int:300}
+      on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
+      reset_tendermint_after: ${RESET_TENDERMINT_AFTER:int:2}
       retry_attempts: 400
       retry_timeout: 3
       request_retry_delay: 1.0
@@ -192,8 +192,8 @@ models:
       service_id: memeooorr
       service_registry_address: ${str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
       setup:
-        all_participants: ${list:["0x8426B9F3e3E6d8ec2E83391CE3Db9Dec69570234"]}
-        safe_contract_address: ${str:0x0000000000000000000000000000000000000000}
+        all_participants: ${ALL_PARTICIPANTS:list:["0x8426B9F3e3E6d8ec2E83391CE3Db9Dec69570234"]}
+        safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
         consensus_threshold: ${int:null}
       share_tm_config_on_startup: ${bool:false}
       sleep_time: 1
@@ -215,33 +215,33 @@ models:
       multisend_batch_size: ${int:50}
       ipfs_address: ${str:https://gateway.autonolas.tech/ipfs/}
       default_chain_id: ${str:base}
-      termination_from_block: ${int:21629820}
-      minimum_gas_balance: ${float:0.00005}
-      min_feedback_replies: ${int:10}
+      termination_from_block: ${TERMINATION_FROM_BLOCK:int:21629820}
+      minimum_gas_balance: ${MINIMUM_GAS_BALANCE:float:0.00005}
+      min_feedback_replies: ${MIN_FEEDBACK_REPLIES:int:10}
       meme_factory_address_base: ${str:0x82a9c823332518c32a0c0edc050ef00934cf04d4}
       meme_factory_address_celo: ${str:0xeea5f1e202dc43607273d54101ff8b58fb008a99}
       meme_factory_deployment_block_base: ${int:23540622}
       meme_factory_deployment_block_celo: ${int:29323752}
       olas_token_address_base: ${str:0x54330d28ca3357F294334BDC454a032e7f353416}
       olas_token_address_celo: ${str:0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51}
-      persona: ${str:a cat lover that is crazy about all-things cats.}
-      store_path: ${str:/data}
+      persona: ${PERSONA:str:a cat lover that is crazy about all-things cats.}
+      store_path: ${STORE_PATH:str:/data}
       home_chain_id: ${str:BASE}
       service_registry_address_base: ${str:0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE}
       service_registry_address_celo: ${str:0xE3607b00E75f6405248323A9417ff6b39B244b50}
       meme_subgraph_url: ${str:https://agentsfun-indexer-production.up.railway.app}
       olas_subgraph_url: ${str:https://api.subgraph.autonolas.tech/api/proxy/autonolas-base}
-      skip_engagement: ${bool:false}
+      skip_engagement: ${SKIP_ENGAGEMENT:bool:false}
       min_summon_amount_base: ${float:0.01}
       max_summon_amount_base: ${float:0.02}
       max_heart_amount_base: ${float:0.0002}
       min_summon_amount_celo: ${float:10.0}
       max_summon_amount_celo: ${float:20.0}
       max_heart_amount_celo: ${float:0.2}
-      staking_token_contract_address: ${str:0x0000000000000000000000000000000000000000}
-      activity_checker_contract_address: ${str:0x0000000000000000000000000000000000000000}
-      alternative_model_for_tweets: ${dict:{"use":false,"url":"https://api.fireworks.ai/inference/v1/chat/completions","api_key":null,"model":"accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new","max_tokens":16384,"top_p":1,"top_k":40,"presence_penalty":0,"frequency_penalty":0,"temperature":0.6}}
-      fireworks_api_key: ${str:null}
+      staking_token_contract_address: ${STAKING_TOKEN_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
+      activity_checker_contract_address: ${ACTIVITY_CHECKER_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
+      alternative_model_for_tweets: ${ALTERNATIVE_MODEL_FOR_TWEETS:dict:{"use":false,"url":"https://api.fireworks.ai/inference/v1/chat/completions","api_key":null,"model":"accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new","max_tokens":16384,"top_p":1,"top_k":40,"presence_penalty":0,"frequency_penalty":0,"temperature":0.6}}
+      fireworks_api_key: ${FIREWORKS_API_KEY:str:null}
       tx_loop_breaker_count: 3
       tools_for_mech: ${dict:{}}
       mech_contract_address: '0xe535D7AcDEeD905dddcb5443f41980436833cA2B'
@@ -250,17 +250,17 @@ models:
       use_mech_marketplace: true
       mech_marketplace_config: ${dict:{"mech_marketplace_address":"0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020","priority_mech_address":"0xe535D7AcDEeD905dddcb5443f41980436833cA2B","priority_mech_staking_instance_address":"0x0000000000000000000000000000000000000000","priority_mech_service_id":0,"requester_staking_instance_address":"0x0000000000000000000000000000000000000000","use_dynamic_mech_selection":false,"response_timeout":300}}
       use_acn_for_delivers: false
-      summon_cooldown_seconds: ${int:2592000}
+      summon_cooldown_seconds: ${SUMMON_COOLDOWN_SECONDS:int:2592000}
       heart_cooldown_hours: ${int:48}
-      is_memecoin_logic_enabled: ${bool:false}
-      use_x402: ${bool:false}
-      genai_api_key: ${str:""}
-      x402_payment_requirements: ${dict:{"threshold":200000,"top_up":250000}}
-      base_ledger_rpc: ${str:https://1rpc.io/base}
+      is_memecoin_logic_enabled: ${IS_MEMECOIN_LOGIC_ENABLED:bool:false}
+      use_x402: ${USE_X402:bool:false}
+      genai_api_key: ${GENAI_API_KEY:str:""}
+      x402_payment_requirements: ${X402_PAYMENT_REQUIREMENTS:dict:{"threshold":200000,"top_up":250000}}
+      base_ledger_rpc: ${BASE_LEDGER_RPC:str:https://1rpc.io/base}
       lifi_quote_to_amount_url: ${str:https://li.quest/v1/quote/toAmount}
-      is_agent_performance_summary_enabled: ${bool:true}
-      performance_summary_ttl: ${int:86400}
-      stop_posting_if_staking_kpi_met: ${bool:true}
+      is_agent_performance_summary_enabled: ${IS_AGENT_PERFORMANCE_SUMMARY_ENABLED:bool:true}
+      performance_summary_ttl: ${PERFORMANCE_SUMMARY_TTL:int:86400}
+      stop_posting_if_staking_kpi_met: ${STOP_POSTING_IF_STAKING_KPI_MET:bool:true}
       irrelevant_tools:
       - openai-text-davinci-002
       - openai-text-davinci-003
@@ -304,22 +304,22 @@ config:
   timeout: ${float:30.0}
   target_skill_id: dvilela/memeooorr_chained_abci:0.1.0
 ---
-public_id: dvilela/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+public_id: valory/genai:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
-  genai_api_key: ${str:null}
-  genai_x402_server_base_url: ${str:https://x402.olas.autonolas.tech/v1/gemini/base/v1beta}
-  use_x402: ${bool:false}
+  genai_api_key: ${GENAI_API_KEY:str:null}
+  genai_x402_server_base_url: ${GENAI_X402_SERVER_BASE_URL:str:https://x402.olas.autonolas.tech/v1/gemini/base/v1beta}
+  use_x402: ${USE_X402:bool:false}
 ---
 public_id: dvilela/tweepy:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
-  tweepy_consumer_api_key: ${str:null}
-  tweepy_consumer_api_key_secret: ${str:null}
-  tweepy_bearer_token: ${str:null}
-  tweepy_access_token: ${str:null}
-  tweepy_access_token_secret: ${str:null}
-  tweepy_skip_auth: ${bool:false}
+  tweepy_consumer_api_key: ${TWEEPY_CONSUMER_API_KEY:str:null}
+  tweepy_consumer_api_key_secret: ${TWEEPY_CONSUMER_API_KEY_SECRET:str:null}
+  tweepy_bearer_token: ${TWEEPY_BEARER_TOKEN:str:null}
+  tweepy_access_token: ${TWEEPY_ACCESS_TOKEN:str:null}
+  tweepy_access_token_secret: ${TWEEPY_ACCESS_TOKEN_SECRET:str:null}
+  tweepy_skip_auth: ${TWEEPY_SKIP_AUTH:bool:false}
 ---
 public_id: valory/agent_db_abci:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: skill
@@ -335,4 +335,4 @@ models:
     args:
       fund_requirements: ${dict:{"base":{"agent":{"0x0000000000000000000000000000000000000000":{"topup":325700000000000,"threshold":99000000000000}},"safe":{"0x0000000000000000000000000000000000000000":{"topup":1628500000000000,"threshold":99000000000000}}}}}
       rpc_urls: ${dict:{"base":"https://1rpc.io/base"}}
-      safe_contract_addresses: ${dict:{"base":"0x0000000000000000000000000000000000000000"}}
+      safe_contract_addresses: ${SAFE_CONTRACT_ADDRESSES:dict:{"base":"0x0000000000000000000000000000000000000000"}}

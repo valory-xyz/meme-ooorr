@@ -44,10 +44,6 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
-from packages.dvilela.connections.genai.connection import (
-    PUBLIC_ID as GENAI_CONNECTION_PUBLIC_ID,
-)
-from packages.dvilela.protocols.kv_store.message import KvStoreMessage
 from packages.dvilela.skills.memeooorr_abci.dialogues import (
     HttpDialogue,
     HttpDialogues,
@@ -62,10 +58,14 @@ from packages.dvilela.skills.memeooorr_abci.prompts import (
 )
 from packages.dvilela.skills.memeooorr_abci.rounds import SynchronizedData
 from packages.dvilela.skills.memeooorr_abci.rounds_info import ROUNDS_INFO
+from packages.valory.connections.genai.connection import (
+    PUBLIC_ID as GENAI_CONNECTION_PUBLIC_ID,
+)
 from packages.valory.connections.http_server.connection import (
     PUBLIC_ID as HTTP_SERVER_PUBLIC_ID,
 )
 from packages.valory.protocols.http.message import HttpMessage
+from packages.valory.protocols.kv_store.message import KvStoreMessage
 from packages.valory.protocols.srr.message import SrrMessage
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler as BaseABCIRoundHandler,
