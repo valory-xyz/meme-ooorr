@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeibxbokhkdjtrvljnu2mwxtrpl6oyfdgqsxjcgdlqxnkfhlm4dalsa
-  agent_db_client.py: bafybeigdk7jruluxf2cuivlgxjlo3ag3csub5tlfndnxqgniqlvdl2uqee
+  agent_db_client.py: bafybeifieogrlnsbvxks5hcaeb3al426jldyeyzo7dldosoppg6edywgxa
   agent_db_models.py: bafybeigagleadveksxmm3petkptro2pym7gytef5yjcfvgvevpgqgz5hqu
   agents_fun_db.py: bafybeibdx3bz542syyczc5udexok3ajvswhhteew6xit4cejj7byhq4kai
   behaviours.py: bafybeigrqgoqccyuymvjskvi7hxrs27eg2tvixmagnunuoclix5d5dzdli
@@ -18,7 +18,7 @@ fingerprint:
   payloads.py: bafybeiczq2m2uoprcxya7r2wbgsoira5b4mhkbcupudqqqvc3mytx6iyya
   rounds.py: bafybeierehnr6oavmbefi5zs7zukzzwqkrrvh2yk53gw5ofvguuozyoyvy
   tests/__init__.py: bafybeifkhjm5vh5whoxg2l35oa6bsvrenxn3jfswqfru35yjfqlnmg4cpm
-  tests/test_agent_db_client.py: bafybeibonsclge6gxl4l7f5usp55xcshnxgjnwrhboxuola45amxh64ynm
+  tests/test_agent_db_client.py: bafybeib2l3g32epkwmpsbf6t4kmonimkk76yvpivs6ruidluhf7fokixqu
   tests/test_agent_db_models.py: bafybeidrwdhsnqwtk7pdvqv327454yahmjavfmbugzjsyezkmzldcyojqm
   tests/test_agents_fun_db.py: bafybeicyhrzbtcjjexjo3rcljj7l655jxo7fs6vsityikqizqyxgicsrxe
   tests/test_behaviours.py: bafybeigeasdqy4qxujs7qfoepw3cqzxvbb66kv656szr4oldw2xllykqbq

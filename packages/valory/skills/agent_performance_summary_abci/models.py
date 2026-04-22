@@ -125,7 +125,7 @@ class SharedState(BaseSharedState):
         file_path = self.params.store_path / AGENT_PERFORMANCE_SUMMARY_FILE
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 existing_data = AgentPerformanceSummary.from_dict(json.load(f))
             return existing_data
         except (FileNotFoundError, json.JSONDecodeError) as e:
@@ -138,7 +138,7 @@ class SharedState(BaseSharedState):
         """Write the agent performance summary to a file."""
         file_path = self.params.store_path / AGENT_PERFORMANCE_SUMMARY_FILE
 
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(asdict(summary), f, indent=4)
 
     def update_agent_behavior(self, behavior: str) -> None:

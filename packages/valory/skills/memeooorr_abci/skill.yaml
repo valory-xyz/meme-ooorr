@@ -66,7 +66,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeid5mbtepnuplpzyr4tfplz6ccye6awbnbh4gos7k45nudiqhatxwa
 - valory/transaction_settlement_abci:0.1.0:bafybeicngyslkn6wra7xxx4yh6x63tqofhniwe7hoifxijupptoxgdnue4
 - valory/mech_interact_abci:0.1.0:bafybeidudmcxstomj4m3vyitt3ebrb534wwxg2rnfmstkbyyvwtne5mlhu
-- valory/agent_db_abci:0.1.0:bafybeih5l64mb2t4mc6wpr7zbwkyrp2khte2yal6fg5nrfihjssaxk4n7e
+- valory/agent_db_abci:0.1.0:bafybeieap4oxuigvq2t6oqbhtoidipq65nck4hvczh57xqkpikjm6zymtq
 - valory/funds_manager:0.1.0:bafybeib6rg42hsahrcaa3mraelsw66gvpehalhavdw6z2hvgdg62ipjybe
 behaviours:
   main:
