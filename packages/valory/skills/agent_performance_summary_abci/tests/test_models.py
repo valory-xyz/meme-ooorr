@@ -229,7 +229,7 @@ class TestSharedState:
         state.overwrite_performance_summary(summary)
 
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
-        with open(file_path) as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
         assert data["timestamp"] == 999
         assert data["agent_behavior"] == "behave"
@@ -251,7 +251,7 @@ class TestSharedState:
 
         # Verify
         file_path = tmp_path / AGENT_PERFORMANCE_SUMMARY_FILE
-        with open(file_path) as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
         assert data["agent_behavior"] == "new behavior"
         assert data["timestamp"] == 1700000000

@@ -194,7 +194,7 @@ class AgentDBClient(Model):
         if response.status_code == 404:
             return None
 
-        raise Exception(f"Request failed: {response.status_code} - {response.text}")
+        raise RuntimeError(f"Request failed: {response.status_code} - {response.text}")
 
     # Agent Type Methods
 

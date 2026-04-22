@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,10 +23,6 @@
 
 from unittest.mock import MagicMock, patch
 
-from packages.dvilela.skills.memeooorr_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.dvilela.skills.memeooorr_abci.handlers import HttpMethod
 from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,
@@ -56,6 +52,10 @@ from packages.valory.skills.agent_performance_summary_abci.models import (
     AgentPerformanceSummary,
     SharedState,
 )
+from packages.valory.skills.memeooorr_abci.handlers import (
+    HttpHandler as BaseHttpHandler,
+)
+from packages.valory.skills.memeooorr_abci.handlers import HttpMethod
 
 
 class TestHandlerAliases:

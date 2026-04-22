@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifngitemoxhahloctciywjzfmlhp373ijuvrocmwbyxl3bate2fne
 fingerprint_ignore_patterns: []
-agent: dvilela/memeooorr:0.1.0:bafybeigybdiyavczfbjcrclruw6ardhlgjcr4ctboeveeo4ozz3beonxay
+agent: valory/memeooorr:0.1.0:bafybeie36jatihr56bhpvt7ul2idsqunxr54lb5ba37omtts4auoweih64
 number_of_agents: 1
 deployment:
   agent:
@@ -17,7 +17,7 @@ deployment:
     volumes:
       ./data: /data
 ---
-public_id: dvilela/memeooorr_chained_abci:0.1.0
+public_id: valory/memeooorr_chained_abci:0.1.0
 type: skill
 extra:
   params_args:
@@ -196,7 +196,7 @@ config:
   genai_x402_server_base_url: ${GENAI_X402_SERVER_BASE_URL:str:https://x402.olas.autonolas.tech/v1/gemini/base/v1beta}
   use_x402: ${USE_X402:bool:false}
 ---
-public_id: dvilela/tweepy:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+public_id: valory/tweepy:0.1.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
   tweepy_consumer_api_key: ${TWEEPY_CONSUMER_API_KEY:str:null}
@@ -217,7 +217,7 @@ config:
   host: ${HTTP_SERVER_HOST:str:0.0.0.0}
   port: ${HTTP_SERVER_PORT:int:8716}
   timeout: ${HTTP_SERVER_TIMEOUT:float:30.0}
-  target_skill_id: dvilela/memeooorr_chained_abci:0.1.0
+  target_skill_id: valory/memeooorr_chained_abci:0.1.0
 ---
 public_id: valory/funds_manager:0.1.0
 type: skill

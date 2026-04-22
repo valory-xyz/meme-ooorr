@@ -4,14 +4,15 @@ Autonomous agent service built on open-aea / open-autonomy (Valory stack).
 
 ## Project structure
 
-- `packages/dvilela/` — dev packages (author: `dvilela`)
+- `packages/valory/` — valory-authored dev packages
   - `skills/memeooorr_abci` — main ABCI skill
   - `skills/memeooorr_chained_abci` — chained ABCI skill
-  - `contracts/meme_factory`, `contracts/service_registry` — on-chain contracts
+  - `skills/agent_db_abci`, `skills/agent_performance_summary_abci` — shared dev skills
+  - `contracts/meme_factory`, `contracts/service_registry_l2` — on-chain contracts
   - `connections/twikit`, `connections/mirror_db`, `connections/tweepy` — custom connections
-  - `agents/memeooorr`, `services/memeooorr` — agent & service definitions
-- `packages/valory/` — third-party / upstream Valory packages
-  - `skills/agent_db_abci`, `skills/agent_performance_summary_abci` — valory-authored dev skills
+  - `agents/memeooorr` — agent definition
+  - (also contains third-party / upstream Valory packages)
+- `packages/dvilela/services/memeooorr` — service definition (kept under `dvilela` author for operator compatibility)
 - `packages/open_aea/` — upstream open-aea packages
 - `tox.ini` — lint, type-check, and test environments
 
@@ -28,7 +29,7 @@ All commands (`tox`, `autonomy`, `pytest`, etc.) must be run through uv:
 ```bash
 uv run tox -e black-check
 uv run autonomy packages lock
-uv run pytest packages/dvilela/skills/memeooorr_abci/tests
+uv run pytest packages/valory/skills/memeooorr_abci/tests
 ```
 
 ## Package management
@@ -58,7 +59,7 @@ uv run tox -e py3.12-linux
 Individual package tests:
 
 ```bash
-uv run pytest packages/dvilela/skills/memeooorr_abci/tests
+uv run pytest packages/valory/skills/memeooorr_abci/tests
 ```
 
 ## Linting

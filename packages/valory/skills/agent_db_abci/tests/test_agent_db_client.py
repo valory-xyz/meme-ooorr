@@ -397,7 +397,7 @@ class TestAgentDBClientRequest:
         assert result is None
 
     def test_error_raises(self):
-        """Test non-200/201/404 raises Exception."""
+        """Test non-200/201/404 raises RuntimeError."""
         client = self._setup_client()
         mock_resp = MagicMock(status_code=500, text="Server Error")
 
@@ -408,7 +408,7 @@ class TestAgentDBClientRequest:
         client.http_request_func = fake_http
 
         gen = client._request("GET", "/test")
-        with pytest.raises(Exception, match="Request failed: 500"):
+        with pytest.raises(RuntimeError, match="Request failed: 500"):
             _exhaust_gen(gen)
 
     def test_auth_nested(self):

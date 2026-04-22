@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type, cast
 
-from packages.dvilela.skills.memeooorr_abci.models import SharedState as BaseSharedState
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.agent_performance_summary_abci.rounds import (
     AgentPerformanceSummaryAbciApp,
 )
+from packages.valory.skills.memeooorr_abci.models import SharedState as BaseSharedState
 
 AGENT_PERFORMANCE_SUMMARY_FILE = "agent_performance.json"
 
@@ -125,7 +125,7 @@ class SharedState(BaseSharedState):
         file_path = self.params.store_path / AGENT_PERFORMANCE_SUMMARY_FILE
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 existing_data = AgentPerformanceSummary.from_dict(json.load(f))
             return existing_data
         except (FileNotFoundError, json.JSONDecodeError) as e:
@@ -138,7 +138,7 @@ class SharedState(BaseSharedState):
         """Write the agent performance summary to a file."""
         file_path = self.params.store_path / AGENT_PERFORMANCE_SUMMARY_FILE
 
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(asdict(summary), f, indent=4)
 
     def update_agent_behavior(self, behavior: str) -> None:

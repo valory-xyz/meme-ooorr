@@ -1,16 +1,16 @@
 {
     "dev": {
-        "contract/dvilela/meme_factory/0.1.0": "bafybeihk3pzakcxl2hujl5hczqlme3n7q7kfe3obf2djmh7xmkt4s2ahte",
-        "contract/dvilela/service_registry/0.1.0": "bafybeihobahiywsu7ofn6ykp6noylotrczighk2k4lrh6j25nai5cwn3ra",
-        "connection/dvilela/twikit/0.1.0": "bafybeihrhfola6xkgfgo7cmk5w27hnw6mspkndfvr4734h2vzqlsnxezkm",
-        "connection/dvilela/mirror_db/0.1.0": "bafybeifn2ybe2zpkheuzpn2wdcpcfhan3n2j3b3c7ll35o753wxbtj7hli",
-        "connection/dvilela/tweepy/0.1.0": "bafybeihhwvok42z5gdkyii35e5bnstshoakvsoerew7cr7ccy5f45er2n4",
-        "skill/dvilela/memeooorr_abci/0.1.0": "bafybeiby6lycbh7kh2c442xd664yzc76vprjhx2ggen7kgfjquontn75xa",
-        "skill/dvilela/memeooorr_chained_abci/0.1.0": "bafybeicf4nqq2a2yd4ndilyocautmurlrdt4crwqmrqblvie4dzqhwke5m",
-        "skill/valory/agent_db_abci/0.1.0": "bafybeif53ohomy7gkzurp7z53lefvj2vr42jzcfpqvch7o5gl74se5paue",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeiej4kejg33iwitu4fdhecc47dmo4wklytbavnchvl4zdmrtvcrlti",
-        "agent/dvilela/memeooorr/0.1.0": "bafybeigybdiyavczfbjcrclruw6ardhlgjcr4ctboeveeo4ozz3beonxay",
-        "service/dvilela/memeooorr/0.1.0": "bafybeia47ihauo2nktzsj4kzjexq3ljkuuipkgan4crbluye62jp7dll2y"
+        "contract/valory/meme_factory/0.1.0": "bafybeicg7tg465el2whmbnhmqebrxtp6ufi6kfndhjatxcfyt6bpsuy74u",
+        "contract/valory/service_registry_l2/0.1.0": "bafybeiaodcrxgbkmtnciprf3kd332xjguzmmfaenj5fti7aqnt7cycryge",
+        "connection/valory/twikit/0.1.0": "bafybeigpdbqkfvpa2huwafxme4vp2nctvoeiv7t35esv3d27c42synlina",
+        "connection/valory/mirror_db/0.1.0": "bafybeicn4oia3pnceay3j2m6yegannr4nuledfjsoxjkorao6g4amjvpsa",
+        "connection/valory/tweepy/0.1.0": "bafybeicnffj7fhf4rcbut677kabp773x6f5urq7ti6fpmq72d3gjhugwgy",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeihm3v6xmyihabomlzlnhzp7kc5hjzttjqruqvc2qx3xy36wd2idp4",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeigiwqymnccn3qzuj6heajexjdbheh4moep2b3oe6o2apxp26efz7q",
+        "skill/valory/agent_db_abci/0.1.0": "bafybeihgkyscpam7gkbljnfrsfdpadrvngadv66it64gxkas7itwuwckjy",
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeicwod4e6wdaykfptvf3zmcbhspnxb6a7pw36lrn3i5x4kjou2hfq4",
+        "agent/valory/memeooorr/0.1.0": "bafybeie36jatihr56bhpvt7ul2idsqunxr54lb5ba37omtts4auoweih64",
+        "service/dvilela/memeooorr/0.1.0": "bafybeif6hu6dlxtkwmjzird5ovepcvou7slvd63uyt4n42jh4bvykqpqpy"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
