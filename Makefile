@@ -207,6 +207,10 @@ build-agent-runner-mac: uv-install  agent
 
 .PHONY: check-agent-runner
 check-agent-runner:
+	# aea-config.yaml uses named env-var templates (${STORE_PATH:str:...})
+	# for both the kv_store connection and memeooorr_chained_abci skill
+	# params, so a single STORE_PATH override drives both. Path-based env
+	# vars like SKILL_..._STORE_PATH are the fallback when the template
+	# lacks an explicit var name and are silently ignored here.
 	uv run aea-helpers check-binary ./dist/agent_runner_bin ./agent \
-	--env-var SKILL_MEMEOOORR_CHAINED_ABCI_MODELS_PARAMS_ARGS_STORE_PATH=/tmp \
-	--env-var CONNECTION_KV_STORE_CONFIG_STORE_PATH=/tmp
+	--env-var STORE_PATH=/tmp
