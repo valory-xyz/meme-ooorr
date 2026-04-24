@@ -193,7 +193,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2025, ubuntu-24.04, macos-15, macos-15-large]
+        os: [windows-2025, ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-large]
     defaults:
       run:
         shell: bash
@@ -264,7 +264,7 @@ jobs:
       - name: Build Agent Runner Linux
         if: runner.os == 'Linux'
         run: |
-          make build-agent-runner-mac
+          make build-agent-runner
 
       - name: rename the file linux
         if: runner.os == 'Linux'
@@ -306,7 +306,7 @@ jobs:
           dist/${FILENAME} --version
 
       ### WINDOWS
-      - name: Build Agent Runner Windonws
+      - name: Build Agent Runner Windows
         if: runner.os == 'Windows'
         run: |
           make build-agent-runner
@@ -383,6 +383,13 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: agent_runner_linux_x64
+          path: ./dist/
+
+      # LINUX ARM
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: agent_runner_linux_arm64
           path: ./dist/
 
       # WINDOWS

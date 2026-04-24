@@ -160,6 +160,7 @@ build-agent-runner: uv-install  agent
 	$(shell uv run aea-helpers build-binary-deps ./agent) \
 	--onefile $(shell uv run python -c "import aea_helpers, os; print(os.path.join(os.path.dirname(aea_helpers.__file__), 'bin_template.py'))") \
 	--name agent_runner_bin
+	./dist/agent_runner_bin --help 1>/dev/null
 	./dist/agent_runner_bin --version
 
 
