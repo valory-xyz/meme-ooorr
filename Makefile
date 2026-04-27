@@ -213,5 +213,6 @@ check-agent-runner:
 	# params, so a single STORE_PATH override drives both. Path-based env
 	# vars like SKILL_..._STORE_PATH are the fallback when the template
 	# lacks an explicit var name and are silently ignored here.
-	uv run aea-helpers check-binary ./dist/agent_runner_bin ./agent \
+	BINARY_PATH=$$(if [ "$$OS" = "Windows_NT" ]; then echo "./dist/agent_runner_bin.exe"; else echo "./dist/agent_runner_bin"; fi); \
+	uv run aea-helpers check-binary $${BINARY_PATH} ./agent \
 	--env-var STORE_PATH=/tmp
