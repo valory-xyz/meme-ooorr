@@ -160,6 +160,7 @@ build-agent-runner: uv-install  agent
 	$(shell uv run aea-helpers build-binary-deps ./agent) \
 	--onefile $(shell uv run python -c "import aea_helpers, os; print(os.path.join(os.path.dirname(aea_helpers.__file__), 'bin_template.py'))") \
 	--name agent_runner_bin
+	./dist/agent_runner_bin --help 1>/dev/null
 	./dist/agent_runner_bin --version
 
 
@@ -212,5 +213,6 @@ check-agent-runner:
 	# params, so a single STORE_PATH override drives both. Path-based env
 	# vars like SKILL_..._STORE_PATH are the fallback when the template
 	# lacks an explicit var name and are silently ignored here.
-	uv run aea-helpers check-binary ./dist/agent_runner_bin ./agent \
+	BINARY_PATH=$$(if [ "$$OS" = "Windows_NT" ]; then echo "./dist/agent_runner_bin.exe"; else echo "./dist/agent_runner_bin"; fi); \
+	uv run aea-helpers check-binary $${BINARY_PATH} ./agent \
 	--env-var STORE_PATH=/tmp
