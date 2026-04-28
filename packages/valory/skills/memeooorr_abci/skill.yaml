@@ -50,12 +50,12 @@ connections:
 - valory/genai:0.1.0:bafybeif37mudnpbd4yhvi2kvqfvlnnp6klhudbrncws5vsha72jydj5raq
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeicm3rxjpqc4kcjmxoj5ixqfzu6jn4alalyn3xuqxa5y2g22kpp72m
-- valory/meme_factory:0.1.0:bafybeicg7tg465el2whmbnhmqebrxtp6ufi6kfndhjatxcfyt6bpsuy74u
-- valory/service_registry_l2:0.1.0:bafybeiaodcrxgbkmtnciprf3kd332xjguzmmfaenj5fti7aqnt7cycryge
-- valory/staking_token:0.1.0:bafybeid7uy64tzowfhl3dvcwphyfvb7fozwnmk4fg4ny3tndqubbsedmvi
-- valory/staking_activity_checker:0.1.0:bafybeibe35idywez44a2jbnl5t5gkk7rde7nzklw2oubtsy6sddcnh575m
-- valory/agent_mech:0.1.0:bafybeieogsqxhhogvghhsns3e7i5ugby62v5iwiop2z2yknvwve5sssd3y
+- valory/gnosis_safe:0.1.0:bafybeihljnuo6jiyqfvow4vgxy5ih4eha2pjtguh7o6pabe24lbd6mwjaa
+- valory/meme_factory:0.1.0:bafybeifus4srfeqjy57y64es2ny3w3qeawtsnjwtcs66mosrapebklzsbq
+- valory/service_registry_l2:0.1.0:bafybeiahapgkem23imimvx3nmov553xix4uyno2lqb7t5t5fl5oesg7vnu
+- valory/staking_token:0.1.0:bafybeibdn7ntkijvsco224ehm3bk6i4r7zhlre4ns4mzlmohlqgnw325bu
+- valory/staking_activity_checker:0.1.0:bafybeihywzpoaxltgvgaazzh5sffpl57p5ptp5oyaz545ywpom2a4obyu4
+- valory/agent_mech:0.1.0:bafybeieehgxkc3mosiramapon4u7qkhihxa52actku4wlykypovgcjsjde
 protocols:
 - valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
 - valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
@@ -63,11 +63,11 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
-- valory/transaction_settlement_abci:0.1.0:bafybeic6f4ujckiutqxueagohb5iv7kgzpamhuhiq7shn6fmiwbkt3cqny
-- valory/mech_interact_abci:0.1.0:bafybeicxqsip4uer3o4dnocumvwctplnurlyzsxyzyg6wr4yqwxgnicmca
-- valory/agent_db_abci:0.1.0:bafybeihgkyscpam7gkbljnfrsfdpadrvngadv66it64gxkas7itwuwckjy
-- valory/funds_manager:0.1.0:bafybeignvgpt36ph6bui47qmygwad6ii7qz6cdfz5ungy2egg4iicj7ym4
+- valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
+- valory/transaction_settlement_abci:0.1.0:bafybeiemyjkxj2ifzjr5kubtebpyezocl33zxt7gwf7yongg6zlbfjilte
+- valory/mech_interact_abci:0.1.0:bafybeidq4vfhz5hvixmzor4epnnh2xzhhzedcxhxfoa6nqgqjp3yqhktdu
+- valory/agent_db_abci:0.1.0:bafybeib72xypoji23z2xi6ms6h47izdoeihmwyzrpxlrobo2mej5sd22me
+- valory/funds_manager:0.1.0:bafybeiebmb72sxx3odmxzpn7qy4la3i6n5vf4di4vbkt4mt4kuybosftay
 behaviours:
   main:
     args: {}
