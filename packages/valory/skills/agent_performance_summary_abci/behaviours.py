@@ -19,7 +19,7 @@
 
 """This module contains the behaviour of the skill which is responsible for agent performance summary file updation."""
 
-from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -97,7 +97,9 @@ class FetchPerformanceSummaryBehaviour(
         """Return the skill params."""
         return cast(AgentPerformanceSummaryParams, self.context.params)
 
-    def _get_total_likes_and_retweets(self, since_timestamp: int) -> Generator:
+    def _get_total_likes_and_retweets(
+        self, since_timestamp: int
+    ) -> Generator[None, None, Tuple[Optional[int], Optional[int]]]:
         """Get total likes and retweets from Twitter activity since a given timestamp."""
         yield from self.init_own_twitter_details()
 
@@ -114,7 +116,7 @@ class FetchPerformanceSummaryBehaviour(
             )
             return None, None
 
-        all_tweets: List[Dict] = response
+        all_tweets = cast(List[Dict], response)
         total_likes = 0
         total_impressions = 0
         for tweet in all_tweets:
@@ -123,7 +125,7 @@ class FetchPerformanceSummaryBehaviour(
 
         return total_likes, total_impressions
 
-    def should_fetch_metrics_again(self) -> Generator:
+    def should_fetch_metrics_again(self) -> Generator[None, None, bool]:
         """Check if we should fetch the metrics again based on the TTL."""
         existing_data = self.shared_state.read_existing_performance_summary()
         if not existing_data.metrics or any(
@@ -148,7 +150,7 @@ class FetchPerformanceSummaryBehaviour(
             return False
         return True
 
-    def _fetch_agent_performance_summary(self) -> Generator:
+    def _fetch_agent_performance_summary(self) -> Generator[None, None, None]:
         """Fetch the agent performance summary"""
         current_timestamp = self.shared_state.synced_timestamp
 
@@ -156,9 +158,12 @@ class FetchPerformanceSummaryBehaviour(
             current_timestamp - FETCH_FOR_LAST_DAYS * NUMBER_OF_SECONDS_IN_A_DAY
         )
 
-        total_likes, total_impressions = yield from self._get_total_likes_and_retweets(
+        likes, impressions = yield from self._get_total_likes_and_retweets(
             since_timestamp=since_timestamp
         )
+
+        total_likes: Optional[Any] = likes
+        total_impressions: Optional[Any] = impressions
 
         if total_likes is None or total_impressions is None:
             self.context.logger.warning(
@@ -173,7 +178,7 @@ class FetchPerformanceSummaryBehaviour(
             )
         else:
             yield from self.write_kv(
-                {LAST_METRIC_FETCH_TIMESTAMP_KEY: current_timestamp}
+                {LAST_METRIC_FETCH_TIMESTAMP_KEY: str(current_timestamp)}
             )
 
         metrics = []
@@ -208,7 +213,7 @@ class FetchPerformanceSummaryBehaviour(
         agent_performance_summary.agent_behavior = existing_data.agent_behavior
         self.shared_state.overwrite_performance_summary(agent_performance_summary)
 
-    def async_act(self) -> Generator:
+    def async_act(self) -> Generator[None, None, None]:
         """Do the action."""
         if not self.params.is_agent_performance_summary_enabled:
             self.context.logger.info(
@@ -234,6 +239,7 @@ class FetchPerformanceSummaryBehaviour(
 
             yield from self._fetch_agent_performance_summary()
 
+            assert self._agent_performance_summary is not None
             success = all(
                 metric.value != NA for metric in self._agent_performance_summary.metrics
             )
@@ -249,7 +255,7 @@ class FetchPerformanceSummaryBehaviour(
 
         yield from self.finish_behaviour(payload)
 
-    def finish_behaviour(self, payload: BaseTxPayload) -> Generator:
+    def finish_behaviour(self, payload: BaseTxPayload) -> Generator[None, None, None]:
         """Finish the behaviour."""
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025 Valory AG
+#   Copyright 2025-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,9 @@ from packages.valory.skills.agent_performance_summary_abci.rounds import (
 )
 
 
-def exhaust_generator(gen: Generator, values: Optional[List] = None) -> Any:
+def exhaust_generator(
+    gen: Generator[Any, Any, Any], values: Optional[List] = None
+) -> Any:
     """Exhaust a generator, sending values from list and returning the result."""
     values = values or []
     idx = 0
@@ -164,15 +166,15 @@ class TestGetTotalLikesAndRetweets:
             {"like_count": 5, "impression_count": 50},
         ]
 
-        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator:
+        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
 
-        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator:
+        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return tweets
 
-        behaviour.init_own_twitter_details = mock_init_twitter
-        behaviour._call_tweepy = mock_call_tweepy
+        behaviour.init_own_twitter_details = mock_init_twitter  # type: ignore[method-assign]
+        behaviour._call_tweepy = mock_call_tweepy  # type: ignore[method-assign]
 
         gen = behaviour._get_total_likes_and_retweets(since_timestamp=100)
         result = exhaust_generator(gen)
@@ -182,15 +184,15 @@ class TestGetTotalLikesAndRetweets:
         """Test error response from tweepy returns None, None."""
         behaviour = _make_behaviour()
 
-        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator:
+        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
 
-        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator:
+        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return {"error": "rate limited"}
 
-        behaviour.init_own_twitter_details = mock_init_twitter
-        behaviour._call_tweepy = mock_call_tweepy
+        behaviour.init_own_twitter_details = mock_init_twitter  # type: ignore[method-assign]
+        behaviour._call_tweepy = mock_call_tweepy  # type: ignore[method-assign]
 
         gen = behaviour._get_total_likes_and_retweets(since_timestamp=100)
         result = exhaust_generator(gen)
@@ -200,15 +202,15 @@ class TestGetTotalLikesAndRetweets:
         """Test empty tweets list returns zero counts."""
         behaviour = _make_behaviour()
 
-        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator:
+        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
 
-        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator:
+        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return []
 
-        behaviour.init_own_twitter_details = mock_init_twitter
-        behaviour._call_tweepy = mock_call_tweepy
+        behaviour.init_own_twitter_details = mock_init_twitter  # type: ignore[method-assign]
+        behaviour._call_tweepy = mock_call_tweepy  # type: ignore[method-assign]
 
         gen = behaviour._get_total_likes_and_retweets(since_timestamp=100)
         result = exhaust_generator(gen)
@@ -220,15 +222,15 @@ class TestGetTotalLikesAndRetweets:
 
         tweets = [{"like_count": 3}, {"impression_count": 7}, {}]
 
-        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator:
+        def mock_init_twitter(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
 
-        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator:
+        def mock_call_tweepy(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return tweets
 
-        behaviour.init_own_twitter_details = mock_init_twitter
-        behaviour._call_tweepy = mock_call_tweepy
+        behaviour.init_own_twitter_details = mock_init_twitter  # type: ignore[method-assign]
+        behaviour._call_tweepy = mock_call_tweepy  # type: ignore[method-assign]
 
         gen = behaviour._get_total_likes_and_retweets(since_timestamp=100)
         result = exhaust_generator(gen)
@@ -241,7 +243,7 @@ class TestShouldFetchMetricsAgain:
     def test_no_metrics_returns_true(self) -> None:
         """Test returns True when existing data has no metrics."""
         behaviour = _make_behaviour()
-        behaviour.shared_state.read_existing_performance_summary.return_value = (
+        behaviour.shared_state.read_existing_performance_summary.return_value = (  # type: ignore[attr-defined]
             AgentPerformanceSummary(metrics=[])
         )
 
@@ -252,7 +254,7 @@ class TestShouldFetchMetricsAgain:
     def test_na_metric_returns_true(self) -> None:
         """Test returns True when existing data has N/A metrics."""
         behaviour = _make_behaviour()
-        behaviour.shared_state.read_existing_performance_summary.return_value = (
+        behaviour.shared_state.read_existing_performance_summary.return_value = (  # type: ignore[attr-defined]
             AgentPerformanceSummary(
                 metrics=[
                     AgentPerformanceMetrics(name="m1", is_primary=True, value=NA),
@@ -267,7 +269,7 @@ class TestShouldFetchMetricsAgain:
     def test_no_last_fetch_timestamp_returns_true(self) -> None:
         """Test returns True when no previous fetch timestamp."""
         behaviour = _make_behaviour()
-        behaviour.shared_state.read_existing_performance_summary.return_value = (
+        behaviour.shared_state.read_existing_performance_summary.return_value = (  # type: ignore[attr-defined]
             AgentPerformanceSummary(
                 metrics=[
                     AgentPerformanceMetrics(name="m1", is_primary=True, value="10"),
@@ -275,10 +277,12 @@ class TestShouldFetchMetricsAgain:
             )
         )
 
-        def mock_read_json_from_kv(*args: Any, **kwargs: Any) -> Generator:
+        def mock_read_json_from_kv(
+            *args: Any, **kwargs: Any
+        ) -> Generator[Any, Any, Any]:
             yield
 
-        behaviour._read_json_from_kv = mock_read_json_from_kv
+        behaviour._read_json_from_kv = mock_read_json_from_kv  # type: ignore[method-assign]
 
         gen = behaviour.should_fetch_metrics_again()
         result = exhaust_generator(gen)
@@ -287,7 +291,7 @@ class TestShouldFetchMetricsAgain:
     def test_ttl_not_expired_returns_false(self) -> None:
         """Test returns False when TTL has not expired."""
         behaviour = _make_behaviour()
-        behaviour.shared_state.read_existing_performance_summary.return_value = (
+        behaviour.shared_state.read_existing_performance_summary.return_value = (  # type: ignore[attr-defined]
             AgentPerformanceSummary(
                 metrics=[
                     AgentPerformanceMetrics(name="m1", is_primary=True, value="10"),
@@ -298,11 +302,13 @@ class TestShouldFetchMetricsAgain:
         # last_fetch_timestamp + ttl > synced_timestamp => skip
         # synced_timestamp = 1700000000, ttl = 3600
         # last_fetch = 1700000000 => 1700000000 + 3600 = 1700003600 > 1700000000 => skip
-        def mock_read_json_from_kv(*args: Any, **kwargs: Any) -> Generator:
+        def mock_read_json_from_kv(
+            *args: Any, **kwargs: Any
+        ) -> Generator[Any, Any, Any]:
             yield
             return 1700000000
 
-        behaviour._read_json_from_kv = mock_read_json_from_kv
+        behaviour._read_json_from_kv = mock_read_json_from_kv  # type: ignore[method-assign]
 
         gen = behaviour.should_fetch_metrics_again()
         result = exhaust_generator(gen)
@@ -311,7 +317,7 @@ class TestShouldFetchMetricsAgain:
     def test_ttl_expired_returns_true(self) -> None:
         """Test returns True when TTL has expired."""
         behaviour = _make_behaviour()
-        behaviour.shared_state.read_existing_performance_summary.return_value = (
+        behaviour.shared_state.read_existing_performance_summary.return_value = (  # type: ignore[attr-defined]
             AgentPerformanceSummary(
                 metrics=[
                     AgentPerformanceMetrics(name="m1", is_primary=True, value="10"),
@@ -322,11 +328,13 @@ class TestShouldFetchMetricsAgain:
         # last_fetch_timestamp + ttl <= synced_timestamp => fetch again
         # synced_timestamp = 1700000000, ttl = 3600
         # last_fetch = 1699990000 => 1699990000 + 3600 = 1699993600 <= 1700000000 => fetch
-        def mock_read_json_from_kv(*args: Any, **kwargs: Any) -> Generator:
+        def mock_read_json_from_kv(
+            *args: Any, **kwargs: Any
+        ) -> Generator[Any, Any, Any]:
             yield
             return 1699990000
 
-        behaviour._read_json_from_kv = mock_read_json_from_kv
+        behaviour._read_json_from_kv = mock_read_json_from_kv  # type: ignore[method-assign]
 
         gen = behaviour.should_fetch_metrics_again()
         result = exhaust_generator(gen)
@@ -340,16 +348,16 @@ class TestFetchAgentPerformanceSummary:
         """Test successful fetch stores summary with metric values."""
         behaviour = _make_behaviour()
 
-        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator:
+        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return (15, 200)
 
-        def mock_write_kv(*args: Any, **kwargs: Any) -> Generator:
+        def mock_write_kv(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return True
 
-        behaviour._get_total_likes_and_retweets = mock_get_likes
-        behaviour.write_kv = mock_write_kv
+        behaviour._get_total_likes_and_retweets = mock_get_likes  # type: ignore[method-assign]
+        behaviour.write_kv = mock_write_kv  # type: ignore[method-assign]
 
         gen = behaviour._fetch_agent_performance_summary()
         exhaust_generator(gen)
@@ -370,11 +378,11 @@ class TestFetchAgentPerformanceSummary:
         """Test when likes/impressions are None, falls back to existing data."""
         behaviour = _make_behaviour()
 
-        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator:
+        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return (None, None)
 
-        behaviour._get_total_likes_and_retweets = mock_get_likes
+        behaviour._get_total_likes_and_retweets = mock_get_likes  # type: ignore[method-assign]
 
         existing = AgentPerformanceSummary(
             metrics=[
@@ -386,7 +394,7 @@ class TestFetchAgentPerformanceSummary:
                 ),
             ]
         )
-        behaviour.shared_state.read_existing_performance_summary.return_value = existing
+        behaviour.shared_state.read_existing_performance_summary.return_value = existing  # type: ignore[attr-defined]
 
         gen = behaviour._fetch_agent_performance_summary()
         exhaust_generator(gen)
@@ -401,14 +409,14 @@ class TestFetchAgentPerformanceSummary:
         """Test when likes/impressions are None and no existing data."""
         behaviour = _make_behaviour()
 
-        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator:
+        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return (None, None)
 
-        behaviour._get_total_likes_and_retweets = mock_get_likes
+        behaviour._get_total_likes_and_retweets = mock_get_likes  # type: ignore[method-assign]
 
         existing = AgentPerformanceSummary(metrics=[])
-        behaviour.shared_state.read_existing_performance_summary.return_value = existing
+        behaviour.shared_state.read_existing_performance_summary.return_value = existing  # type: ignore[attr-defined]
 
         gen = behaviour._fetch_agent_performance_summary()
         exhaust_generator(gen)
@@ -425,17 +433,17 @@ class TestFetchAgentPerformanceSummary:
 
         write_kv_calls = []
 
-        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator:
+        def mock_get_likes(*args: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             yield
             return (10, 100)
 
-        def mock_write_kv(data: Any, **kwargs: Any) -> Generator:
+        def mock_write_kv(data: Any, **kwargs: Any) -> Generator[Any, Any, Any]:
             write_kv_calls.append(data)
             yield
             return True
 
-        behaviour._get_total_likes_and_retweets = mock_get_likes
-        behaviour.write_kv = mock_write_kv
+        behaviour._get_total_likes_and_retweets = mock_get_likes  # type: ignore[method-assign]
+        behaviour.write_kv = mock_write_kv  # type: ignore[method-assign]
 
         gen = behaviour._fetch_agent_performance_summary()
         exhaust_generator(gen)
@@ -456,7 +464,7 @@ class TestSaveAgentPerformanceSummary:  # pylint: disable=too-few-public-methods
             agent_behavior="existing behavior",
             metrics=[],
         )
-        behaviour.shared_state.read_existing_performance_summary.return_value = existing
+        behaviour.shared_state.read_existing_performance_summary.return_value = existing  # type: ignore[attr-defined]
 
         new_summary = AgentPerformanceSummary(
             timestamp=999,
@@ -466,7 +474,7 @@ class TestSaveAgentPerformanceSummary:  # pylint: disable=too-few-public-methods
         behaviour._save_agent_performance_summary(new_summary)
 
         assert new_summary.agent_behavior == "existing behavior"
-        behaviour.shared_state.overwrite_performance_summary.assert_called_once_with(
+        behaviour.shared_state.overwrite_performance_summary.assert_called_once_with(  # type: ignore[attr-defined]
             new_summary
         )
 
@@ -481,11 +489,11 @@ class TestAsyncAct:
 
         payloads_sent = []
 
-        def mock_finish(payload: Any) -> Generator:
+        def mock_finish(payload: Any) -> Generator[Any, Any, Any]:
             payloads_sent.append(payload)
             yield
 
-        behaviour.finish_behaviour = mock_finish
+        behaviour.finish_behaviour = mock_finish  # type: ignore[method-assign]
 
         gen = behaviour.async_act()
         exhaust_generator(gen)
@@ -499,18 +507,18 @@ class TestAsyncAct:
         behaviour = _make_behaviour()
         behaviour.params.is_agent_performance_summary_enabled = True
 
-        def mock_should_fetch() -> Generator:
+        def mock_should_fetch() -> Generator[Any, Any, Any]:
             yield
             return False
 
         payloads_sent = []
 
-        def mock_finish(payload: Any) -> Generator:
+        def mock_finish(payload: Any) -> Generator[Any, Any, Any]:
             payloads_sent.append(payload)
             yield
 
-        behaviour.should_fetch_metrics_again = mock_should_fetch
-        behaviour.finish_behaviour = mock_finish
+        behaviour.should_fetch_metrics_again = mock_should_fetch  # type: ignore[method-assign]
+        behaviour.finish_behaviour = mock_finish  # type: ignore[method-assign]
 
         gen = behaviour.async_act()
         exhaust_generator(gen)
@@ -523,11 +531,11 @@ class TestAsyncAct:
         behaviour = _make_behaviour()
         behaviour.params.is_agent_performance_summary_enabled = True
 
-        def mock_should_fetch() -> Generator:
+        def mock_should_fetch() -> Generator[Any, Any, Any]:
             yield
             return True
 
-        def mock_fetch() -> Generator:
+        def mock_fetch() -> Generator[Any, Any, Any]:
             behaviour._agent_performance_summary = AgentPerformanceSummary(
                 timestamp=1700000000,
                 metrics=[
@@ -552,14 +560,14 @@ class TestAsyncAct:
 
         payloads_sent = []
 
-        def mock_finish(payload: Any) -> Generator:
+        def mock_finish(payload: Any) -> Generator[Any, Any, Any]:
             payloads_sent.append(payload)
             yield
 
-        behaviour.should_fetch_metrics_again = mock_should_fetch
-        behaviour._fetch_agent_performance_summary = mock_fetch
-        behaviour._save_agent_performance_summary = mock_save
-        behaviour.finish_behaviour = mock_finish
+        behaviour.should_fetch_metrics_again = mock_should_fetch  # type: ignore[method-assign]
+        behaviour._fetch_agent_performance_summary = mock_fetch  # type: ignore[method-assign]
+        behaviour._save_agent_performance_summary = mock_save  # type: ignore[method-assign,assignment]
+        behaviour.finish_behaviour = mock_finish  # type: ignore[method-assign]
 
         gen = behaviour.async_act()
         exhaust_generator(gen)
@@ -573,11 +581,11 @@ class TestAsyncAct:
         behaviour = _make_behaviour()
         behaviour.params.is_agent_performance_summary_enabled = True
 
-        def mock_should_fetch() -> Generator:
+        def mock_should_fetch() -> Generator[Any, Any, Any]:
             yield
             return True
 
-        def mock_fetch() -> Generator:
+        def mock_fetch() -> Generator[Any, Any, Any]:
             behaviour._agent_performance_summary = AgentPerformanceSummary(
                 timestamp=1700000000,
                 metrics=[
@@ -597,14 +605,14 @@ class TestAsyncAct:
 
         payloads_sent = []
 
-        def mock_finish(payload: Any) -> Generator:
+        def mock_finish(payload: Any) -> Generator[Any, Any, Any]:
             payloads_sent.append(payload)
             yield
 
-        behaviour.should_fetch_metrics_again = mock_should_fetch
-        behaviour._fetch_agent_performance_summary = mock_fetch
-        behaviour._save_agent_performance_summary = MagicMock()
-        behaviour.finish_behaviour = mock_finish
+        behaviour.should_fetch_metrics_again = mock_should_fetch  # type: ignore[method-assign]
+        behaviour._fetch_agent_performance_summary = mock_fetch  # type: ignore[method-assign]
+        behaviour._save_agent_performance_summary = MagicMock()  # type: ignore[method-assign]
+        behaviour.finish_behaviour = mock_finish  # type: ignore[method-assign]
 
         gen = behaviour.async_act()
         exhaust_generator(gen)
@@ -621,15 +629,15 @@ class TestFinishBehaviour:  # pylint: disable=too-few-public-methods
         """Test finish_behaviour sends transaction and waits for round end."""
         behaviour = _make_behaviour()
 
-        def mock_send_a2a(payload: Any) -> Generator:
+        def mock_send_a2a(payload: Any) -> Generator[Any, Any, Any]:
             yield
 
-        def mock_wait() -> Generator:
+        def mock_wait() -> Generator[Any, Any, Any]:
             yield
 
-        behaviour.send_a2a_transaction = mock_send_a2a
-        behaviour.wait_until_round_end = mock_wait
-        behaviour.set_done = MagicMock()
+        behaviour.send_a2a_transaction = mock_send_a2a  # type: ignore[method-assign,assignment]
+        behaviour.wait_until_round_end = mock_wait  # type: ignore[method-assign,assignment]
+        behaviour.set_done = MagicMock()  # type: ignore[method-assign]
 
         payload = FetchPerformanceDataPayload(sender="test_agent_address", vote=True)
 

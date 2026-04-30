@@ -467,7 +467,7 @@ class MemeooorrBaseBehaviour(
         )
 
         ledger_api_response = yield from self.get_ledger_api_response(
-            performative=LedgerApiMessage.Performative.GET_STATE,
+            performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore[arg-type]
             ledger_callable="get_balance",
             account=self.synchronized_data.safe_contract_address,
             chain_id=self.get_chain_id(),
@@ -492,7 +492,7 @@ class MemeooorrBaseBehaviour(
         )
 
         ledger_api_response = yield from self.get_ledger_api_response(
-            performative=LedgerApiMessage.Performative.GET_STATE,
+            performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore[arg-type]
             ledger_callable="get_balance",
             account=self.context.agent_address,
             chain_id=self.get_chain_id(),

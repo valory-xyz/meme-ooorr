@@ -24,7 +24,9 @@ from typing import cast
 from urllib.parse import urlparse
 
 from packages.valory.protocols.http.message import HttpMessage
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
+from packages.valory.skills.abstract_round_abci.handlers import (
+    ABCIRoundHandler,
+)
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,
 )
@@ -45,7 +47,9 @@ from packages.valory.skills.memeooorr_abci.dialogues import HttpDialogue
 from packages.valory.skills.memeooorr_abci.handlers import (
     HttpHandler as BaseHttpHandler,
 )
-from packages.valory.skills.memeooorr_abci.handlers import HttpMethod
+from packages.valory.skills.memeooorr_abci.handlers import (
+    HttpMethod,
+)
 
 AgentPerformanceSummaryABCIHandler = ABCIRoundHandler
 SigningHandler = BaseSigningHandler

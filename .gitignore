@@ -76,4 +76,6 @@ agent_to_tweets.json
 nb_playground.ipynb
 
 /temp/
-.claude
+.claude.tomte-tox.ini
+.darglint
+.gitleaks-merged.toml

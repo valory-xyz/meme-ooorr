@@ -58,38 +58,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get autoremove
-          sudo apt-get autoclean
-          pip install tomte[tox,cli]==0.6.5 tox-uv
-          pip install --upgrade setuptools==60.10.0
+        run: pip install 'tomte[tox,cli] @ git+https://github.com/valory-xyz/tomte.git@01ecfd5b2b68021bc94b76d9581eb3944bbd41b2' tox-uv
       - name: Check copyright headers
-        run: tomte check-copyright --author author_name
+        run: tomte check-copyright --author valory
       - name: License compatibility check
-        run: tox -e liccheck
+        run: tomte tox -e liccheck
       - name: Check dependencies
-        run: tox -e check-dependencies
-      - name: Check third-party package hashes against upstreams
-        run: tox -e check-third-party-hashes
+        run: tomte tox -e check-dependencies
+      - name: Check third-party package hashes match upstream
+        run: tomte tox -e check-third-party-hashes
       - name: Check doc links
-        run: >
-          tomte check-doc-links
-          --url-skips https://soft-sly-slug.base-mainnet.quiknode.pro/f13d998d9d68685faeee903499e15b4b386a8b1c/
-          --url-skips https://developer.x.com/en/portal/dashboard
-          --url-skips https://tenderly.co/
-          --url-skips https://foundry.paradigm.xyz
-          --url-skips https://github.com/olas-operate-app
-          --url-skips "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
-          --url-skips https://agentsfun-indexer-production.up.railway.app
-          --url-skips https://api.fireworks.ai/inference/v1/chat/completions
-          --url-skips https://li.quest/v1/quote/toAmount
-          --url-skips https://1rpc.io/base
-          --url-skips https://afmdb.autonolas.tech
-          --url-skips https://api.subgraph.autonolas.tech/api/proxy/autonolas-base
-          --url-skips https://api.subgraph.autonolas.tech/api/proxy/marketplace-base
+        run: tomte check-doc-links
       - name: Check doc IPFS hashes
-        run: tox -e check-doc-hashes
+        run: tomte tox -e check-doc-hashes
 
   linter_checks:
     continue-on-error: False
@@ -98,7 +79,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-24.04]
-        python-version: ["3.10.6"]
+        python-version: ["3.10"]
 
     timeout-minutes: 30
 
@@ -108,40 +89,37 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get autoremove
-          sudo apt-get autoclean
-          pip install tomte[tox,cli]==0.6.5 tox-uv
-          pip install --user --upgrade setuptools
-
-          # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-          sudo mv protoc/bin/protoc /usr/local/bin/protoc
-
-          # install IPFS
-          sudo apt-get install -y wget
-          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-          tar xvfz go-ipfs.tar.gz
-          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-          ipfs init
-
-          # Install `mdspell` for spelling checks
-          sudo npm install -g markdown-spellcheck
-
+        run: pip install 'tomte[tox,cli] @ git+https://github.com/valory-xyz/tomte.git@01ecfd5b2b68021bc94b76d9581eb3944bbd41b2' tox-uv
       - name: Security checks
-        run: tomte check-security
+        run: tomte tox -p -e safety -e bandit
       - name: Check packages
-        run: tox -e check-packages
-      - name: Check FSM Spec
-        run: tox -e check-abciapp-specs
+        run: tomte tox -e check-packages
       - name: Check hash
-        run: tox -e check-hash
+        run: tomte tox -e check-hash
       - name: Code checks
-        run: tomte check-code
-      - name: Check spelling
-        run: tomte check-spelling
+        run: tomte tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e darglint
+      - name: AbciApp consistency checks
+        run: |
+          tomte tox -e check-abci-docstrings
+          tomte tox -e check-abciapp-specs
+          tomte tox -e check-handlers
+
+  scan:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - run: |
+          wget https://github.com/zricethezav/gitleaks/releases/download/v8.10.1/gitleaks_8.10.1_linux_x64.tar.gz
+          tar -xzf gitleaks_8.10.1_linux_x64.tar.gz
+          sudo install gitleaks /usr/bin
+          pip install 'tomte[tox,cli] @ git+https://github.com/valory-xyz/tomte.git@01ecfd5b2b68021bc94b76d9581eb3944bbd41b2' tox-uv
+          tomte tox -e gitleaks
 
   test:
     continue-on-error: False
@@ -152,13 +130,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: true
       matrix:
         os: [ubuntu-24.04, macos-15, windows-2025]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
-    timeout-minutes: 90
-
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
         with:
@@ -166,82 +142,52 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-
       - if: matrix.os == 'ubuntu-24.04'
         name: Install dependencies (ubuntu-24.04)
         run: |
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.6.5 tox-uv
+          pip install 'tomte[tox,cli] @ git+https://github.com/valory-xyz/tomte.git@01ecfd5b2b68021bc94b76d9581eb3944bbd41b2' tox-uv
           pip install --user --upgrade setuptools
 
       - if: matrix.os == 'ubuntu-24.04'
-        name: Unit tests ubuntu-24.04
-        run: tox -e py${{ matrix.python-version }}-linux
+        name: Packages unit tests ubuntu-24.04
+        run: |
+          tomte tox -e py${{ matrix.python-version }}-linux
 
       - if: matrix.os == 'macos-15'
         name: Install dependencies (macos-15)
         run: |
-          pip install tomte[tox]==0.6.5 tox-uv
+          pip install 'tomte[tox,cli] @ git+https://github.com/valory-xyz/tomte.git@01ecfd5b2b68021bc94b76d9581eb3944bbd41b2' tox-uv
+          pip install --user --upgrade setuptools
 
       - if: matrix.os == 'macos-15'
-        name: Unit tests macos-15
-        run: tox -e py${{ matrix.python-version }}-darwin
+        name: Packages unit tests macos-15
+        run: |
+          tomte tox -e py${{ matrix.python-version }}-darwin
 
       - if: matrix.os == 'windows-2025'
         name: Install dependencies (windows-2025)
         run: |
-          pip install tomte[tox]==0.6.5 tox-uv
+          python -m pip install -U pip
+          pip install 'tomte[tox,cli] @ git+https://github.com/valory-xyz/tomte.git@01ecfd5b2b68021bc94b76d9581eb3944bbd41b2' tox-uv
+          pip install --upgrade setuptools
 
       - if: matrix.os == 'windows-2025'
-        name: Unit tests windows-2025
-        run: tox -e py${{ matrix.python-version }}-win
-
-  coverage:
-    continue-on-error: False
-    needs:
-      - test
-    runs-on: ubuntu-24.04
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: recursive
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-      - name: Install dependencies
+        name: Packages unit tests windows-2025
         run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get autoremove
-          sudo apt-get autoclean
-          pip install tomte[tox]==0.6.5 tox-uv
-          pip install --user --upgrade setuptools
-      - name: Check coverage
-        run: tox -e coverage
-      - name: Upload coverage to Codecov
+          tomte tox -e py${{ matrix.python-version }}-win
+
+      - if: matrix.os == 'ubuntu-24.04'
+        name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
           flags: unittests
+          name: codecov-umbrella
           fail_ci_if_error: false
-
-  scan:
-    name: gitleaks
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v6
-        with:
-          go-version: "1.17.7"
-      - run: |
-          wget https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz && \
-          tar -xzf gitleaks_8.21.2_linux_x64.tar.gz && \
-          sudo install gitleaks /usr/bin && \
-          gitleaks detect --report-format json --report-path leak_report -v
 
   all_checks_passed:
     name: All checks passed
@@ -250,12 +196,11 @@ jobs:
       - lock_check
       - copyright_and_dependencies_check
       - linter_checks
-      - test
-      - coverage
       - scan
+      - test
     runs-on: ubuntu-24.04
-    timeout-minutes: 1
     steps:
-      - name: Verify all dependent jobs succeeded
-        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
+      - name: Fail if any required job failed or was cancelled
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
+      - run: echo "All required checks passed."

@@ -10,11 +10,11 @@ fingerprint:
   connection.py: bafybeig7s7wgxat4l722aduafzju3atwegf5fonr2tdw57xiiuwfptu4ry
   readme.md: bafybeihl7k3yi3twtvlkjntaknmib6hnhmyjurn25c4nksffcagrwkx5t4
   tests/__init__.py: bafybeifmw6jkeghvn7dschq54m5qr3fpcqujhjhnaorkkbj55mlnsao53q
-  tests/test_connection.py: bafybeihglypb5eq44cl6qnxffxdyzllhs5gyymp62v3yxqtv22fg5cmz5y
+  tests/test_connection.py: bafybeiakfgmvuw3bndsbyhmszg76hskdob5v3awxuyxrb5qsghgis2473i
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
+- valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
 class_name: TwikitConnection
 config:
   twikit_username: null

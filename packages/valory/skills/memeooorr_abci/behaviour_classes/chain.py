@@ -111,7 +111,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
 
         # Prepare the safe transaction
         response_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore[arg-type]
             contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
@@ -126,7 +126,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
         if response_msg.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 "Couldn't get safe tx hash. Expected response performative "
-                f"{ContractApiMessage.Performative.STATE.value!r}, "  # type: ignore
+                f"{ContractApiMessage.Performative.STATE.value!r}, "  # type: ignore[attr-defined]
                 f"received {response_msg.performative.value!r}: {response_msg}."
             )
             return None
@@ -221,7 +221,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
 
     def _get_liveness_ratio(self, chain: str) -> Generator[None, None, Optional[int]]:
         liveness_ratio = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.activity_checker_contract_address,
             contract_public_id=StakingActivityCheckerContract.contract_id,
             contract_callable="liveness_ratio",
@@ -238,7 +238,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
 
     def _get_liveness_period(self, chain: str) -> Generator[None, None, Optional[int]]:
         liveness_period = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.staking_token_contract_address,
             contract_public_id=StakingTokenContract.contract_id,
             contract_callable="get_liveness_period",
@@ -256,7 +256,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
     def _get_ts_checkpoint(self, chain: str) -> Generator[None, None, Optional[int]]:
         """Get the ts checkpoint"""
         ts_checkpoint = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.staking_token_contract_address,
             contract_public_id=StakingTokenContract.contract_id,
             contract_callable="ts_checkpoint",
@@ -299,7 +299,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
         self, chain: str, multisig: str
     ) -> Generator[None, None, Optional[int]]:
         multisig_nonces = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.activity_checker_contract_address,
             contract_public_id=StakingActivityCheckerContract.contract_id,
             contract_callable="get_multisig_nonces",
@@ -356,7 +356,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
             return StakingState.UNSTAKED
 
         service_staking_state = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=staking_token_contract_address,
             contract_public_id=StakingTokenContract.contract_id,
             contract_callable="get_service_staking_state",
@@ -395,7 +395,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
         )
         # Get mech marketplace request count for this safe address
         response_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore[arg-type]
             contract_address=self.params.mech_marketplace_config.mech_marketplace_address,
             contract_id=str(AgentMech.contract_id),
             contract_callable="get_request_count",
@@ -512,7 +512,7 @@ class ChainBehaviour(MemeooorrBaseBehaviour, ABC):  # pylint: disable=too-many-a
             return None
 
         service_info = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.staking_token_contract_address,
             contract_public_id=StakingTokenContract.contract_id,
             contract_callable="get_service_info",
@@ -648,7 +648,7 @@ class PullMemesBehaviour(ChainBehaviour):  # pylint: disable=too-many-ancestors
 
         # Call the ledger connection (equivalent to web3.py)
         ledger_api_response = yield from self.get_ledger_api_response(
-            performative=LedgerApiMessage.Performative.GET_STATE,
+            performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore[arg-type]
             ledger_callable="get_block_number",
             chain_id=self.get_chain_id(),
         )
@@ -727,7 +727,7 @@ class ActionPreparationBehaviour(ChainBehaviour):  # pylint: disable=too-many-an
 
         # Use the contract api to interact with the factory contract
         response_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.get_meme_factory_address(),
             contract_id=str(MemeFactoryContract.contract_id),
             contract_callable=contract_callable,
@@ -820,7 +820,7 @@ class ActionPreparationBehaviour(ChainBehaviour):  # pylint: disable=too-many-an
 
         # Use the contract api to interact with the factory contract
         response_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore[arg-type]
             contract_address=self.get_meme_factory_address(),
             contract_id=str(MemeFactoryContract.contract_id),
             contract_callable="get_token_data",
@@ -936,7 +936,7 @@ class CallCheckpointBehaviour(ChainBehaviour):  # pylint: disable=too-many-ances
     def _get_next_checkpoint(self, chain: str) -> Generator[None, None, Optional[int]]:
         """Get the timestamp in which the next checkpoint is reached."""
         next_checkpoint = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.staking_token_contract_address,
             contract_public_id=StakingTokenContract.contract_id,
             contract_callable="get_next_checkpoint_ts",
@@ -967,7 +967,7 @@ class CallCheckpointBehaviour(ChainBehaviour):  # pylint: disable=too-many-ances
         self, chain: str
     ) -> Generator[None, None, Optional[str]]:
         checkpoint_data = yield from self.contract_interact(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address=self.params.staking_token_contract_address,
             contract_public_id=StakingTokenContract.contract_id,
             contract_callable="build_checkpoint_tx",

@@ -259,7 +259,7 @@ class TestGetResponse:
 
         # Create a RESPONSE message directly (wrong performative)
         msg = SrrMessage(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
             payload="{}",
             error=False,
         )
@@ -460,7 +460,7 @@ class TestHandleDoneTask:
 
         # Create a real SrrMessage so Envelope consistency checks pass
         mock_message = SrrMessage(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
             payload="{}",
             error=False,
         )

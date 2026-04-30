@@ -11,11 +11,11 @@ fingerprint:
   connection.py: bafybeiedgm4j46t3togrbn7depmj4fqtwenwcv3c2uc727ovekbvodknma
   readme.md: bafybeies7w2qbwrzed4mh72se5n4hbzlucvngb2eseu4giieiiyjjfjdka
   tests/__init__.py: bafybeiaz377pebpiiwcc7alz4xbuvoimnxhhqcrpzk4va6qpkzy7ralmb4
-  tests/test_connection.py: bafybeigljp4sipkr4wjdodccnya2sav2ibjudwez4j4sums34skygtpj4q
+  tests/test_connection.py: bafybeiewydx6srqlvnytlbj7qk7mzd6mvzt7giqwv7c5uhuw6erm5m5g74
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
+- valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
 class_name: MirrorDBConnection
 config:
   mirror_db_base_url: https://afmdb.autonolas.tech

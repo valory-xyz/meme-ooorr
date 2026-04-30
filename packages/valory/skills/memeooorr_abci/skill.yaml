@@ -15,8 +15,8 @@ fingerprint:
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeias427pxcg3ndkjanrczwwaotrqozmvdo2mnchdjbzlw4n6hdkurq
-  behaviour_classes/base.py: bafybeigej6fdsnlaqyxzrl355gezodzzkz35ddkotcuh4q6hwgyjcr6ouu
-  behaviour_classes/chain.py: bafybeicmhvxnufk3jnwxqj5jzkcjh7hw5b6r2yuceyepssemfyy6pagdja
+  behaviour_classes/base.py: bafybeidtl2nccxi3zd7t6wc5vnxqlqqgycy5qin75y27yaxl6nmxu53phm
+  behaviour_classes/chain.py: bafybeie2aetbt64lf4n5yc5ikgihyaorzaeopge7umyohajirebulx6wyu
   behaviour_classes/db.py: bafybeih436vbb3jbryh4siccilzcdwbp4styt6gifpne42zprpy5lacchy
   behaviour_classes/llm.py: bafybeidedb2wqhvkxqnudgzaxa3kptpg6ak25dhnrnonfjmyyw7dt3jgf4
   behaviour_classes/mech.py: bafybeicz3qhhw5qrf2qlrptur7auimrmkuh76lyw6qnxvwusphampxy2wq
@@ -24,8 +24,8 @@ fingerprint:
   behaviours.py: bafybeife2n2g74lrg4nkqncp65fga7qkopvyqy54nbm2m4a2zoupqcuade
   dialogues.py: bafybeidevvhglynhlnpf6y66xhrxte3wzlfmaf7mjhngy7yea53hgqmmke
   fsm_specification.yaml: bafybeifwiuidpnkj6c3tsez2athqjefzssfomswb7lz3xvld5iemr745ya
-  handlers.py: bafybeidh3hneesstrwdgmrxtd3t2th5r5qi2ztqsosvgkzseyb62twa7iy
-  models.py: bafybeiegojfhmguimgljre4vw3u5lkenyr4r4fv75g6i2j2mb45a65spci
+  handlers.py: bafybeighhimcm73frbdqpvwui5hcryk2gyujpugrj6j3bvts52g5u7j2yu
+  models.py: bafybeibkpnw743popo2xc7kjkcut6yeum4gh65z6o7bff7ml54gppkq5rm
   payloads.py: bafybeigsubasnmooyxclbm4byalkj5ctwksbgekujzackgy7v4xx75rmxm
   prompts.py: bafybeifnelzscaj6vno42jkpgiiyj5y3u5qakrek4j3cns34gpjeryc5ty
   rounds.py: bafybeihfj56gwv4gf7mrxxxcarbzv7uemuxfo7ro36b23xkzgrkyggwwmm
@@ -33,12 +33,12 @@ fingerprint:
   tests/__init__.py: bafybeiep2skhj742bdjbvelskxhshtxofngkmqkb5zrplger6v372pgyai
   tests/conftest.py: bafybeigysaw5xdif5aucgk66p2d7zmrzerigkta4sbvil24oa5l34vywce
   tests/test_behaviour_classes_base.py: bafybeig7bg2scwbakfzyyfvun2fna34ucufeg5uqfngihhuezuvxkl4vwq
-  tests/test_behaviour_classes_chain.py: bafybeihkzlcvjt6zbzp5hhuooiul7ehtbfrvwabxyuustkzxqddzuvkes4
+  tests/test_behaviour_classes_chain.py: bafybeiembk76zgmgaw5uo32jtw46tmzclkbp2iviesqp3r5hepokpunhpa
   tests/test_behaviour_classes_db.py: bafybeiasxuxvbor5i2oughvpwbmqeoobbfjrbn5s7ld3i4zc7gupgq5hwa
   tests/test_behaviour_classes_llm.py: bafybeibxubv6qna7qok2mfvmyo7uh62k7cmljpsyomuror5fslqtduw7hu
   tests/test_behaviour_classes_mech.py: bafybeibbtak65iptmgtqu5aqji2aijoxbjgxa24htrgyic6rqw4biohxua
   tests/test_behaviour_classes_twitter.py: bafybeif2md7riupolqcrgixotnqlciy3ckg22gkpb7aehty5nlcnmqpj5i
-  tests/test_handlers.py: bafybeiex2dqhod3vfggoes3uhfmsi4xx4u6jizzpj7rgx3xuuzzha3blrq
+  tests/test_handlers.py: bafybeibv623xsoq33xssplf7xd4qrbyuvffs5c3dgo4vc7wbcfou4aesjq
   tests/test_models.py: bafybeiajv7wsqx6p4a5klcvoepg2watg7etgoi4ucjul3cjayx4gosccmu
   tests/test_prompts.py: bafybeibmdio3tk5fzw2s4ch2fpbugb2z3nfmuo72yo2jnh4dapjtpuhbhq
   tests/test_rounds.py: bafybeielamakggfrryf67raqy6pazwymofng6v4c5m2zknyo5ib66qzkau
@@ -46,28 +46,28 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
-- valory/tweepy:0.1.0:bafybeicnffj7fhf4rcbut677kabp773x6f5urq7ti6fpmq72d3gjhugwgy
-- valory/genai:0.1.0:bafybeif37mudnpbd4yhvi2kvqfvlnnp6klhudbrncws5vsha72jydj5raq
-- valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
+- valory/tweepy:0.1.0:bafybeihafkfgpghg3a5ynjoc2bepbta7e2xmq366igvst56kw4xpzuzip4
+- valory/genai:0.1.0:bafybeifdzmgwbabwibyc3g5shkgqxt5ky4ru5isyfhw2qf7ermj3d2jfce
+- valory/http_server:0.22.0:bafybeidb3ghedzkdtyhwt4sqddrymofhb6x4gngfqityndzkh2abzt27vq
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeihljnuo6jiyqfvow4vgxy5ih4eha2pjtguh7o6pabe24lbd6mwjaa
+- valory/gnosis_safe:0.1.0:bafybeidumqi6vfzqfugq4i34bgslz2i6xowu5fg7uduxq36dewodjmgdbe
 - valory/meme_factory:0.1.0:bafybeifus4srfeqjy57y64es2ny3w3qeawtsnjwtcs66mosrapebklzsbq
 - valory/service_registry_l2:0.1.0:bafybeiahapgkem23imimvx3nmov553xix4uyno2lqb7t5t5fl5oesg7vnu
 - valory/staking_token:0.1.0:bafybeibdn7ntkijvsco224ehm3bk6i4r7zhlre4ns4mzlmohlqgnw325bu
 - valory/staking_activity_checker:0.1.0:bafybeihywzpoaxltgvgaazzh5sffpl57p5ptp5oyaz545ywpom2a4obyu4
 - valory/agent_mech:0.1.0:bafybeieehgxkc3mosiramapon4u7qkhihxa52actku4wlykypovgcjsjde
 protocols:
-- valory/srr:0.1.0:bafybeiee2dgy6r2z5x6vu2ug5vcxvfgg4v3liq2x7v3hxchtp45mwnchg4
+- valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
 - valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
-- valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
-- valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
-- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
+- valory/http:1.0.0:bafybeickyycie4lqkqfak5cdhjxicwu7msq5hctiklbl72fc6urpwerfyy
+- valory/ledger_api:1.0.0:bafybeib22gporn476oelaqo3rk72zzwzisan3z6yygc2aq47fh7vy7ql34
+- valory/contract_api:1.0.0:bafybeiehaclm4nu7gbkl5zccjifmnwughfidslwpr6n5bpza77ivez4bgu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
-- valory/transaction_settlement_abci:0.1.0:bafybeiemyjkxj2ifzjr5kubtebpyezocl33zxt7gwf7yongg6zlbfjilte
-- valory/mech_interact_abci:0.1.0:bafybeidq4vfhz5hvixmzor4epnnh2xzhhzedcxhxfoa6nqgqjp3yqhktdu
-- valory/agent_db_abci:0.1.0:bafybeib72xypoji23z2xi6ms6h47izdoeihmwyzrpxlrobo2mej5sd22me
-- valory/funds_manager:0.1.0:bafybeiebmb72sxx3odmxzpn7qy4la3i6n5vf4di4vbkt4mt4kuybosftay
+- valory/abstract_round_abci:0.1.0:bafybeieadunota2hkx6tu3ik2mlq36rid7fzy6eb2g5wqqe4z73zlpcoke
+- valory/transaction_settlement_abci:0.1.0:bafybeie4hlhoalflwgw7vxa6yuhezq2frs7pk4gueezopfaptvmpwmfhlq
+- valory/mech_interact_abci:0.1.0:bafybeibthra5nzjgiza2byzielmtgonrefgfmtvo4bmr3afalftmkw6kxa
+- valory/agent_db_abci:0.1.0:bafybeidfgavtzahav72cjjyo7rmiqi4vila3rlvax4qwbdlcdmu5qe33nu
+- valory/funds_manager:0.1.0:bafybeif6e3hqusemnujnzzqvzrmwe4boafq6j3visa7ms3ad3d3j2gx5ke
 behaviours:
   main:
     args: {}
