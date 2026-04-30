@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2025-2026 Valory AG
+#   Copyright 2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -64,9 +64,8 @@ class FinishedFetchPerformanceDataRound(DegenerateRound, ABC):
     """A terminal round indicating that performance data collection is complete."""
 
 
-class AgentPerformanceSummaryAbciApp(
-    AbciApp[Event]
-):  # pylint: disable=too-few-public-methods
+# fmt: off
+class AgentPerformanceSummaryAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
     """AgentPerformanceSummaryAbciApp
 
     Initial round: FetchPerformanceDataRound

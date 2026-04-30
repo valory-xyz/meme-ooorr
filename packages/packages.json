@@ -2,15 +2,15 @@
     "dev": {
         "contract/valory/meme_factory/0.1.0": "bafybeifus4srfeqjy57y64es2ny3w3qeawtsnjwtcs66mosrapebklzsbq",
         "contract/valory/service_registry_l2/0.1.0": "bafybeiahapgkem23imimvx3nmov553xix4uyno2lqb7t5t5fl5oesg7vnu",
-        "connection/valory/twikit/0.1.0": "bafybeibw5v5bp7flri6by57qzjxudxfhktso563jupp6c5mnfxbrv42ujq",
-        "connection/valory/mirror_db/0.1.0": "bafybeicn6ghyq272wc2jdzdwhqnrb3k234sb2qdtxvn5chxuv7rmtojswy",
-        "connection/valory/tweepy/0.1.0": "bafybeihafkfgpghg3a5ynjoc2bepbta7e2xmq366igvst56kw4xpzuzip4",
-        "skill/valory/memeooorr_abci/0.1.0": "bafybeiay4z22oe3cg2on2d2hp67meurp2pdjv43va7373jqbml5a3lgmea",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeierz4amnwqmxdj4vxr4fvu6rvepnb66fym7ruwsuesdlgxgman6xy",
-        "skill/valory/agent_db_abci/0.1.0": "bafybeidfgavtzahav72cjjyo7rmiqi4vila3rlvax4qwbdlcdmu5qe33nu",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeiajzqxlmjklskrc4meykbfoblzewycmflhbtl5ixiglrtgqza37ca",
-        "agent/valory/memeooorr/0.1.0": "bafybeib5cu3agzlux4o2t3o3u52ednf3osk4tecize6o2fioi2bbmuhyly",
-        "service/dvilela/memeooorr/0.1.0": "bafybeidkgz2pliachbnuylxainixxxwmxqq2ntjc7c55uzuzzoeps7tbyu"
+        "connection/valory/twikit/0.1.0": "bafybeieltnh55c6glhgzmx7yzlswug22myz4lpdjzhdnex7bljvnokgwha",
+        "connection/valory/mirror_db/0.1.0": "bafybeieugaitfhxvwuoskw7vao62emqxsnjv2ae2mycng5hvhrucvzixee",
+        "connection/valory/tweepy/0.1.0": "bafybeib4v7xgak3nugvb7m5pggq7xk6nqd6vfwjeb6pzcm3gs3ukw4en7i",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeibqyek2dxplyks73htjbyn4lvqmvtopnpqqmllzqfhbny63n537c4",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeibd6zg7adtfkekmcf6cd3bs46sm75zk2gat4oubvya5zjyzmszwhm",
+        "skill/valory/agent_db_abci/0.1.0": "bafybeigvhppnc4xg4b2heg2neuet254nn343f2nsdkwunavzwp2ox554iq",
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeidapk3quqqv5j6gnyq2agr75bg7wuprforoy43xf5tph2jm52veqm",
+        "agent/valory/memeooorr/0.1.0": "bafybeieqpdptxmaqwh6jyetvxk7gvtvg4cygrco2d47uulp6itom4xswia",
+        "service/dvilela/memeooorr/0.1.0": "bafybeiagqlb4qw22gigqy3l5mq4uldtxatjjfwb5wx6qqaf4g2ig6ayenm"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",

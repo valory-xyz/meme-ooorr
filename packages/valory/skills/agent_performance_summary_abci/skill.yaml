@@ -13,7 +13,7 @@ fingerprint:
   handlers.py: bafybeigcmw6bb43kvmgfzffdgxmjp7mo6efvrp5ngp6wsfoot3gfk5qqve
   models.py: bafybeigzn36bl2algtop7kdo5hvdni3mkdglzgap3x5dvwoyr5ziiry4sq
   payloads.py: bafybeibrfby2hkt3ljy4qpkshx5shjozxu2jfw4wpzggqvejce4nridyhe
-  rounds.py: bafybeifbwovmgz4yarrw3ajvhvc4ldta4ipkkfs6urf6meirgmbxlovokm
+  rounds.py: bafybeiek3bnk4sxjisxdd4rqtamvpc4annxplzmez4cpa5yezzvrh4n56y
   tests/__init__.py: bafybeic3jc62enq56fqjowlolkzlgyb7se6ogz53ne4d3dcwgg5keulg7m
   tests/test_behaviours.py: bafybeiha6lacq723f6aiuu47b66bucpxu3gnymdbnx7m7cxdzgwkvieg5q
   tests/test_handlers.py: bafybeiddptxkml7sjswreygzoaf5vfditf3lc7ipcyxiyn7xqckj2z5umy
@@ -23,8 +23,8 @@ fingerprint:
 fingerprint_ignore_patterns: []
 contracts: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeieadunota2hkx6tu3ik2mlq36rid7fzy6eb2g5wqqe4z73zlpcoke
-- valory/memeooorr_abci:0.1.0:bafybeiay4z22oe3cg2on2d2hp67meurp2pdjv43va7373jqbml5a3lgmea
+- valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
+- valory/memeooorr_abci:0.1.0:bafybeibqyek2dxplyks73htjbyn4lvqmvtopnpqqmllzqfhbny63n537c4
 handlers:
   abci:
     args: {}
@@ -65,4 +65,4 @@ dependencies: {}
 is_abstract: true
 connections: []
 protocols:
-- valory/http:1.0.0:bafybeickyycie4lqkqfak5cdhjxicwu7msq5hctiklbl72fc6urpwerfyy
+- valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
