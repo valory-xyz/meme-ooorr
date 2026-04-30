@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@
 
 import json
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from logging import Logger
+from typing import Any, Callable, Dict, Generator, List, Optional
 
 from aea.skills.base import Model
 
@@ -40,29 +41,29 @@ from packages.valory.skills.agent_db_abci.agent_db_models import (
 class AgentDBClient(Model):
     """AgentDBClient"""
 
-    def __init__(self, base_url, **kwargs: Any):
+    def __init__(self, base_url: str, **kwargs: Any) -> None:
         """Constructor"""
         super().__init__(**kwargs)
         self.base_url: str = base_url.rstrip("/")
         self._attribute_definition_cache: Dict[int, AttributeDefinition] = {}
-        self.agent: AgentInstance = None
-        self.agent_type = None
-        self.address: str = None
-        self.signing_func: Callable = None
-        self.http_request_func: Callable = None
-        self.logger: Callable = None
-        self.agent_type_name: str = None
-        self.agent_name_template: str = None
+        self.agent: Optional[AgentInstance] = None
+        self.agent_type: Optional[AgentType] = None
+        self.address: Optional[str] = None
+        self.signing_func: Optional[Callable[..., Any]] = None
+        self.http_request_func: Optional[Callable[..., Any]] = None
+        self.logger: Optional[Logger] = None
+        self.agent_type_name: Optional[str] = None
+        self.agent_name_template: Optional[str] = None
 
     def initialize(
         self,
         address: str,
-        http_request_func: Callable,
-        signing_func: Callable,
-        logger: Callable,
-        agent_type_name: str = None,
-        agent_name_template: str = None,
-    ):
+        http_request_func: Callable[..., Any],
+        signing_func: Callable[..., Any],
+        logger: Logger,
+        agent_type_name: Optional[str] = None,
+        agent_name_template: Optional[str] = None,
+    ) -> None:
         """Inject external functions"""
         self.address = address
         self.http_request_func = http_request_func
@@ -71,10 +72,13 @@ class AgentDBClient(Model):
         self.agent_type_name = agent_type_name
         self.agent_name_template = agent_name_template
 
-    def _ensure_agent_instance(self):
+    def _ensure_agent_instance(self) -> Generator[Any, None, None]:
         """Fetch or create the agent instance if it doesn't exist."""
         if self.agent is not None:
             return
+
+        if self.address is None:
+            raise ValueError("Address is not set. Call initialize first.")
 
         self.agent = yield from self.get_agent_instance_by_address(self.address)
         if self.agent:
@@ -82,6 +86,7 @@ class AgentDBClient(Model):
                 self.agent.type_id
             )
         elif self.agent_type_name and self.agent_name_template:
+            assert self.logger is not None
             self.logger.info(
                 f"Agent with address {self.address} not found. Registering..."
             )
@@ -89,6 +94,8 @@ class AgentDBClient(Model):
             agent_type = yield from self.get_agent_type_by_type_name(
                 self.agent_type_name
             )
+            if agent_type is None:
+                raise ValueError(f"Agent type {self.agent_type_name} not found")
             self.agent = yield from self.create_agent_instance(
                 agent_name=agent_name,
                 agent_type=agent_type,
@@ -98,8 +105,10 @@ class AgentDBClient(Model):
 
     def _ensure_agent_type_definition(
         self, description: Optional[str] = "Placeholder agent description"
-    ):
+    ) -> Generator[Any, None, None]:
         """Fetch or create the agent type definition if it doesn't exist."""
+        if self.agent_type_name is None:
+            raise ValueError("agent_type_name is not set. Call initialize first.")
         self.agent_type = yield from self.get_agent_type_by_type_name(
             self.agent_type_name
         )
@@ -111,8 +120,12 @@ class AgentDBClient(Model):
 
     def _ensure_agent_type_attribute_definition(
         self, attribute_definitions: List[AttributeDefinition]
-    ):
+    ) -> Generator[Any, None, None]:
         """Fetch or create the agent type attribute definition if it doesn't exist."""
+        if self.agent_type is None:
+            raise ValueError(
+                "agent_type is not set. Call _ensure_agent_type_definition first."
+            )
         existing_attribute_definitions = (
             yield from self.get_attribute_definitions_by_agent_type(self.agent_type)
         )
@@ -129,7 +142,7 @@ class AgentDBClient(Model):
                     is_required=type_attribute_definition.is_required,
                 )
 
-    def _sign_request(self, endpoint):
+    def _sign_request(self, endpoint: str) -> Generator[Any, None, Dict[str, Any]]:
         """Generate authentication"""
 
         if self.signing_func is None:
@@ -157,8 +170,14 @@ class AgentDBClient(Model):
         return auth_data
 
     def _request(
-        self, method, endpoint, payload=None, params=None, auth=False, nested_auth=True
-    ):
+        self,
+        method: str,
+        endpoint: str,
+        payload: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
+        auth: bool = False,
+        nested_auth: bool = True,
+    ) -> Generator[Any, None, Any]:
         """Make the request"""
 
         if self.http_request_func is None:
@@ -170,12 +189,13 @@ class AgentDBClient(Model):
         headers = {"Content-Type": "application/json"}
         if auth:
             payload = payload or {}
-            auth = yield from self._sign_request(endpoint)
+            auth_data = yield from self._sign_request(endpoint)
             if nested_auth:
-                payload["auth"] = auth
+                payload["auth"] = auth_data
             else:
-                payload = payload | auth
+                payload = payload | auth_data
 
+        assert self.logger is not None
         self.logger.info(
             f"Making {method} request to {url} with payload: {payload} and params: {params}"
         )
@@ -198,26 +218,34 @@ class AgentDBClient(Model):
 
     # Agent Type Methods
 
-    def create_agent_type(self, type_name, description) -> Optional[AgentType]:
+    def create_agent_type(
+        self, type_name: str, description: Optional[str]
+    ) -> Generator[Any, None, Optional[AgentType]]:
         """Create agent type"""
         endpoint = "/api/agent-types/"
         payload = {"type_name": type_name, "description": description}
         result = yield from self._request("POST", endpoint, payload)
         return AgentType.model_validate(result) if result else None
 
-    def get_agent_type_by_type_id(self, type_id) -> Optional[AgentType]:
+    def get_agent_type_by_type_id(
+        self, type_id: int
+    ) -> Generator[Any, None, Optional[AgentType]]:
         """Get agent by type"""
         endpoint = f"/api/agent-types/{type_id}/"
         result = yield from self._request("GET", endpoint)
         return AgentType.model_validate(result) if result else None
 
-    def get_agent_type_by_type_name(self, type_name) -> Optional[AgentType]:
+    def get_agent_type_by_type_name(
+        self, type_name: str
+    ) -> Generator[Any, None, Optional[AgentType]]:
         """Get agent by type"""
         endpoint = f"/api/agent-types/name/{type_name}/"
         result = yield from self._request("GET", endpoint)
         return AgentType.model_validate(result) if result else None
 
-    def delete_agent_type(self, agent_type: AgentType):
+    def delete_agent_type(
+        self, agent_type: AgentType
+    ) -> Generator[Any, None, Optional[AgentType]]:
         """Delete agent type"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/"
         result = yield from self._request(
@@ -229,7 +257,7 @@ class AgentDBClient(Model):
 
     def create_agent_instance(
         self, agent_name: str, agent_type: AgentType, eth_address: str
-    ) -> Optional[AgentInstance]:
+    ) -> Generator[Any, None, Optional[AgentInstance]]:
         """Create agent instance"""
         endpoint = "/api/agent-registry/"
         payload = {
@@ -240,13 +268,17 @@ class AgentDBClient(Model):
         result = yield from self._request("POST", endpoint, payload)
         return AgentInstance.model_validate(result) if result else None
 
-    def get_agent_instance_by_address(self, eth_address) -> Optional[AgentInstance]:
+    def get_agent_instance_by_address(
+        self, eth_address: str
+    ) -> Generator[Any, None, Optional[AgentInstance]]:
         """Get agent by Ethereum address"""
         endpoint = f"/api/agent-registry/address/{eth_address}"
         result = yield from self._request("GET", endpoint)
         return AgentInstance.model_validate(result) if result else None
 
-    def get_agent_instances_by_type_id(self, type_id) -> List[AgentInstance]:
+    def get_agent_instances_by_type_id(
+        self, type_id: int
+    ) -> Generator[Any, None, List[AgentInstance]]:
         """Get agent instances by type"""
         endpoint = f"/api/agent-types/{type_id}/agents/"
         params = {
@@ -260,7 +292,9 @@ class AgentDBClient(Model):
             [AgentInstance.model_validate(agent) for agent in result] if result else []
         )
 
-    def delete_agent_instance(self, agent_instance: AgentInstance):
+    def delete_agent_instance(
+        self, agent_instance: AgentInstance
+    ) -> Generator[Any, None, Optional[AgentInstance]]:
         """Delete agent instance"""
         endpoint = f"/api/agent-registry/{agent_instance.agent_id}/"
         result = yield from self._request(
@@ -277,7 +311,7 @@ class AgentDBClient(Model):
         data_type: str,
         default_value: str,
         is_required: bool = False,
-    ):
+    ) -> Generator[Any, None, Optional[AttributeDefinition]]:
         """Create attribute definition"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/attributes/"
         payload = {
@@ -294,7 +328,7 @@ class AgentDBClient(Model):
 
     def get_attribute_definition_by_name(
         self, attr_name: str
-    ) -> Optional[AttributeDefinition]:
+    ) -> Generator[Any, None, Optional[AttributeDefinition]]:
         """Get attribute definition by name"""
         endpoint = f"/api/attributes/name/{attr_name}"
         result = yield from self._request("GET", endpoint)
@@ -302,7 +336,7 @@ class AgentDBClient(Model):
 
     def get_attribute_definition_by_id(
         self, attr_id: int
-    ) -> Optional[AttributeDefinition]:
+    ) -> Generator[Any, None, Optional[AttributeDefinition]]:
         """Get attribute definition by id"""
         if attr_id in self._attribute_definition_cache:
             return self._attribute_definition_cache[attr_id]
@@ -314,7 +348,9 @@ class AgentDBClient(Model):
             return definition
         return None
 
-    def get_attribute_definitions_by_agent_type(self, agent_type: AgentType):
+    def get_attribute_definitions_by_agent_type(
+        self, agent_type: AgentType
+    ) -> Generator[Any, None, List[AttributeDefinition]]:
         """Get attributes by agent type"""
         endpoint = f"/api/agent-types/{agent_type.type_id}/attributes/"
         result = yield from self._request("GET", endpoint)
@@ -324,7 +360,9 @@ class AgentDBClient(Model):
             else []
         )
 
-    def delete_attribute_definition(self, attr_def: AttributeDefinition):
+    def delete_attribute_definition(
+        self, attr_def: AttributeDefinition
+    ) -> Generator[Any, None, Optional[AttributeDefinition]]:
         """Delete attribute definition"""
         endpoint = f"/api/attributes/{attr_def.attr_def_id}/"
         result = yield from self._request(
@@ -339,8 +377,8 @@ class AgentDBClient(Model):
         agent_instance: AgentInstance,
         attribute_def: AttributeDefinition,
         value: Any,
-        value_type="string",
-    ) -> Optional[AttributeInstance]:
+        value_type: str = "string",
+    ) -> Generator[Any, None, Optional[AttributeInstance]]:
         """Create attribute instance"""
         endpoint = f"/api/agents/{agent_instance.agent_id}/attributes/"
         payload = {
@@ -354,8 +392,10 @@ class AgentDBClient(Model):
         return AttributeInstance.model_validate(result) if result else None
 
     def get_attribute_instance(
-        self, agent_instance: AgentInstance, attr_def: AttributeDefinition
-    ) -> Optional[AttributeInstance]:
+        self,
+        agent_instance: AgentInstance,
+        attr_def: AttributeDefinition,
+    ) -> Generator[Any, None, Optional[AttributeInstance]]:
         """Get attribute instance by agent ID and attribute definition ID"""
         endpoint = (
             f"/api/agents/{agent_instance.agent_id}/attributes/{attr_def.attr_def_id}/"
@@ -369,8 +409,8 @@ class AgentDBClient(Model):
         attribute_def: AttributeDefinition,
         attribute_instance: AttributeInstance,
         value: Any,
-        value_type="string",
-    ) -> Optional[AttributeInstance]:
+        value_type: str = "string",
+    ) -> Generator[Any, None, Optional[AttributeInstance]]:
         """Update attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_instance.attribute_id}"
         payload = {
@@ -385,7 +425,7 @@ class AgentDBClient(Model):
 
     def delete_attribute_instance(
         self, attribute_instance: AttributeInstance
-    ) -> Optional[AttributeInstance]:
+    ) -> Generator[Any, None, Optional[AttributeInstance]]:
         """Delete attribute instance"""
         endpoint = f"/api/agent-attributes/{attribute_instance.attribute_id}"
         result = yield from self._request(
@@ -395,7 +435,9 @@ class AgentDBClient(Model):
 
     # Get all attributes of an agent instance
 
-    def get_all_agent_instance_attributes_raw(self, agent_instance: AgentInstance):
+    def get_all_agent_instance_attributes_raw(
+        self, agent_instance: AgentInstance
+    ) -> Generator[Any, None, Any]:
         """Get all attributes of an agent by agent ID"""
         endpoint = f"/api/agents/{agent_instance.agent_id}/attributes/"
         payload = {
@@ -406,11 +448,17 @@ class AgentDBClient(Model):
         )
         return result
 
-    def parse_attribute_instance(self, attribute_instance: AttributeInstance):
+    def parse_attribute_instance(
+        self, attribute_instance: AttributeInstance
+    ) -> Generator[Any, None, Dict[str, Any]]:
         """Parse attribute instance"""
         attribute_definition = yield from self.get_attribute_definition_by_id(
             attribute_instance.attr_def_id
         )
+        if attribute_definition is None:
+            raise ValueError(
+                f"Attribute definition for id {attribute_instance.attr_def_id} not found"
+            )
         data_type = attribute_definition.data_type
         attr_value = getattr(attribute_instance, f"{data_type}_value", None)
 
@@ -424,7 +472,7 @@ class AgentDBClient(Model):
 
     def cast_attribute_value(
         self, attr_value: Any, attribute_definition: AttributeDefinition
-    ):
+    ) -> Any:
         """Cast an attribute value to its defined data type."""
 
         # fetch data type from attribute definition
@@ -448,7 +496,9 @@ class AgentDBClient(Model):
 
         return attr_value
 
-    def get_all_agent_instance_attributes_parsed(self, agent_instance: AgentInstance):
+    def get_all_agent_instance_attributes_parsed(
+        self, agent_instance: AgentInstance
+    ) -> Generator[Any, None, List[Dict[str, Any]]]:
         """Get all attributes of an agent by agent ID"""
         attribute_instances = yield from self.get_all_agent_instance_attributes_raw(
             agent_instance
@@ -459,13 +509,20 @@ class AgentDBClient(Model):
             parsed_attributes.append(result)
         return parsed_attributes
 
-    def update_or_create_agent_attribute(self, attr_name: str, attr_value: Any):
+    def update_or_create_agent_attribute(
+        self, attr_name: str, attr_value: Any
+    ) -> Generator[Any, None, bool]:
         """Helper to update or create a single agent attribute."""
         attr_def = yield from self.get_attribute_definition_by_name(attr_name)
+        if attr_def is None:
+            raise ValueError(f"Attribute definition '{attr_name}' not found")
+        if self.agent is None:
+            raise ValueError("Agent instance not loaded")
         attr_instance = yield from self.get_attribute_instance(self.agent, attr_def)
 
         # casting the attr_value to the correct type from attribute definition data type
         attr_value = self.cast_attribute_value(attr_value, attr_def)
+        assert self.logger is not None
         if attr_instance:
 
             self.logger.info(f"Updating attribute {attr_name} with value {attr_value}")

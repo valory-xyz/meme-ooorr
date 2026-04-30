@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 # pylint: disable=too-few-public-methods
 
 from datetime import datetime, timedelta, timezone
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -43,7 +44,7 @@ from packages.valory.skills.agent_db_abci.twitter_models import (
 )
 
 
-def _make_agent_instance(**overrides):
+def _make_agent_instance(**overrides: Any) -> Any:
     """Create a test AgentInstance."""
     defaults = {
         "agent_id": 1,
@@ -56,7 +57,7 @@ def _make_agent_instance(**overrides):
     return AgentInstance(**defaults)
 
 
-def _make_agent_type(**overrides):
+def _make_agent_type(**overrides: Any) -> Any:
     """Create a test AgentType."""
     defaults = {
         "type_id": 10,
@@ -67,7 +68,7 @@ def _make_agent_type(**overrides):
     return AgentType(**defaults)
 
 
-def _make_client_mock():
+def _make_client_mock() -> Any:
     """Create a mock AgentDBClient."""
     client = MagicMock()
     client.address = "0xABC"
@@ -87,7 +88,7 @@ def _make_database() -> AgentsFunDatabase:
     return db
 
 
-def _exhaust_gen(gen):
+def _exhaust_gen(gen: Any) -> Any:
     """Drive a generator to completion, returning its return value."""
     result = None
     try:
@@ -102,7 +103,7 @@ def _exhaust_gen(gen):
 class TestAgentsFunDatabaseInit:
     """Test AgentsFunDatabase.__init__ (lines 189-194)."""
 
-    def test_init_defaults(self):
+    def test_init_defaults(self) -> None:
         """Test default attribute values after init."""
         db = _make_database()
         assert db.client is None
@@ -115,7 +116,7 @@ class TestAgentsFunDatabaseInit:
 class TestAgentsFunDatabaseInitialize:
     """Test AgentsFunDatabase.initialize."""
 
-    def test_initialize_sets_client(self):
+    def test_initialize_sets_client(self) -> None:
         """Test initialize sets client and logger."""
         db = _make_database()
         mock_client = _make_client_mock()
@@ -130,7 +131,7 @@ class TestAgentsFunDatabaseInitialize:
 class TestAgentsFunAgent:
     """Test AgentsFunAgent."""
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test constructor sets defaults."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -146,7 +147,7 @@ class TestAgentsFunAgent:
         assert agent.follows == []
         assert agent.loaded is False
 
-    def test_str(self):
+    def test_str(self) -> None:
         """Test string representation."""
         client = _make_client_mock()
         ai = _make_agent_instance(agent_id=42)
@@ -157,13 +158,13 @@ class TestAgentsFunAgent:
         assert "42" in result
         assert "testuser" in result
 
-    def test_delete(self):
+    def test_delete(self) -> None:
         """Test delete yields from client.delete_agent_instance."""
         client = _make_client_mock()
         ai = _make_agent_instance()
         agent = AgentsFunAgent(client, ai)
 
-        def mock_delete(instance):
+        def mock_delete(instance: Any) -> Any:
             yield
 
         client.delete_agent_instance = mock_delete
@@ -171,7 +172,7 @@ class TestAgentsFunAgent:
         gen = agent.delete()
         _exhaust_gen(gen)
 
-    def test_load_all_interaction_types(self):
+    def test_load_all_interaction_types(self) -> None:
         """Test load parses all Twitter interaction types."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -215,7 +216,7 @@ class TestAgentsFunAgent:
             },
         ]
 
-        def mock_get_attrs(ai):
+        def mock_get_attrs(ai: Any) -> Any:
             yield
             return parsed_attrs
 
@@ -232,7 +233,7 @@ class TestAgentsFunAgent:
         assert len(agent.follows) == 1
         assert agent.loaded is True
 
-    def test_load_unknown_attr_name_skipped(self):
+    def test_load_unknown_attr_name_skipped(self) -> None:
         """Test load skips unknown attribute names (falls through all if/elif)."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -242,7 +243,7 @@ class TestAgentsFunAgent:
             {"attr_name": "some_other_field", "attr_value": "irrelevant"},
         ]
 
-        def mock_get_attrs(ai):
+        def mock_get_attrs(ai: Any) -> Any:
             yield
             return parsed_attrs
 
@@ -254,7 +255,7 @@ class TestAgentsFunAgent:
         assert agent.twitter_username is None
         assert agent.loaded is True
 
-    def test_load_unknown_action_raises(self):
+    def test_load_unknown_action_raises(self) -> None:
         """Test load raises ValueError for unknown Twitter action (branch 111->106)."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -272,7 +273,7 @@ class TestAgentsFunAgent:
             },
         ]
 
-        def mock_get_attrs(ai):
+        def mock_get_attrs(ai: Any) -> Any:
             yield
             return parsed_attrs
 
@@ -282,13 +283,13 @@ class TestAgentsFunAgent:
         with pytest.raises(ValueError, match="Unknown Twitter action: unknown_action"):
             _exhaust_gen(gen)
 
-    def test_load_empty_attributes(self):
+    def test_load_empty_attributes(self) -> None:
         """Test load with no attributes."""
         client = _make_client_mock()
         ai = _make_agent_instance()
         agent = AgentsFunAgent(client, ai)
 
-        def mock_get_attrs(ai):
+        def mock_get_attrs(ai: Any) -> Any:
             yield
             return []
 
@@ -299,7 +300,7 @@ class TestAgentsFunAgent:
         assert agent.loaded is True
         assert agent.posts == []
 
-    def test_add_interaction(self):
+    def test_add_interaction(self) -> None:
         """Test add_interaction creates attribute instance."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -317,11 +318,13 @@ class TestAgentsFunAgent:
             default_value="{}",
         )
 
-        def mock_get_attr_def(name):
+        def mock_get_attr_def(name: Any) -> Any:
             yield
             return attr_def
 
-        def mock_create_attr_inst(agent_instance, attribute_def, value, value_type):
+        def mock_create_attr_inst(
+            agent_instance: Any, attribute_def: Any, value: Any, value_type: Any
+        ) -> Any:
             yield
             return MagicMock()
 
@@ -332,7 +335,7 @@ class TestAgentsFunAgent:
         result = _exhaust_gen(gen)
         assert result is not None
 
-    def test_add_interaction_unknown_action_raises(self):
+    def test_add_interaction_unknown_action_raises(self) -> None:
         """Test add_interaction raises for unknown action."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -345,7 +348,7 @@ class TestAgentsFunAgent:
         with pytest.raises(ValueError, match="Unknown Twitter action: bogus"):
             _exhaust_gen(gen)
 
-    def test_add_interaction_attr_def_not_found_raises(self):
+    def test_add_interaction_attr_def_not_found_raises(self) -> None:
         """Test add_interaction raises when attr definition not found."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -354,7 +357,7 @@ class TestAgentsFunAgent:
         now = datetime.now(timezone.utc)
         post = TwitterPost(action="post", timestamp=now, tweet_id="t1", text="hello")
 
-        def mock_get_attr_def(name):
+        def mock_get_attr_def(name: Any) -> Any:
             yield
 
         client.get_attribute_definition_by_name = mock_get_attr_def
@@ -363,7 +366,7 @@ class TestAgentsFunAgent:
         with pytest.raises(ValueError, match="Attribute definition not found"):
             _exhaust_gen(gen)
 
-    def test_update_twitter_details(self):
+    def test_update_twitter_details(self) -> None:
         """Test update_twitter_details calls update_or_create_agent_attribute."""
         client = _make_client_mock()
         ai = _make_agent_instance()
@@ -371,7 +374,7 @@ class TestAgentsFunAgent:
         agent.twitter_username = "user1"
         agent.twitter_user_id = "id1"
 
-        def mock_update(name, value):
+        def mock_update(name: Any, value: Any) -> Any:
             yield
             return True
 
@@ -384,7 +387,7 @@ class TestAgentsFunAgent:
 class TestAgentsFunDatabaseLoad:
     """Test AgentsFunDatabase.load."""
 
-    def test_load_success(self):
+    def test_load_success(self) -> None:
         """Test successful load with agents."""
         db = _make_database()
         client = _make_client_mock()
@@ -393,24 +396,24 @@ class TestAgentsFunDatabaseLoad:
         agent_type = _make_agent_type()
         agent_instances = [_make_agent_instance()]
 
-        def mock_ensure_type_def(desc):
+        def mock_ensure_type_def(desc: Any) -> Any:
             yield
 
-        def mock_ensure_attr_def(defs):
+        def mock_ensure_attr_def(defs: Any) -> Any:
             yield
 
-        def mock_ensure_agent():
+        def mock_ensure_agent() -> Any:
             yield
 
-        def mock_get_type(name):
+        def mock_get_type(name: Any) -> Any:
             yield
             return agent_type
 
-        def mock_get_instances(type_id):
+        def mock_get_instances(type_id: Any) -> Any:
             yield
             return agent_instances
 
-        def mock_get_attrs(ai):
+        def mock_get_attrs(ai: Any) -> Any:
             yield
             return []
 
@@ -428,7 +431,7 @@ class TestAgentsFunDatabaseLoad:
         assert len(db.agents) == 1
         assert db.my_agent is not None  # eth_address matches client.address
 
-    def test_load_agent_type_already_set(self):
+    def test_load_agent_type_already_set(self) -> None:
         """Test load skips get_agent_type_by_type_name when agent_type already set."""
         db = _make_database()
         client = _make_client_mock()
@@ -437,16 +440,16 @@ class TestAgentsFunDatabaseLoad:
         agent_type = _make_agent_type()
         db.agent_type = agent_type  # Pre-set
 
-        def mock_ensure_type_def(desc):
+        def mock_ensure_type_def(desc: Any) -> Any:
             yield
 
-        def mock_ensure_attr_def(defs):
+        def mock_ensure_attr_def(defs: Any) -> Any:
             yield
 
-        def mock_ensure_agent():
+        def mock_ensure_agent() -> Any:
             yield
 
-        def mock_get_instances(type_id):
+        def mock_get_instances(type_id: Any) -> Any:
             yield
             return []
 
@@ -460,22 +463,22 @@ class TestAgentsFunDatabaseLoad:
 
         assert db.agent_type is agent_type
 
-    def test_load_agent_type_not_found(self):
+    def test_load_agent_type_not_found(self) -> None:
         """Test load when agent type can't be found."""
         db = _make_database()
         client = _make_client_mock()
         db.initialize(client)
 
-        def mock_ensure_type_def(desc):
+        def mock_ensure_type_def(desc: Any) -> Any:
             yield
 
-        def mock_ensure_attr_def(defs):
+        def mock_ensure_attr_def(defs: Any) -> Any:
             yield
 
-        def mock_ensure_agent():
+        def mock_ensure_agent() -> Any:
             yield
 
-        def mock_get_type(name):
+        def mock_get_type(name: Any) -> Any:
             yield
 
         client._ensure_agent_type_definition = mock_ensure_type_def
@@ -489,7 +492,7 @@ class TestAgentsFunDatabaseLoad:
         assert db.agent_type is None
         client.logger.error.assert_called_once()
 
-    def test_load_my_agent_fallback(self):
+    def test_load_my_agent_fallback(self) -> None:
         """Test load creates my_agent from client.agent if not found in instances."""
         db = _make_database()
         client = _make_client_mock()
@@ -499,24 +502,24 @@ class TestAgentsFunDatabaseLoad:
         # Agent instances don't include our address
         other_instance = _make_agent_instance(agent_id=99, eth_address="0xOTHER")
 
-        def mock_ensure_type_def(desc):
+        def mock_ensure_type_def(desc: Any) -> Any:
             yield
 
-        def mock_ensure_attr_def(defs):
+        def mock_ensure_attr_def(defs: Any) -> Any:
             yield
 
-        def mock_ensure_agent():
+        def mock_ensure_agent() -> Any:
             yield
 
-        def mock_get_type(name):
+        def mock_get_type(name: Any) -> Any:
             yield
             return agent_type
 
-        def mock_get_instances(type_id):
+        def mock_get_instances(type_id: Any) -> Any:
             yield
             return [other_instance]
 
-        def mock_get_attrs(ai):
+        def mock_get_attrs(ai: Any) -> Any:
             yield
             return []
 
@@ -538,7 +541,7 @@ class TestAgentsFunDatabaseLoad:
 class TestAgentsFunDatabaseGetTweetLikesNumber:
     """Test AgentsFunDatabase.get_tweet_likes_number."""
 
-    def test_likes_already_loaded(self):
+    def test_likes_already_loaded(self) -> None:
         """Test counting likes with agents already loaded."""
         db = _make_database()
         client = _make_client_mock()
@@ -559,7 +562,7 @@ class TestAgentsFunDatabaseGetTweetLikesNumber:
         result = _exhaust_gen(gen)
         assert result == 1
 
-    def test_likes_not_loaded(self):
+    def test_likes_not_loaded(self) -> None:
         """Test loading agent that wasn't loaded."""
         db = _make_database()
         client = _make_client_mock()
@@ -570,7 +573,7 @@ class TestAgentsFunDatabaseGetTweetLikesNumber:
         agent = AgentsFunAgent(client, ai)
         agent.loaded = False
 
-        def mock_load():
+        def mock_load() -> Any:
             agent.loaded = True
             agent.likes = [
                 TwitterLike(
@@ -579,14 +582,14 @@ class TestAgentsFunDatabaseGetTweetLikesNumber:
             ]
             yield
 
-        agent.load = mock_load
+        agent.load = mock_load  # type: ignore[method-assign]
         db.agents = [agent]
 
         gen = db.get_tweet_likes_number("t1")
         result = _exhaust_gen(gen)
         assert result == 1
 
-    def test_likes_no_match(self):
+    def test_likes_no_match(self) -> None:
         """Test no matching likes — inner loop exhausts without break."""
         db = _make_database()
         client = _make_client_mock()
@@ -608,7 +611,7 @@ class TestAgentsFunDatabaseGetTweetLikesNumber:
 class TestAgentsFunDatabaseGetTweetRetweetsNumber:
     """Test AgentsFunDatabase.get_tweet_retweets_number."""
 
-    def test_retweets_already_loaded(self):
+    def test_retweets_already_loaded(self) -> None:
         """Test with agents already loaded (branch 254->253)."""
         db = _make_database()
         client = _make_client_mock()
@@ -628,7 +631,7 @@ class TestAgentsFunDatabaseGetTweetRetweetsNumber:
         result = _exhaust_gen(gen)
         assert result == 1
 
-    def test_retweets_not_loaded(self):
+    def test_retweets_not_loaded(self) -> None:
         """Test with agent not loaded."""
         db = _make_database()
         client = _make_client_mock()
@@ -639,7 +642,7 @@ class TestAgentsFunDatabaseGetTweetRetweetsNumber:
         agent = AgentsFunAgent(client, ai)
         agent.loaded = False
 
-        def mock_load():
+        def mock_load() -> Any:
             agent.loaded = True
             agent.retweets = [
                 TwitterRewtweet(
@@ -650,14 +653,14 @@ class TestAgentsFunDatabaseGetTweetRetweetsNumber:
             ]
             yield
 
-        agent.load = mock_load
+        agent.load = mock_load  # type: ignore[method-assign]
         db.agents = [agent]
 
         gen = db.get_tweet_retweets_number("t1")
         result = _exhaust_gen(gen)
         assert result == 1
 
-    def test_retweets_no_match(self):
+    def test_retweets_no_match(self) -> None:
         """Test no matching retweets."""
         db = _make_database()
         client = _make_client_mock()
@@ -682,7 +685,7 @@ class TestAgentsFunDatabaseGetTweetRetweetsNumber:
 class TestAgentsFunDatabaseGetTweetReplies:
     """Test AgentsFunDatabase.get_tweet_replies."""
 
-    def test_replies_found(self):
+    def test_replies_found(self) -> None:
         """Test finding replies to a tweet."""
         db = _make_database()
         client = _make_client_mock()
@@ -710,7 +713,7 @@ class TestAgentsFunDatabaseGetTweetReplies:
         assert len(result) == 1
         assert result[0].tweet_id == "r1"
 
-    def test_replies_agent_not_loaded(self):
+    def test_replies_agent_not_loaded(self) -> None:
         """Test loading agent for replies."""
         db = _make_database()
         client = _make_client_mock()
@@ -721,7 +724,7 @@ class TestAgentsFunDatabaseGetTweetReplies:
         agent = AgentsFunAgent(client, ai)
         agent.loaded = False
 
-        def mock_load():
+        def mock_load() -> Any:
             agent.loaded = True
             agent.posts = [
                 TwitterPost(
@@ -734,14 +737,14 @@ class TestAgentsFunDatabaseGetTweetReplies:
             ]
             yield
 
-        agent.load = mock_load
+        agent.load = mock_load  # type: ignore[method-assign]
         db.agents = [agent]
 
         gen = db.get_tweet_replies("t1")
         result = _exhaust_gen(gen)
         assert len(result) == 1
 
-    def test_replies_no_match(self):
+    def test_replies_no_match(self) -> None:
         """Test no matching replies — inner loop exhausts without break."""
         db = _make_database()
         client = _make_client_mock()
@@ -765,7 +768,7 @@ class TestAgentsFunDatabaseGetTweetReplies:
 class TestAgentsFunDatabaseGetTweetFeedback:
     """Test AgentsFunDatabase.get_tweet_feedback."""
 
-    def test_feedback(self):
+    def test_feedback(self) -> None:
         """Test get_tweet_feedback aggregates likes, retweets, replies."""
         db = _make_database()
         client = _make_client_mock()
@@ -801,7 +804,7 @@ class TestAgentsFunDatabaseGetTweetFeedback:
 class TestAgentsFunDatabaseGetActiveAgents:
     """Test AgentsFunDatabase.get_active_agents."""
 
-    def test_active_agent_with_username(self):
+    def test_active_agent_with_username(self) -> None:
         """Test active agent with username is included."""
         db = _make_database()
         db.logger = MagicMock()
@@ -825,7 +828,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
         result = db.get_active_agents()
         assert len(result) == 1
 
-    def test_agent_not_loaded_skipped_with_logger(self):
+    def test_agent_not_loaded_skipped_with_logger(self) -> None:
         """Test unloaded agent is skipped and logged (branch 313->289)."""
         db = _make_database()
         db.logger = MagicMock()
@@ -840,7 +843,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
         assert len(result) == 0
         db.logger.warning.assert_called_once()
 
-    def test_agent_not_loaded_skipped_without_logger(self):
+    def test_agent_not_loaded_skipped_without_logger(self) -> None:
         """Test unloaded agent is skipped without logger."""
         db = _make_database()
         db.logger = None
@@ -854,7 +857,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
         result = db.get_active_agents()
         assert len(result) == 0
 
-    def test_agent_no_posts_skipped(self):
+    def test_agent_no_posts_skipped(self) -> None:
         """Test loaded agent with no posts is skipped."""
         db = _make_database()
         db.logger = MagicMock()
@@ -869,7 +872,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
         result = db.get_active_agents()
         assert len(result) == 0
 
-    def test_agent_old_posts_skipped(self):
+    def test_agent_old_posts_skipped(self) -> None:
         """Test loaded agent with posts older than 7 days is skipped."""
         db = _make_database()
         db.logger = MagicMock()
@@ -890,7 +893,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
         result = db.get_active_agents()
         assert len(result) == 0
 
-    def test_active_agent_no_username_logged(self):
+    def test_active_agent_no_username_logged(self) -> None:
         """Test active agent without username is logged and not included."""
         db = _make_database()
         db.logger = MagicMock()
@@ -916,7 +919,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
         db.logger.warning.assert_called_once()
         assert "no twitter_username" in db.logger.warning.call_args[0][0]
 
-    def test_active_agent_no_username_no_logger(self):
+    def test_active_agent_no_username_no_logger(self) -> None:
         """Test active agent without username when logger is None."""
         db = _make_database()
         db.logger = None
@@ -944,7 +947,7 @@ class TestAgentsFunDatabaseGetActiveAgents:
 class TestAgentsFunDatabaseStr:
     """Test AgentsFunDatabase.__str__."""
 
-    def test_str(self):
+    def test_str(self) -> None:
         """Test string representation."""
         db = _make_database()
         db.agents = [MagicMock(), MagicMock()]

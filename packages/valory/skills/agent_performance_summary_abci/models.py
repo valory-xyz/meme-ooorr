@@ -69,7 +69,7 @@ class AgentPerformanceSummary:
         ]
         return AgentPerformanceSummary(**data)
 
-    def to_json(self):
+    def to_json(self) -> str:
         """Serialize the summary to a JSON string."""
         return json.dumps(asdict(self))
 
@@ -106,7 +106,7 @@ class AgentPerformanceSummaryParams(BaseParams):
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    abci_app_cls: Type[AbciApp] = AgentPerformanceSummaryAbciApp
+    abci_app_cls: Type[AbciApp] = AgentPerformanceSummaryAbciApp  # type: ignore[assignment]
 
     @property
     def params(self) -> AgentPerformanceSummaryParams:

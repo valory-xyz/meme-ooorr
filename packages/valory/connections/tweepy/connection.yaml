@@ -11,7 +11,7 @@ fingerprint:
   readme.md: bafybeib5oflnp3gymrottersu6qrnitjmaifl2gvbvjq7kbmsdbihhzfaa
   tests/__init__.py: bafybeifwgfv6gae3hbdktj4s34rttnknxdcqmpr2b3ecgxqoquq4la6psy
   tests/conftest.py: bafybeihsh6mlrlrnb4gcud2h2y3tc2occyyveg4jndv7i4fom45jof5aka
-  tests/test_connection.py: bafybeies3bpgfrakzpxkewohjbnyjehflu766csggq6lp7lnhexf3o2ltq
+  tests/test_connection.py: bafybeigvam3t6lixfsbsdp5xvwwcdlg4kaefmoj3gif4xlgzatnszdok2i
   tests/test_tweepy_wrapper.py: bafybeidowxyim5nuiaiot7zblxdpstvov6dg5ox42e6fgcuelhjt7yzb3a
   tweepy_wrapper.py: bafybeiaqhb2g3o6xo5tz6j7ojmuy2hz46h6dks735cjcuvm6mpas7rkwnu
 fingerprint_ignore_patterns: []

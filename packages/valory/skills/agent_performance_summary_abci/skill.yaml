@@ -6,25 +6,25 @@ type: skill
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeidwijw5a2fisvlobwslucfwdfeyb3pulekabl6a4nlrojncrznrz4
-  behaviours.py: bafybeigrkra2ftqp6kj22yjp7shpimn2josreixbjf3km6klea5p6rtxm4
-  dialogues.py: bafybeihhotmeh6tcqippp7fikpjg6xfdgee3iftrxgxglzszwdisjp4qle
+  __init__.py: bafybeiguns5ahxytqmaqvnp3tevethdbh2ulru2htsp2rmyhwoxflesaga
+  behaviours.py: bafybeiflkauw272cppenx4mzutgoxzzdmfupayktccu26eliepzle4geha
+  dialogues.py: bafybeignoeakzaf7nmdnsjhnjoga3ks6z424qcwmzkol3kikawhnxf6zju
   fsm_specification.yaml: bafybeieh2wmnqfkrpfeyvkoojbvd7tbjg36edhnisi6mycdjugymgut3vi
-  handlers.py: bafybeiburod5huffijsh4azlxhpfnsvtilbqkwrsfg6ofiivwpblib4f6a
-  models.py: bafybeiazbrreawwkk7z3mjhrmx4erajnr2udnxmr2fftatnplwtt3ebqzu
+  handlers.py: bafybeigcmw6bb43kvmgfzffdgxmjp7mo6efvrp5ngp6wsfoot3gfk5qqve
+  models.py: bafybeigzn36bl2algtop7kdo5hvdni3mkdglzgap3x5dvwoyr5ziiry4sq
   payloads.py: bafybeibrfby2hkt3ljy4qpkshx5shjozxu2jfw4wpzggqvejce4nridyhe
-  rounds.py: bafybeic2svkxd4sgbuxexro5bo6jekkc6oqgqr4uaoucfsd7j6f7lf6sqy
-  tests/__init__.py: bafybeifpwen2kv6qttq7u26ywcnqfwki5kvlhlgf456wbdxih4uex3aa2a
-  tests/test_behaviours.py: bafybeihujge5nytonzdk6nzpodjunrmqxxw24nkbwan5ddmgegqs5mbrsa
-  tests/test_handlers.py: bafybeid4tdfdz3cs2q57otyzvpvkeeiafm37wsxkyjh4or5sikwvbsmlwe
-  tests/test_models.py: bafybeibbusa2iia5ajnowtvl7rjyeiozgwzhriknl24abjq5ujjh6tyqmq
-  tests/test_payloads.py: bafybeigazrdx4hf45atmy4uo3akkkn3hjx4ttoo2n37prermzcuorhpjtm
-  tests/test_rounds.py: bafybeiacyfuqgtq4zrtiig267bw33lblcxnr7sjuegratylyjqveoo35ja
+  rounds.py: bafybeiek3bnk4sxjisxdd4rqtamvpc4annxplzmez4cpa5yezzvrh4n56y
+  tests/__init__.py: bafybeic3jc62enq56fqjowlolkzlgyb7se6ogz53ne4d3dcwgg5keulg7m
+  tests/test_behaviours.py: bafybeiha6lacq723f6aiuu47b66bucpxu3gnymdbnx7m7cxdzgwkvieg5q
+  tests/test_handlers.py: bafybeiddptxkml7sjswreygzoaf5vfditf3lc7ipcyxiyn7xqckj2z5umy
+  tests/test_models.py: bafybeid6ufhgngpgfmunjuwgvmo27sipqo7trqizxh6myzkqx3xvmtkan4
+  tests/test_payloads.py: bafybeiawppxjpkfi5r6ss3hfsul3ph7uwwrxmmigbbo3xhvaoxokyuwvcu
+  tests/test_rounds.py: bafybeiaum4ynhkqp5aqor7rxqe5rewbzjid23kh4xrlm4sj4i25saflx24
 fingerprint_ignore_patterns: []
 contracts: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
-- valory/memeooorr_abci:0.1.0:bafybeiby547usrbk6wkfhrkibriy3q422zrigxier7jfiraqfykkka476y
+- valory/memeooorr_abci:0.1.0:bafybeibqyek2dxplyks73htjbyn4lvqmvtopnpqqmllzqfhbny63n537c4
 handlers:
   abci:
     args: {}

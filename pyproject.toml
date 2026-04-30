@@ -52,12 +52,69 @@ Repository = "https://github.com/valory-xyz/meme-ooorr"
 
 [dependency-groups]
 dev = [
-    "tomte[cli, tests]>=0.6.5",
+    "tomte[cli, tests] @ git+https://github.com/valory-xyz/tomte.git@92cb14f4696bf3eba3ceec36e1a915961d5c7992",
 ]
 
 [tool.uv]
 default-groups = "all"
 prerelease = "allow"
+
+[tool.tomte]
+# Service is published under dvilela/, agent under valory/. Pin
+# packages_paths to the primary first-party author.
+packages_paths = "packages/valory"
+# Third-party packages on disk are synced from these upstream repos
+# (open-autonomy/open-aea pins auto-derived from pyproject).
+upstream_pins = [
+    "valory-xyz/mech-interact@v0.28.0",
+    "valory-xyz/genai@v6.1.0",
+    "valory-xyz/kv-store@v0.4.0",
+    "valory-xyz/funds-manager@v2.3.0",
+]
+# UI bundle JS (Vite hash-suffixed agentsfun-ui-build/assets/*) trip
+# generic-api-key on every rebuild. Plus a constant-name string in
+# behaviour_classes/twitter.py (`pending_tweets_for_tw_mech` collection
+# key) trips the same rule — public field name, not a credential.
+gitleaks_extra_paths = [
+    "packages/dvilela/skills/memeooorr_abci/agentsfun-ui.*",
+    "packages/dvilela/skills/memeooorr_abci/behaviour_classes/.*",
+]
+# `aea-helpers check-dependencies` does string-strict matching across
+# all package YAMLs and tox.ini. These specifiers diverge between
+# first-party skill.yaml declarations and upstream third-party YAMLs
+# (e.g. mirror_db has aiohttp `>=3.7.4` while http_client has
+# `<4.0.0,>=3.8.5`). All variants are runtime-compatible so excluding
+# them keeps the check honest without imposing churn on upstream YAMLs.
+check_dependencies_extra_excludes = [
+    "aiohttp",
+    "open-aea-ledger-ethereum",
+    "pytest-asyncio",
+    "typing-extensions",
+    "hexbytes",
+    "py-eth-sig-utils",
+    "twitter_text_parser",
+    "twitter-text-parser",
+    "ipfshttpclient",
+    "open-aea-test-autonomy",
+    "open-aea-cli-ipfs",
+    "ecdsa",
+    "certifi",
+    "multidict",
+    "eth_typing",
+    "eth-abi",
+    "eth-utils",
+    "packaging",
+    "pycryptodome",
+    "py-multicodec",
+    "py-multibase",
+    "httpx",
+    "werkzeug",
+    "attrs",
+    "protobuf",
+    "hypothesis",
+    "pytest",
+]
+tomte_dep_pin = " @ git+https://github.com/valory-xyz/tomte.git@92cb14f4696bf3eba3ceec36e1a915961d5c7992"
 
 [tool.uv.build-backend]
 module-name = ["packages"]

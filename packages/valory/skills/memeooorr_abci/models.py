@@ -24,7 +24,9 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from aea.skills.base import SkillContext
 
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs
+from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
