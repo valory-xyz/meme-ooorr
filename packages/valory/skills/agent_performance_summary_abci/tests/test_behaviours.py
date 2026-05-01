@@ -450,7 +450,7 @@ class TestFetchAgentPerformanceSummary:
 
         assert len(write_kv_calls) == 1
         assert LAST_METRIC_FETCH_TIMESTAMP_KEY in write_kv_calls[0]
-        assert write_kv_calls[0][LAST_METRIC_FETCH_TIMESTAMP_KEY] == 1700000000
+        assert write_kv_calls[0][LAST_METRIC_FETCH_TIMESTAMP_KEY] == "1700000000"
 
 
 class TestSaveAgentPerformanceSummary:  # pylint: disable=too-few-public-methods
