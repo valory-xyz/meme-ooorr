@@ -27,11 +27,13 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests  # type: ignore[import]
 import tweepy  # type: ignore[import]
 
 from packages.valory.connections.tweepy.tweepy_wrapper import (
     DEFAULT_LOGGER,
     Twitter,
+    _TimeoutHTTPAdapter,
     is_twitter_id,
 )
 
@@ -155,6 +157,116 @@ class TestTwitterInit:
         """When a logger is supplied, it is used instead of the default."""
         assert twitter_with_logger.logger is not DEFAULT_LOGGER
         assert twitter_with_logger.logger.name == "test_custom"
+
+
+# ---------------------------------------------------------------------------
+# Timeout adapter and rate-limit-wait
+# ---------------------------------------------------------------------------
+
+
+def _build_twitter_with_real_sessions(timeout: int) -> Twitter:
+    """Construct a Twitter wrapper with real Sessions on Client and API."""
+    with patch(
+        "packages.valory.connections.tweepy.tweepy_wrapper.tweepy"
+    ) as mock_tweepy:
+        mock_tweepy.OAuth2BearerHandler.return_value = MagicMock()
+        mock_tweepy.OAuth2AppHandler.return_value = MagicMock()
+        mock_tweepy.OAuth1UserHandler.return_value = MagicMock()
+
+        api_obj = MagicMock()
+        api_obj.session = requests.Session()
+        client_obj = MagicMock()
+        client_obj.session = requests.Session()
+
+        mock_tweepy.API.return_value = api_obj
+        mock_tweepy.Client.return_value = client_obj
+        mock_tweepy.errors.TweepyException = tweepy.errors.TweepyException
+
+        tw = Twitter(
+            consumer_key=CONSUMER_KEY,
+            consumer_secret=CONSUMER_SECRET,
+            access_token=ACCESS_TOKEN,
+            access_token_secret=ACCESS_TOKEN_SECRET,
+            bearer_token=BEARER_TOKEN,
+            request_timeout=timeout,
+        )
+        tw._mock_tweepy = mock_tweepy  # type: ignore[attr-defined]
+    return tw
+
+
+class TestTwitterTimeoutHardening:
+    """Tests for the request-timeout adapter and rate-limit handling."""
+
+    def test_client_built_with_wait_on_rate_limit(self) -> None:
+        """tweepy.Client is constructed with wait_on_rate_limit=True."""
+        tw = _build_twitter_with_real_sessions(timeout=30)
+        kwargs = tw._mock_tweepy.Client.call_args.kwargs  # type: ignore[attr-defined]
+        assert kwargs["wait_on_rate_limit"] is True
+
+    @pytest.mark.parametrize("scheme", ["http://", "https://"])
+    def test_client_session_has_timeout_adapter(self, scheme: str) -> None:
+        """The Client session mounts a _TimeoutHTTPAdapter for both schemes."""
+        tw = _build_twitter_with_real_sessions(timeout=30)
+        adapter = tw.client.session.get_adapter(f"{scheme}example.com/path")
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
+        assert adapter._timeout == 30
+
+    @pytest.mark.parametrize("scheme", ["http://", "https://"])
+    def test_api_session_has_timeout_adapter(self, scheme: str) -> None:
+        """The API session mounts a _TimeoutHTTPAdapter for both schemes."""
+        tw = _build_twitter_with_real_sessions(timeout=30)
+        adapter = tw.api.session.get_adapter(f"{scheme}example.com/path")
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
+        assert adapter._timeout == 30
+
+    def test_custom_timeout_propagates(self) -> None:
+        """A non-default request_timeout is propagated to the adapter."""
+        tw = _build_twitter_with_real_sessions(timeout=45)
+        adapter = tw.client.session.get_adapter("https://example.com")
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
+        assert adapter._timeout == 45
+
+    def test_adapter_injects_timeout_when_caller_omits_it(self) -> None:
+        """When send() is called without a timeout, the adapter's default applies."""
+        adapter = _TimeoutHTTPAdapter(timeout=30)
+        captured: dict = {}
+
+        def fake_super_send(
+            self_inner: object, request: object, **kwargs: object
+        ) -> object:  # noqa: ARG001
+            captured.update(kwargs)
+            return MagicMock()
+
+        with patch.object(
+            requests.adapters.HTTPAdapter,
+            "send",
+            autospec=True,
+            side_effect=fake_super_send,
+        ):
+            adapter.send(MagicMock())
+
+        assert captured["timeout"] == 30
+
+    def test_adapter_respects_explicit_caller_timeout(self) -> None:
+        """When send() is called with an explicit timeout, the adapter does not override it."""
+        adapter = _TimeoutHTTPAdapter(timeout=30)
+        captured: dict = {}
+
+        def fake_super_send(
+            self_inner: object, request: object, **kwargs: object
+        ) -> object:  # noqa: ARG001
+            captured.update(kwargs)
+            return MagicMock()
+
+        with patch.object(
+            requests.adapters.HTTPAdapter,
+            "send",
+            autospec=True,
+            side_effect=fake_super_send,
+        ):
+            adapter.send(MagicMock(), timeout=5)
+
+        assert captured["timeout"] == 5
 
 
 # ---------------------------------------------------------------------------

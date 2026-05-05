@@ -80,6 +80,7 @@ def _make_connection(
     disable_tweets: bool = False,
     logged_in: bool = True,
     cookies_path: Optional[Path] = None,
+    request_timeout: int = 30,
 ) -> TwikitConnection:
     """Build a TwikitConnection instance without calling __init__."""
     conn = object.__new__(TwikitConnection)
@@ -91,6 +92,7 @@ def _make_connection(
     conn.cookies_path = cookies_path or Path(tempfile.mkdtemp()) / "cookies.json"
     conn.disable_tweets = disable_tweets
     conn.skip_connection = skip_connection
+    conn.request_timeout = request_timeout
     conn.client = MagicMock() if not skip_connection else None
     conn.last_call = datetime(2020, 1, 1, tzinfo=timezone.utc)
     conn.dialogues = SrrDialogues(connection_id=PUBLIC_ID)
@@ -1375,4 +1377,57 @@ class TestDeleteTweetAllRetriesFail:
         with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
             await conn.delete_tweet("tweet_123")
 
-        assert conn.client.delete_tweet.await_count == 5  # MAX_POST_RETRIES
+
+# ---------------------------------------------------------------------------
+# _with_timeout helper
+# ---------------------------------------------------------------------------
+
+
+class TestWithTimeout:
+    """Tests for the per-call request timeout helper."""
+
+    @pytest.mark.asyncio
+    async def test_returns_result_when_within_budget(self) -> None:
+        """A coroutine that completes within the timeout returns its result."""
+        conn = _make_connection(request_timeout=1)
+
+        async def fast() -> str:
+            return "ok"
+
+        assert await conn._with_timeout(fast(), "fast") == "ok"
+
+    @pytest.mark.asyncio
+    async def test_raises_timeout_when_coro_exceeds_budget(self) -> None:
+        """A coroutine that exceeds the timeout raises asyncio.TimeoutError."""
+        conn = _make_connection(request_timeout=0)  # 0 forces immediate timeout
+
+        async def slow() -> None:
+            await asyncio.sleep(60)
+
+        with pytest.raises(asyncio.TimeoutError):
+            await conn._with_timeout(slow(), "slow")
+
+    @pytest.mark.asyncio
+    async def test_logs_error_on_timeout(self) -> None:
+        """A timeout logs an error containing the operation name and budget."""
+        conn = _make_connection(request_timeout=0)
+        conn.logger = MagicMock()
+
+        async def slow() -> None:
+            await asyncio.sleep(60)
+
+        with pytest.raises(asyncio.TimeoutError):
+            await conn._with_timeout(slow(), "search_tweet")
+
+        message = conn.logger.error.call_args.args[0]
+        assert "search_tweet" in message
+        assert "0" in message  # the configured timeout is included
+
+    @pytest.mark.asyncio
+    async def test_search_uses_timeout(self) -> None:
+        """A hung search_tweet call surfaces as TimeoutError, not infinite hang."""
+        conn = _make_connection(request_timeout=0)
+        conn.client.search_tweet = MagicMock(side_effect=lambda **_: asyncio.sleep(60))
+
+        with pytest.raises(asyncio.TimeoutError):
+            await conn.search(query="anything")

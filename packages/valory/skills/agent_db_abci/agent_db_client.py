@@ -189,12 +189,22 @@ class AgentDBClient(Model):
         self.logger.info(f"Response status: {response.status_code}")
 
         if response.status_code in [200, 201]:
-            return json.loads(response.body)
+            try:
+                return json.loads(response.body)
+            except (json.JSONDecodeError, ValueError):
+                self.logger.error(
+                    f"AgentDB returned non-JSON body for {method} {url}: "
+                    f"{response.body!r}"
+                )
+                return None
 
         if response.status_code == 404:
             return None
 
-        raise RuntimeError(f"Request failed: {response.status_code} - {response.text}")
+        self.logger.warning(
+            f"AgentDB request failed: {response.status_code} - {response.text}"
+        )
+        return None
 
     # Agent Type Methods
 

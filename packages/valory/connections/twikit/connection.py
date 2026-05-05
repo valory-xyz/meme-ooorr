@@ -116,6 +116,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         )
         self.disable_tweets = self.configuration.config.get("twikit_disable_tweets")
         self.skip_connection = self.configuration.config.get("twikit_skip_connection")
+        self.request_timeout: int = self.configuration.config.get(
+            "twikit_request_timeout", 30
+        )
         if not self.skip_connection:
             self.client = twikit.Client(language="en-US")
         else:
@@ -339,6 +342,16 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 srr_message, dialogue, f"Exception while calling Twikit:\n{e}"
             )
 
+    async def _with_timeout(self, coro: Any, name: str) -> Any:
+        """Run a twikit coroutine with the configured request timeout."""
+        try:
+            return await asyncio.wait_for(coro, timeout=self.request_timeout)
+        except asyncio.TimeoutError:
+            self.logger.error(
+                f"twikit {name} did not respond within {self.request_timeout}s"
+            )
+            raise
+
     async def validate_login(self) -> bool:
         """Validate login"""
         valid_login = False
@@ -346,7 +359,10 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         while retries < 3:
             try:
                 # Check we can recover one example user
-                user = await self.client.get_user_by_screen_name("autonolas")
+                user = await self._with_timeout(
+                    self.client.get_user_by_screen_name("autonolas"),
+                    "get_user_by_screen_name",
+                )
                 valid_login = user.id == "1450081635559428107"
                 if valid_login:
                     self.logger.info(
@@ -370,11 +386,14 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
         try:
             # Try to login via cookies
-            await self.client.login(
-                auth_info_1=self.username,
-                auth_info_2=self.email,
-                password=self.password,
-                cookies_file=str(self.cookies_path),
+            await self._with_timeout(
+                self.client.login(
+                    auth_info_1=self.username,
+                    auth_info_2=self.email,
+                    password=self.password,
+                    cookies_file=str(self.cookies_path),
+                ),
+                "login",
             )
 
             valid_login = await self.validate_login()
@@ -388,11 +407,14 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
             self.cookies_path.unlink()
 
             try:
-                await self.client.login(
-                    auth_info_1=self.username,
-                    auth_info_2=self.email,
-                    password=self.password,
-                    cookies_file=str(self.cookies_path),
+                await self._with_timeout(
+                    self.client.login(
+                        auth_info_1=self.username,
+                        auth_info_2=self.email,
+                        password=self.password,
+                        cookies_file=str(self.cookies_path),
+                    ),
+                    "login",
                 )
 
                 valid_login = await self.validate_login()
@@ -409,8 +431,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         self, query: str, product: str = "Top", count: int = 10
     ) -> List[Dict]:
         """Search tweets"""
-        tweets = await self.client.search_tweet(
-            query=query, product=product, count=count
+        tweets = await self._with_timeout(
+            self.client.search_tweet(query=query, product=product, count=count),
+            "search_tweet",
         )
         return [tweet_to_json(t) for t in tweets]
 
@@ -463,7 +486,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         while retries < MAX_POST_RETRIES:
             try:
                 self.logger.info(f"Posting: {kwargs}")
-                result = await self.client.create_tweet(**kwargs)
+                result = await self._with_timeout(
+                    self.client.create_tweet(**kwargs), "create_tweet"
+                )
                 tweet_id = result.id
                 if tweet_id is not None:
                     self.logger.info(f"Tweet created with tweet ID: {tweet_id}")
@@ -480,7 +505,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         retries = 0
         while retries < MAX_GET_RETRIES:
             try:
-                await self.client.get_tweet_by_id(tweet_id)
+                await self._with_timeout(
+                    self.client.get_tweet_by_id(tweet_id), "get_tweet_by_id"
+                )
                 return tweet_id
             except twikit.errors.TweetNotAvailable:
                 self.logger.error("Failed to verify the tweet. Retrying...")
@@ -497,7 +524,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         while retries < MAX_POST_RETRIES:
             try:
                 self.logger.info(f"Deleting tweet {tweet_id}")
-                await self.client.delete_tweet(tweet_id)
+                await self._with_timeout(
+                    self.client.delete_tweet(tweet_id), "delete_tweet"
+                )
                 break
             except Exception as e:
                 self.logger.error(f"Failed to delete the tweet: {e}. Retrying...")
@@ -509,17 +538,25 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     ) -> List[Dict]:
         """Get user tweets"""
 
-        user = await self.client.get_user_by_screen_name(twitter_handle)
+        user = await self._with_timeout(
+            self.client.get_user_by_screen_name(twitter_handle),
+            "get_user_by_screen_name",
+        )
         await asyncio.sleep(1)
-        tweets = await self.client.get_user_tweets(
-            user_id=user.id, tweet_type=tweet_type, count=count
+        tweets = await self._with_timeout(
+            self.client.get_user_tweets(
+                user_id=user.id, tweet_type=tweet_type, count=count
+            ),
+            "get_user_tweets",
         )
         return [tweet_to_json(t, user.id) for t in tweets]
 
     async def like_tweet(self, tweet_id: str) -> Dict:
         """Like a tweet"""
         try:
-            await self.client.favorite_tweet(tweet_id)
+            await self._with_timeout(
+                self.client.favorite_tweet(tweet_id), "favorite_tweet"
+            )
             self.logger.info(f"Successfully liked tweet {tweet_id}")
             return {"success": True}
         except twikit.errors.TwitterException as e:
@@ -532,7 +569,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     async def follow_user(self, user_id: str) -> Dict:
         """Follow user"""
         try:
-            await self.client.follow_user(user_id)
+            await self._with_timeout(self.client.follow_user(user_id), "follow_user")
             self.logger.info(f"Successfully followed user {user_id}")
             return {"success": True}
         except twikit.errors.TwitterException as e:
@@ -545,7 +582,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     async def retweet(self, tweet_id: str) -> Dict:
         """Retweet"""
         try:
-            await self.client.retweet(tweet_id)
+            await self._with_timeout(self.client.retweet(tweet_id), "retweet")
             self.logger.info(f"Successfully retweeted tweet {tweet_id}")
             return {"success": True}
         except twikit.errors.TwitterException as e:
@@ -563,7 +600,10 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 # Add random delay
                 delay = secrets.randbelow(5)
                 await asyncio.sleep(delay)
-                await self.client.get_user_by_screen_name(user_name)
+                await self._with_timeout(
+                    self.client.get_user_by_screen_name(user_name),
+                    "get_user_by_screen_name",
+                )
                 not_suspendend_users.append(user_name)
             except twikit.errors.TwitterException:
                 continue
@@ -574,7 +614,10 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
     async def get_user_by_screen_name(self, screen_name: str) -> Dict:
         """Get user by screen name"""
-        user = await self.client.get_user_by_screen_name(screen_name=screen_name)
+        user = await self._with_timeout(
+            self.client.get_user_by_screen_name(screen_name=screen_name),
+            "get_user_by_screen_name",
+        )
         return user_to_json(user)
 
     async def get_twitter_user_id(self) -> str:
@@ -616,8 +659,11 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                     )
 
                 # Upload media to Twitter
-                result = await self.client.upload_media(
-                    source=media_path, wait_for_completion=True
+                result = await self._with_timeout(
+                    self.client.upload_media(
+                        source=media_path, wait_for_completion=True
+                    ),
+                    "upload_media",
                 )
                 media_id = result
 
