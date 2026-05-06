@@ -56,15 +56,13 @@ class LoadDatabaseBehaviour(
 
                 yield from self._write_kv({"agent_details": agent_details})
             except RuntimeError as exc:
-                # AgentDB returned a non-success status. Rather than
-                # crashing the FSM (which would supervisor-restart into
-                # the same crash loop), log and yield without sending a
-                # payload. The round timeout will fire and the next
-                # period will retry the load.
                 self.context.logger.error(
-                    f"AgentDB unavailable during LoadDatabaseRound: {exc}. "
-                    "Skipping period to retry on the next round."
+                    f"AgentDB unavailable during LoadDatabaseRound: {exc}"
                 )
+                # ``act()`` re-creates this generator on the next tick,
+                # so without a sleep here a 5xx-ing AgentDB would be
+                # hit many times per second until the round timeout.
+                yield from self.sleep(self.params.sleep_time)
                 return
 
             payload = LoadDatabasePayload(

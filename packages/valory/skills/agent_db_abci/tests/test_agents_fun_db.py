@@ -871,6 +871,33 @@ class TestAgentsFunDatabaseGetTweetFeedback:
         assert result == {"likes": 0, "retweets": 0, "replies": []}
         client.logger.error.assert_called_once()
 
+    def test_feedback_safe_default_when_logger_unset(self):
+        """Empty-feedback fallback works when ``self.logger`` is unset.
+
+        The ``if self.logger`` guard must not crash when
+        ``get_tweet_feedback`` is called before ``initialize`` has
+        populated ``self.logger``.
+        """
+        db = _make_database()
+        client = _make_client_mock()
+        db.client = client
+        db.logger = None  # exercises the falsy branch
+
+        ai = _make_agent_instance()
+        agent = AgentsFunAgent(client, ai)
+        agent.loaded = False
+
+        def mock_load():
+            yield
+            raise RuntimeError("Request failed: 500")
+
+        agent.load = mock_load
+        db.agents = [agent]
+
+        gen = db.get_tweet_feedback("t1")
+        result = _exhaust_gen(gen)
+        assert result == {"likes": 0, "retweets": 0, "replies": []}
+
 
 class TestAgentsFunDatabaseGetActiveAgents:
     """Test AgentsFunDatabase.get_active_agents."""

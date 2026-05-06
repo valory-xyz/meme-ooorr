@@ -17,7 +17,7 @@ fingerprint:
   behaviour_classes/__init__.py: bafybeias427pxcg3ndkjanrczwwaotrqozmvdo2mnchdjbzlw4n6hdkurq
   behaviour_classes/base.py: bafybeiaj3jrp2yuxns7gdlmu5zxvb6tijte6732x6vunvmojsktli4dxy4
   behaviour_classes/chain.py: bafybeicmhvxnufk3jnwxqj5jzkcjh7hw5b6r2yuceyepssemfyy6pagdja
-  behaviour_classes/db.py: bafybeidyqzxnrv2lnj4nvmwhjg4gudtivydcwhzgipa4py33d4dliqcmei
+  behaviour_classes/db.py: bafybeifrnm4cgd47quevcucbneulhgxpkrpn7rt3vscaaphqkkcptzovde
   behaviour_classes/llm.py: bafybeidedb2wqhvkxqnudgzaxa3kptpg6ak25dhnrnonfjmyyw7dt3jgf4
   behaviour_classes/mech.py: bafybeicz3qhhw5qrf2qlrptur7auimrmkuh76lyw6qnxvwusphampxy2wq
   behaviour_classes/twitter.py: bafybeietwinth55mpyyvajq6pwcyoule3qtmu52sgz2uyixsgohqwie6pi
@@ -34,7 +34,7 @@ fingerprint:
   tests/conftest.py: bafybeigysaw5xdif5aucgk66p2d7zmrzerigkta4sbvil24oa5l34vywce
   tests/test_behaviour_classes_base.py: bafybeidben5ggtomcttojirnm5to4yf5qzncwggwlevjw36tmldaj545oe
   tests/test_behaviour_classes_chain.py: bafybeihkzlcvjt6zbzp5hhuooiul7ehtbfrvwabxyuustkzxqddzuvkes4
-  tests/test_behaviour_classes_db.py: bafybeiasxuxvbor5i2oughvpwbmqeoobbfjrbn5s7ld3i4zc7gupgq5hwa
+  tests/test_behaviour_classes_db.py: bafybeifp77fxj67mqdpqfvdevjbmgsrswn2ma36ajswccr5ttxykni27ia
   tests/test_behaviour_classes_llm.py: bafybeibxubv6qna7qok2mfvmyo7uh62k7cmljpsyomuror5fslqtduw7hu
   tests/test_behaviour_classes_mech.py: bafybeibbtak65iptmgtqu5aqji2aijoxbjgxa24htrgyic6rqw4biohxua
   tests/test_behaviour_classes_twitter.py: bafybeif2md7riupolqcrgixotnqlciy3ckg22gkpb7aehty5nlcnmqpj5i
@@ -46,7 +46,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
-- valory/tweepy:0.1.0:bafybeiebhhdghj4bnkb43mvxic2k57juxcsxd5z2ifyllptxxpl5touciy
+- valory/tweepy:0.1.0:bafybeifbwezm4umv6s3rrsabsnufvtyr7yek2ej3mbbqbrav7jtkc6ftbi
 - valory/genai:0.1.0:bafybeif37mudnpbd4yhvi2kvqfvlnnp6klhudbrncws5vsha72jydj5raq
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
 contracts:
@@ -66,7 +66,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
 - valory/transaction_settlement_abci:0.1.0:bafybeiemyjkxj2ifzjr5kubtebpyezocl33zxt7gwf7yongg6zlbfjilte
 - valory/mech_interact_abci:0.1.0:bafybeidq4vfhz5hvixmzor4epnnh2xzhhzedcxhxfoa6nqgqjp3yqhktdu
-- valory/agent_db_abci:0.1.0:bafybeiftf5sa2fdq6n2crpvdbgtgz2hxgq6burflrcoersyd33r5fq6pgi
+- valory/agent_db_abci:0.1.0:bafybeicb3txbv5ab7n4juhkr262w6p5c7axrpzyutacsqawdiohpmrw3cm
 - valory/funds_manager:0.1.0:bafybeiebmb72sxx3odmxzpn7qy4la3i6n5vf4di4vbkt4mt4kuybosftay
 behaviours:
   main:

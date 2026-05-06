@@ -34,6 +34,7 @@ from packages.valory.connections.tweepy.tweepy_wrapper import (
     DEFAULT_LOGGER,
     Twitter,
     _TimeoutHTTPAdapter,
+    _mount_timeout_adapter,
     is_twitter_id,
 )
 
@@ -308,6 +309,16 @@ class TestTwitterTimeoutHardening:
             session.request("GET", "https://example.com/", timeout=5)
 
         assert captured["timeout"] == 5
+
+    def test_mount_timeout_adapter_is_noop_for_none_session(self) -> None:
+        """``_mount_timeout_adapter(None, ...)`` is safe to call.
+
+        ``Twitter.__init__`` calls it with ``getattr(client, 'session', None)``
+        so a future tweepy version that drops ``.session`` does not crash
+        construction; it just leaves the timeout unmounted on that path.
+        """
+        # No exception, no return value.
+        assert _mount_timeout_adapter(None, 30) is None
 
 
 # ---------------------------------------------------------------------------

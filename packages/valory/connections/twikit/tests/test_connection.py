@@ -1447,14 +1447,50 @@ class TestWithTimeout:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_get_user_tweets_returns_empty_list_on_timeout(self) -> None:
-        """``get_user_tweets`` swallows timeouts in either inner call."""
+    async def test_get_user_tweets_returns_empty_list_on_first_call_timeout(
+        self,
+    ) -> None:
+        """``get_user_tweets`` returns [] when the user-lookup call times out."""
         conn = _make_connection(request_timeout=0)
         conn.client.get_user_by_screen_name = MagicMock(
             side_effect=lambda *_: asyncio.sleep(60)
         )
 
         result = await conn.get_user_tweets("someone")
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_get_user_tweets_returns_empty_list_on_second_call_timeout(
+        self,
+    ) -> None:
+        """Tweet-fetch timeout after user-lookup success returns [].
+
+        Exercises the second ``except asyncio.TimeoutError`` branch in
+        ``get_user_tweets`` (the user-lookup succeeds, the tweet-fetch
+        is the call that times out).
+        """
+        conn = _make_connection(request_timeout=30)
+
+        async def fake_with_timeout(coro: Any, name: str, timeout: Any = None) -> Any:
+            # Drain the coroutine so it doesn't trigger
+            # "coroutine was never awaited" warnings.
+            try:
+                coro.close()
+            except Exception:  # pylint: disable=broad-except
+                pass
+            if name == "get_user_by_screen_name":
+                return MagicMock(id="u1")
+            raise asyncio.TimeoutError()
+
+        conn._with_timeout = fake_with_timeout
+        conn.client.get_user_by_screen_name = MagicMock()
+        conn.client.get_user_tweets = MagicMock()
+
+        with patch(
+            "packages.valory.connections.twikit.connection.asyncio.sleep",
+            new=AsyncMock(),
+        ):
+            result = await conn.get_user_tweets("someone")
         assert result == []
 
     @pytest.mark.asyncio
