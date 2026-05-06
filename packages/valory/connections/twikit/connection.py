@@ -55,12 +55,9 @@ RETRY_MAX_ATTEMPTS = 3
 RETRY_INITIAL_DELAY_SECONDS = 1.0
 RETRY_BACKOFF_FACTOR = 2.0
 
-# Exceptions that warrant a retry. Excludes twikit.errors.TwitterException
-# because that surfaces semantic API errors (rate limit, missing tweet,
-# suspended user) that retrying will not recover from.
+# Transport-only: HTTPStatusError (4xx/5xx) is not retried.
 _RETRYABLE_EXCEPTIONS = (
-    httpx.HTTPError,
-    httpx.RequestError,
+    httpx.TransportError,
     asyncio.TimeoutError,
 )
 
@@ -370,8 +367,12 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
             awaitable on each call.
         :param name: Operation name for logging.
         :param max_retries: Maximum number of attempts before giving up.
+        :raises ValueError: If ``max_retries`` is less than 1.
+        :raises RuntimeError: If the loop exits without a result.
         :return: Whatever ``coro_factory`` returns on success.
         """
+        if max_retries < 1:
+            raise ValueError(f"max_retries must be >= 1, got {max_retries}")
         last_exc: Optional[BaseException] = None
         delay = RETRY_INITIAL_DELAY_SECONDS
         for attempt in range(max_retries):
@@ -385,7 +386,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 if attempt < max_retries - 1:
                     await asyncio.sleep(delay)
                     delay *= RETRY_BACKOFF_FACTOR
-        assert last_exc is not None
+        if last_exc is None:  # pragma: no cover  # unreachable defensive guard
+            raise RuntimeError(f"twikit {name} retry loop exited without a result")
+        self.logger.error(f"twikit {name} exhausted {max_retries} retries: {last_exc}")
         raise last_exc
 
     async def validate_login(self) -> bool:
@@ -625,6 +628,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 # Add random delay
                 delay = secrets.randbelow(5)
                 await asyncio.sleep(delay)
+                # ``name=user_name`` binds the loop value (avoids late-binding closure).
                 await self._call_with_retry(
                     lambda name=user_name: self.client.get_user_by_screen_name(name),
                     "get_user_by_screen_name",

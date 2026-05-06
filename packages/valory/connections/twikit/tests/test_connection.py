@@ -1452,7 +1452,7 @@ class TestCallWithRetry:
 
     @pytest.mark.asyncio
     async def test_raises_last_exception_after_exhausting_retries(self) -> None:
-        """When all retries fail, the final exception is re-raised."""
+        """Exhausted retries re-raise the last error and pin the 1s, 2s schedule."""
         conn = _make_connection()
         attempts = {"n": 0}
 
@@ -1460,46 +1460,162 @@ class TestCallWithRetry:
             attempts["n"] += 1
             raise httpx.ConnectError("permanent")
 
-        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+        sleep_mock = AsyncMock()
+        with patch(
+            "packages.valory.connections.twikit.connection.asyncio.sleep",
+            new=sleep_mock,
+        ):
             with pytest.raises(httpx.ConnectError, match="permanent"):
                 await conn._call_with_retry(factory_call, "op", max_retries=3)
         assert attempts["n"] == 3
+        assert [c.args[0] for c in sleep_mock.await_args_list] == [1.0, 2.0]
 
     @pytest.mark.asyncio
-    async def test_search_retries_then_returns_tweets(self) -> None:
-        """search() is wrapped: a transient httpx error is retried."""
+    async def test_does_not_retry_on_httpx_status_error(self) -> None:
+        """``httpx.HTTPStatusError`` (4xx/5xx) is not retried."""
+        conn = _make_connection()
+        attempts = {"n": 0}
+
+        request = httpx.Request("GET", "https://example.com")
+        response = httpx.Response(429, request=request)
+
+        async def factory_call() -> Any:
+            attempts["n"] += 1
+            raise httpx.HTTPStatusError(
+                "rate limit", request=request, response=response
+            )
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            with pytest.raises(httpx.HTTPStatusError):
+                await conn._call_with_retry(factory_call, "op", max_retries=4)
+        assert attempts["n"] == 1
+
+    @pytest.mark.asyncio
+    async def test_rejects_max_retries_below_one(self) -> None:
+        """``max_retries < 1`` raises ValueError (survives ``python -O``)."""
+        conn = _make_connection()
+
+        async def factory_call() -> str:
+            return "never reached"
+
+        with pytest.raises(ValueError, match="max_retries must be >= 1"):
+            await conn._call_with_retry(factory_call, "op", max_retries=0)
+
+    @pytest.mark.parametrize(
+        "method_name,client_attr,call_args,expected",
+        [
+            ("search", "search_tweet", {"query": "q"}, []),
+            ("like_tweet", "favorite_tweet", {"tweet_id": "t1"}, {"success": True}),
+            ("follow_user", "follow_user", {"user_id": "u1"}, {"success": True}),
+            ("retweet", "retweet", {"tweet_id": "t1"}, {"success": True}),
+            (
+                "get_user_by_screen_name",
+                "get_user_by_screen_name",
+                {"screen_name": "u1"},
+                {"id": "1", "name": "n", "screen_name": "u1"},
+            ),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_wrapped_method_retries_transient_then_returns(
+        self,
+        method_name: str,
+        client_attr: str,
+        call_args: Dict[str, Any],
+        expected: Any,
+    ) -> None:
+        """Each wrapped method retries a transient ConnectError once.
+
+        :param method_name: The public connection method to call.
+        :param client_attr: The underlying ``self.client`` attribute that
+            ``_call_with_retry`` exercises.
+        :param call_args: kwargs to pass to the public method.
+        :param expected: Expected return value.
+        """
         conn = _make_connection()
         call_count = {"n": 0}
 
-        async def fake_search_tweet(**_kwargs: Any) -> Any:
+        async def flaky(*_args: Any, **_kwargs: Any) -> Any:
             call_count["n"] += 1
             if call_count["n"] == 1:
                 raise httpx.ConnectError("transient")
+            if client_attr == "get_user_by_screen_name":
+                user = MagicMock()
+                user.id = "1"
+                user.name = "n"
+                user.screen_name = "u1"
+                return user
+            if method_name == "search":
+                return []
+            return MagicMock()
+
+        setattr(conn.client, client_attr, flaky)
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            method = getattr(conn, method_name)
+            result = await method(**call_args)
+
+        assert result == expected
+        assert call_count["n"] == 2
+
+    @pytest.mark.asyncio
+    async def test_get_user_tweets_retries_each_inner_call(self) -> None:
+        """Both underlying calls in ``get_user_tweets`` retry independently."""
+        conn = _make_connection()
+        user_lookup_calls = {"n": 0}
+        tweets_calls = {"n": 0}
+
+        user = MagicMock()
+        user.id = "u1"
+
+        async def flaky_user_lookup(_handle: str) -> Any:
+            user_lookup_calls["n"] += 1
+            if user_lookup_calls["n"] == 1:
+                raise httpx.ConnectError("transient lookup")
+            return user
+
+        async def flaky_user_tweets(**_kwargs: Any) -> Any:
+            tweets_calls["n"] += 1
+            if tweets_calls["n"] == 1:
+                raise httpx.ConnectError("transient fetch")
             return []
 
-        conn.client.search_tweet = fake_search_tweet
+        conn.client.get_user_by_screen_name = flaky_user_lookup
+        conn.client.get_user_tweets = flaky_user_tweets
 
-        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
-            tweets = await conn.search(query="anything")
+        with patch(
+            "packages.valory.connections.twikit.connection.asyncio.sleep",
+            new=AsyncMock(),
+        ):
+            result = await conn.get_user_tweets("someone")
 
-        assert tweets == []
-        assert call_count["n"] == 2
+        assert result == []
+        assert user_lookup_calls["n"] == 2
+        assert tweets_calls["n"] == 2
 
     @pytest.mark.asyncio
-    async def test_like_tweet_retries_then_returns_success(self) -> None:
-        """like_tweet() is wrapped: a transient httpx error is retried."""
+    async def test_filter_suspended_users_skips_after_exhausted_retries(
+        self,
+    ) -> None:
+        """A user whose lookup exhausts retries is skipped; the loop continues."""
         conn = _make_connection()
-        call_count = {"n": 0}
+        seen: list = []
 
-        async def fake_favorite_tweet(_tweet_id: str) -> None:
-            call_count["n"] += 1
-            if call_count["n"] == 1:
-                raise httpx.ConnectError("transient")
+        async def flaky_user_lookup(name: str) -> Any:
+            seen.append(name)
+            if name == "doomed":
+                raise httpx.ConnectError("permanent")
+            return MagicMock()
 
-        conn.client.favorite_tweet = fake_favorite_tweet
+        conn.client.get_user_by_screen_name = flaky_user_lookup
 
-        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
-            result = await conn.like_tweet("tweet_123")
+        with patch(
+            "packages.valory.connections.twikit.connection.asyncio.sleep",
+            new=AsyncMock(),
+        ):
+            result = await conn.filter_suspended_users(["alice", "doomed", "bob"])
 
-        assert result == {"success": True}
-        assert call_count["n"] == 2
+        assert result == ["alice", "bob"]
+        assert "alice" in seen
+        assert "doomed" in seen
+        assert "bob" in seen
