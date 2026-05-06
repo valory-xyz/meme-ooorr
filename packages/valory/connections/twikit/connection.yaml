@@ -7,10 +7,10 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiex3ng65m74oelq7vzuar6g4laxblo6dojldjqgvo5lgqahzawbji
-  connection.py: bafybeig7s7wgxat4l722aduafzju3atwegf5fonr2tdw57xiiuwfptu4ry
+  connection.py: bafybeiftgsicwz4zg4anszl3tdgjhzefn67djnwqmo4657vstxzgpbqjs4
   readme.md: bafybeihl7k3yi3twtvlkjntaknmib6hnhmyjurn25c4nksffcagrwkx5t4
   tests/__init__.py: bafybeifmw6jkeghvn7dschq54m5qr3fpcqujhjhnaorkkbj55mlnsao53q
-  tests/test_connection.py: bafybeihglypb5eq44cl6qnxffxdyzllhs5gyymp62v3yxqtv22fg5cmz5y
+  tests/test_connection.py: bafybeib3mklecdegv5mzthq2ntgifjwglhxtoolloyxe6ha4oj6qeel6um
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
@@ -23,6 +23,7 @@ config:
   twikit_cookies: null
   twikit_disable_tweets: false
   twikit_skip_connection: false
+  twikit_request_timeout: 30
   store_path: null
 excluded_protocols: []
 restricted_to_protocols: []

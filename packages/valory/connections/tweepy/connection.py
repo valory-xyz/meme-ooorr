@@ -119,6 +119,9 @@ class TweepyConnection(
         self.tweepy_skip_auth: bool = self.configuration.config.get(
             "tweepy_skip_auth", False
         )
+        self.tweepy_request_timeout: int = self.configuration.config.get(
+            "tweepy_request_timeout", 30
+        )
 
         if self.tweepy_skip_auth:
             self.twitter = None
@@ -145,6 +148,7 @@ class TweepyConnection(
                     self.tweepy_access_token,
                     self.tweepy_access_token_secret,
                     self.tweepy_bearer_token,
+                    request_timeout=self.tweepy_request_timeout,
                 )
 
         self.dialogues = SrrDialogues(connection_id=PUBLIC_ID)
