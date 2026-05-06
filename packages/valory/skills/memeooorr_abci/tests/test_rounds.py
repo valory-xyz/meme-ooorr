@@ -1211,13 +1211,7 @@ class TestActionTweetRound:
 
 
 class TestCheckFundsRound(MemeooorrRoundTestBase):
-    """Tests for CheckFundsRound.
-
-    Note: CheckFundsRound.end_block() doesn't handle NO_MAJORITY explicitly
-    (returns None when threshold not reached), so we can't use the standard
-    framework _test_round which expects NO_MAJORITY handling. Tests use
-    direct payload processing instead.
-    """
+    """Tests for CheckFundsRound."""
 
     def _run_check_funds_round(self, event: str, check_funds_count: int) -> Any:
         """Run a CheckFundsRound to completion and return end_block result."""
@@ -1263,12 +1257,20 @@ class TestCheckFundsRound(MemeooorrRoundTestBase):
         assert result is None
 
     def test_round_none_threshold_not_reached(self) -> None:
-        """Test round returns None when threshold not reached."""
+        """Test round returns None when threshold not reached and majority is still possible."""
         test_round = CheckFundsRound(
             synchronized_data=self.synchronized_data,
             context=self.context_mock,
         )
         assert test_round.end_block() is None
+
+    def test_round_no_majority_event(self) -> None:
+        """Test round emits NO_MAJORITY when consensus is unreachable."""
+        test_round = CheckFundsRound(
+            synchronized_data=self.synchronized_data,
+            context=self.context_mock,
+        )
+        self._test_no_majority_event(test_round)
 
 
 class TestPostTxDecisionMakingRound:
