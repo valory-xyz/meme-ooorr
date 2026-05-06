@@ -30,8 +30,9 @@ import tempfile
 from asyncio import Task
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Union, cast
 
+import httpx  # type: ignore
 import twikit  # type: ignore
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
@@ -48,6 +49,20 @@ PUBLIC_ID = PublicId.from_str("valory/twikit:0.1.0")
 MAX_POST_RETRIES = 5
 MAX_GET_RETRIES = 10
 HTTP_OK = 200
+
+# Retry configuration for read-style twikit calls.
+RETRY_MAX_ATTEMPTS = 3
+RETRY_INITIAL_DELAY_SECONDS = 1.0
+RETRY_BACKOFF_FACTOR = 2.0
+
+# Exceptions that warrant a retry. Excludes twikit.errors.TwitterException
+# because that surfaces semantic API errors (rate limit, missing tweet,
+# suspended user) that retrying will not recover from.
+_RETRYABLE_EXCEPTIONS = (
+    httpx.HTTPError,
+    httpx.RequestError,
+    asyncio.TimeoutError,
+)
 
 
 class SrrDialogues(BaseSrrDialogues):
@@ -339,6 +354,40 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 srr_message, dialogue, f"Exception while calling Twikit:\n{e}"
             )
 
+    async def _call_with_retry(
+        self,
+        coro_factory: Callable[[], Awaitable[Any]],
+        name: str,
+        max_retries: int = RETRY_MAX_ATTEMPTS,
+    ) -> Any:
+        """Call an async coroutine factory with exponential-backoff retries.
+
+        Retries on transport-level errors and timeouts. Semantic API
+        errors raised by twikit (e.g. rate-limit, suspended user) are not
+        retried because the response body itself is the answer.
+
+        :param coro_factory: A zero-argument callable that returns a fresh
+            awaitable on each call.
+        :param name: Operation name for logging.
+        :param max_retries: Maximum number of attempts before giving up.
+        :return: Whatever ``coro_factory`` returns on success.
+        """
+        last_exc: Optional[BaseException] = None
+        delay = RETRY_INITIAL_DELAY_SECONDS
+        for attempt in range(max_retries):
+            try:
+                return await coro_factory()
+            except _RETRYABLE_EXCEPTIONS as exc:
+                last_exc = exc
+                self.logger.warning(
+                    f"twikit {name} attempt {attempt + 1}/{max_retries} failed: {exc}"
+                )
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(delay)
+                    delay *= RETRY_BACKOFF_FACTOR
+        assert last_exc is not None
+        raise last_exc
+
     async def validate_login(self) -> bool:
         """Validate login"""
         valid_login = False
@@ -409,8 +458,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         self, query: str, product: str = "Top", count: int = 10
     ) -> List[Dict]:
         """Search tweets"""
-        tweets = await self.client.search_tweet(
-            query=query, product=product, count=count
+        tweets = await self._call_with_retry(
+            lambda: self.client.search_tweet(query=query, product=product, count=count),
+            "search_tweet",
         )
         return [tweet_to_json(t) for t in tweets]
 
@@ -509,17 +559,25 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     ) -> List[Dict]:
         """Get user tweets"""
 
-        user = await self.client.get_user_by_screen_name(twitter_handle)
+        user = await self._call_with_retry(
+            lambda: self.client.get_user_by_screen_name(twitter_handle),
+            "get_user_by_screen_name",
+        )
         await asyncio.sleep(1)
-        tweets = await self.client.get_user_tweets(
-            user_id=user.id, tweet_type=tweet_type, count=count
+        tweets = await self._call_with_retry(
+            lambda: self.client.get_user_tweets(
+                user_id=user.id, tweet_type=tweet_type, count=count
+            ),
+            "get_user_tweets",
         )
         return [tweet_to_json(t, user.id) for t in tweets]
 
     async def like_tweet(self, tweet_id: str) -> Dict:
         """Like a tweet"""
         try:
-            await self.client.favorite_tweet(tweet_id)
+            await self._call_with_retry(
+                lambda: self.client.favorite_tweet(tweet_id), "favorite_tweet"
+            )
             self.logger.info(f"Successfully liked tweet {tweet_id}")
             return {"success": True}
         except twikit.errors.TwitterException as e:
@@ -532,7 +590,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     async def follow_user(self, user_id: str) -> Dict:
         """Follow user"""
         try:
-            await self.client.follow_user(user_id)
+            await self._call_with_retry(
+                lambda: self.client.follow_user(user_id), "follow_user"
+            )
             self.logger.info(f"Successfully followed user {user_id}")
             return {"success": True}
         except twikit.errors.TwitterException as e:
@@ -545,7 +605,9 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     async def retweet(self, tweet_id: str) -> Dict:
         """Retweet"""
         try:
-            await self.client.retweet(tweet_id)
+            await self._call_with_retry(
+                lambda: self.client.retweet(tweet_id), "retweet"
+            )
             self.logger.info(f"Successfully retweeted tweet {tweet_id}")
             return {"success": True}
         except twikit.errors.TwitterException as e:
@@ -563,7 +625,10 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 # Add random delay
                 delay = secrets.randbelow(5)
                 await asyncio.sleep(delay)
-                await self.client.get_user_by_screen_name(user_name)
+                await self._call_with_retry(
+                    lambda name=user_name: self.client.get_user_by_screen_name(name),
+                    "get_user_by_screen_name",
+                )
                 not_suspendend_users.append(user_name)
             except twikit.errors.TwitterException:
                 continue
@@ -574,7 +639,10 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
     async def get_user_by_screen_name(self, screen_name: str) -> Dict:
         """Get user by screen name"""
-        user = await self.client.get_user_by_screen_name(screen_name=screen_name)
+        user = await self._call_with_retry(
+            lambda: self.client.get_user_by_screen_name(screen_name=screen_name),
+            "get_user_by_screen_name",
+        )
         return user_to_json(user)
 
     async def get_twitter_user_id(self) -> str:

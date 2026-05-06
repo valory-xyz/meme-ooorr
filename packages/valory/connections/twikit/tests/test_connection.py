@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx  # type: ignore[import-untyped]
 import pytest
 import twikit.errors  # type: ignore[import-untyped]
 
@@ -1376,3 +1377,129 @@ class TestDeleteTweetAllRetriesFail:
             await conn.delete_tweet("tweet_123")
 
         assert conn.client.delete_tweet.await_count == 5  # MAX_POST_RETRIES
+
+
+# ---------------------------------------------------------------------------
+# _call_with_retry helper
+# ---------------------------------------------------------------------------
+
+
+class TestCallWithRetry:
+    """Tests for the _call_with_retry helper."""
+
+    @pytest.mark.asyncio
+    async def test_returns_first_attempt_result(self) -> None:
+        """A coroutine that succeeds on the first call returns immediately."""
+        conn = _make_connection()
+        attempts = {"n": 0}
+
+        async def factory_call() -> str:
+            attempts["n"] += 1
+            return "ok"
+
+        result = await conn._call_with_retry(factory_call, "op")
+        assert result == "ok"
+        assert attempts["n"] == 1
+
+    @pytest.mark.asyncio
+    async def test_retries_until_success_on_transient_errors(self) -> None:
+        """Transient httpx errors are retried until a successful attempt."""
+        conn = _make_connection()
+        attempts = {"n": 0}
+
+        async def factory_call() -> str:
+            attempts["n"] += 1
+            if attempts["n"] < 3:
+                raise httpx.ConnectError("connect failed")
+            return "ok"
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            result = await conn._call_with_retry(factory_call, "op", max_retries=5)
+        assert result == "ok"
+        assert attempts["n"] == 3
+
+    @pytest.mark.asyncio
+    async def test_retries_on_asyncio_timeout(self) -> None:
+        """asyncio.TimeoutError is treated as retryable."""
+        conn = _make_connection()
+        attempts = {"n": 0}
+
+        async def factory_call() -> str:
+            attempts["n"] += 1
+            if attempts["n"] < 2:
+                raise asyncio.TimeoutError()
+            return "ok"
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            result = await conn._call_with_retry(factory_call, "op", max_retries=3)
+        assert result == "ok"
+        assert attempts["n"] == 2
+
+    @pytest.mark.asyncio
+    async def test_does_not_retry_on_twikit_api_error(self) -> None:
+        """Semantic API errors propagate on the first failure without retry."""
+        conn = _make_connection()
+        attempts = {"n": 0}
+
+        async def factory_call() -> str:
+            attempts["n"] += 1
+            raise twikit.errors.TwitterException("4xx")
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            with pytest.raises(twikit.errors.TwitterException):
+                await conn._call_with_retry(factory_call, "op", max_retries=4)
+        assert attempts["n"] == 1
+
+    @pytest.mark.asyncio
+    async def test_raises_last_exception_after_exhausting_retries(self) -> None:
+        """When all retries fail, the final exception is re-raised."""
+        conn = _make_connection()
+        attempts = {"n": 0}
+
+        async def factory_call() -> str:
+            attempts["n"] += 1
+            raise httpx.ConnectError("permanent")
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            with pytest.raises(httpx.ConnectError, match="permanent"):
+                await conn._call_with_retry(factory_call, "op", max_retries=3)
+        assert attempts["n"] == 3
+
+    @pytest.mark.asyncio
+    async def test_search_retries_then_returns_tweets(self) -> None:
+        """search() is wrapped: a transient httpx error is retried."""
+        conn = _make_connection()
+        call_count = {"n": 0}
+
+        async def fake_search_tweet(**_kwargs: Any) -> Any:
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                raise httpx.ConnectError("transient")
+            return []
+
+        conn.client.search_tweet = fake_search_tweet
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            tweets = await conn.search(query="anything")
+
+        assert tweets == []
+        assert call_count["n"] == 2
+
+    @pytest.mark.asyncio
+    async def test_like_tweet_retries_then_returns_success(self) -> None:
+        """like_tweet() is wrapped: a transient httpx error is retried."""
+        conn = _make_connection()
+        call_count = {"n": 0}
+
+        async def fake_favorite_tweet(_tweet_id: str) -> None:
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                raise httpx.ConnectError("transient")
+
+        conn.client.favorite_tweet = fake_favorite_tweet
+
+        with patch("packages.valory.connections.twikit.connection.asyncio.sleep"):
+            result = await conn.like_tweet("tweet_123")
+
+        assert result == {"success": True}
+        assert call_count["n"] == 2

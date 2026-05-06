@@ -518,11 +518,16 @@ class TestRaiseForResponse:
 
     @pytest.mark.asyncio(loop_scope="function")
     async def test_session_has_timeout(self) -> None:
-        """Test that connect creates session with a timeout."""
+        """Session is created with a total timeout that covers all retries.
+
+        The total budget exceeds the cumulative exponential-backoff sum so
+        the request can finish all retry attempts without tripping the
+        session-level timeout.
+        """
         connection = make_connection()
         await connection.connect()
         assert connection.session is not None
-        assert connection.session.timeout.total == 60
+        assert connection.session.timeout.total == 120
         await connection.disconnect()
 
 
