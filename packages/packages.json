@@ -2,8 +2,8 @@
     "dev": {
         "contract/valory/meme_factory/0.1.0": "bafybeifus4srfeqjy57y64es2ny3w3qeawtsnjwtcs66mosrapebklzsbq",
         "contract/valory/service_registry_l2/0.1.0": "bafybeiahapgkem23imimvx3nmov553xix4uyno2lqb7t5t5fl5oesg7vnu",
-        "connection/valory/twikit/0.1.0": "bafybeib3npfqzqw7l2o2ve3jffsewa664iiaxnzq37leo5gjpmmyocsjqa",
-        "connection/valory/mirror_db/0.1.0": "bafybeicn4oia3pnceay3j2m6yegannr4nuledfjsoxjkorao6g4amjvpsa",
+        "connection/valory/twikit/0.1.0": "bafybeibbatpclyiodf377qboxmzunj4e7af3kpaandq5jtavylo4cu4tr4",
+        "connection/valory/mirror_db/0.1.0": "bafybeihl55vfwsay2c6g7ntkkl6wyvxjghmlfxv6so44sdc3c42p357pda",
         "connection/valory/tweepy/0.1.0": "bafybeifbwezm4umv6s3rrsabsnufvtyr7yek2ej3mbbqbrav7jtkc6ftbi",
         "skill/valory/memeooorr_abci/0.1.0": "bafybeidiobabqumoumj5bqypkaxw6ugmmo4tzwiuc2qbgc4besi7t6nk5i",
         "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeif77fceejijvilk5qtcxzkpuqlk42erwjtmuokaa65lecwatv4iqe",
