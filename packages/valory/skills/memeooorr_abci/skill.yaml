@@ -15,9 +15,9 @@ fingerprint:
   agentsfun-ui-build/favicon.ico: bafybeifxjqwpttoghgfbukdabbbex2etjr2x6j274fckatcttdqiduczzm
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeias427pxcg3ndkjanrczwwaotrqozmvdo2mnchdjbzlw4n6hdkurq
-  behaviour_classes/base.py: bafybeigej6fdsnlaqyxzrl355gezodzzkz35ddkotcuh4q6hwgyjcr6ouu
+  behaviour_classes/base.py: bafybeiaj3jrp2yuxns7gdlmu5zxvb6tijte6732x6vunvmojsktli4dxy4
   behaviour_classes/chain.py: bafybeicmhvxnufk3jnwxqj5jzkcjh7hw5b6r2yuceyepssemfyy6pagdja
-  behaviour_classes/db.py: bafybeih436vbb3jbryh4siccilzcdwbp4styt6gifpne42zprpy5lacchy
+  behaviour_classes/db.py: bafybeifrnm4cgd47quevcucbneulhgxpkrpn7rt3vscaaphqkkcptzovde
   behaviour_classes/llm.py: bafybeidedb2wqhvkxqnudgzaxa3kptpg6ak25dhnrnonfjmyyw7dt3jgf4
   behaviour_classes/mech.py: bafybeidlnhj56itt6epygalr3pli3awwo4c2cb54pi24hzlgm6prqfwzzi
   behaviour_classes/twitter.py: bafybeietwinth55mpyyvajq6pwcyoule3qtmu52sgz2uyixsgohqwie6pi
@@ -32,9 +32,9 @@ fingerprint:
   rounds_info.py: bafybeic3lo56wclkjino5g4p76ek4db5ei7qjbnu5gvtfjdlqu7fk2v62i
   tests/__init__.py: bafybeiep2skhj742bdjbvelskxhshtxofngkmqkb5zrplger6v372pgyai
   tests/conftest.py: bafybeigysaw5xdif5aucgk66p2d7zmrzerigkta4sbvil24oa5l34vywce
-  tests/test_behaviour_classes_base.py: bafybeig7bg2scwbakfzyyfvun2fna34ucufeg5uqfngihhuezuvxkl4vwq
+  tests/test_behaviour_classes_base.py: bafybeidben5ggtomcttojirnm5to4yf5qzncwggwlevjw36tmldaj545oe
   tests/test_behaviour_classes_chain.py: bafybeihkzlcvjt6zbzp5hhuooiul7ehtbfrvwabxyuustkzxqddzuvkes4
-  tests/test_behaviour_classes_db.py: bafybeiasxuxvbor5i2oughvpwbmqeoobbfjrbn5s7ld3i4zc7gupgq5hwa
+  tests/test_behaviour_classes_db.py: bafybeifp77fxj67mqdpqfvdevjbmgsrswn2ma36ajswccr5ttxykni27ia
   tests/test_behaviour_classes_llm.py: bafybeibxubv6qna7qok2mfvmyo7uh62k7cmljpsyomuror5fslqtduw7hu
   tests/test_behaviour_classes_mech.py: bafybeidflohgfu5abka2h2jjyjoglg6cyfunipop2uf63qlzmlnz3xj2qq
   tests/test_behaviour_classes_twitter.py: bafybeif2md7riupolqcrgixotnqlciy3ckg22gkpb7aehty5nlcnmqpj5i
@@ -46,7 +46,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/kv_store:0.1.0:bafybeigtbb7qch5et2wked5h7riozxfw2rui3yp47lfdkhin7zcmpsosbi
-- valory/tweepy:0.1.0:bafybeicnffj7fhf4rcbut677kabp773x6f5urq7ti6fpmq72d3gjhugwgy
+- valory/tweepy:0.1.0:bafybeifbwezm4umv6s3rrsabsnufvtyr7yek2ej3mbbqbrav7jtkc6ftbi
 - valory/genai:0.1.0:bafybeif37mudnpbd4yhvi2kvqfvlnnp6klhudbrncws5vsha72jydj5raq
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
 contracts:
@@ -66,7 +66,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
 - valory/transaction_settlement_abci:0.1.0:bafybeiemyjkxj2ifzjr5kubtebpyezocl33zxt7gwf7yongg6zlbfjilte
 - valory/mech_interact_abci:0.1.0:bafybeidq4vfhz5hvixmzor4epnnh2xzhhzedcxhxfoa6nqgqjp3yqhktdu
-- valory/agent_db_abci:0.1.0:bafybeib72xypoji23z2xi6ms6h47izdoeihmwyzrpxlrobo2mej5sd22me
+- valory/agent_db_abci:0.1.0:bafybeicb3txbv5ab7n4juhkr262w6p5c7axrpzyutacsqawdiohpmrw3cm
 - valory/funds_manager:0.1.0:bafybeiebmb72sxx3odmxzpn7qy4la3i6n5vf4di4vbkt4mt4kuybosftay
 behaviours:
   main:

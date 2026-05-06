@@ -189,12 +189,26 @@ class AgentDBClient(Model):
         self.logger.info(f"Response status: {response.status_code}")
 
         if response.status_code in [200, 201]:
-            return json.loads(response.body)
+            try:
+                return json.loads(response.body)
+            except (json.JSONDecodeError, ValueError):
+                self.logger.error(
+                    f"AgentDB returned non-JSON body for {method} {url}: "
+                    f"{response.body!r}"
+                )
+                return None
 
         if response.status_code == 404:
             return None
 
-        raise RuntimeError(f"Request failed: {response.status_code} - {response.text}")
+        # Non-success, non-404 status codes are surfaced as RuntimeError
+        # so write paths can distinguish "row missing" from
+        # "server broken" and avoid duplicate-write hazards in the
+        # get-then-create pattern. Behaviours catch this and skip the
+        # period rather than letting the framework crash.
+        raise RuntimeError(
+            f"AgentDB request failed: {response.status_code} - {response.text}"
+        )
 
     # Agent Type Methods
 
