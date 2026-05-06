@@ -22,6 +22,7 @@
 import json
 import os
 import traceback
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime
 from typing import Generator, List, Optional, Type
 
@@ -40,6 +41,9 @@ from packages.valory.skills.memeooorr_abci.rounds import (
     FailedMechResponseRound,
     PostMechResponseRound,
 )
+
+IPFS_REQUEST_TIMEOUT = 30
+IPFS_POLL_INTERVAL_SECONDS = 1.0
 
 
 class PostMechResponseBehaviour(
@@ -118,7 +122,9 @@ class PostMechResponseBehaviour(
         if video_hash:
             self.context.logger.info(f"Attempting video fetch for hash: {video_hash}")
             # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
-            video_path = self._fetch_media_from_ipfs_hash(video_hash, "video", ".mp4")
+            video_path = yield from self._fetch_media_from_ipfs_hash(
+                video_hash, "video", ".mp4"
+            )
 
             if video_path:  # Video fetch succeeded
                 self.context.logger.info(
@@ -142,7 +148,9 @@ class PostMechResponseBehaviour(
         if image_hash:
             self.context.logger.info(f"Attempting image fetch for hash: {image_hash}")
             # _fetch_media_from_ipfs_hash handles its own network/IO errors and returns Optional[str]
-            image_path = self._fetch_media_from_ipfs_hash(image_hash, "image", ".png")
+            image_path = yield from self._fetch_media_from_ipfs_hash(
+                image_hash, "image", ".png"
+            )
 
             if image_path:  # Image fetch succeeded
                 self.context.logger.info(
@@ -234,59 +242,40 @@ class PostMechResponseBehaviour(
             # Cleanup handled by the caller
             return None
 
-    def _fetch_media_from_ipfs_hash(
-        self, ipfs_hash: str, media_type: str, suffix: str
+    def _ipfs_fetch_worker(
+        self, ipfs_gateway_url: str, suffix: str, ipfs_hash: str, media_type: str
     ) -> Optional[str]:
-        """Fetch media data from IPFS hash using requests library, save locally, and return the path."""
+        """Synchronous worker: fetch from IPFS gateway and save to disk.
 
-        # Synchronous function using requests, ONLY downloads and returns path or None
+        Runs inside a worker thread so the main FSM remains responsive.
 
-        # ****************************************************************************
-        # ******************************** WARNING ***********************************
-        # ****************************************************************************
-        # This function uses the 'requests' library directly to fetch video data
-        # from an IPFS gateway. This is a deviation from the standard practice of
-        # using the built-in IPFS helper functions (like `get_from_ipfs`).
-        #
-        # REASON: The standard IPFS helpers were consistently failing to retrieve
-        # video files correctly, potentially due to issues with handling large files,
-        # streaming, or specific gateway interactions for video content type.
-        # Using 'requests' provides more direct control over the HTTP request
-        # and response handling, which proved necessary to successfully download
-        # the video content in this specific case.
-        #
-        # This approach might be less robust if the IPFS gateway URL changes or if
-        # underlying IPFS fetch mechanisms in the framework are updated.
-        # Consider revisiting this if the built-in methods become reliable for videos.
-
-        # plan to revisit this and figure out what's wrong with the built-in methods
-        # ****************************************************************************
-
-        media_path = None  # Initialize path for potential cleanup
-        ipfs_gateway_url = f"https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
-        error_reason = "unknown error"  # Default error reason
+        :param ipfs_gateway_url: The full IPFS gateway URL to fetch.
+        :param suffix: File suffix used when saving (e.g. ``.mp4``).
+        :param ipfs_hash: The IPFS hash being fetched (logging only).
+        :param media_type: The media kind label (``"video"`` or ``"image"``).
+        :return: The saved media path on success, ``None`` on any error.
+        """
+        media_path = None
+        error_reason = "unknown error"
         try:
             self.context.logger.info(
                 f"Attempting synchronous {media_type} fetch via requests: {ipfs_hash}"
             )
             self.context.logger.info(f"Using IPFS gateway URL: {ipfs_gateway_url}")
 
-            with requests.get(ipfs_gateway_url, timeout=120, stream=True) as response:
-                response.raise_for_status()  # Raises HTTPError for bad responses (4xx or 5xx)
+            with requests.get(
+                ipfs_gateway_url, timeout=IPFS_REQUEST_TIMEOUT, stream=True
+            ) as response:
+                response.raise_for_status()
 
-                # Use helper to download and save
                 media_path = self._download_and_save_media(
                     response, ipfs_gateway_url, suffix, ipfs_hash
                 )
 
                 if media_path is None:
-                    # Empty download, error logged in helper
-                    self._cleanup_temp_file(
-                        media_path, "empty content"
-                    )  # media_path will be None here
                     return None
 
-            return media_path  # Return path on success
+            return media_path
 
         except requests.exceptions.Timeout as e:
             self.context.logger.error(
@@ -304,10 +293,62 @@ class PostMechResponseBehaviour(
             )
             error_reason = "request exception"
 
-        # Centralized cleanup for all error cases
-        # media_path might be None if error happened before _download_and_save_media assigned it
         self._cleanup_temp_file(media_path, error_reason)
         return None
+
+    def _fetch_media_from_ipfs_hash(
+        self, ipfs_hash: str, media_type: str, suffix: str
+    ) -> Generator[None, None, Optional[str]]:
+        """Fetch media from IPFS via a worker thread and yield the FSM control.
+
+        The blocking HTTP fetch runs inside a ThreadPoolExecutor so the
+        agent's tick loop and other handlers stay responsive. The
+        generator polls the future every IPFS_POLL_INTERVAL_SECONDS,
+        yielding via self.sleep between checks.
+
+        Note on direct requests usage: the standard IPFS helpers
+        (e.g. get_from_ipfs) were unreliable for large or video files;
+        direct requests gave more control over streaming and gateway
+        behaviour. Revisit if the built-in helpers become reliable.
+
+        :param ipfs_hash: The IPFS hash to fetch.
+        :param media_type: The media kind label (``"video"`` or ``"image"``).
+        :param suffix: File suffix used when saving (e.g. ``.mp4``).
+        :yield: ``None`` while polling the worker future.
+        :return: The saved media path on success, ``None`` on any error.
+        """
+        ipfs_gateway_url = f"https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
+
+        executor = ThreadPoolExecutor(max_workers=1)
+        future: Optional[Future] = None
+        try:
+            future = executor.submit(
+                self._ipfs_fetch_worker,
+                ipfs_gateway_url,
+                suffix,
+                ipfs_hash,
+                media_type,
+            )
+            while not future.done():
+                yield from self.sleep(IPFS_POLL_INTERVAL_SECONDS)
+            try:
+                return future.result()
+            except Exception as exc:  # pylint: disable=broad-except
+                self.context.logger.error(
+                    f"Unexpected error fetching {media_type} {ipfs_hash}: "
+                    f"{exc}\n{traceback.format_exc()}"
+                )
+                return None
+        finally:
+            # An in-flight ``requests.get`` cannot be interrupted from
+            # Python; it drains on its own socket timeout. Log
+            # abandonment so the leaked thread is observable.
+            if future is not None and not future.done():
+                self.context.logger.warning(
+                    f"IPFS fetch worker abandoned for {ipfs_hash} " f"({media_type})"
+                )
+                future.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
 
 
 class FailedMechRequestBehaviour(
