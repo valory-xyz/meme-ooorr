@@ -380,6 +380,53 @@ class TestAgentsFunAgent:
         gen = agent.update_twitter_details()
         _exhaust_gen(gen)
 
+    def test_add_interaction_returns_none_on_runtime_error(self):
+        """A RuntimeError from the client surfaces as a None return.
+
+        AgentDB 5xx must not crash the FSM; the caller treats None as
+        a failed write and skips post-write logic.
+        """
+        client = _make_client_mock()
+        ai = _make_agent_instance()
+        agent = AgentsFunAgent(client, ai)
+
+        now = datetime.now(timezone.utc)
+        post = TwitterPost(action="post", timestamp=now, tweet_id="t1", text="hi")
+
+        def mock_get_attr_def(name):
+            yield
+            raise RuntimeError("Request failed: 500")
+
+        client.get_attribute_definition_by_name = mock_get_attr_def
+
+        gen = agent.add_interaction(post)
+        result = _exhaust_gen(gen)
+        assert result is None
+        client.logger.error.assert_called_once()
+
+    def test_update_twitter_details_swallows_runtime_error(self):
+        """A RuntimeError during update is logged and swallowed.
+
+        A transient AgentDB outage on the update path must not crash
+        the agent; the next period will retry the update.
+        """
+        client = _make_client_mock()
+        ai = _make_agent_instance()
+        agent = AgentsFunAgent(client, ai)
+        agent.twitter_username = "user1"
+        agent.twitter_user_id = "id1"
+
+        def mock_update(name, value):
+            yield
+            raise RuntimeError("Request failed: 503")
+
+        client.update_or_create_agent_attribute = mock_update
+
+        gen = agent.update_twitter_details()
+        # Should complete without raising.
+        _exhaust_gen(gen)
+        client.logger.error.assert_called_once()
+
 
 class TestAgentsFunDatabaseLoad:
     """Test AgentsFunDatabase.load."""
@@ -796,6 +843,33 @@ class TestAgentsFunDatabaseGetTweetFeedback:
         assert result["likes"] == 1
         assert result["retweets"] == 1
         assert len(result["replies"]) == 1
+
+    def test_feedback_returns_safe_default_on_runtime_error(self):
+        """A RuntimeError during aggregation degrades to safe defaults.
+
+        Returns ``{"likes": 0, "retweets": 0, "replies": []}`` so the
+        caller can continue rather than the FSM crashing.
+        """
+        db = _make_database()
+        client = _make_client_mock()
+        db.client = client
+        db.logger = client.logger
+
+        ai = _make_agent_instance()
+        agent = AgentsFunAgent(client, ai)
+        agent.loaded = False  # forces a load on access
+
+        def mock_load():
+            yield
+            raise RuntimeError("Request failed: 500")
+
+        agent.load = mock_load
+        db.agents = [agent]
+
+        gen = db.get_tweet_feedback("t1")
+        result = _exhaust_gen(gen)
+        assert result == {"likes": 0, "retweets": 0, "replies": []}
+        client.logger.error.assert_called_once()
 
 
 class TestAgentsFunDatabaseGetActiveAgents:

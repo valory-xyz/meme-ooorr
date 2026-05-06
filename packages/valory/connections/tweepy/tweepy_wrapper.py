@@ -45,8 +45,19 @@ class _TimeoutHTTPAdapter(requests.adapters.HTTPAdapter):
     def send(  # pylint: disable=arguments-differ
         self, request: Any, **kwargs: Any
     ) -> Any:
-        """Send a request, applying the default timeout if none was supplied."""
-        kwargs.setdefault("timeout", self._timeout)
+        """Send a request, applying the default timeout if none was supplied.
+
+        ``Session.request`` always populates ``kwargs['timeout']`` before
+        calling the adapter, with ``None`` when the caller did not pass
+        one. ``setdefault`` would not overwrite that ``None``, so check
+        the value explicitly.
+
+        :param request: The PreparedRequest to send.
+        :param kwargs: Forwarded to ``HTTPAdapter.send``.
+        :return: The HTTP response from the underlying adapter.
+        """
+        if kwargs.get("timeout") is None:
+            kwargs["timeout"] = self._timeout
         return super().send(request, **kwargs)
 
 
@@ -93,13 +104,18 @@ class Twitter:
 
         self.api = tweepy.API(auth=self.oauth1_user_auth)
 
+        # NOTE: ``wait_on_rate_limit`` intentionally not enabled. Tweepy
+        # implements it as ``time.sleep(reset_at - now)`` between requests
+        # (up to ~15 minutes), which the per-request HTTPAdapter timeout
+        # cannot bound. With ``MAX_WORKER_THREADS=1`` that would block the
+        # entire connection mid-method. 429s instead surface as
+        # ``TooManyRequests`` for the caller to handle.
         self.client = tweepy.Client(
             bearer_token=bearer_token,
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
             access_token=access_token,
             access_token_secret=access_token_secret,
-            wait_on_rate_limit=True,
         )
         self.logger = logger if logger else DEFAULT_LOGGER
 

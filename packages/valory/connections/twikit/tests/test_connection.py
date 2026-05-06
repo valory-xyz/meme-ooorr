@@ -1409,25 +1409,87 @@ class TestWithTimeout:
 
     @pytest.mark.asyncio
     async def test_logs_error_on_timeout(self) -> None:
-        """A timeout logs an error containing the operation name and budget."""
-        conn = _make_connection(request_timeout=0)
+        """Timeout log lines carry the operation name and the budget.
+
+        Format: ``"twikit <name> did not respond within <N>s"``.
+        Asserts the configured number of seconds is present, not just
+        any digit-shaped substring.
+        """
+        conn = _make_connection(request_timeout=7)
         conn.logger = MagicMock()
 
         async def slow() -> None:
             await asyncio.sleep(60)
 
-        with pytest.raises(asyncio.TimeoutError):
-            await conn._with_timeout(slow(), "search_tweet")
+        with patch(
+            "packages.valory.connections.twikit.connection.asyncio.wait_for",
+            new=AsyncMock(side_effect=asyncio.TimeoutError()),
+        ):
+            with pytest.raises(asyncio.TimeoutError):
+                await conn._with_timeout(slow(), "search_tweet")
 
         message = conn.logger.error.call_args.args[0]
         assert "search_tweet" in message
-        assert "0" in message  # the configured timeout is included
+        assert f"{conn.request_timeout}s" in message
 
     @pytest.mark.asyncio
-    async def test_search_uses_timeout(self) -> None:
-        """A hung search_tweet call surfaces as TimeoutError, not infinite hang."""
+    async def test_search_returns_empty_list_on_timeout(self) -> None:
+        """A hung search resolves to an empty list, not TimeoutError.
+
+        ``search`` is invoked from a dialogue handler that expects a
+        list; raising would terminate the handler instead of letting
+        the FSM continue.
+        """
         conn = _make_connection(request_timeout=0)
         conn.client.search_tweet = MagicMock(side_effect=lambda **_: asyncio.sleep(60))
 
-        with pytest.raises(asyncio.TimeoutError):
-            await conn.search(query="anything")
+        result = await conn.search(query="anything")
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_get_user_tweets_returns_empty_list_on_timeout(self) -> None:
+        """``get_user_tweets`` swallows timeouts in either inner call."""
+        conn = _make_connection(request_timeout=0)
+        conn.client.get_user_by_screen_name = MagicMock(
+            side_effect=lambda *_: asyncio.sleep(60)
+        )
+
+        result = await conn.get_user_tweets("someone")
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_get_user_by_screen_name_returns_empty_dict_on_timeout(
+        self,
+    ) -> None:
+        """``get_user_by_screen_name`` returns an empty dict on timeout."""
+        conn = _make_connection(request_timeout=0)
+        conn.client.get_user_by_screen_name = MagicMock(
+            side_effect=lambda **_: asyncio.sleep(60)
+        )
+
+        result = await conn.get_user_by_screen_name("someone")
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_with_timeout_accepts_per_call_override(self) -> None:
+        """Per-call ``timeout=`` override beats the connection default.
+
+        The override flows through to the wait_for budget and shows up
+        verbatim in the error log on timeout.
+        """
+        conn = _make_connection(request_timeout=30)
+        conn.logger = MagicMock()
+
+        async def slow() -> None:
+            await asyncio.sleep(60)
+
+        with patch(
+            "packages.valory.connections.twikit.connection.asyncio.wait_for",
+            new=AsyncMock(side_effect=asyncio.TimeoutError()),
+        ):
+            with pytest.raises(asyncio.TimeoutError):
+                await conn._with_timeout(slow(), "upload_media", timeout=120)
+
+        message = conn.logger.error.call_args.args[0]
+        assert "120s" in message
+        assert "upload_media" in message

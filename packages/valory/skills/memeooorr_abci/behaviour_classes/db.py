@@ -44,16 +44,28 @@ class LoadDatabaseBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            (
-                persona,
-                hearting_cooldown_hours,
-                summon_cooldown_seconds,
-            ) = yield from self.load_db()
-            yield from self.populate_keys_in_kv()
-            yield from self.init_own_twitter_details()
-            agent_details = self.gather_agent_details(persona)
+            try:
+                (
+                    persona,
+                    hearting_cooldown_hours,
+                    summon_cooldown_seconds,
+                ) = yield from self.load_db()
+                yield from self.populate_keys_in_kv()
+                yield from self.init_own_twitter_details()
+                agent_details = self.gather_agent_details(persona)
 
-            yield from self._write_kv({"agent_details": agent_details})
+                yield from self._write_kv({"agent_details": agent_details})
+            except RuntimeError as exc:
+                # AgentDB returned a non-success status. Rather than
+                # crashing the FSM (which would supervisor-restart into
+                # the same crash loop), log and yield without sending a
+                # payload. The round timeout will fire and the next
+                # period will retry the load.
+                self.context.logger.error(
+                    f"AgentDB unavailable during LoadDatabaseRound: {exc}. "
+                    "Skipping period to retry on the next round."
+                )
+                return
 
             payload = LoadDatabasePayload(
                 sender=self.context.agent_address,

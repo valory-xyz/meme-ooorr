@@ -201,10 +201,14 @@ class AgentDBClient(Model):
         if response.status_code == 404:
             return None
 
-        self.logger.warning(
+        # Non-success, non-404 status codes are surfaced as RuntimeError
+        # so write paths can distinguish "row missing" from
+        # "server broken" and avoid duplicate-write hazards in the
+        # get-then-create pattern. Behaviours catch this and skip the
+        # period rather than letting the framework crash.
+        raise RuntimeError(
             f"AgentDB request failed: {response.status_code} - {response.text}"
         )
-        return None
 
     # Agent Type Methods
 

@@ -197,11 +197,17 @@ def _build_twitter_with_real_sessions(timeout: int) -> Twitter:
 class TestTwitterTimeoutHardening:
     """Tests for the request-timeout adapter and rate-limit handling."""
 
-    def test_client_built_with_wait_on_rate_limit(self) -> None:
-        """tweepy.Client is constructed with wait_on_rate_limit=True."""
+    def test_client_constructed_without_wait_on_rate_limit(self) -> None:
+        """Client is built without wait_on_rate_limit so 429s do not block.
+
+        With ``MAX_WORKER_THREADS=1`` and ``wait_on_rate_limit=True``,
+        tweepy's internal sleep would block the connection for the
+        entire rate-limit window. We surface 429s instead and let the
+        caller handle them.
+        """
         tw = _build_twitter_with_real_sessions(timeout=30)
         kwargs = tw._mock_tweepy.Client.call_args.kwargs  # type: ignore[attr-defined]
-        assert kwargs["wait_on_rate_limit"] is True
+        assert kwargs.get("wait_on_rate_limit") in (False, None)
 
     @pytest.mark.parametrize("scheme", ["http://", "https://"])
     def test_client_session_has_timeout_adapter(self, scheme: str) -> None:
@@ -226,16 +232,33 @@ class TestTwitterTimeoutHardening:
         assert isinstance(adapter, _TimeoutHTTPAdapter)
         assert adapter._timeout == 45
 
-    def test_adapter_injects_timeout_when_caller_omits_it(self) -> None:
-        """When send() is called without a timeout, the adapter's default applies."""
+    def test_adapter_injects_timeout_when_session_request_omits_it(self) -> None:
+        """Adapter replaces a None timeout with its configured default.
+
+        ``Session.request()`` always populates ``kwargs['timeout']=None``
+        when the caller did not pass one (e.g. ``tweepy.Client.request``).
+        Without this replacement the timeout is a silent no-op.
+        """
         adapter = _TimeoutHTTPAdapter(timeout=30)
+        session = requests.Session()
+        session.mount("https://", adapter)
+
         captured: dict = {}
 
         def fake_super_send(
             self_inner: object, request: object, **kwargs: object
         ) -> object:  # noqa: ARG001
             captured.update(kwargs)
-            return MagicMock()
+            response = MagicMock()
+            response.status_code = 200
+            response.headers = {}
+            response.cookies = {}
+            response.is_redirect = False
+            response.is_permanent_redirect = False
+            response.history = []
+            response.url = "https://example.com/"
+            response.elapsed = datetime.timedelta(seconds=0)
+            return response
 
         with patch.object(
             requests.adapters.HTTPAdapter,
@@ -243,20 +266,38 @@ class TestTwitterTimeoutHardening:
             autospec=True,
             side_effect=fake_super_send,
         ):
-            adapter.send(MagicMock())
+            # Session.request() omits timeout — it puts None into kwargs.
+            # The adapter must inject its default in that case.
+            session.request("GET", "https://example.com/")
 
         assert captured["timeout"] == 30
 
     def test_adapter_respects_explicit_caller_timeout(self) -> None:
-        """When send() is called with an explicit timeout, the adapter does not override it."""
+        """An explicit caller timeout flows through unchanged.
+
+        ``Session.request(..., timeout=5)`` should reach the underlying
+        adapter as ``timeout=5``; the adapter must not override it.
+        """
         adapter = _TimeoutHTTPAdapter(timeout=30)
+        session = requests.Session()
+        session.mount("https://", adapter)
+
         captured: dict = {}
 
         def fake_super_send(
             self_inner: object, request: object, **kwargs: object
         ) -> object:  # noqa: ARG001
             captured.update(kwargs)
-            return MagicMock()
+            response = MagicMock()
+            response.status_code = 200
+            response.headers = {}
+            response.cookies = {}
+            response.is_redirect = False
+            response.is_permanent_redirect = False
+            response.history = []
+            response.url = "https://example.com/"
+            response.elapsed = datetime.timedelta(seconds=0)
+            return response
 
         with patch.object(
             requests.adapters.HTTPAdapter,
@@ -264,7 +305,7 @@ class TestTwitterTimeoutHardening:
             autospec=True,
             side_effect=fake_super_send,
         ):
-            adapter.send(MagicMock(), timeout=5)
+            session.request("GET", "https://example.com/", timeout=5)
 
         assert captured["timeout"] == 5
 

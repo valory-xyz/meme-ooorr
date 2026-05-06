@@ -1041,23 +1041,32 @@ class TestGetMemeoorrHandlesFromSubgraph:
         ) == ["alice", "bob"]
 
     def test_returns_empty_list_when_units_key_is_absent(self) -> None:
-        """Subgraph response without a 'units' key resolves to an empty handle list."""
+        """Truthy response missing 'units' resolves to [] with a warning.
+
+        Uses a non-empty dict so the early ``if not services`` guard is
+        bypassed and the schema-drift branch is actually exercised.
+        """
         b = _make_behaviour()
         b.context.state.twitter_username = "mybot"
+        b.context.logger = MagicMock()
 
         def fake(pt: Any) -> Generator[Any, None, Any]:
             yield
-            return {}  # schema drift: no 'units' key
+            # Truthy payload with a different shape — typical of subgraph
+            # schema drift or a partial-outage response.
+            return {"foo": "bar"}
 
         b.get_packages = MagicMock(side_effect=fake)
         assert not _exhaust(
             MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
         )
+        b.context.logger.warning.assert_called_once()
 
     def test_returns_empty_list_when_units_value_is_none(self) -> None:
-        """Subgraph response with units=None resolves to an empty handle list."""
+        """Response with units=None resolves to [] with a warning."""
         b = _make_behaviour()
         b.context.state.twitter_username = "mybot"
+        b.context.logger = MagicMock()
 
         def fake(pt: Any) -> Generator[Any, None, Any]:
             yield
@@ -1067,6 +1076,7 @@ class TestGetMemeoorrHandlesFromSubgraph:
         assert not _exhaust(
             MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
         )
+        b.context.logger.warning.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

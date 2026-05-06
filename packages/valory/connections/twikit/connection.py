@@ -342,14 +342,29 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 srr_message, dialogue, f"Exception while calling Twikit:\n{e}"
             )
 
-    async def _with_timeout(self, coro: Any, name: str) -> Any:
-        """Run a twikit coroutine with the configured request timeout."""
+    # Operations that legitimately take much longer than a typical
+    # twikit read. ``client.upload_media`` polls Twitter's transcoder
+    # for video posts (often 30-90s) and the FlowToken handshake during
+    # ``client.login`` plus any email/captcha challenge can run past
+    # the default budget on a cold start.
+    LONG_OPERATION_TIMEOUT_SECONDS = 120
+
+    async def _with_timeout(
+        self, coro: Any, name: str, timeout: Optional[float] = None
+    ) -> Any:
+        """Run a twikit coroutine with a request timeout.
+
+        :param coro: The awaitable to run.
+        :param name: Operation name for logging.
+        :param timeout: Optional per-call override (seconds). Falls back
+            to ``self.request_timeout`` when omitted.
+        :return: Whatever the coroutine returns.
+        """
+        budget = self.request_timeout if timeout is None else timeout
         try:
-            return await asyncio.wait_for(coro, timeout=self.request_timeout)
+            return await asyncio.wait_for(coro, timeout=budget)
         except asyncio.TimeoutError:
-            self.logger.error(
-                f"twikit {name} did not respond within {self.request_timeout}s"
-            )
+            self.logger.error(f"twikit {name} did not respond within {budget}s")
             raise
 
     async def validate_login(self) -> bool:
@@ -394,6 +409,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                     cookies_file=str(self.cookies_path),
                 ),
                 "login",
+                timeout=self.LONG_OPERATION_TIMEOUT_SECONDS,
             )
 
             valid_login = await self.validate_login()
@@ -415,6 +431,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                         cookies_file=str(self.cookies_path),
                     ),
                     "login",
+                    timeout=self.LONG_OPERATION_TIMEOUT_SECONDS,
                 )
 
                 valid_login = await self.validate_login()
@@ -431,10 +448,13 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
         self, query: str, product: str = "Top", count: int = 10
     ) -> List[Dict]:
         """Search tweets"""
-        tweets = await self._with_timeout(
-            self.client.search_tweet(query=query, product=product, count=count),
-            "search_tweet",
-        )
+        try:
+            tweets = await self._with_timeout(
+                self.client.search_tweet(query=query, product=product, count=count),
+                "search_tweet",
+            )
+        except asyncio.TimeoutError:
+            return []
         return [tweet_to_json(t) for t in tweets]
 
     async def post(self, tweets: List[Dict]) -> List[Optional[str]]:
@@ -538,17 +558,23 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
     ) -> List[Dict]:
         """Get user tweets"""
 
-        user = await self._with_timeout(
-            self.client.get_user_by_screen_name(twitter_handle),
-            "get_user_by_screen_name",
-        )
+        try:
+            user = await self._with_timeout(
+                self.client.get_user_by_screen_name(twitter_handle),
+                "get_user_by_screen_name",
+            )
+        except asyncio.TimeoutError:
+            return []
         await asyncio.sleep(1)
-        tweets = await self._with_timeout(
-            self.client.get_user_tweets(
-                user_id=user.id, tweet_type=tweet_type, count=count
-            ),
-            "get_user_tweets",
-        )
+        try:
+            tweets = await self._with_timeout(
+                self.client.get_user_tweets(
+                    user_id=user.id, tweet_type=tweet_type, count=count
+                ),
+                "get_user_tweets",
+            )
+        except asyncio.TimeoutError:
+            return []
         return [tweet_to_json(t, user.id) for t in tweets]
 
     async def like_tweet(self, tweet_id: str) -> Dict:
@@ -614,10 +640,13 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
     async def get_user_by_screen_name(self, screen_name: str) -> Dict:
         """Get user by screen name"""
-        user = await self._with_timeout(
-            self.client.get_user_by_screen_name(screen_name=screen_name),
-            "get_user_by_screen_name",
-        )
+        try:
+            user = await self._with_timeout(
+                self.client.get_user_by_screen_name(screen_name=screen_name),
+                "get_user_by_screen_name",
+            )
+        except asyncio.TimeoutError:
+            return {}
         return user_to_json(user)
 
     async def get_twitter_user_id(self) -> str:
@@ -664,6 +693,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                         source=media_path, wait_for_completion=True
                     ),
                     "upload_media",
+                    timeout=self.LONG_OPERATION_TIMEOUT_SECONDS,
                 )
                 media_id = result
 

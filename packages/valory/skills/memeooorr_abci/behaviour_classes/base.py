@@ -662,7 +662,19 @@ class MemeooorrBaseBehaviour(
         if not services:
             return handles
 
-        for service in services.get("units") or []:
+        units = services.get("units")
+        if not units:
+            # The subgraph returned a non-empty payload without a usable
+            # 'units' list — likely a schema migration or partial outage.
+            # Surface this as a warning so it is distinguishable from the
+            # legitimate "no services registered" case above.
+            self.context.logger.warning(
+                "Olas subgraph returned no 'units' in payload; treating "
+                f"as empty handle list. Payload keys: {list(services)}"
+            )
+            return handles
+
+        for service in units:
             match = re.match(MEMEOOORR_DESCRIPTION_PATTERN, service["description"])
 
             if not match:

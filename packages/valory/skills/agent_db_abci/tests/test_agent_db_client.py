@@ -396,8 +396,13 @@ class TestAgentDBClientRequest:
         result = _exhaust_gen(gen)
         assert result is None
 
-    def test_non_success_status_returns_none(self):
-        """Non-200/201/404 status codes return None and log a warning."""
+    def test_non_success_status_raises_runtime_error(self):
+        """Non-200/201/404 status codes raise RuntimeError.
+
+        Callers must be able to tell "row missing" (404 → None) from
+        "server broken" (5xx → raise) so the get-then-create pattern
+        does not write duplicates on a transient outage.
+        """
         client = self._setup_client()
         mock_resp = MagicMock(status_code=500, text="Server Error")
 
@@ -408,9 +413,8 @@ class TestAgentDBClientRequest:
         client.http_request_func = fake_http
 
         gen = client._request("GET", "/test")
-        result = _exhaust_gen(gen)
-        assert result is None
-        client.logger.warning.assert_called_once()
+        with pytest.raises(RuntimeError, match="500"):
+            _exhaust_gen(gen)
 
     def test_malformed_json_body_returns_none(self):
         """200 with non-JSON body returns None and logs an error."""

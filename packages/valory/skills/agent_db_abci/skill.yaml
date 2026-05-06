@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeibxbokhkdjtrvljnu2mwxtrpl6oyfdgqsxjcgdlqxnkfhlm4dalsa
-  agent_db_client.py: bafybeiemfy4lojuldhtyi6klqf25mo6gaop7y42kjsyoilzfmoylezoou4
+  agent_db_client.py: bafybeibbo7etdk6xejni5hwqvohwgfzavqaoq27q52kkgbwknigmciabby
   agent_db_models.py: bafybeigagleadveksxmm3petkptro2pym7gytef5yjcfvgvevpgqgz5hqu
-  agents_fun_db.py: bafybeibdx3bz542syyczc5udexok3ajvswhhteew6xit4cejj7byhq4kai
+  agents_fun_db.py: bafybeig2ktwmvkzskoz33osppt6k3dvfebhqrb7bogaizdbb6vad4xa4yi
   behaviours.py: bafybeigrqgoqccyuymvjskvi7hxrs27eg2tvixmagnunuoclix5d5dzdli
   dialogues.py: bafybeih57xagxye334om37q4dbgmbpqvvtj4wicn44xxvzriotxl32ndda
   fsm_specification.yaml: bafybeigiboab2knxjw7jj7k7bne6osbnhs7rreo3mgtq5nfkrtpw47thze
@@ -18,9 +18,9 @@ fingerprint:
   payloads.py: bafybeiczq2m2uoprcxya7r2wbgsoira5b4mhkbcupudqqqvc3mytx6iyya
   rounds.py: bafybeierehnr6oavmbefi5zs7zukzzwqkrrvh2yk53gw5ofvguuozyoyvy
   tests/__init__.py: bafybeifkhjm5vh5whoxg2l35oa6bsvrenxn3jfswqfru35yjfqlnmg4cpm
-  tests/test_agent_db_client.py: bafybeichhqfycvkvyd24ehlornfqzscnddc4hpz566gxxf33hzmwpjhr7e
+  tests/test_agent_db_client.py: bafybeie4qdb2bookhae6g2qa6dveq2zwddb62lrqjjphec4eax5ig45kga
   tests/test_agent_db_models.py: bafybeidrwdhsnqwtk7pdvqv327454yahmjavfmbugzjsyezkmzldcyojqm
-  tests/test_agents_fun_db.py: bafybeicyhrzbtcjjexjo3rcljj7l655jxo7fs6vsityikqizqyxgicsrxe
+  tests/test_agents_fun_db.py: bafybeifjtcnsw4d5dgjq4tblfagz5oqhpd2devnv2547tcgpmdaf6keu44
   tests/test_behaviours.py: bafybeigeasdqy4qxujs7qfoepw3cqzxvbb66kv656szr4oldw2xllykqbq
   tests/test_payloads.py: bafybeicuoebhi2vqwlhr6ixiikswenjxu44dnse7wdaquel2q2rczajbyu
   tests/test_rounds.py: bafybeidnf5fzwzegruwm3ljlcmm5ss42d4rvwwerfhxq3eqwiv3fd6dq6m
