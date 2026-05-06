@@ -22,13 +22,16 @@
 # pylint: disable=protected-access,unused-argument,used-before-assignment,useless-return,broad-exception-raised,unreachable,import-outside-toplevel
 
 import json
-from typing import Any
+from typing import Any, Optional
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.memeooorr_abci.behaviour_classes.mech import (
     FailedMechRequestBehaviour,
     FailedMechResponseBehaviour,
+    IPFS_POLL_INTERVAL_SECONDS,
     PostMechResponseBehaviour,
 )
 from packages.valory.skills.memeooorr_abci.payloads import MechPayload
@@ -40,6 +43,26 @@ from packages.valory.skills.memeooorr_abci.tests.conftest import (
     make_mock_params,
     make_mock_synchronized_data,
 )
+
+
+def _make_fetch_stub(*results):  # type: ignore[no-untyped-def]
+    """Build a generator-shaped stub for _fetch_media_from_ipfs_hash.
+
+    Returns the next supplied result on each call. The stub yields once
+    before returning, mirroring the real generator's poll-then-finish
+    shape.
+
+    :param results: The values the stub should return on successive calls.
+    :return: A callable that produces a generator yielding once and
+        returning the next supplied result.
+    """
+    pending = list(results)
+
+    def stub(*_args, **_kwargs):  # type: ignore[no-untyped-def]
+        yield
+        return pending.pop(0)
+
+    return stub
 
 
 class TestProcessMechResponseAndFetchMedia:
@@ -120,7 +143,7 @@ class TestProcessMechResponseAndFetchMedia:
         response = MagicMock()
         response.result = json.dumps({"video": "QmHash123"})
 
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/video.mp4")
+        behaviour._fetch_media_from_ipfs_hash = _make_fetch_stub("/tmp/video.mp4")
 
         def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
@@ -149,9 +172,7 @@ class TestProcessMechResponseAndFetchMedia:
         )
 
         # Video fetch fails
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(
-            side_effect=[None, "/tmp/image.png"]
-        )
+        behaviour._fetch_media_from_ipfs_hash = _make_fetch_stub(None, "/tmp/image.png")
 
         def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
@@ -177,7 +198,7 @@ class TestProcessMechResponseAndFetchMedia:
         response = MagicMock()
         response.result = json.dumps({"image_hash": "QmImageHash"})
 
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/image.png")
+        behaviour._fetch_media_from_ipfs_hash = _make_fetch_stub("/tmp/image.png")
 
         def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
@@ -203,7 +224,7 @@ class TestProcessMechResponseAndFetchMedia:
         response = MagicMock()
         response.result = json.dumps({"image_hash": "QmImageHash"})
 
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value=None)
+        behaviour._fetch_media_from_ipfs_hash = _make_fetch_stub(None)
 
         gen = PostMechResponseBehaviour._process_mech_response_and_fetch_media(
             behaviour, [response]
@@ -226,8 +247,8 @@ class TestProcessMechResponseAndFetchMedia:
         )
 
         # Video fetch succeeds but save fails, then image fetch and save succeeds
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(
-            side_effect=["/tmp/video.mp4", "/tmp/image.png"]
+        behaviour._fetch_media_from_ipfs_hash = _make_fetch_stub(
+            "/tmp/video.mp4", "/tmp/image.png"
         )
 
         call_count = [0]
@@ -259,7 +280,7 @@ class TestProcessMechResponseAndFetchMedia:
         response = MagicMock()
         response.result = json.dumps({"image_hash": "QmImageHash"})
 
-        behaviour._fetch_media_from_ipfs_hash = MagicMock(return_value="/tmp/image.png")
+        behaviour._fetch_media_from_ipfs_hash = _make_fetch_stub("/tmp/image.png")
 
         def mock_save_media_info(media_path, media_type, ipfs_hash):  # type: ignore[no-untyped-def]
             yield
@@ -526,8 +547,11 @@ class TestDownloadAndSaveMedia:
         assert mock_file.write.call_count == 2
 
 
-class TestFetchMediaFromIpfsHash:
-    """Tests for _fetch_media_from_ipfs_hash."""
+_GATEWAY_URL = "https://gateway.autonolas.tech/ipfs/QmHash"
+
+
+class TestIpfsFetchWorker:
+    """Tests for the synchronous IPFS fetch worker."""
 
     def _make_behaviour(self) -> MagicMock:
         behaviour = MagicMock(spec=PostMechResponseBehaviour)
@@ -537,21 +561,21 @@ class TestFetchMediaFromIpfsHash:
         return behaviour
 
     @patch("requests.get")
-    def test_timeout_error(self, mock_get: Any) -> None:
-        """Test returns None on timeout."""
+    def test_returns_none_on_timeout(self, mock_get: Any) -> None:
+        """Returns None when the upstream gateway exceeds the request timeout."""
         import requests
 
         mock_get.side_effect = requests.exceptions.Timeout("timeout")
         behaviour = self._make_behaviour()
 
-        result = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "video", ".mp4"
+        result = PostMechResponseBehaviour._ipfs_fetch_worker(
+            behaviour, _GATEWAY_URL, ".mp4", "QmHash", "video"
         )
         assert result is None
 
     @patch("requests.get")
-    def test_http_error(self, mock_get: Any) -> None:
-        """Test returns None on HTTP error."""
+    def test_returns_none_on_http_error(self, mock_get: Any) -> None:
+        """Returns None when the gateway responds with an HTTP error."""
         import requests
 
         mock_response = MagicMock()
@@ -560,27 +584,27 @@ class TestFetchMediaFromIpfsHash:
         mock_get.side_effect = requests.exceptions.HTTPError(response=mock_response)
         behaviour = self._make_behaviour()
 
-        result = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "image", ".png"
+        result = PostMechResponseBehaviour._ipfs_fetch_worker(
+            behaviour, _GATEWAY_URL, ".png", "QmHash", "image"
         )
         assert result is None
 
     @patch("requests.get")
-    def test_request_exception(self, mock_get: Any) -> None:
-        """Test returns None on general request exception."""
+    def test_returns_none_on_request_exception(self, mock_get: Any) -> None:
+        """Returns None on a generic transport-level error."""
         import requests
 
         mock_get.side_effect = requests.exceptions.RequestException("network error")
         behaviour = self._make_behaviour()
 
-        result = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "image", ".png"
+        result = PostMechResponseBehaviour._ipfs_fetch_worker(
+            behaviour, _GATEWAY_URL, ".png", "QmHash", "image"
         )
         assert result is None
 
     @patch("requests.get")
-    def test_successful_fetch(self, mock_get: Any) -> None:
-        """Test returns path on successful fetch."""
+    def test_returns_path_on_successful_fetch(self, mock_get: Any) -> None:
+        """Returns the saved media path when the download succeeds."""
         behaviour = self._make_behaviour()
         behaviour._download_and_save_media = MagicMock(return_value="/tmp/test.mp4")
 
@@ -590,14 +614,14 @@ class TestFetchMediaFromIpfsHash:
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
-        result = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "video", ".mp4"
+        result = PostMechResponseBehaviour._ipfs_fetch_worker(
+            behaviour, _GATEWAY_URL, ".mp4", "QmHash", "video"
         )
         assert result == "/tmp/test.mp4"
 
     @patch("requests.get")
-    def test_fetch_empty_content(self, mock_get: Any) -> None:
-        """Test returns None when download returns None (empty content)."""
+    def test_returns_none_when_download_yields_no_content(self, mock_get: Any) -> None:
+        """Returns None when the download helper reports zero bytes saved."""
         behaviour = self._make_behaviour()
         behaviour._download_and_save_media = MagicMock(return_value=None)
 
@@ -607,10 +631,108 @@ class TestFetchMediaFromIpfsHash:
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
-        result = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "image", ".png"
+        result = PostMechResponseBehaviour._ipfs_fetch_worker(
+            behaviour, _GATEWAY_URL, ".png", "QmHash", "image"
         )
         assert result is None
+
+
+class TestFetchMediaFromIpfsHash:
+    """Tests for the generator that wraps _ipfs_fetch_worker in a thread pool."""
+
+    def _make_behaviour(self) -> MagicMock:
+        behaviour = MagicMock(spec=PostMechResponseBehaviour)
+        behaviour.params = make_mock_params()
+        behaviour.context = make_mock_context(params=behaviour.params)
+        behaviour._cleanup_temp_file = MagicMock()
+
+        def fake_sleep(_seconds: float) -> Any:
+            yield
+
+        behaviour.sleep = fake_sleep
+        return behaviour
+
+    @staticmethod
+    def _drive(gen: Any) -> Any:
+        try:
+            next(gen)
+            while True:
+                gen.send(None)
+        except StopIteration as e:
+            return e.value
+
+    def test_returns_worker_result_on_success(self) -> None:
+        """The generator returns whatever the worker returned on success."""
+        behaviour = self._make_behaviour()
+        behaviour._ipfs_fetch_worker = MagicMock(return_value="/tmp/video.mp4")
+
+        gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+            behaviour, "QmHash", "video", ".mp4"
+        )
+        assert self._drive(gen) == "/tmp/video.mp4"
+
+    def test_returns_none_when_worker_returns_none(self) -> None:
+        """The generator surfaces a None from the worker (e.g. failed fetch)."""
+        behaviour = self._make_behaviour()
+        behaviour._ipfs_fetch_worker = MagicMock(return_value=None)
+
+        gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+            behaviour, "QmHash", "image", ".png"
+        )
+        assert self._drive(gen) is None
+
+    def test_yields_at_least_once_while_worker_runs(self) -> None:
+        """The generator yields control via self.sleep before the worker completes."""
+        import threading
+        import time
+
+        behaviour = self._make_behaviour()
+        sleep_calls = []
+
+        def fake_sleep(seconds: float) -> Any:
+            sleep_calls.append(seconds)
+            yield
+
+        behaviour.sleep = fake_sleep
+
+        gate = threading.Event()
+
+        def slow_worker(*_args: Any, **_kwargs: Any) -> Optional[str]:
+            gate.wait(timeout=5)
+            return "/tmp/late.mp4"
+
+        behaviour._ipfs_fetch_worker = slow_worker
+
+        gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+            behaviour, "QmHash", "video", ".mp4"
+        )
+
+        # First yield from sleep should happen while the worker is still
+        # blocked on the gate.
+        next(gen)
+        assert sleep_calls and sleep_calls[0] == IPFS_POLL_INTERVAL_SECONDS
+
+        # Release the worker and let the generator finish.
+        gate.set()
+        # Give the worker a moment to mark the future done before we
+        # re-enter the polling loop.
+        time.sleep(0.05)
+        try:
+            while True:
+                gen.send(None)
+        except StopIteration as e:
+            assert e.value == "/tmp/late.mp4"
+
+    def test_propagates_worker_exception(self) -> None:
+        """A worker exception surfaces via future.result() and propagates."""
+        behaviour = self._make_behaviour()
+        behaviour._ipfs_fetch_worker = MagicMock(side_effect=RuntimeError("boom"))
+
+        gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+            behaviour, "QmHash", "image", ".png"
+        )
+        with pytest.raises(RuntimeError, match="boom"):
+            self._drive(gen)
 
 
 class _MechBehaviourTestBase(MemeooorrFSMBehaviourBaseCase):

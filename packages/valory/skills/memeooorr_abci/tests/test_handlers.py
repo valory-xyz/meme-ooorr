@@ -2442,8 +2442,14 @@ class TestEnsureSufficientFundsForX402:
         result = HttpHandler._ensure_sufficient_funds_for_x402_payments(handler)
         assert result is False
 
-    def test_balance_check_returns_none(self) -> None:
-        """Test when USDC balance check returns None (assumes sufficient)."""
+    def test_unknown_balance_is_treated_as_insufficient(self) -> None:
+        """When USDC balance is unknown (RPC failure), funds are treated as insufficient.
+
+        Previously the handler defaulted to "sufficient" on RPC failure and
+        downstream payments would fail at the gateway. The fail-safe now
+        defaults to "insufficient" so the agent does not claim funds it
+        cannot prove it has.
+        """
         handler = _make_http_handler()
         handler._get_eoa_account = MagicMock()
         handler._get_eoa_account.return_value.address = "0xeoa"
@@ -2456,8 +2462,8 @@ class TestEnsureSufficientFundsForX402:
         }
 
         result = HttpHandler._ensure_sufficient_funds_for_x402_payments(handler)
-        assert result is True
-        assert handler.shared_state.sufficient_funds_for_x402_payments is True
+        assert result is False
+        assert handler.shared_state.sufficient_funds_for_x402_payments is False
 
     def test_sufficient_balance(self) -> None:
         """Test when balance is above threshold."""

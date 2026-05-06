@@ -1477,9 +1477,11 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
             usdc_balance = self._check_usdc_balance(eoa_address, chain, usdc_address)
 
             if usdc_balance is None:
-                self.context.logger.warning("Could not check USDC balance, skipping")
-                self.shared_state.sufficient_funds_for_x402_payments = True
-                return True
+                self.context.logger.warning(
+                    "Could not check USDC balance, treating as insufficient"
+                )
+                self.shared_state.sufficient_funds_for_x402_payments = False
+                return False
 
             threshold = self.params.x402_payment_requirements.get("threshold", 0)
             top_up = self.params.x402_payment_requirements.get("top_up", 0)
