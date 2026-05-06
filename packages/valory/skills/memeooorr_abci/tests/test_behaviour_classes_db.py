@@ -314,3 +314,50 @@ class TestAsyncAct:
 
         # Verify agent_details was written to KV store
         assert any("agent_details" in w for w in kv_writes)
+
+    def test_async_act_skips_period_when_load_db_raises_runtime_error(self) -> None:
+        """A RuntimeError from load_db is caught and the period is skipped.
+
+        ``set_done`` is not called, no payload is sent, and ``self.sleep``
+        yields once so the next tick does not immediately re-hit a
+        failing AgentDB at the FSM tick rate.
+        """
+        behaviour = self._make_behaviour()
+        behaviour.context.logger = MagicMock()
+        behaviour.params.sleep_time = 1
+        sleep_calls: list = []
+        payloads_sent: list = []
+
+        def mock_load_db():  # type: ignore[no-untyped-def]
+            yield
+            raise RuntimeError("AgentDB request failed: 500")
+
+        def mock_sleep(seconds):  # type: ignore[no-untyped-def]
+            sleep_calls.append(seconds)
+            yield
+
+        def mock_send_a2a_transaction(payload):  # type: ignore[no-untyped-def]
+            payloads_sent.append(payload)
+            yield
+            return None
+
+        behaviour.load_db = mock_load_db
+        behaviour.sleep = mock_sleep
+        behaviour.send_a2a_transaction = mock_send_a2a_transaction
+        behaviour.set_done = MagicMock()
+
+        gen = LoadDatabaseBehaviour.async_act(behaviour)
+        try:
+            _ = next(gen)
+            while True:
+                _ = gen.send(None)
+        except StopIteration:
+            pass
+
+        # No payload sent — round timeout will fire and the next period retries.
+        assert not payloads_sent
+        behaviour.set_done.assert_not_called()
+        # Sleep was honoured to avoid hammering AgentDB on every tick.
+        assert sleep_calls == [behaviour.params.sleep_time]
+        # Error logged so an outage is visible in operator alerting.
+        behaviour.context.logger.error.assert_called_once()
