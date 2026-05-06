@@ -5,12 +5,12 @@
         "connection/valory/twikit/0.1.0": "bafybeigpdbqkfvpa2huwafxme4vp2nctvoeiv7t35esv3d27c42synlina",
         "connection/valory/mirror_db/0.1.0": "bafybeicn4oia3pnceay3j2m6yegannr4nuledfjsoxjkorao6g4amjvpsa",
         "connection/valory/tweepy/0.1.0": "bafybeicnffj7fhf4rcbut677kabp773x6f5urq7ti6fpmq72d3gjhugwgy",
-        "skill/valory/memeooorr_abci/0.1.0": "bafybeidpophlrd2lmsm6o7bulp7odskay6wrykj5xxx5lkgp5opt3eeeq4",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeieunlfwpslvgq5zgocx56h2w6m7mko7fkslbmahjf7cqkhss3igky",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeie6ie4o2vasnplvghneuuakxginpwafgpjfzzyogml4ukkatjamzi",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeib4kp6ygpaifblx2a7y4n6o67cizlcdbfmwnkjv2g4m6pkjrdn4dm",
         "skill/valory/agent_db_abci/0.1.0": "bafybeib72xypoji23z2xi6ms6h47izdoeihmwyzrpxlrobo2mej5sd22me",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeifdneafkuubommckeqwmowf6zsnqtzh6wicjggvpy3z66m7u7mv5e",
-        "agent/valory/memeooorr/0.1.0": "bafybeic2vzko2wn6xzbkn7xruptjx5exguuvgb4vqbfm7pidnryebcvoqy",
-        "service/dvilela/memeooorr/0.1.0": "bafybeibu3rcloqgstvzqzmnjpcyvxmlamxtkb6lddxypfckz4wzzv7b2dm"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeid7y44czhyj2jmcyi6vgbkrvik3rx3zoffzy7rufmq6wjizgontfe",
+        "agent/valory/memeooorr/0.1.0": "bafybeiecfna6etrrrav3s2hiefqx2bde2q7tgf6m3pnspllseypvdy4h5i",
+        "service/dvilela/memeooorr/0.1.0": "bafybeibeway2q56utw4kodtw2a37ouv3hratv6xz7dp7w7juhfhyyacrbm"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",

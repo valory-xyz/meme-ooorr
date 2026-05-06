@@ -1477,8 +1477,14 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
             usdc_balance = self._check_usdc_balance(eoa_address, chain, usdc_address)
 
             if usdc_balance is None:
-                self.context.logger.warning(
-                    "Could not check USDC balance, treating as insufficient"
+                # Logged at error level so an RPC outage that prevents
+                # the agent from making any x402 payment surfaces in
+                # operator alerting rather than sitting silently in
+                # warning-level logs.
+                self.context.logger.error(
+                    "Could not check USDC balance, treating as insufficient. "
+                    "Base RPC may be unreachable; x402 payments are disabled "
+                    "until the next successful balance check."
                 )
                 self.shared_state.sufficient_funds_for_x402_payments = False
                 return False

@@ -25,13 +25,12 @@ import json
 from typing import Any, Optional
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.memeooorr_abci.behaviour_classes.mech import (
     FailedMechRequestBehaviour,
     FailedMechResponseBehaviour,
     IPFS_POLL_INTERVAL_SECONDS,
+    IPFS_REQUEST_TIMEOUT,
     PostMechResponseBehaviour,
 )
 from packages.valory.skills.memeooorr_abci.payloads import MechPayload
@@ -550,6 +549,61 @@ class TestDownloadAndSaveMedia:
 _GATEWAY_URL = "https://gateway.autonolas.tech/ipfs/QmHash"
 
 
+class _DeterministicFuture:
+    """Test double for concurrent.futures.Future.
+
+    Simulates an in-flight worker by deferring ``done()`` for a
+    configurable number of polls. Optionally raises ``exception`` from
+    ``result()``; otherwise returns ``result_value``.
+    """
+
+    def __init__(
+        self,
+        result_value: Any = None,
+        exception: Optional[BaseException] = None,
+        done_after: int = 0,
+    ) -> None:
+        self._result_value = result_value
+        self._exception = exception
+        self._done_after = done_after
+        self._poll_count = 0
+        self.cancel_called = False
+
+    def done(self) -> bool:
+        """Return True after ``done_after`` polls have already elapsed."""
+        ready = self._poll_count >= self._done_after
+        self._poll_count += 1
+        return ready
+
+    def result(self) -> Any:
+        """Return the configured value or raise the configured exception."""
+        if self._exception is not None:
+            raise self._exception
+        return self._result_value
+
+    def cancel(self) -> bool:
+        """Record the cancel request; return True for parity with Future."""
+        self.cancel_called = True
+        return True
+
+
+class _DeterministicExecutor:
+    """Test double for ThreadPoolExecutor that hands back a chosen future."""
+
+    def __init__(self, future: _DeterministicFuture) -> None:
+        """Wrap a single fake future the executor will return on submit."""
+        self._future = future
+        self.shutdown_calls: list = []
+
+    def submit(self, *_args: Any, **_kwargs: Any) -> _DeterministicFuture:
+        """Return the pre-built fake future regardless of arguments."""
+        return self._future
+
+    def shutdown(self, **kwargs: Any) -> None:
+        """Record the shutdown call so tests can assert on its kwargs."""
+        self.shutdown_calls.append(kwargs)
+
+
 class TestIpfsFetchWorker:
     """Tests for the synchronous IPFS fetch worker."""
 
@@ -604,7 +658,15 @@ class TestIpfsFetchWorker:
 
     @patch("requests.get")
     def test_returns_path_on_successful_fetch(self, mock_get: Any) -> None:
-        """Returns the saved media path when the download succeeds."""
+        """Return the saved media path and pin IPFS_REQUEST_TIMEOUT.
+
+        Asserts the configured request timeout is passed to
+        ``requests.get`` so a future revert to the original 120s budget
+        (or omission of ``timeout=``) is caught.
+
+        :param mock_get: Patched ``requests.get`` injected by the
+            ``@patch`` decorator.
+        """
         behaviour = self._make_behaviour()
         behaviour._download_and_save_media = MagicMock(return_value="/tmp/test.mp4")
 
@@ -618,6 +680,8 @@ class TestIpfsFetchWorker:
             behaviour, _GATEWAY_URL, ".mp4", "QmHash", "video"
         )
         assert result == "/tmp/test.mp4"
+        assert mock_get.call_args.kwargs["timeout"] == IPFS_REQUEST_TIMEOUT
+        assert mock_get.call_args.kwargs["stream"] is True
 
     @patch("requests.get")
     def test_returns_none_when_download_yields_no_content(self, mock_get: Any) -> None:
@@ -681,13 +745,17 @@ class TestFetchMediaFromIpfsHash:
         )
         assert self._drive(gen) is None
 
-    def test_yields_at_least_once_while_worker_runs(self) -> None:
-        """The generator yields control via self.sleep before the worker completes."""
-        import threading
-        import time
+    def test_yields_one_sleep_per_poll_until_future_done(self) -> None:
+        """Yield one sleep per poll until the future reports done.
 
+        Drives a deterministic fake future: ``done()`` returns ``False``
+        for the first three polls, then ``True``. Asserts the
+        generator slept exactly three times (each at the configured
+        interval) before consuming the result.
+        """
         behaviour = self._make_behaviour()
-        sleep_calls = []
+
+        sleep_calls: list[float] = []
 
         def fake_sleep(seconds: float) -> Any:
             sleep_calls.append(seconds)
@@ -695,44 +763,85 @@ class TestFetchMediaFromIpfsHash:
 
         behaviour.sleep = fake_sleep
 
-        gate = threading.Event()
-
-        def slow_worker(*_args: Any, **_kwargs: Any) -> Optional[str]:
-            gate.wait(timeout=5)
-            return "/tmp/late.mp4"
-
-        behaviour._ipfs_fetch_worker = slow_worker
-
-        gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "video", ".mp4"
+        polls_until_done = 3
+        future = _DeterministicFuture(
+            result_value="/tmp/late.mp4", done_after=polls_until_done
         )
+        executor = _DeterministicExecutor(future)
 
-        # First yield from sleep should happen while the worker is still
-        # blocked on the gate.
-        next(gen)
-        assert sleep_calls and sleep_calls[0] == IPFS_POLL_INTERVAL_SECONDS
+        with patch(
+            "packages.valory.skills.memeooorr_abci.behaviour_classes.mech.ThreadPoolExecutor",
+            return_value=executor,
+        ):
+            gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+                behaviour, "QmHash", "video", ".mp4"
+            )
+            assert self._drive(gen) == "/tmp/late.mp4"
 
-        # Release the worker and let the generator finish.
-        gate.set()
-        # Give the worker a moment to mark the future done before we
-        # re-enter the polling loop.
-        time.sleep(0.05)
-        try:
-            while True:
-                gen.send(None)
-        except StopIteration as e:
-            assert e.value == "/tmp/late.mp4"
+        assert len(sleep_calls) == polls_until_done
+        assert all(s == IPFS_POLL_INTERVAL_SECONDS for s in sleep_calls)
+        assert executor.shutdown_calls, "executor.shutdown was not called"
+        assert executor.shutdown_calls[0].get("cancel_futures") is True
 
-    def test_propagates_worker_exception(self) -> None:
-        """A worker exception surfaces via future.result() and propagates."""
+    def test_returns_none_and_logs_when_worker_raises(self) -> None:
+        """Unexpected worker exceptions resolve to None per the contract.
+
+        ``_fetch_media_from_ipfs_hash`` is documented to return
+        ``Optional[str]``; an unhandled exception inside the worker
+        (e.g. OSError from tempfile, MemoryError, library bug) must be
+        captured into a logged error rather than aborting the round.
+        """
         behaviour = self._make_behaviour()
-        behaviour._ipfs_fetch_worker = MagicMock(side_effect=RuntimeError("boom"))
+        behaviour.context.logger = MagicMock()
 
-        gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
-            behaviour, "QmHash", "image", ".png"
-        )
-        with pytest.raises(RuntimeError, match="boom"):
-            self._drive(gen)
+        future = _DeterministicFuture(exception=RuntimeError("boom"), done_after=0)
+        executor = _DeterministicExecutor(future)
+
+        with patch(
+            "packages.valory.skills.memeooorr_abci.behaviour_classes.mech.ThreadPoolExecutor",
+            return_value=executor,
+        ):
+            gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+                behaviour, "QmHash", "image", ".png"
+            )
+            assert self._drive(gen) is None
+
+        # Error logged, executor still shut down with cancel_futures.
+        behaviour.context.logger.error.assert_called_once()
+        assert executor.shutdown_calls
+        assert executor.shutdown_calls[0].get("cancel_futures") is True
+
+    def test_logs_abandonment_when_generator_closes_mid_poll(self) -> None:
+        """Log an abandonment warning when the generator is closed early.
+
+        If the round times out (or the generator is otherwise
+        ``.close()``'d) while the worker is still in-flight, the finally
+        block must log an abandonment warning so the leaked thread is
+        visible in operator logs rather than draining silently.
+        """
+        behaviour = self._make_behaviour()
+        behaviour.context.logger = MagicMock()
+
+        # Future never reports done — simulates a still-running worker.
+        future = _DeterministicFuture(result_value="/tmp/never.mp4", done_after=10**6)
+        executor = _DeterministicExecutor(future)
+
+        with patch(
+            "packages.valory.skills.memeooorr_abci.behaviour_classes.mech.ThreadPoolExecutor",
+            return_value=executor,
+        ):
+            gen = PostMechResponseBehaviour._fetch_media_from_ipfs_hash(
+                behaviour, "QmHash", "video", ".mp4"
+            )
+            next(gen)  # advance once so the future has been submitted
+            gen.close()  # simulate round-timeout / generator abandonment
+
+        behaviour.context.logger.warning.assert_called_once()
+        warning_message = behaviour.context.logger.warning.call_args.args[0]
+        assert "abandoned" in warning_message
+        assert future.cancel_called
+        assert executor.shutdown_calls
+        assert executor.shutdown_calls[0].get("cancel_futures") is True
 
 
 class _MechBehaviourTestBase(MemeooorrFSMBehaviourBaseCase):
