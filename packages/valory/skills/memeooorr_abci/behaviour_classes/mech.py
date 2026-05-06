@@ -273,9 +273,6 @@ class PostMechResponseBehaviour(
                 )
 
                 if media_path is None:
-                    # Empty download: nothing to clean up (no file was
-                    # written) and the helper has already logged the
-                    # error. Just surface the failure.
                     return None
 
             return media_path
@@ -337,27 +334,18 @@ class PostMechResponseBehaviour(
             try:
                 return future.result()
             except Exception as exc:  # pylint: disable=broad-except
-                # The worker's documented contract is Optional[str]. Any
-                # error not handled inside ``_ipfs_fetch_worker``
-                # (filesystem errors, MemoryError, library bugs) would
-                # otherwise propagate out of the generator and abort
-                # the round. Convert to ``None`` to honour the contract.
                 self.context.logger.error(
                     f"Unexpected error fetching {media_type} {ipfs_hash}: "
                     f"{exc}\n{traceback.format_exc()}"
                 )
                 return None
         finally:
-            # ``cancel_futures=True`` only stops pending submissions;
-            # an in-flight requests.get cannot be interrupted from
-            # Python and will drain on its own once its socket
-            # timeout fires. Log abandonment so the leak is visible
-            # rather than silent.
+            # An in-flight ``requests.get`` cannot be interrupted from
+            # Python; it drains on its own socket timeout. Log
+            # abandonment so the leaked thread is observable.
             if future is not None and not future.done():
                 self.context.logger.warning(
-                    f"IPFS fetch worker abandoned for {ipfs_hash} "
-                    f"({media_type}); thread will drain on the request "
-                    "socket timeout."
+                    f"IPFS fetch worker abandoned for {ipfs_hash} " f"({media_type})"
                 )
                 future.cancel()
             executor.shutdown(wait=False, cancel_futures=True)

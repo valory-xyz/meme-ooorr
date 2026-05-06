@@ -2443,13 +2443,11 @@ class TestEnsureSufficientFundsForX402:
         assert result is False
 
     def test_unknown_balance_is_treated_as_insufficient(self) -> None:
-        """Unknown USDC balance is treated as insufficient and logged at error.
+        """Unknown balance is treated as insufficient and logged at error.
 
-        Previously the handler defaulted to "sufficient" on RPC failure and
-        downstream payments would fail at the gateway. The fail-safe now
-        defaults to "insufficient" and emits an ``error`` log so the
-        condition surfaces in operator alerting (a warning would sit
-        unnoticed).
+        Pairs with the warning→error log promotion: an RPC outage that
+        disables x402 must surface in operator alerting, not sit
+        unnoticed as a warning.
         """
         handler = _make_http_handler()
         handler.context = MagicMock()
