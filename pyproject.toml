@@ -10,14 +10,11 @@ requires-python = "<3.15,>=3.10"
 readme = "README.md"
 license = "Apache-2.0"
 dependencies = [
-    # OA / open-aea / plugins — pinned exactly (framework contract).
     "open-autonomy[cli]==0.21.20",
     "open-aea==2.2.3",
     "open-aea-ledger-ethereum==2.2.3",
     "open-aea-ledger-cosmos==2.2.3",
     "open-aea-helpers==0.21.20",
-    # Agent / app — exact pins per @DavidMinarsch's #436 rule (no silent
-    # supply chain). Bounded ranges have a strict upper bound on every entry.
     "peewee==3.17.5",
     "twitter-text-parser==3.0.0",
     "grpcio==1.78.0",
@@ -34,7 +31,6 @@ dependencies = [
     "textblob<0.20,>=0.19.0",
     "w3multicall<0.4,>=0.3.1",
     "filelock<4,>=3.20.1",
-    # Bounded ranges that satisfy upstream third-party YAML constraints.
     "typing_extensions<=4.15.0,>=3.10.0.2",
     "asn1crypto<1.5.0,>=1.4.0",
     "requests<2.33.0,>=2.28.1",
@@ -60,31 +56,17 @@ default-groups = "all"
 prerelease = "allow"
 
 [tool.tomte]
-# Service is published under dvilela/, agent under valory/. Pin
-# packages_paths to the primary first-party author.
 packages_paths = "packages/valory"
-# Third-party packages on disk are synced from these upstream repos
-# (open-autonomy/open-aea pins auto-derived from pyproject).
 upstream_pins = [
     "valory-xyz/mech-interact@v0.30.0",
     "valory-xyz/genai@v7.0.0",
     "valory-xyz/kv-store@v0.5.0",
     "valory-xyz/funds-manager@v3.0.0",
 ]
-# UI bundle JS (Vite hash-suffixed agentsfun-ui-build/assets/*) trip
-# generic-api-key on every rebuild. Plus a constant-name string in
-# behaviour_classes/twitter.py (`pending_tweets_for_tw_mech` collection
-# key) trips the same rule — public field name, not a credential.
 gitleaks_extra_paths = [
     "packages/dvilela/skills/memeooorr_abci/agentsfun-ui.*",
     "packages/dvilela/skills/memeooorr_abci/behaviour_classes/.*",
 ]
-# `aea-helpers check-dependencies` does string-strict matching across
-# all package YAMLs and tox.ini. These specifiers diverge between
-# first-party skill.yaml declarations and upstream third-party YAMLs
-# (e.g. mirror_db has aiohttp `>=3.7.4` while http_client has
-# `<4.0.0,>=3.8.5`). All variants are runtime-compatible so excluding
-# them keeps the check honest without imposing churn on upstream YAMLs.
 check_dependencies_extra_excludes = [
     "aiohttp",
     "open-aea-ledger-ethereum",
