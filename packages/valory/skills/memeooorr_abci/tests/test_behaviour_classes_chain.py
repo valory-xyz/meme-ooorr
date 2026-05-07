@@ -164,7 +164,7 @@ class TestContractInteract:
 
         gen = ChainBehaviour.contract_interact(
             behaviour,
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address="0x" + "a" * 40,
             contract_public_id=PublicId("test", "contract", "0.1.0"),
             contract_callable="test_method",
@@ -194,7 +194,7 @@ class TestContractInteract:
 
         gen = ChainBehaviour.contract_interact(
             behaviour,
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address="0x" + "a" * 40,
             contract_public_id=PublicId("test", "contract", "0.1.0"),
             contract_callable="test_method",
@@ -225,7 +225,7 @@ class TestContractInteract:
 
         gen = ChainBehaviour.contract_interact(
             behaviour,
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore[arg-type]
             contract_address="0x" + "a" * 40,
             contract_public_id=PublicId("test", "contract", "0.1.0"),
             contract_callable="test_method",

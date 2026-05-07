@@ -700,7 +700,7 @@ class TwikitConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 await asyncio.sleep(delay)
                 # ``name=user_name`` binds the loop value (avoids late-binding closure).
                 await self._call_with_retry(
-                    lambda name=user_name: self._with_timeout(
+                    lambda name=user_name: self._with_timeout(  # type: ignore[misc,no-any-return]
                         self.client.get_user_by_screen_name(name),
                         "get_user_by_screen_name",
                     ),

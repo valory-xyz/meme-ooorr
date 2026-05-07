@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@
 """This module contains classes to interact with Agents.Fun agent data on AgentDB."""
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from logging import Logger
+from typing import Any, Dict, Generator, List, Optional
 
 from aea.skills.base import Model
 
@@ -28,7 +29,11 @@ from packages.valory.skills.agent_db_abci.agent_db_client import (
     AgentDBClient,
     AgentInstance,
 )
-from packages.valory.skills.agent_db_abci.agent_db_models import AttributeDefinition
+from packages.valory.skills.agent_db_abci.agent_db_models import (
+    AgentType,
+    AttributeDefinition,
+    AttributeInstance,
+)
 from packages.valory.skills.agent_db_abci.twitter_models import (
     TwitterAction,
     TwitterFollow,
@@ -84,19 +89,19 @@ class AgentsFunAgent:
         """Constructor"""
         self.client = client
         self.agent_instance = agent_instance
-        self.twitter_username: str = None
-        self.twitter_user_id: str = None
+        self.twitter_username: Optional[str] = None
+        self.twitter_user_id: Optional[str] = None
         self.posts: List[TwitterPost] = []
         self.likes: List[TwitterLike] = []
         self.retweets: List[TwitterRewtweet] = []
         self.follows: List[TwitterFollow] = []
         self.loaded = False
 
-    def delete(self):
+    def delete(self) -> Generator[Any, None, None]:
         """Delete agent instance"""
         yield from self.client.delete_agent_instance(self.agent_instance)
 
-    def load(self):
+    def load(self) -> Generator[Any, None, None]:
         """Load agent data"""
         attributes = yield from self.client.get_all_agent_instance_attributes_parsed(
             self.agent_instance
@@ -144,7 +149,9 @@ class AgentsFunAgent:
         ]
         self.loaded = True
 
-    def add_interaction(self, interaction: TwitterAction):
+    def add_interaction(
+        self, interaction: TwitterAction
+    ) -> Generator[Any, None, Optional[AttributeInstance]]:
         """Add interaction to agent"""
 
         action_class = self.action_to_class.get(interaction.action, None)
@@ -171,12 +178,13 @@ class AgentsFunAgent:
             # AgentDB returned a non-success status. Surface as a write
             # failure so the caller skips its post-write logic instead
             # of crashing the FSM.
-            self.client.logger.error(
-                f"AgentDB write failed for interaction {interaction.action}: {exc}"
-            )
+            if self.client.logger is not None:
+                self.client.logger.error(
+                    f"AgentDB write failed for interaction {interaction.action}: {exc}"
+                )
             return None
 
-    def update_twitter_details(self):
+    def update_twitter_details(self) -> Generator[Any, None, None]:
         """Update twitter username and user_id in the AgentDB."""
         try:
             yield from self.client.update_or_create_agent_attribute(
@@ -188,9 +196,10 @@ class AgentsFunAgent:
         except RuntimeError as exc:
             # AgentDB unavailable; the agent will retry on the next
             # period when it loads details again.
-            self.client.logger.error(
-                f"AgentDB write failed updating twitter details: {exc}"
-            )
+            if self.client.logger is not None:
+                self.client.logger.error(
+                    f"AgentDB write failed updating twitter details: {exc}"
+                )
 
     def __str__(self) -> str:
         """String representation of the agent"""
@@ -203,13 +212,13 @@ class AgentsFunDatabase(Model):
     def __init__(self, **kwargs: Any) -> None:
         """Constructor"""
         super().__init__(**kwargs)
-        self.client = None
-        self.agent_type = None
-        self.agents = []
-        self.my_agent = None
-        self.logger = None
+        self.client: Optional[AgentDBClient] = None
+        self.agent_type: Optional[AgentType] = None
+        self.agents: List[AgentsFunAgent] = []
+        self.my_agent: Optional[AgentsFunAgent] = None
+        self.logger: Optional[Logger] = None
 
-    def initialize(self, client: AgentDBClient):
+    def initialize(self, client: AgentDBClient) -> None:
         """Initialize agent"""
         self.client = client
         self.logger = self.client.logger
@@ -218,8 +227,10 @@ class AgentsFunDatabase(Model):
         self.client.agent_type_name = MEMEOOORR
         self.client.agent_name_template = "memeooorr-agent-{address}"
 
-    def load(self):
+    def load(self) -> Generator[Any, None, None]:
         """Load data"""
+        if self.client is None:
+            raise ValueError("Client not initialized. Call initialize first.")
         yield from self.client._ensure_agent_type_definition(AGENT_TYPE_DESCRIPTION)
         yield from self.client._ensure_agent_type_attribute_definition(
             REQUIRED_AGENT_TYPE_ATTRIBUTE_DEFINITIONS
@@ -232,7 +243,8 @@ class AgentsFunDatabase(Model):
             )
 
         if not self.agent_type:
-            self.logger.error(f"Could not get agent type {MEMEOOORR}")
+            if self.logger is not None:
+                self.logger.error(f"Could not get agent type {MEMEOOORR}")
             return
 
         agent_instances = yield from self.client.get_agent_instances_by_type_id(
@@ -248,7 +260,7 @@ class AgentsFunDatabase(Model):
             self.my_agent = AgentsFunAgent(self.client, self.client.agent)
             self.agents.append(self.my_agent)
 
-    def get_tweet_likes_number(self, tweet_id) -> int:
+    def get_tweet_likes_number(self, tweet_id: str) -> Generator[Any, None, int]:
         """Get all tweet likes"""
         tweet_likes = 0
         for agent in self.agents:
@@ -260,7 +272,7 @@ class AgentsFunDatabase(Model):
                     break
         return tweet_likes
 
-    def get_tweet_retweets_number(self, tweet_id) -> int:
+    def get_tweet_retweets_number(self, tweet_id: str) -> Generator[Any, None, int]:
         """Get all tweet retweets"""
         tweet_retweets = 0
         for agent in self.agents:
@@ -272,7 +284,9 @@ class AgentsFunDatabase(Model):
                     break
         return tweet_retweets
 
-    def get_tweet_replies(self, tweet_id) -> List[TwitterPost]:
+    def get_tweet_replies(
+        self, tweet_id: str
+    ) -> Generator[Any, None, List[TwitterPost]]:
         """Get all tweet replies"""
         tweet_replies = []
         for agent in self.agents:
@@ -284,7 +298,7 @@ class AgentsFunDatabase(Model):
                     break
         return tweet_replies
 
-    def get_tweet_feedback(self, tweet_id) -> Dict[str, Any]:
+    def get_tweet_feedback(self, tweet_id: str) -> Generator[Any, None, Dict[str, Any]]:
         """Get all tweet feedback"""
         try:
             likes = yield from self.get_tweet_likes_number(tweet_id)

@@ -23,7 +23,9 @@
 
 from unittest.mock import MagicMock, patch
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
+from packages.valory.skills.abstract_round_abci.handlers import (
+    ABCIRoundHandler,
+)
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,
 )
@@ -55,7 +57,9 @@ from packages.valory.skills.agent_performance_summary_abci.models import (
 from packages.valory.skills.memeooorr_abci.handlers import (
     HttpHandler as BaseHttpHandler,
 )
-from packages.valory.skills.memeooorr_abci.handlers import HttpMethod
+from packages.valory.skills.memeooorr_abci.handlers import (
+    HttpMethod,
+)
 
 
 class TestHandlerAliases:
@@ -142,7 +146,7 @@ class TestHttpHandler:
         mock_http_msg = MagicMock()
         mock_http_dialogue = MagicMock()
 
-        handler._send_ok_response = MagicMock()
+        handler._send_ok_response = MagicMock()  # type: ignore[method-assign]
 
         handler._get_performance_summary(mock_http_msg, mock_http_dialogue)
 

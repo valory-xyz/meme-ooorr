@@ -194,7 +194,7 @@ class TestOnSend:
 
     @staticmethod
     def _make_envelope(
-        performative: SrrMessage.Performative = SrrMessage.Performative.REQUEST,
+        performative: SrrMessage.Performative = SrrMessage.Performative.REQUEST,  # type: ignore[assignment]
         payload: Optional[str] = None,
     ) -> MagicMock:
         """Create a mock envelope with the given SrrMessage performative."""
@@ -221,7 +221,7 @@ class TestOnSend:
         """Non-REQUEST performatives are rejected with a log message."""
         conn = _make_connection(twitter=_mock_twitter())
         envelope = self._make_envelope(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
         )
         # Update the dialogues mock so it doesn't block
         conn.dialogues = MagicMock()

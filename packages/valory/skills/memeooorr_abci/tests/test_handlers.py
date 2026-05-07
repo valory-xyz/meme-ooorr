@@ -122,7 +122,7 @@ class TestHttpMethod:  # pylint: disable=too-few-public-methods
 
 
 def _make_mock_srr_message(
-    performative: SrrMessage.Performative = SrrMessage.Performative.RESPONSE,
+    performative: SrrMessage.Performative = SrrMessage.Performative.RESPONSE,  # type: ignore[assignment]
     dialogue_reference: tuple = ("nonce1", ""),
     payload: str = "{}",
 ) -> MagicMock:
@@ -165,7 +165,7 @@ class TestSrrHandler:
         """Test handling when no callback is registered for the nonce."""
         handler = self._make_handler()
         msg = _make_mock_srr_message(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
             dialogue_reference=("unknown_nonce", ""),
         )
 
@@ -181,7 +181,7 @@ class TestSrrHandler:
         callback = MagicMock()
         handler.context.state.req_to_callback = {"nonce1": (callback, {"key": "value"})}
         msg = _make_mock_srr_message(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
             dialogue_reference=("nonce1", ""),
         )
         dialogue = MagicMock()
@@ -196,7 +196,7 @@ class TestSrrHandler:
         """Test handling REQUEST performative (also allowed)."""
         handler = self._make_handler()
         msg = _make_mock_srr_message(
-            performative=SrrMessage.Performative.REQUEST,
+            performative=SrrMessage.Performative.REQUEST,  # type: ignore[arg-type]
             dialogue_reference=("nonce_req", ""),
         )
 
@@ -302,7 +302,7 @@ def _make_http_msg(  # pylint: disable=too-many-arguments, too-many-positional-a
     body: bytes = b"",
     headers: str = "",
     version: str = "HTTP/1.1",
-    performative: HttpMessage.Performative = HttpMessage.Performative.REQUEST,
+    performative: HttpMessage.Performative = HttpMessage.Performative.REQUEST,  # type: ignore[assignment]
     sender: Optional[str] = None,
 ) -> MagicMock:
     """Create a mock HttpMessage."""
@@ -687,7 +687,7 @@ class TestHttpHandlerHandle:
     def test_non_request_performative(self) -> None:
         """Test that non-REQUEST performatives are delegated to super."""
         handler = _make_http_handler()
-        msg = _make_http_msg(performative=HttpMessage.Performative.RESPONSE)
+        msg = _make_http_msg(performative=HttpMessage.Performative.RESPONSE)  # type: ignore[arg-type]
 
         with patch.object(BaseHttpHandler, "handle") as mock_super:
             HttpHandler.handle(handler, msg)

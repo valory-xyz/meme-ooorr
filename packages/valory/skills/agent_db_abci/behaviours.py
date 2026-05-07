@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -57,4 +57,4 @@ class AgentDBRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = AgentDBBehaviour
     abci_app_cls = AgentDBAbciApp  # type: ignore
-    behaviours: Set[Type[BaseBehaviour]] = {AgentDBBehaviour}
+    behaviours: Set[Type[BaseBehaviour]] = {AgentDBBehaviour}  # type: ignore[type-abstract]

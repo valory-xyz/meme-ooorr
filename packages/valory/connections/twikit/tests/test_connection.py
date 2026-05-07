@@ -111,7 +111,7 @@ def _make_connection(
 def _make_srr_request(payload: Dict) -> SrrMessage:
     """Create an SrrMessage REQUEST."""
     return SrrMessage(
-        performative=SrrMessage.Performative.REQUEST,
+        performative=SrrMessage.Performative.REQUEST,  # type: ignore[arg-type]
         payload=json.dumps(payload),
     )
 
@@ -119,7 +119,7 @@ def _make_srr_request(payload: Dict) -> SrrMessage:
 def _make_srr_response() -> SrrMessage:
     """Create an SrrMessage RESPONSE (non-request)."""
     return SrrMessage(
-        performative=SrrMessage.Performative.RESPONSE,
+        performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
         payload="{}",
         error=False,
     )
@@ -244,7 +244,7 @@ class TestHandleDoneTask:
         conn = _make_connection()
         task = MagicMock()
         response_msg = SrrMessage(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
             payload="{}",
             error=False,
         )
@@ -347,7 +347,7 @@ class TestGetResponse:
         """Invalid JSON payload returns error instead of crashing."""
         conn = _make_connection()
         msg = SrrMessage(
-            performative=SrrMessage.Performative.REQUEST,
+            performative=SrrMessage.Performative.REQUEST,  # type: ignore[arg-type]
             payload="not-valid-json{{{",
         )
         dialogue = self._setup_dialogue(conn, msg)
@@ -1201,7 +1201,7 @@ class TestSendAndHandleEnvelope:
         object.__setattr__(conn, "_loop", asyncio.get_running_loop())
 
         response_msg = SrrMessage(
-            performative=SrrMessage.Performative.RESPONSE,
+            performative=SrrMessage.Performative.RESPONSE,  # type: ignore[arg-type]
             payload="{}",
             error=False,
         )

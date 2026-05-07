@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Tests for behaviours module."""
 
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 from packages.valory.skills.agent_db_abci.behaviours import (
@@ -43,8 +44,9 @@ class TestAgentDBBehaviour:
         class ConcreteAgentDBBehaviour(AgentDBBehaviour):
             """Concrete subclass for testing."""
 
-            def async_act(self) -> None:
+            def async_act(self) -> Generator[None, None, None]:  # type: ignore[override]
                 """No-op."""
+                yield
 
         with patch(
             "packages.valory.skills.agent_db_abci.behaviours.BaseBehaviour.__init__",
@@ -52,8 +54,8 @@ class TestAgentDBBehaviour:
         ):
             behaviour = ConcreteAgentDBBehaviour.__new__(ConcreteAgentDBBehaviour)
             behaviour._context = mock_context
-            behaviour.get_http_response = MagicMock()
-            behaviour.get_signature = MagicMock()
+            behaviour.get_http_response = MagicMock()  # type: ignore[method-assign]
+            behaviour.get_signature = MagicMock()  # type: ignore[method-assign]
 
             ConcreteAgentDBBehaviour.__init__(behaviour)
 
