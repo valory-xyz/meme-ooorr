@@ -29,7 +29,7 @@ skills:
 - valory/termination_abci:0.1.0:bafybeiadbtzcvzkwbrosshlsubilj7mwzdqfni6dr75wsd3vawhslpwqeu
 - valory/memeooorr_abci:0.1.0:bafybeig5l4u6hylm6ghthqdkbknkinw2xksdd5ha2rkwdq7sx6bfzaa65a
 - valory/mech_interact_abci:0.1.0:bafybeiburftv5nj5427qyue2f5sx56fpfskalnplwoow2ixqbvgio3kfky
-- valory/agent_performance_summary_abci:0.1.0:bafybeibp4ynqsnvpeuzhuwebczkb23rcfzf3ex2onqaakut2tjtu64nmn4
+- valory/agent_performance_summary_abci:0.1.0:bafybeia547ya3tuwclfbkffbsglxlp5f5wpesjljnipncpatewi6vqj2ay
 behaviours:
   main:
     args: {}

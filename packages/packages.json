@@ -6,11 +6,11 @@
         "connection/valory/mirror_db/0.1.0": "bafybeibjq4b2jd7ds24j7is7nvoof54ht5c7yhdz4e44xawpnrksu5dzb4",
         "connection/valory/tweepy/0.1.0": "bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe",
         "skill/valory/memeooorr_abci/0.1.0": "bafybeig5l4u6hylm6ghthqdkbknkinw2xksdd5ha2rkwdq7sx6bfzaa65a",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeibuvtgjmn5n7qvjvrdzkzzdnljqau3c7lfpfxx3ammw2llu3rrvlq",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeihmlhfuf6twd6b2isnrt4sz2xro4wte4acz3pru3qa2afvgfszdsu",
         "skill/valory/agent_db_abci/0.1.0": "bafybeifevqsu4vxfchjh73q3kk4tflabhe6si67octhnxqcnwictvz3uzm",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeibp4ynqsnvpeuzhuwebczkb23rcfzf3ex2onqaakut2tjtu64nmn4",
-        "agent/valory/memeooorr/0.1.0": "bafybeihuvquxb2llrwqaejkuxsu3lydv23j2yb3sksrcyvyhkfplwivajq",
-        "service/dvilela/memeooorr/0.1.0": "bafybeigguh3zagodcfss53347pzjdvr7hblrhytgyq5zehbc3r6a4me24a"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeia547ya3tuwclfbkffbsglxlp5f5wpesjljnipncpatewi6vqj2ay",
+        "agent/valory/memeooorr/0.1.0": "bafybeigutqsw6ekvzwns4fwmqq27mvel4rpg5bedcxd3ncri3vbg7q2irq",
+        "service/dvilela/memeooorr/0.1.0": "bafybeibs7ao7inko5mf6j7v6364rh4ggivhst7s2a5gbxjgzvleqbcjeqq"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",

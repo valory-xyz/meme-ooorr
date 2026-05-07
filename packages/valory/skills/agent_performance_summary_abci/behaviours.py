@@ -19,7 +19,7 @@
 
 """This module contains the behaviour of the skill which is responsible for agent performance summary file updation."""
 
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -162,8 +162,8 @@ class FetchPerformanceSummaryBehaviour(
             since_timestamp=since_timestamp
         )
 
-        total_likes: Optional[Any] = likes
-        total_impressions: Optional[Any] = impressions
+        total_likes: Optional[Union[int, str]] = likes
+        total_impressions: Optional[Union[int, str]] = impressions
 
         if total_likes is None or total_impressions is None:
             self.context.logger.warning(

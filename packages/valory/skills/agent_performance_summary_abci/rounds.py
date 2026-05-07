@@ -108,3 +108,4 @@ class AgentPerformanceSummaryAbciApp(AbciApp[Event]):  # pylint: disable=too-few
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedFetchPerformanceDataRound: set(),
     }
+# fmt: on
