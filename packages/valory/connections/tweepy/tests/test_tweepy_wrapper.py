@@ -27,11 +27,14 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests  # type: ignore[import]
 import tweepy  # type: ignore[import]
 
 from packages.valory.connections.tweepy.tweepy_wrapper import (
     DEFAULT_LOGGER,
     Twitter,
+    _TimeoutHTTPAdapter,
+    _mount_timeout_adapter,
     is_twitter_id,
 )
 
@@ -155,6 +158,167 @@ class TestTwitterInit:
         """When a logger is supplied, it is used instead of the default."""
         assert twitter_with_logger.logger is not DEFAULT_LOGGER
         assert twitter_with_logger.logger.name == "test_custom"
+
+
+# ---------------------------------------------------------------------------
+# Timeout adapter and rate-limit-wait
+# ---------------------------------------------------------------------------
+
+
+def _build_twitter_with_real_sessions(timeout: int) -> Twitter:
+    """Construct a Twitter wrapper with real Sessions on Client and API."""
+    with patch(
+        "packages.valory.connections.tweepy.tweepy_wrapper.tweepy"
+    ) as mock_tweepy:
+        mock_tweepy.OAuth2BearerHandler.return_value = MagicMock()
+        mock_tweepy.OAuth2AppHandler.return_value = MagicMock()
+        mock_tweepy.OAuth1UserHandler.return_value = MagicMock()
+
+        api_obj = MagicMock()
+        api_obj.session = requests.Session()
+        client_obj = MagicMock()
+        client_obj.session = requests.Session()
+
+        mock_tweepy.API.return_value = api_obj
+        mock_tweepy.Client.return_value = client_obj
+        mock_tweepy.errors.TweepyException = tweepy.errors.TweepyException
+
+        tw = Twitter(
+            consumer_key=CONSUMER_KEY,
+            consumer_secret=CONSUMER_SECRET,
+            access_token=ACCESS_TOKEN,
+            access_token_secret=ACCESS_TOKEN_SECRET,
+            bearer_token=BEARER_TOKEN,
+            request_timeout=timeout,
+        )
+        tw._mock_tweepy = mock_tweepy  # type: ignore[attr-defined]
+    return tw
+
+
+class TestTwitterTimeoutHardening:
+    """Tests for the request-timeout adapter and rate-limit handling."""
+
+    def test_client_constructed_without_wait_on_rate_limit(self) -> None:
+        """Client is built without wait_on_rate_limit so 429s do not block.
+
+        With ``MAX_WORKER_THREADS=1`` and ``wait_on_rate_limit=True``,
+        tweepy's internal sleep would block the connection for the
+        entire rate-limit window. We surface 429s instead and let the
+        caller handle them.
+        """
+        tw = _build_twitter_with_real_sessions(timeout=30)
+        kwargs = tw._mock_tweepy.Client.call_args.kwargs  # type: ignore[attr-defined]
+        assert kwargs.get("wait_on_rate_limit") in (False, None)
+
+    @pytest.mark.parametrize("scheme", ["http://", "https://"])
+    def test_client_session_has_timeout_adapter(self, scheme: str) -> None:
+        """The Client session mounts a _TimeoutHTTPAdapter for both schemes."""
+        tw = _build_twitter_with_real_sessions(timeout=30)
+        adapter = tw.client.session.get_adapter(f"{scheme}example.com/path")
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
+        assert adapter._timeout == 30
+
+    @pytest.mark.parametrize("scheme", ["http://", "https://"])
+    def test_api_session_has_timeout_adapter(self, scheme: str) -> None:
+        """The API session mounts a _TimeoutHTTPAdapter for both schemes."""
+        tw = _build_twitter_with_real_sessions(timeout=30)
+        adapter = tw.api.session.get_adapter(f"{scheme}example.com/path")
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
+        assert adapter._timeout == 30
+
+    def test_custom_timeout_propagates(self) -> None:
+        """A non-default request_timeout is propagated to the adapter."""
+        tw = _build_twitter_with_real_sessions(timeout=45)
+        adapter = tw.client.session.get_adapter("https://example.com")
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
+        assert adapter._timeout == 45
+
+    def test_adapter_injects_timeout_when_session_request_omits_it(self) -> None:
+        """Adapter replaces a None timeout with its configured default.
+
+        ``Session.request()`` always populates ``kwargs['timeout']=None``
+        when the caller did not pass one (e.g. ``tweepy.Client.request``).
+        Without this replacement the timeout is a silent no-op.
+        """
+        adapter = _TimeoutHTTPAdapter(timeout=30)
+        session = requests.Session()
+        session.mount("https://", adapter)
+
+        captured: dict = {}
+
+        def fake_super_send(
+            self_inner: object, request: object, **kwargs: object
+        ) -> object:  # noqa: ARG001
+            captured.update(kwargs)
+            response = MagicMock()
+            response.status_code = 200
+            response.headers = {}
+            response.cookies = {}
+            response.is_redirect = False
+            response.is_permanent_redirect = False
+            response.history = []
+            response.url = "https://example.com/"
+            response.elapsed = datetime.timedelta(seconds=0)
+            return response
+
+        with patch.object(
+            requests.adapters.HTTPAdapter,
+            "send",
+            autospec=True,
+            side_effect=fake_super_send,
+        ):
+            # Session.request() omits timeout — it puts None into kwargs.
+            # The adapter must inject its default in that case.
+            session.request("GET", "https://example.com/")
+
+        assert captured["timeout"] == 30
+
+    def test_adapter_respects_explicit_caller_timeout(self) -> None:
+        """An explicit caller timeout flows through unchanged.
+
+        ``Session.request(..., timeout=5)`` should reach the underlying
+        adapter as ``timeout=5``; the adapter must not override it.
+        """
+        adapter = _TimeoutHTTPAdapter(timeout=30)
+        session = requests.Session()
+        session.mount("https://", adapter)
+
+        captured: dict = {}
+
+        def fake_super_send(
+            self_inner: object, request: object, **kwargs: object
+        ) -> object:  # noqa: ARG001
+            captured.update(kwargs)
+            response = MagicMock()
+            response.status_code = 200
+            response.headers = {}
+            response.cookies = {}
+            response.is_redirect = False
+            response.is_permanent_redirect = False
+            response.history = []
+            response.url = "https://example.com/"
+            response.elapsed = datetime.timedelta(seconds=0)
+            return response
+
+        with patch.object(
+            requests.adapters.HTTPAdapter,
+            "send",
+            autospec=True,
+            side_effect=fake_super_send,
+        ):
+            session.request("GET", "https://example.com/", timeout=5)
+
+        assert captured["timeout"] == 5
+
+    def test_mount_timeout_adapter_is_noop_for_none_session(self) -> None:
+        """``_mount_timeout_adapter(None, ...)`` is safe to call.
+
+        ``Twitter.__init__`` calls it with ``getattr(client, 'session', None)``
+        so a future tweepy version that drops ``.session`` does not crash
+        construction; it just leaves the timeout unmounted on that path.
+        """
+        # No exception, no return value.
+        assert _mount_timeout_adapter(None, 30) is None
 
 
 # ---------------------------------------------------------------------------

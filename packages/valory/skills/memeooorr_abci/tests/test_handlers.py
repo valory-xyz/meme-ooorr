@@ -2442,9 +2442,15 @@ class TestEnsureSufficientFundsForX402:
         result = HttpHandler._ensure_sufficient_funds_for_x402_payments(handler)
         assert result is False
 
-    def test_balance_check_returns_none(self) -> None:
-        """Test when USDC balance check returns None (assumes sufficient)."""
+    def test_unknown_balance_is_treated_as_insufficient(self) -> None:
+        """Unknown balance is treated as insufficient and logged at error.
+
+        Pairs with the warning→error log promotion: an RPC outage that
+        disables x402 must surface in operator alerting, not sit
+        unnoticed as a warning.
+        """
         handler = _make_http_handler()
+        handler.context = MagicMock()
         handler._get_eoa_account = MagicMock()
         handler._get_eoa_account.return_value.address = "0xeoa"
         handler._check_usdc_balance = MagicMock(return_value=None)
@@ -2456,8 +2462,9 @@ class TestEnsureSufficientFundsForX402:
         }
 
         result = HttpHandler._ensure_sufficient_funds_for_x402_payments(handler)
-        assert result is True
-        assert handler.shared_state.sufficient_funds_for_x402_payments is True
+        assert result is False
+        assert handler.shared_state.sufficient_funds_for_x402_payments is False
+        handler.context.logger.error.assert_called_once()
 
     def test_sufficient_balance(self) -> None:
         """Test when balance is above threshold."""

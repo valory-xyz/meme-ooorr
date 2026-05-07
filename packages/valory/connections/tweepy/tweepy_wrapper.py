@@ -23,11 +23,51 @@
 import datetime
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
+import requests.adapters  # type: ignore[import]
 import tweepy  # type: ignore[import]
 
 DEFAULT_LOGGER = logging.getLogger(__name__)
+DEFAULT_REQUEST_TIMEOUT = 30
+
+
+class _TimeoutHTTPAdapter(requests.adapters.HTTPAdapter):
+    """HTTPAdapter that injects a default timeout into every request."""
+
+    def __init__(
+        self, *args: Any, timeout: int = DEFAULT_REQUEST_TIMEOUT, **kwargs: Any
+    ) -> None:
+        """Initialize the adapter with a default timeout."""
+        self._timeout = timeout
+        super().__init__(*args, **kwargs)
+
+    def send(  # pylint: disable=arguments-differ
+        self, request: Any, **kwargs: Any
+    ) -> Any:
+        """Send a request, applying the default timeout if none was supplied.
+
+        ``Session.request`` always populates ``kwargs['timeout']`` before
+        calling the adapter, with ``None`` when the caller did not pass
+        one. ``setdefault`` would not overwrite that ``None``, so check
+        the value explicitly.
+
+        :param request: The PreparedRequest to send.
+        :param kwargs: Forwarded to ``HTTPAdapter.send``.
+        :return: The HTTP response from the underlying adapter.
+        """
+        if kwargs.get("timeout") is None:
+            kwargs["timeout"] = self._timeout
+        return super().send(request, **kwargs)
+
+
+def _mount_timeout_adapter(session: Any, timeout: int) -> None:
+    """Mount a timeout-aware HTTPAdapter on a requests Session."""
+    if session is None:
+        return
+    adapter = _TimeoutHTTPAdapter(timeout=timeout)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
 
 
 def is_twitter_id(twitter_id: str) -> bool:
@@ -50,6 +90,7 @@ class Twitter:
         access_token_secret: str,
         bearer_token: str,
         logger: Optional[logging.Logger] = None,
+        request_timeout: int = DEFAULT_REQUEST_TIMEOUT,
     ):
         """Constructor"""
         self.oauth2_bearer_auth = tweepy.OAuth2BearerHandler(bearer_token)
@@ -63,6 +104,12 @@ class Twitter:
 
         self.api = tweepy.API(auth=self.oauth1_user_auth)
 
+        # NOTE: ``wait_on_rate_limit`` intentionally not enabled. Tweepy
+        # implements it as ``time.sleep(reset_at - now)`` between requests
+        # (up to ~15 minutes), which the per-request HTTPAdapter timeout
+        # cannot bound. With ``MAX_WORKER_THREADS=1`` that would block the
+        # entire connection mid-method. 429s instead surface as
+        # ``TooManyRequests`` for the caller to handle.
         self.client = tweepy.Client(
             bearer_token=bearer_token,
             consumer_key=consumer_key,
@@ -71,6 +118,9 @@ class Twitter:
             access_token_secret=access_token_secret,
         )
         self.logger = logger if logger else DEFAULT_LOGGER
+
+        _mount_timeout_adapter(getattr(self.client, "session", None), request_timeout)
+        _mount_timeout_adapter(getattr(self.api, "session", None), request_timeout)
 
     def post_tweet(
         self,

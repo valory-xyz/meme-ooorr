@@ -44,16 +44,26 @@ class LoadDatabaseBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            (
-                persona,
-                hearting_cooldown_hours,
-                summon_cooldown_seconds,
-            ) = yield from self.load_db()
-            yield from self.populate_keys_in_kv()
-            yield from self.init_own_twitter_details()
-            agent_details = self.gather_agent_details(persona)
+            try:
+                (
+                    persona,
+                    hearting_cooldown_hours,
+                    summon_cooldown_seconds,
+                ) = yield from self.load_db()
+                yield from self.populate_keys_in_kv()
+                yield from self.init_own_twitter_details()
+                agent_details = self.gather_agent_details(persona)
 
-            yield from self._write_kv({"agent_details": agent_details})
+                yield from self._write_kv({"agent_details": agent_details})
+            except RuntimeError as exc:
+                self.context.logger.error(
+                    f"AgentDB unavailable during LoadDatabaseRound: {exc}"
+                )
+                # ``act()`` re-creates this generator on the next tick,
+                # so without a sleep here a 5xx-ing AgentDB would be
+                # hit many times per second until the round timeout.
+                yield from self.sleep(self.params.sleep_time)
+                return
 
             payload = LoadDatabasePayload(
                 sender=self.context.agent_address,

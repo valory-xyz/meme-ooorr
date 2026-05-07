@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2026 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 # pylint: disable=no-member
 
 import json
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -50,7 +49,7 @@ def _make_client(base_url: str = "https://example.com/api/") -> AgentDBClient:
     return client
 
 
-def _exhaust_gen(gen: Any) -> Any:  # type: ignore[no-untyped-def]
+def _exhaust_gen(gen):  # type: ignore[no-untyped-def]
     """Drive a generator to completion, returning its return value.
 
     Sends None at each yield point. Suitable for generators whose
@@ -72,12 +71,12 @@ def _exhaust_gen(gen: Any) -> Any:  # type: ignore[no-untyped-def]
 class TestAgentDBClientInit:
     """Test AgentDBClient.__init__ (lines 44-55)."""
 
-    def test_init_strips_trailing_slash(self) -> None:
+    def test_init_strips_trailing_slash(self):
         """Test that base_url trailing slash is stripped."""
         client = _make_client("https://example.com/api/")
         assert client.base_url == "https://example.com/api"
 
-    def test_init_sets_defaults(self) -> None:
+    def test_init_sets_defaults(self):
         """Test default attribute values set in __init__."""
         client = _make_client()
         assert not client._attribute_definition_cache
@@ -94,7 +93,7 @@ class TestAgentDBClientInit:
 class TestAgentDBClientInitialize:  # pylint: disable=too-few-public-methods
     """Test AgentDBClient.initialize."""
 
-    def test_initialize_sets_all_fields(self) -> None:
+    def test_initialize_sets_all_fields(self):
         """Test that initialize stores all injected dependencies."""
         client = _make_client()
         mock_http = MagicMock()
@@ -122,7 +121,7 @@ class TestAgentDBClientCastAttributeValue:  # pylint: disable=too-few-public-met
     """Test AgentDBClient.cast_attribute_value for all data_type branches."""
 
     @staticmethod
-    def _attr_def(data_type: Any) -> Any:
+    def _attr_def(data_type):
         return AttributeDefinition(
             attr_def_id=1,
             type_id=1,
@@ -144,7 +143,7 @@ class TestAgentDBClientCastAttributeValue:  # pylint: disable=too-few-public-met
             ("unknown_type", "raw_value", "raw_value"),  # falls through all elifs
         ],
     )
-    def test_cast_types(self, data_type: Any, input_val: Any, expected: Any) -> None:
+    def test_cast_types(self, data_type, input_val, expected):
         """Test cast for each data type."""
         from datetime import (  # pylint: disable=import-outside-toplevel
             datetime,
@@ -162,7 +161,7 @@ class TestAgentDBClientCastAttributeValue:  # pylint: disable=too-few-public-met
 class TestAgentDBClientEnsureAgentInstance:
     """Test AgentDBClient._ensure_agent_instance."""
 
-    def test_already_exists(self) -> None:
+    def test_already_exists(self):
         """When agent is not None, return immediately."""
         client = _make_client()
         client.agent = MagicMock()
@@ -170,7 +169,7 @@ class TestAgentDBClientEnsureAgentInstance:
         with pytest.raises(StopIteration):
             next(gen)
 
-    def test_found_by_address(self) -> None:
+    def test_found_by_address(self):
         """When agent is found by address, also fetch its type."""
         client = _make_client()
         client.address = "0xABC"
@@ -192,7 +191,7 @@ class TestAgentDBClientEnsureAgentInstance:
             status_code=200, body=json.dumps(agent_type_data).encode()
         )
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             """Yield-from compatible HTTP mock."""
             yield
             return mock_resp_agent
@@ -212,7 +211,7 @@ class TestAgentDBClientEnsureAgentInstance:
         call_count = 0
         responses = [mock_resp_agent, mock_resp_type]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -229,7 +228,7 @@ class TestAgentDBClientEnsureAgentInstance:
         assert client.agent.agent_id == 1
         assert client.agent_type is not None
 
-    def test_not_found_registers(self) -> None:
+    def test_not_found_registers(self):
         """When agent not found by address, register if template is set."""
         client = _make_client()
         client.address = "0xABC"
@@ -254,7 +253,7 @@ class TestAgentDBClientEnsureAgentInstance:
         call_count = 0
         responses = [mock_404, mock_type, mock_agent]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -270,7 +269,7 @@ class TestAgentDBClientEnsureAgentInstance:
         assert client.agent.agent_id == 2
         assert client.agent_type is not None
 
-    def test_not_found_no_template(self) -> None:
+    def test_not_found_no_template(self):
         """When agent not found and no template, agent stays None."""
         client = _make_client()
         client.address = "0xABC"
@@ -280,7 +279,7 @@ class TestAgentDBClientEnsureAgentInstance:
 
         mock_404 = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_404
 
@@ -295,7 +294,7 @@ class TestAgentDBClientEnsureAgentInstance:
 class TestAgentDBClientSignRequest:
     """Test AgentDBClient._sign_request."""
 
-    def test_raises_without_signing_func(self) -> None:
+    def test_raises_without_signing_func(self):
         """Test ValueError when signing_func is None."""
         client = _make_client()
         client.signing_func = None
@@ -305,7 +304,7 @@ class TestAgentDBClientSignRequest:
         with pytest.raises(ValueError, match="Signing function not set"):
             next(gen)
 
-    def test_raises_when_agent_not_resolved(self) -> None:
+    def test_raises_when_agent_not_resolved(self):
         """Test ValueError when agent can't be found or created."""
         client = _make_client()
         client.signing_func = MagicMock()
@@ -317,7 +316,7 @@ class TestAgentDBClientSignRequest:
 
         mock_404 = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_404
 
@@ -327,14 +326,14 @@ class TestAgentDBClientSignRequest:
         with pytest.raises(ValueError, match="failed to get agent"):
             _exhaust_gen(gen)
 
-    def test_successful_sign(self) -> None:
+    def test_successful_sign(self):
         """Test successful signing returns auth data."""
         client = _make_client()
         client.agent = MagicMock()
         client.agent.agent_id = 42
         client.address = "0xABC"
 
-        def fake_sign(message: Any) -> Any:
+        def fake_sign(message):
             yield
             return "0xSIGNATURE"
 
@@ -351,13 +350,13 @@ class TestAgentDBClientSignRequest:
 class TestAgentDBClientRequest:
     """Test AgentDBClient._request."""
 
-    def _setup_client(self) -> Any:
+    def _setup_client(self):
         client = _make_client()
         client.logger = MagicMock()
         client.address = "0xABC"
         return client
 
-    def test_raises_without_http_func(self) -> None:
+    def test_raises_without_http_func(self):
         """Test ValueError when http_request_func is None."""
         client = _make_client()
         client.http_request_func = None
@@ -366,13 +365,13 @@ class TestAgentDBClientRequest:
             next(gen)
 
     @pytest.mark.parametrize("status_code", [200, 201])
-    def test_success_responses(self, status_code: Any) -> None:
+    def test_success_responses(self, status_code):
         """Test 200 and 201 return parsed JSON."""
         client = self._setup_client()
         body = {"key": "value"}
         mock_resp = MagicMock(status_code=status_code, body=json.dumps(body).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -382,12 +381,12 @@ class TestAgentDBClientRequest:
         result = _exhaust_gen(gen)
         assert result == body
 
-    def test_404_returns_none(self) -> None:
+    def test_404_returns_none(self):
         """Test 404 returns None."""
         client = self._setup_client()
         mock_resp = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -397,28 +396,49 @@ class TestAgentDBClientRequest:
         result = _exhaust_gen(gen)
         assert result is None
 
-    def test_error_raises(self) -> None:
-        """Test non-200/201/404 raises RuntimeError."""
+    def test_non_success_status_raises_runtime_error(self):
+        """Non-200/201/404 status codes raise RuntimeError.
+
+        Callers must be able to tell "row missing" (404 → None) from
+        "server broken" (5xx → raise) so the get-then-create pattern
+        does not write duplicates on a transient outage.
+        """
         client = self._setup_client()
         mock_resp = MagicMock(status_code=500, text="Server Error")
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
         client.http_request_func = fake_http
 
         gen = client._request("GET", "/test")
-        with pytest.raises(RuntimeError, match="Request failed: 500"):
+        with pytest.raises(RuntimeError, match="500"):
             _exhaust_gen(gen)
 
-    def test_auth_nested(self) -> None:
+    def test_malformed_json_body_returns_none(self):
+        """200 with non-JSON body returns None and logs an error."""
+        client = self._setup_client()
+        mock_resp = MagicMock(status_code=200, body=b"<html>not json</html>")
+
+        def fake_http(**kwargs):
+            yield
+            return mock_resp
+
+        client.http_request_func = fake_http
+
+        gen = client._request("GET", "/test")
+        result = _exhaust_gen(gen)
+        assert result is None
+        client.logger.error.assert_called_once()
+
+    def test_auth_nested(self):
         """Test auth=True, nested_auth=True puts auth inside payload."""
         client = self._setup_client()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -428,7 +448,7 @@ class TestAgentDBClientRequest:
         body = {"ok": True}
         mock_resp = MagicMock(status_code=200, body=json.dumps(body).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             captured_kwargs.update(kwargs)
             yield
             return mock_resp
@@ -446,13 +466,13 @@ class TestAgentDBClientRequest:
         assert "auth" in sent_payload
         assert sent_payload["data"] == 1
 
-    def test_auth_not_nested(self) -> None:
+    def test_auth_not_nested(self):
         """Test auth=True, nested_auth=False merges auth into payload."""
         client = self._setup_client()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -462,7 +482,7 @@ class TestAgentDBClientRequest:
         body = {"ok": True}
         mock_resp = MagicMock(status_code=200, body=json.dumps(body).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             captured_kwargs.update(kwargs)
             yield
             return mock_resp
@@ -480,14 +500,14 @@ class TestAgentDBClientRequest:
         assert "agent_id" in sent_payload
         assert sent_payload["data"] == 1
 
-    def test_no_payload(self) -> None:
+    def test_no_payload(self):
         """Test request with no payload sends content=None."""
         client = self._setup_client()
 
         captured_kwargs = {}
         mock_resp = MagicMock(status_code=200, body=json.dumps({}).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             captured_kwargs.update(kwargs)
             yield
             return mock_resp
@@ -503,7 +523,7 @@ class TestAgentDBClientRequest:
 class TestAgentDBClientEnsureAgentTypeDefinition:
     """Test AgentDBClient._ensure_agent_type_definition."""
 
-    def test_type_found(self) -> None:
+    def test_type_found(self):
         """When agent type exists, just fetch it."""
         client = _make_client()
         client.logger = MagicMock()
@@ -512,7 +532,7 @@ class TestAgentDBClientEnsureAgentTypeDefinition:
         type_data = {"type_id": 10, "type_name": "memeooorr", "description": "d"}
         mock_resp = MagicMock(status_code=200, body=json.dumps(type_data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -524,7 +544,7 @@ class TestAgentDBClientEnsureAgentTypeDefinition:
         assert client.agent_type is not None
         assert client.agent_type.type_name == "memeooorr"
 
-    def test_type_not_found_creates(self) -> None:
+    def test_type_not_found_creates(self):
         """When agent type doesn't exist, create it."""
         client = _make_client()
         client.logger = MagicMock()
@@ -541,7 +561,7 @@ class TestAgentDBClientEnsureAgentTypeDefinition:
         call_count = 0
         responses = [mock_404, mock_created]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -559,7 +579,7 @@ class TestAgentDBClientEnsureAgentTypeDefinition:
 class TestAgentDBClientEnsureAgentTypeAttributeDefinition:
     """Test AgentDBClient._ensure_agent_type_attribute_definition."""
 
-    def test_existing_attributes_not_duplicated(self) -> None:
+    def test_existing_attributes_not_duplicated(self):
         """When attribute already exists, don't create it again."""
         client = _make_client()
         client.logger = MagicMock()
@@ -578,7 +598,7 @@ class TestAgentDBClientEnsureAgentTypeAttributeDefinition:
         existing_json = [ad.model_dump() for ad in existing]
         mock_resp = MagicMock(status_code=200, body=json.dumps(existing_json).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -599,14 +619,14 @@ class TestAgentDBClientEnsureAgentTypeAttributeDefinition:
         _exhaust_gen(gen)
         # No error = success. The existing attr wasn't re-created.
 
-    def test_missing_attribute_created(self) -> None:
+    def test_missing_attribute_created(self):
         """When attribute is missing, create it."""
         client = _make_client()
         client.logger = MagicMock()
         client.agent_type = AgentType(type_id=10, type_name="m", description="d")
         client.agent = MagicMock(agent_id=1)
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xfakesig"
 
@@ -628,7 +648,7 @@ class TestAgentDBClientEnsureAgentTypeAttributeDefinition:
         call_count = 0
         responses = [mock_empty, mock_created]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -655,18 +675,18 @@ class TestAgentDBClientEnsureAgentTypeAttributeDefinition:
 class TestAgentDBClientCRUDMethods:
     """Test CRUD generator methods."""
 
-    def _setup(self) -> Any:
+    def _setup(self):
         client = _make_client()
         client.logger = MagicMock()
         return client
 
-    def test_create_agent_type(self) -> None:
+    def test_create_agent_type(self):
         """Test create_agent_type."""
         client = self._setup()
         data = {"type_id": 1, "type_name": "t", "description": "d"}
         mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -676,12 +696,12 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.type_id == 1
 
-    def test_create_agent_type_returns_none(self) -> None:
+    def test_create_agent_type_returns_none(self):
         """Test create_agent_type returns None on 404."""
         client = self._setup()
         mock_resp = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -691,13 +711,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is None
 
-    def test_get_agent_type_by_type_id(self) -> None:
+    def test_get_agent_type_by_type_id(self):
         """Test get_agent_type_by_type_id."""
         client = self._setup()
         data = {"type_id": 1, "type_name": "t", "description": "d"}
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -707,13 +727,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.type_id == 1
 
-    def test_get_agent_type_by_type_name(self) -> None:
+    def test_get_agent_type_by_type_name(self):
         """Test get_agent_type_by_type_name."""
         client = self._setup()
         data = {"type_id": 1, "type_name": "t", "description": "d"}
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -723,13 +743,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.type_name == "t"
 
-    def test_delete_agent_type(self) -> None:
+    def test_delete_agent_type(self):
         """Test delete_agent_type."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -738,7 +758,7 @@ class TestAgentDBClientCRUDMethods:
         data = {"type_id": 1, "type_name": "t", "description": "d"}
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -749,7 +769,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is not None
 
-    def test_create_agent_instance(self) -> None:
+    def test_create_agent_instance(self):
         """Test create_agent_instance."""
         client = self._setup()
         data = {
@@ -761,7 +781,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -772,7 +792,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.agent_id == 1
 
-    def test_get_agent_instance_by_address(self) -> None:
+    def test_get_agent_instance_by_address(self):
         """Test get_agent_instance_by_address."""
         client = self._setup()
         data = {
@@ -784,7 +804,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -794,7 +814,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.eth_address == "0xABC"
 
-    def test_get_agent_instances_by_type_id(self) -> None:
+    def test_get_agent_instances_by_type_id(self):
         """Test get_agent_instances_by_type_id."""
         client = self._setup()
         data = [
@@ -808,7 +828,7 @@ class TestAgentDBClientCRUDMethods:
         ]
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -818,12 +838,12 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert len(result) == 1
 
-    def test_get_agent_instances_by_type_id_empty(self) -> None:
+    def test_get_agent_instances_by_type_id_empty(self):
         """Test get_agent_instances_by_type_id returns empty list on 404."""
         client = self._setup()
         mock_resp = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -833,13 +853,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result == []
 
-    def test_delete_agent_instance(self) -> None:
+    def test_delete_agent_instance(self):
         """Test delete_agent_instance."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 99
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -854,7 +874,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -871,13 +891,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is not None
 
-    def test_create_attribute_definition(self) -> None:
+    def test_create_attribute_definition(self):
         """Test create_attribute_definition."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -893,7 +913,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -904,7 +924,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.attr_name == "x"
 
-    def test_get_attribute_definition_by_name(self) -> None:
+    def test_get_attribute_definition_by_name(self):
         """Test get_attribute_definition_by_name."""
         client = self._setup()
         data = {
@@ -917,7 +937,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -927,7 +947,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.attr_name == "x"
 
-    def test_get_attribute_definition_by_id_cached(self) -> None:
+    def test_get_attribute_definition_by_id_cached(self):
         """Test get_attribute_definition_by_id returns cached value."""
         client = self._setup()
         cached = AttributeDefinition(
@@ -944,7 +964,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is cached
 
-    def test_get_attribute_definition_by_id_fetches(self) -> None:
+    def test_get_attribute_definition_by_id_fetches(self):
         """Test get_attribute_definition_by_id fetches from API and caches."""
         client = self._setup()
         data = {
@@ -957,7 +977,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -968,12 +988,12 @@ class TestAgentDBClientCRUDMethods:
         assert result.attr_name == "x"
         assert 1 in client._attribute_definition_cache
 
-    def test_get_attribute_definition_by_id_not_found(self) -> None:
+    def test_get_attribute_definition_by_id_not_found(self):
         """Test get_attribute_definition_by_id returns None when not found."""
         client = self._setup()
         mock_resp = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -983,7 +1003,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is None
 
-    def test_get_attribute_definitions_by_agent_type(self) -> None:
+    def test_get_attribute_definitions_by_agent_type(self):
         """Test get_attribute_definitions_by_agent_type."""
         client = self._setup()
         data = [
@@ -998,7 +1018,7 @@ class TestAgentDBClientCRUDMethods:
         ]
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1009,12 +1029,12 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert len(result) == 1
 
-    def test_get_attribute_definitions_by_agent_type_empty(self) -> None:
+    def test_get_attribute_definitions_by_agent_type_empty(self):
         """Test returns empty list on 404."""
         client = self._setup()
         mock_resp = MagicMock(status_code=404)
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1025,13 +1045,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result == []
 
-    def test_delete_attribute_definition(self) -> None:
+    def test_delete_attribute_definition(self):
         """Test delete_attribute_definition."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1047,7 +1067,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1065,13 +1085,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is not None
 
-    def test_create_attribute_instance(self) -> None:
+    def test_create_attribute_instance(self):
         """Test create_attribute_instance."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1091,7 +1111,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=201, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1116,7 +1136,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.string_value == "hello"
 
-    def test_get_attribute_instance(self) -> None:
+    def test_get_attribute_instance(self):
         """Test get_attribute_instance."""
         client = self._setup()
         data = {
@@ -1133,7 +1153,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1158,13 +1178,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.attribute_id == 1
 
-    def test_update_attribute_instance(self) -> None:
+    def test_update_attribute_instance(self):
         """Test update_attribute_instance."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1184,7 +1204,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1221,13 +1241,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result.string_value == "updated"
 
-    def test_delete_attribute_instance(self) -> None:
+    def test_delete_attribute_instance(self):
         """Test delete_attribute_instance."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1247,7 +1267,7 @@ class TestAgentDBClientCRUDMethods:
         }
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1269,13 +1289,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is not None
 
-    def test_get_all_agent_instance_attributes_raw(self) -> None:
+    def test_get_all_agent_instance_attributes_raw(self):
         """Test get_all_agent_instance_attributes_raw."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1284,7 +1304,7 @@ class TestAgentDBClientCRUDMethods:
         data = [{"key": "val"}]
         mock_resp = MagicMock(status_code=200, body=json.dumps(data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1301,7 +1321,7 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result == data
 
-    def test_parse_attribute_instance(self) -> None:
+    def test_parse_attribute_instance(self):
         """Test parse_attribute_instance."""
         client = self._setup()
         # Cache the attribute definition
@@ -1332,13 +1352,13 @@ class TestAgentDBClientCRUDMethods:
         assert result["attr_name"] == "test_attr"
         assert result["attr_value"] == "hello"
 
-    def test_get_all_agent_instance_attributes_parsed(self) -> None:
+    def test_get_all_agent_instance_attributes_parsed(self):
         """Test get_all_agent_instance_attributes_parsed."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1371,7 +1391,7 @@ class TestAgentDBClientCRUDMethods:
         ]
         mock_resp = MagicMock(status_code=200, body=json.dumps(raw_data).encode())
 
-        def fake_http(**kwargs: Any) -> Any:
+        def fake_http(**kwargs):
             yield
             return mock_resp
 
@@ -1389,13 +1409,13 @@ class TestAgentDBClientCRUDMethods:
         assert len(result) == 1
         assert result[0]["attr_name"] == "test_attr"
 
-    def test_update_or_create_agent_attribute_update(self) -> None:
+    def test_update_or_create_agent_attribute_update(self):
         """Test update_or_create_agent_attribute when attr_instance exists."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1436,7 +1456,7 @@ class TestAgentDBClientCRUDMethods:
             ),  # update_attribute_instance
         ]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -1449,13 +1469,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is True
 
-    def test_update_or_create_agent_attribute_create(self) -> None:
+    def test_update_or_create_agent_attribute_create(self):
         """Test update_or_create_agent_attribute when attr_instance doesn't exist."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1493,7 +1513,7 @@ class TestAgentDBClientCRUDMethods:
             ),  # create_attribute_instance
         ]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -1506,13 +1526,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is True
 
-    def test_update_or_create_agent_attribute_update_fails(self) -> None:
+    def test_update_or_create_agent_attribute_update_fails(self):
         """Test update_or_create returns False when update fails."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1546,7 +1566,7 @@ class TestAgentDBClientCRUDMethods:
             MagicMock(status_code=404),  # update fails
         ]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1
@@ -1559,13 +1579,13 @@ class TestAgentDBClientCRUDMethods:
         result = _exhaust_gen(gen)
         assert result is False
 
-    def test_update_or_create_agent_attribute_create_fails(self) -> None:
+    def test_update_or_create_agent_attribute_create_fails(self):
         """Test update_or_create returns False when create fails."""
         client = self._setup()
         client.agent = MagicMock()
         client.agent.agent_id = 1
 
-        def fake_sign(msg: Any) -> Any:
+        def fake_sign(msg):
             yield
             return "0xSIG"
 
@@ -1587,7 +1607,7 @@ class TestAgentDBClientCRUDMethods:
             MagicMock(status_code=404),  # create also fails
         ]
 
-        def multi_http(**kwargs: Any) -> Any:
+        def multi_http(**kwargs):
             nonlocal call_count
             resp = responses[call_count]
             call_count += 1

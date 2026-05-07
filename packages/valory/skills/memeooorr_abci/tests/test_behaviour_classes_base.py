@@ -1040,6 +1040,44 @@ class TestGetMemeoorrHandlesFromSubgraph:
             MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
         ) == ["alice", "bob"]
 
+    def test_returns_empty_list_when_units_key_is_absent(self) -> None:
+        """Truthy response missing 'units' resolves to [] with a warning.
+
+        Uses a non-empty dict so the early ``if not services`` guard is
+        bypassed and the schema-drift branch is actually exercised.
+        """
+        b = _make_behaviour()
+        b.context.state.twitter_username = "mybot"
+        b.context.logger = MagicMock()
+
+        def fake(pt: Any) -> Generator[Any, None, Any]:
+            yield
+            # Truthy payload with a different shape — typical of subgraph
+            # schema drift or a partial-outage response.
+            return {"foo": "bar"}
+
+        b.get_packages = MagicMock(side_effect=fake)
+        assert not _exhaust(
+            MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
+        )
+        b.context.logger.warning.assert_called_once()
+
+    def test_returns_empty_list_when_units_value_is_none(self) -> None:
+        """Response with units=None resolves to [] with a warning."""
+        b = _make_behaviour()
+        b.context.state.twitter_username = "mybot"
+        b.context.logger = MagicMock()
+
+        def fake(pt: Any) -> Generator[Any, None, Any]:
+            yield
+            return {"units": None}
+
+        b.get_packages = MagicMock(side_effect=fake)
+        assert not _exhaust(
+            MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
+        )
+        b.context.logger.warning.assert_called_once()
+
 
 # ---------------------------------------------------------------------------
 # address getters (lines 674-704) tests
@@ -1610,6 +1648,26 @@ class TestReplaceTweet:
             r = MagicMock()
             r.status_code = HTTP_OK
             r.body = json.dumps({"unexpected": True})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert (
+            _exhaust(
+                MemeooorrBaseBehaviour.replace_tweet_with_alternative_model(b, "p")
+            )
+            is None
+        )
+
+    def test_returns_none_when_response_body_is_not_json(self) -> None:
+        """A 200 with non-JSON body resolves to None instead of raising."""
+        b = _make_behaviour()
+        b.params.alternative_model_for_tweets = self._make_alt_config()
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = b"<html>upstream proxy error page</html>"
             yield
             return r
 

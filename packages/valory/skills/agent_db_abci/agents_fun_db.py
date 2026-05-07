@@ -158,30 +158,48 @@ class AgentsFunAgent:
         if not action_class:
             raise ValueError(f"Unknown Twitter action: {interaction.action}")
 
-        # Create attribute instance
-        attr_def = yield from self.client.get_attribute_definition_by_name(
-            "twitter_interactions"
-        )
-        if not attr_def:
-            raise ValueError("Attribute definition not found")
+        try:
+            # Create attribute instance
+            attr_def = yield from self.client.get_attribute_definition_by_name(
+                "twitter_interactions"
+            )
+            if not attr_def:
+                raise ValueError("Attribute definition not found")
 
-        # Create or update attribute instance
-        attr_instance = yield from self.client.create_attribute_instance(
-            agent_instance=self.agent_instance,
-            attribute_def=attr_def,
-            value=interaction.to_json(),
-            value_type="json",
-        )
-        return attr_instance
+            # Create or update attribute instance
+            attr_instance = yield from self.client.create_attribute_instance(
+                agent_instance=self.agent_instance,
+                attribute_def=attr_def,
+                value=interaction.to_json(),
+                value_type="json",
+            )
+            return attr_instance
+        except RuntimeError as exc:
+            # AgentDB returned a non-success status. Surface as a write
+            # failure so the caller skips its post-write logic instead
+            # of crashing the FSM.
+            if self.client.logger is not None:
+                self.client.logger.error(
+                    f"AgentDB write failed for interaction {interaction.action}: {exc}"
+                )
+            return None
 
     def update_twitter_details(self) -> Generator[Any, None, None]:
         """Update twitter username and user_id in the AgentDB."""
-        yield from self.client.update_or_create_agent_attribute(
-            "twitter_username", self.twitter_username
-        )
-        yield from self.client.update_or_create_agent_attribute(
-            "twitter_user_id", self.twitter_user_id
-        )
+        try:
+            yield from self.client.update_or_create_agent_attribute(
+                "twitter_username", self.twitter_username
+            )
+            yield from self.client.update_or_create_agent_attribute(
+                "twitter_user_id", self.twitter_user_id
+            )
+        except RuntimeError as exc:
+            # AgentDB unavailable; the agent will retry on the next
+            # period when it loads details again.
+            if self.client.logger is not None:
+                self.client.logger.error(
+                    f"AgentDB write failed updating twitter details: {exc}"
+                )
 
     def __str__(self) -> str:
         """String representation of the agent"""
@@ -282,9 +300,18 @@ class AgentsFunDatabase(Model):
 
     def get_tweet_feedback(self, tweet_id: str) -> Generator[Any, None, Dict[str, Any]]:
         """Get all tweet feedback"""
-        likes = yield from self.get_tweet_likes_number(tweet_id)
-        retweets = yield from self.get_tweet_retweets_number(tweet_id)
-        replies = yield from self.get_tweet_replies(tweet_id)
+        try:
+            likes = yield from self.get_tweet_likes_number(tweet_id)
+            retweets = yield from self.get_tweet_retweets_number(tweet_id)
+            replies = yield from self.get_tweet_replies(tweet_id)
+        except RuntimeError as exc:
+            # AgentDB unreachable; degrade to empty feedback so the
+            # caller can continue without crashing the FSM.
+            if self.logger:
+                self.logger.error(
+                    f"AgentDB read failed for tweet feedback ({tweet_id}): {exc}"
+                )
+            return {"likes": 0, "retweets": 0, "replies": []}
 
         tweet_feedback = {
             "likes": likes,

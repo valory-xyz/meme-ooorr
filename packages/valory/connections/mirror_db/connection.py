@@ -180,7 +180,7 @@ class MirrorDBConnection(Connection):
         self._response_envelopes = asyncio.Queue()
         self.session = aiohttp.ClientSession(
             connector=aiohttp.TCPConnector(ssl=self.ssl_context),
-            timeout=aiohttp.ClientTimeout(total=60),
+            timeout=aiohttp.ClientTimeout(total=120),
         )
         self.state = ConnectionStates.connected
 

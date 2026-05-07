@@ -705,6 +705,10 @@ class CheckFundsRound(CollectSameUntilThresholdRound):
             if payload.event == Event.DONE.value:
                 return self.synchronized_data, Event.DONE
 
+        if not self.is_majority_possible(
+            self.collection, self.synchronized_data.nb_participants
+        ):
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
