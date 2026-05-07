@@ -130,6 +130,13 @@ bump-packages:
 	echo "Bumping packages to open-aea $${AEA_VERSION}" && \
 	autonomy packages sync --source valory-xyz/open-autonomy:v$${AUTONOMY_VERSION} --source valory-xyz/open-aea:v$${AEA_VERSION} --update-packages
 
+EXE_SUFFIX := $(if $(filter Windows_NT,$(OS)),.exe,)
+
+# Writable scratch dir for the ``check-agent-runner`` smoke test. ``/tmp``
+# doesn't exist on native Windows, so fall back to ``%TEMP%`` (inherited
+# as ``$(TEMP)``) -- both are absolute, writable, and guaranteed to exist.
+STORE_PATH_VALUE := $(if $(filter Windows_NT,$(OS)),$(TEMP),/tmp)
+
 .PHONY: run-agent
 run-agent:
 	mkdir -p ./logs && \
@@ -208,11 +215,9 @@ build-agent-runner-mac: uv-install  agent
 
 .PHONY: check-agent-runner
 check-agent-runner:
-	# aea-config.yaml uses named env-var templates (${STORE_PATH:str:...})
-	# for both the kv_store connection and memeooorr_chained_abci skill
-	# params, so a single STORE_PATH override drives both. Path-based env
-	# vars like SKILL_..._STORE_PATH are the fallback when the template
-	# lacks an explicit var name and are silently ignored here.
-	BINARY_PATH=$$(if [ "$$OS" = "Windows_NT" ]; then echo "./dist/agent_runner_bin.exe"; else echo "./dist/agent_runner_bin"; fi); \
-	uv run aea-helpers check-binary $${BINARY_PATH} ./agent \
-	--env-var STORE_PATH=/tmp
+	# aea-config.yaml uses anonymous templates (${str:/data}) so Pearl's
+	# path-based env-var injection wins at runtime; a named template would
+	# suppress the fallback. See valory-xyz/olas-operate-middleware#424.
+	uv run aea-helpers check-binary ./dist/agent_runner_bin$(EXE_SUFFIX) ./agent \
+	--env-var CONNECTION_KV_STORE_CONFIG_STORE_PATH=$(STORE_PATH_VALUE) \
+	--env-var SKILL_MEMEOOORR_CHAINED_ABCI_MODELS_PARAMS_ARGS_STORE_PATH=$(STORE_PATH_VALUE)
