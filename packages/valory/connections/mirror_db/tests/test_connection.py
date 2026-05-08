@@ -696,8 +696,11 @@ class TestCRUDMethods:
 
     @pytest.mark.asyncio(loop_scope="function")
     async def test_read_retries_on_503_then_succeeds(self) -> None:
-        """A transient 503 is retried by the decorator, then the request
-        succeeds on the next attempt."""
+        """Test 503 triggers retry then success.
+
+        A transient 503 is retried by the decorator, then the request
+        succeeds on the next attempt.
+        """
         connection = make_connection()
         await connection.connect()
 

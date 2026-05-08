@@ -3,14 +3,14 @@
         "contract/valory/meme_factory/0.1.0": "bafybeiesostg2s5tcci2iovzapssbio5bzvgcoa7g2dton6a2kd36ndeya",
         "contract/valory/service_registry_l2/0.1.0": "bafybeiagvunee7lwm3nhiel2wbtieknltb76j5o2gbvakzz6cxjobaidki",
         "connection/valory/twikit/0.1.0": "bafybeidruneqzx5hyr6w2rs2fyyflhiqt2ituuyouxr3x5zl3forzjbqn4",
-        "connection/valory/mirror_db/0.1.0": "bafybeiejruxw6m5eulezbky7qf2nve3zrfikciums4sdjghqzonlibvdhi",
+        "connection/valory/mirror_db/0.1.0": "bafybeifmhdu7z4bc7ce37rhljgbcmutceo6j7si34olium2fcegjhm2g4i",
         "connection/valory/tweepy/0.1.0": "bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe",
-        "skill/valory/memeooorr_abci/0.1.0": "bafybeiexwz567mfloj5hfk7mokjobkqdnofibn7cvxct3pw4edqu5lry5u",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeibevkznqm3dtdhesbcbn6rs72ylkngnrrnnxc5j5pc7mlpawgi6ci",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeigxdfiav3d5zs6acaypd7tgj5lvqznf7cklfjr7qjg2ze6pclptm4",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeid4dpvhnllmmhyxj7yzopdpsm3jekxvxzq433bymgqpf6wvgslgs4",
         "skill/valory/agent_db_abci/0.1.0": "bafybeian6cwibrm2kcwiixlbjbauzoelg44wshxsrpzk3fwgjjyopjxjvu",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeie56ryofzgvrwcrxbpiftfqrc5ad2cjoi2coop5nxxh7uegorkgay",
-        "agent/valory/memeooorr/0.1.0": "bafybeigmg6xexu7vocdapkmk35h7qqrfiafay7vgsogoqxinf73ktin3bu",
-        "service/dvilela/memeooorr/0.1.0": "bafybeigaso7ovpwgvpddamfqdyiqpbtlnbpxvj3a7femahi5uf5abpgzqu"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeidqa7ilfh2c7ks46524cu7tln5nfhstxnvxepubf7nczmbokmamoq",
+        "agent/valory/memeooorr/0.1.0": "bafybeih4vvpkajuppeb5uvsbmto4swajths6q6mtg5y7ilub4wfsgktrna",
+        "service/dvilela/memeooorr/0.1.0": "bafybeia25hilgm6ootufo4bmkdt6fgucngkuxa35xbxcwqmt5mhofijqmq"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
