@@ -252,15 +252,15 @@ class TestHandleRetryableException:
 
     @pytest.mark.asyncio(loop_scope="function")
     @pytest.mark.parametrize("status", [502, 503, 504])
-    async def test_transient_5xx_does_not_retry_by_default(
-        self, status: int
-    ) -> None:
+    async def test_transient_5xx_does_not_retry_by_default(self, status: int) -> None:
         """Without retry_on_5xx=True, transient 5xx falls through.
 
         This is the duplicate-write guard: writes use the default
         ``retry_on_5xx=False`` so a 502/504 (gateway error after the
         upstream may have processed the request) cannot cause a duplicate
         row on the mirror_db backend.
+
+        :param status: parametrized 5xx status code.
         """
         exc = aiohttp.ClientResponseError(
             request_info=MagicMock(), history=(), status=status
@@ -646,14 +646,14 @@ class TestCRUDMethods:
 
     @pytest.mark.asyncio(loop_scope="function")
     @pytest.mark.parametrize("status", [502, 503, 504])
-    async def test_create_does_not_retry_on_transient_5xx(
-        self, status: int
-    ) -> None:
+    async def test_create_does_not_retry_on_transient_5xx(self, status: int) -> None:
         """Writes do not retry on 5xx — duplicate-create hazard.
 
         ``create_`` uses the default ``retry_on_5xx=False``. A 502/503/504
         often means the upstream did process the POST and only the gateway
         response was lost; retrying would create a duplicate row.
+
+        :param status: parametrized 5xx status code.
         """
         connection = make_connection()
         await connection.connect()
@@ -675,9 +675,7 @@ class TestCRUDMethods:
                 new_callable=AsyncMock,
             ):
                 with pytest.raises(aiohttp.ClientResponseError):
-                    await connection.create_(
-                        endpoint="/items", data={"name": "test"}
-                    )
+                    await connection.create_(endpoint="/items", data={"name": "test"})
 
         assert call_count == 1
         await connection.disconnect()
@@ -806,6 +804,8 @@ class TestCRUDMethods:
 
         Read is idempotent so 502/504 (gateway error after upstream may
         have processed) are safe to retry, unlike on writes.
+
+        :param status: parametrized 5xx status code.
         """
         connection = make_connection()
         await connection.connect()

@@ -124,6 +124,14 @@ def retry_with_exponential_backoff(  # type: ignore
     can be retried on any HTTP method without write hazards. Pass
     ``retry_on_5xx=True`` only when the wrapped call is idempotent —
     typically GETs.
+
+    :param max_retries: maximum number of attempts before giving up.
+    :param initial_delay: seconds to sleep before the first retry.
+    :param backoff_factor: multiplier applied to the delay between attempts.
+    :param retry_on_5xx: when True, transient 5xx statuses also trigger
+        a retry. Off by default to avoid duplicate writes on
+        non-idempotent calls.
+    :return: a decorator that wraps an async function with retry logic.
     """
 
     def decorator(func):  # type: ignore
