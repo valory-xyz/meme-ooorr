@@ -1673,9 +1673,7 @@ class TestHttpHandlerPostProcessPrompt:
             (b'{"prompt": "hi', "truncated json"),
         ],
     )
-    def test_malformed_body_returns_bad_request(
-        self, body: bytes, case: str
-    ) -> None:
+    def test_malformed_body_returns_bad_request(self, body: bytes, case: str) -> None:
         """Malformed bodies are surfaced to the caller as 400, not 500."""
         handler = _make_http_handler()
         handler.context.params.use_x402 = False
