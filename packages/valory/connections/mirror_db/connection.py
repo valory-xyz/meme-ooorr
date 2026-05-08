@@ -46,6 +46,9 @@ PUBLIC_ID = PublicId.from_str("valory/mirror_db:0.1.0")
 DEFAULT_HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
 
 
+RETRYABLE_5XX = frozenset({502, 503, 504})
+
+
 async def _handle_retryable_exception(  # type: ignore
     exc: Union[aiohttp.ClientResponseError, aiohttp.ClientConnectionError],
     attempt: int,
@@ -55,22 +58,33 @@ async def _handle_retryable_exception(  # type: ignore
 ) -> bool:
     """Handle exceptions to determine if a retry should occur."""
     is_rate_limit = isinstance(exc, aiohttp.ClientResponseError) and exc.status == 429
+    is_transient_5xx = (
+        isinstance(exc, aiohttp.ClientResponseError) and exc.status in RETRYABLE_5XX
+    )
     is_connection_error = isinstance(exc, aiohttp.ClientConnectionError)
 
-    if not (is_rate_limit or is_connection_error):
+    if not (is_rate_limit or is_transient_5xx or is_connection_error):
         # Not a retryable error type we handle here
         return False
 
     if attempt < max_retries - 1:
-        error_type = (
-            "Rate limit exceeded" if is_rate_limit else f"Connection error: {exc}"
-        )
+        if is_rate_limit:
+            error_type = "Rate limit exceeded"
+        elif is_transient_5xx:
+            error_type = f"Transient {exc.status} from server"
+        else:
+            error_type = f"Connection error: {exc}"
         logger.warning(f"{error_type}. Retrying in {delay} seconds...")
         await asyncio.sleep(delay)
         return True  # Indicate retry should proceed
 
     # Max retries reached for a retryable error
-    error_context = "rate limiting" if is_rate_limit else "connection error"
+    if is_rate_limit:
+        error_context = "rate limiting"
+    elif is_transient_5xx:
+        error_context = f"transient {exc.status}"
+    else:
+        error_context = "connection error"
     logger.error(
         f"Max retries ({max_retries}) reached for {error_context}. Could not complete the request."
     )

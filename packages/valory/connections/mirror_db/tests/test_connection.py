@@ -231,6 +231,44 @@ class TestHandleRetryableException:
         assert result is False
         logger.error.assert_called_once()  # pylint: disable=no-member
 
+    @pytest.mark.asyncio(loop_scope="function")
+    @pytest.mark.parametrize("status", [502, 503, 504])
+    async def test_transient_5xx_triggers_retry(self, status: int) -> None:
+        """Each transient 5xx status returns True so the decorator retries."""
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=status
+        )
+        logger = MagicMock()
+        with patch(
+            "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+            new_callable=AsyncMock,
+        ):
+            result = await _handle_retryable_exception(exc, 0, 3, 0.01, logger)
+        assert result is True
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_500_is_not_retryable(self) -> None:
+        """500 is excluded from RETRYABLE_5XX so the decorator does not retry."""
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=500
+        )
+        logger = MagicMock()
+        result = await _handle_retryable_exception(exc, 0, 3, 1, logger)
+        assert result is False
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_transient_5xx_max_retries(self) -> None:
+        """503 on last attempt returns False with a transient-5xx error context."""
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=503
+        )
+        logger = MagicMock()
+        result = await _handle_retryable_exception(exc, 2, 3, 1, logger)
+        assert result is False
+        logger.error.assert_called_once()  # pylint: disable=no-member
+        log_message = logger.error.call_args[0][0]  # pylint: disable=no-member
+        assert "transient 503" in log_message
+
 
 class TestRetryDecorator:  # pylint: disable=too-few-public-methods
     """Tests for retry_with_exponential_backoff decorator."""
@@ -654,6 +692,71 @@ class TestCRUDMethods:
 
         assert result == {"id": 1}
         assert call_count == 2
+        await connection.disconnect()
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_read_retries_on_503_then_succeeds(self) -> None:
+        """A transient 503 is retried by the decorator, then the request
+        succeeds on the next attempt."""
+        connection = make_connection()
+        await connection.connect()
+
+        transient_exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=503
+        )
+
+        mock_success_response = AsyncMock()
+        mock_success_response.status = 200
+        mock_success_response.json = AsyncMock(return_value={"id": 1})
+        mock_success_response.__aenter__ = AsyncMock(return_value=mock_success_response)
+        mock_success_response.__aexit__ = AsyncMock(return_value=False)
+
+        call_count = 0
+
+        def mock_get(*args: Any, **kwargs: Any) -> Any:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise transient_exc
+            return mock_success_response
+
+        with patch.object(connection.session, "get", side_effect=mock_get):
+            with patch(
+                "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+                new_callable=AsyncMock,
+            ):
+                result = await connection.read_(endpoint="/items/1")
+
+        assert result == {"id": 1}
+        assert call_count == 2
+        await connection.disconnect()
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_read_does_not_retry_on_500(self) -> None:
+        """500 is not in RETRYABLE_5XX so the decorator re-raises immediately."""
+        connection = make_connection()
+        await connection.connect()
+
+        non_transient_exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=500
+        )
+
+        call_count = 0
+
+        def mock_get(*args: Any, **kwargs: Any) -> Any:
+            nonlocal call_count
+            call_count += 1
+            raise non_transient_exc
+
+        with patch.object(connection.session, "get", side_effect=mock_get):
+            with patch(
+                "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+                new_callable=AsyncMock,
+            ):
+                with pytest.raises(aiohttp.ClientResponseError):
+                    await connection.read_(endpoint="/items/1")
+
+        assert call_count == 1
         await connection.disconnect()
 
     @pytest.mark.asyncio(loop_scope="function")
