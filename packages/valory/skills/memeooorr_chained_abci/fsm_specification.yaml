@@ -13,6 +13,7 @@ alphabet_in:
 - INSUFFICIENT_FUNDS
 - INVALID_AUTH
 - MECH
+- MECH_REQUEST
 - MISSING_TWEET
 - NEGATIVE
 - NONE
@@ -32,9 +33,7 @@ alphabet_in:
 - VALIDATE_TIMEOUT
 - WAIT
 default_start_state: RegistrationStartupRound
-final_states:
-- FinishedMarketplaceLegacyDetectedRound
-- FinishedMechPurchaseSubscriptionRound
+final_states: []
 label: MemeooorrChainedSkillAbciApp
 start_states:
 - RegistrationRound
@@ -55,8 +54,6 @@ states:
 - FailedMechResponseRound
 - FetchPerformanceDataRound
 - FinalizationRound
-- FinishedMarketplaceLegacyDetectedRound
-- FinishedMechPurchaseSubscriptionRound
 - LoadDatabaseRound
 - MechInformationRound
 - MechPurchaseSubscriptionRound
@@ -159,7 +156,7 @@ transition_func:
     (MechInformationRound, NONE): MechVersionDetectionRound
     (MechInformationRound, NO_MAJORITY): MechInformationRound
     (MechInformationRound, ROUND_TIMEOUT): MechInformationRound
-    (MechPurchaseSubscriptionRound, DONE): FinishedMechPurchaseSubscriptionRound
+    (MechPurchaseSubscriptionRound, DONE): RandomnessTransactionSubmissionRound
     (MechPurchaseSubscriptionRound, NONE): MechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, NO_MAJORITY): MechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, ROUND_TIMEOUT): MechPurchaseSubscriptionRound
@@ -174,7 +171,7 @@ transition_func:
     (MechVersionDetectionRound, NO_MAJORITY): MechVersionDetectionRound
     (MechVersionDetectionRound, NO_MARKETPLACE): MechRequestRound
     (MechVersionDetectionRound, ROUND_TIMEOUT): MechVersionDetectionRound
-    (MechVersionDetectionRound, V1): FinishedMarketplaceLegacyDetectedRound
+    (MechVersionDetectionRound, V1): MechRequestRound
     (MechVersionDetectionRound, V2): MechInformationRound
     (PostMechResponseRound, DONE): EngageTwitterRound
     (PostMechResponseRound, ERROR): FailedMechResponseRound
@@ -183,6 +180,7 @@ transition_func:
     (PostTxDecisionMakingRound, ACTION): ActionPreparationRound
     (PostTxDecisionMakingRound, DONE): ResetAndPauseRound
     (PostTxDecisionMakingRound, MECH): MechResponseRound
+    (PostTxDecisionMakingRound, MECH_REQUEST): MechVersionDetectionRound
     (PostTxDecisionMakingRound, NONE): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, NO_MAJORITY): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, ROUND_TIMEOUT): PostTxDecisionMakingRound

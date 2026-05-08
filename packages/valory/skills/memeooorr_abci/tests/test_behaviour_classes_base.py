@@ -1556,6 +1556,29 @@ class TestGetMemeCoinsSubgraphResilience:
         assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
         b.context.logger.error.assert_called()
 
+    def test_undecodable_bytes_body_returns_empty(self) -> None:
+        """A 200 response with non-UTF-8 bytes returns [] instead of crashing.
+
+        ``json.loads`` calls ``bytes.decode`` internally and raises
+        ``UnicodeDecodeError`` when the body cannot be decoded under the
+        detected encoding. Without that exception type in the except
+        tuple, the failure escapes the parser and crashes the behaviour.
+        """
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return undecodable bytes."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = b"\xff\xfe\xfd\xfc"
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+        b.context.logger.error.assert_called()
+
     def test_missing_data_key_returns_empty(self) -> None:
         """Response JSON with no 'data' key returns [] instead of crashing."""
         b = _make_behaviour()

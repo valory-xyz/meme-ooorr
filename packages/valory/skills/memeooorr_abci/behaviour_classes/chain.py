@@ -22,7 +22,7 @@
 import json
 import math
 from abc import ABC
-from typing import Any, Generator, Optional, Tuple, Type, cast
+from typing import Any, Dict, Generator, Optional, Tuple, Type, cast
 
 from aea.configurations.data_types import PublicId
 
@@ -37,6 +37,7 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import (
+    MechPurchaseSubscriptionBehaviour,
     MechRequestBehaviour,
 )
 from packages.valory.skills.memeooorr_abci.behaviour_classes.base import (
@@ -849,29 +850,30 @@ class PostTxDecisionMakingBehaviour(
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            event = Event.NONE.value
-
+            tx_submitter = self.synchronized_data.tx_submitter
             self.context.logger.info(
-                f"Checking the tx submitter is the current round: {self.synchronized_data.tx_submitter}"
+                f"Checking the tx submitter is the current round: {tx_submitter}"
             )
 
-            if (
-                self.synchronized_data.tx_submitter
-                == CallCheckpointBehaviour.matching_round.auto_round_id()
-            ):
-                event = Event.DONE.value
+            # Single source of truth for the submitter -> event mapping.
+            # Adding a new submitter is one line here plus a test;
+            # mutual-exclusivity is structural rather than relying on
+            # the four auto_round_id() values staying distinct.
+            submitter_to_event: Dict[str, str] = {
+                CallCheckpointBehaviour.matching_round.auto_round_id(): Event.DONE.value,
+                ActionPreparationBehaviour.matching_round.auto_round_id(): Event.ACTION.value,
+                MechRequestBehaviour.matching_round.auto_round_id(): Event.MECH.value,
+                MechPurchaseSubscriptionBehaviour.matching_round.auto_round_id(): Event.MECH_REQUEST.value,
+            }
 
-            if (
-                self.synchronized_data.tx_submitter
-                == ActionPreparationBehaviour.matching_round.auto_round_id()
-            ):
-                event = Event.ACTION.value
-
-            if (
-                self.synchronized_data.tx_submitter
-                == MechRequestBehaviour.matching_round.auto_round_id()
-            ):
-                event = Event.MECH.value
+            event = submitter_to_event.get(tx_submitter, Event.NONE.value)
+            if event == Event.NONE.value:
+                # Without this log an unknown submitter falls through to
+                # NONE and PostTxDecisionMakingRound self-loops silently
+                # (per its transition table), giving operators no signal.
+                self.context.logger.error(
+                    f"Unknown tx_submitter, FSM will self-loop: {tx_submitter}"
+                )
 
             payload = PostTxDecisionMakingPayload(
                 sender=self.context.agent_address,

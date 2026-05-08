@@ -28,8 +28,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
+    CollectionRound,
     DegenerateRound,
+    DeserializedCollection,
     EventToTimeout,
+    get_name,
 )
 from packages.valory.skills.agent_db_abci.payloads import AgentDBPayload
 
@@ -40,6 +43,7 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     DONE = "done"
+    NONE = "none"
 
 
 class SynchronizedData(BaseSynchronizedData):
@@ -49,16 +53,38 @@ class SynchronizedData(BaseSynchronizedData):
     This data is replicated by the tendermint application.
     """
 
+    def _get_deserialized(self, key: str) -> DeserializedCollection:
+        """Strictly get a collection and return it deserialized."""
+        serialized = self.db.get_strict(key)
+        return CollectionRound.deserialize_collection(serialized)
+
+    @property
+    def participants_to_agent_db(self) -> DeserializedCollection:
+        """Get the participants to the AgentDB round."""
+        return self._get_deserialized("participants_to_agent_db")
+
+    @property
+    def agent_db_content(self) -> str:
+        """Get the most-voted AgentDB payload content."""
+        value = self.db.get_strict("agent_db_content")
+        if not isinstance(value, str):
+            raise TypeError(f"agent_db_content must be str, got {type(value).__name__}")
+        return value
+
 
 class AgentDBRound(CollectSameUntilThresholdRound):
     """AgentDBRound"""
 
-    synchronized_data_class = SynchronizedData
-    extended_requirements = ()
     payload_class = AgentDBPayload
-
-    # This needs to be mentioned for static checkers
-    # Event.DONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT
+    synchronized_data_class = SynchronizedData
+    done_event = Event.DONE
+    # AgentDBPayload.content is non-Optional str, so most_voted_payload
+    # cannot be None and the (AgentDBRound, NONE) self-loop is unreachable
+    # at runtime. Declared to satisfy the metaclass contract.
+    none_event = Event.NONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = get_name(SynchronizedData.participants_to_agent_db)
+    selection_key = get_name(SynchronizedData.agent_db_content)
 
 
 class FinishedReadingRound(DegenerateRound):
@@ -75,6 +101,7 @@ class AgentDBAbciApp(AbciApp[Event]):
     Transition states:
         0. AgentDBRound
             - done: 1.
+            - none: 0.
             - no majority: 0.
             - round timeout: 0.
         1. FinishedReadingRound
@@ -90,6 +117,7 @@ class AgentDBAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         AgentDBRound: {
             Event.DONE: FinishedReadingRound,
+            Event.NONE: AgentDBRound,
             Event.NO_MAJORITY: AgentDBRound,
             Event.ROUND_TIMEOUT: AgentDBRound,
         },

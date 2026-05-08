@@ -74,3 +74,23 @@ class TestMemeooorrChainedConsensusBehaviour:  # pylint: disable=R0903
             | set(MechInteractRoundBehaviour.behaviours)
         )
         assert MemeooorrChainedConsensusBehaviour.behaviours == expected
+
+
+class TestMemeooorrRoundBehaviourStandalone:  # pylint: disable=R0903
+    """Standalone-mode invariants for MemeooorrRoundBehaviour."""
+
+    def test_initial_behaviour_matches_initial_round(self) -> None:
+        """The initial behaviour's matching round must equal the FSM initial round.
+
+        The framework only checks that ``initial_behaviour_cls`` is in
+        the ``behaviours`` list. It does not check that its
+        ``matching_round`` is in ``initial_states``. This invariant
+        catches the latent mis-start that would surface if anyone runs
+        ``memeooorr_abci`` standalone.
+        """
+        from packages.valory.skills.memeooorr_abci.rounds import MemeooorrAbciApp
+
+        assert (
+            MemeooorrRoundBehaviour.initial_behaviour_cls.matching_round
+            is MemeooorrAbciApp.initial_round_cls
+        )

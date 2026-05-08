@@ -83,6 +83,7 @@ class Event(Enum):
     ACTION = "action"
     MISSING_TWEET = "missing_tweet"
     MECH = "mech"
+    MECH_REQUEST = "mech_request"
     RETRY = "retry"
     SKIP = "skip"
     INVALID_AUTH = "invalid_auth"
@@ -720,7 +721,7 @@ class PostTxDecisionMakingRound(EventRoundBase):
     extended_requirements = ()
 
     # This needs to be mentioned for static checkers
-    # Event.DONE, Event.NONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.ACTION, Event.MECH
+    # Event.DONE, Event.NONE, Event.NO_MAJORITY, Event.ROUND_TIMEOUT, Event.ACTION, Event.MECH, Event.MECH_REQUEST
 
 
 class CallCheckpointRound(CollectSameUntilThresholdRound):
@@ -888,6 +889,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             - no majority: 9.
             - round timeout: 9.
             - mech: 18.
+            - mech request: 17.
         10. CallCheckpointRound
             - done: 15.
             - settle: 16.
@@ -978,7 +980,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: ActionDecisionRound,
         },
         ActionPreparationRound: {
-            Event.DONE: ActionTweetRound,  # This will never happen
+            Event.DONE: ActionTweetRound,
             Event.ERROR: CallCheckpointRound,
             Event.SETTLE: CheckFundsRound,
             Event.NO_MAJORITY: ActionPreparationRound,
@@ -1005,6 +1007,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: PostTxDecisionMakingRound,
             Event.ROUND_TIMEOUT: PostTxDecisionMakingRound,
             Event.MECH: FinishedForMechResponseRound,
+            Event.MECH_REQUEST: FinishedForMechRequestRound,
         },
         CallCheckpointRound: {
             Event.DONE: FinishedToResetRound,

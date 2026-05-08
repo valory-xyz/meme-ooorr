@@ -56,7 +56,7 @@ from packages.valory.skills.memeooorr_abci.rounds import MemeooorrAbciApp
 class MemeooorrRoundBehaviour(AbstractRoundBehaviour):
     """MemeooorrRoundBehaviour"""
 
-    initial_behaviour_cls = CollectFeedbackBehaviour
+    initial_behaviour_cls = LoadDatabaseBehaviour
     abci_app_cls = MemeooorrAbciApp  # type: ignore
     behaviours: Set[Type[BaseBehaviour]] = [  # type: ignore
         LoadDatabaseBehaviour,
