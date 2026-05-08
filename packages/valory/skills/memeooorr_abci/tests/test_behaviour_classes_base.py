@@ -94,9 +94,6 @@ def _make_behaviour(**overrides: Any) -> MagicMock:
     b.params.meme_factory_deployment_block_celo = 200
     b.params.olas_token_address_base = "0xolas_base"
     b.params.olas_token_address_celo = "0xolas_celo"
-    b.params.service_registry_address_base = "0xsr_base"
-    b.params.service_registry_address_celo = "0xsr_celo"
-    b.params.olas_subgraph_url = "https://subgraph.example.com"
     b.params.meme_subgraph_url = "https://meme-subgraph.example.com"
 
     # Alternative model
@@ -952,151 +949,12 @@ class TestChainHelpers:
 
 
 # ---------------------------------------------------------------------------
-# get_packages (lines 610-648) tests
-# ---------------------------------------------------------------------------
-
-
-class TestGetPackages:
-    """Test TestGetPackages."""
-
-    def _setup(self, b: Any, status_code: int, body_dict: Any) -> None:
-        """Test _setup."""
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Test fake_http."""
-            r = MagicMock()
-            r.status_code = status_code
-            r.body = (
-                json.dumps(body_dict).encode()
-                if isinstance(body_dict, dict)
-                else body_dict
-            )
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-
-    def test_success(self) -> None:
-        """Test test_success."""
-        b = _make_behaviour()
-        self._setup(b, HTTP_OK, {"data": {"units": []}})
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) == {
-            "units": []
-        }
-
-    def test_http_error(self) -> None:
-        """Test test_http_error."""
-        b = _make_behaviour()
-        self._setup(b, 500, {})
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
-
-    def test_no_data_key(self) -> None:
-        """Test test_no_data_key."""
-        b = _make_behaviour()
-        self._setup(b, HTTP_OK, {"error": "x"})
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
-
-
-# ---------------------------------------------------------------------------
-# get_memeooorr_handles_from_subgraph (lines 652-672) tests
-# ---------------------------------------------------------------------------
-
-
-class TestGetMemeoorrHandlesFromSubgraph:
-    """Test TestGetMemeoorrHandlesFromSubgraph."""
-
-    def test_no_services(self) -> None:
-        """Test test_no_services."""
-        b = _make_behaviour()
-
-        def fake(pt: Any) -> Generator[Any, None, None]:
-            """Test fake."""
-            yield
-
-        b.get_packages = MagicMock(side_effect=fake)
-        assert not _exhaust(
-            MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
-        )
-
-    def test_matching(self) -> None:
-        """Test test_matching."""
-        b = _make_behaviour()
-        b.context.state.twitter_username = "mybot"
-
-        def fake(pt: Any) -> Generator[Any, None, Any]:
-            """Test fake."""
-            yield
-            return {
-                "units": [
-                    {"description": "Memeooorr @alice"},
-                    {"description": "Memeooorr @mybot"},  # own
-                    {"description": "Other service"},
-                    {"description": "Memeooorr @bob"},
-                ]
-            }
-
-        b.get_packages = MagicMock(side_effect=fake)
-        assert _exhaust(
-            MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
-        ) == ["alice", "bob"]
-
-    def test_returns_empty_list_when_units_key_is_absent(self) -> None:
-        """Truthy response missing 'units' resolves to [] with a warning.
-
-        Uses a non-empty dict so the early ``if not services`` guard is
-        bypassed and the schema-drift branch is actually exercised.
-        """
-        b = _make_behaviour()
-        b.context.state.twitter_username = "mybot"
-        b.context.logger = MagicMock()
-
-        def fake(pt: Any) -> Generator[Any, None, Any]:
-            yield
-            # Truthy payload with a different shape — typical of subgraph
-            # schema drift or a partial-outage response.
-            return {"foo": "bar"}
-
-        b.get_packages = MagicMock(side_effect=fake)
-        assert not _exhaust(
-            MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
-        )
-        b.context.logger.warning.assert_called_once()
-
-    def test_returns_empty_list_when_units_value_is_none(self) -> None:
-        """Response with units=None resolves to [] with a warning."""
-        b = _make_behaviour()
-        b.context.state.twitter_username = "mybot"
-        b.context.logger = MagicMock()
-
-        def fake(pt: Any) -> Generator[Any, None, Any]:
-            yield
-            return {"units": None}
-
-        b.get_packages = MagicMock(side_effect=fake)
-        assert not _exhaust(
-            MemeooorrBaseBehaviour.get_memeooorr_handles_from_subgraph(b)
-        )
-        b.context.logger.warning.assert_called_once()
-
-
-# ---------------------------------------------------------------------------
 # address getters (lines 674-704) tests
 # ---------------------------------------------------------------------------
 
 
 class TestAddressGetters:
     """Test TestAddressGetters."""
-
-    @pytest.mark.parametrize(
-        "chain,expected", [("base", "0xsr_base"), ("celo", "0xsr_celo")]
-    )
-    def test_service_registry(self, chain: str, expected: str) -> None:
-        """Test test_service_registry."""
-        b = _make_behaviour()
-        b.params.home_chain_id = chain
-        # Bind get_chain_id so the real method works
-        b.get_chain_id = lambda: MemeooorrBaseBehaviour.get_chain_id(b)
-        assert MemeooorrBaseBehaviour.get_service_registry_address(b) == expected
 
     @pytest.mark.parametrize(
         "chain,expected", [("base", "0xolas_base"), ("celo", "0xolas_celo")]
@@ -1125,76 +983,6 @@ class TestAddressGetters:
         b.params.home_chain_id = chain
         b.get_chain_id = lambda: MemeooorrBaseBehaviour.get_chain_id(b)
         assert MemeooorrBaseBehaviour.get_meme_factory_deployment_block(b) == expected
-
-
-# ---------------------------------------------------------------------------
-# get_memeooorr_handles_from_chain (lines 709-755) tests
-# ---------------------------------------------------------------------------
-
-
-class TestGetMemeoorrHandlesFromChain:
-    """Test TestGetMemeoorrHandlesFromChain."""
-
-    def test_contract_error(self) -> None:
-        """Test test_contract_error."""
-        b = _make_behaviour()
-        b.get_chain_id = MagicMock(return_value="base")
-        b.get_service_registry_address = MagicMock(return_value="0xsr")
-
-        def fake(**kw: Any) -> Generator[Any, None, Any]:
-            """Test fake."""
-            r = MagicMock(performative=ContractApiMessage.Performative.ERROR)
-            yield
-            return r
-
-        b.get_contract_api_response = MagicMock(side_effect=fake)
-        assert not _exhaust(MemeooorrBaseBehaviour.get_memeooorr_handles_from_chain(b))
-
-    def test_success(self) -> None:
-        """Test test_success."""
-        b = _make_behaviour()
-        b.get_chain_id = MagicMock(return_value="base")
-        b.get_service_registry_address = MagicMock(return_value="0xsr")
-        b.context.state.twitter_username = "mybot"
-
-        def fake_contract(**kw: Any) -> Generator[Any, None, Any]:
-            """Test fake_contract."""
-            r = MagicMock(performative=ContractApiMessage.Performative.STATE)
-            r.state.body = {
-                "services_data": [
-                    {"ipfs_hash": "h1"},
-                    {"ipfs_hash": "h2"},
-                    {"ipfs_hash": "h3"},
-                    {"ipfs_hash": "h4"},
-                ]
-            }
-            yield
-            return r
-
-        b.get_contract_api_response = MagicMock(side_effect=fake_contract)
-
-        http_data = [
-            (HTTP_OK, json.dumps({"description": "Memeooorr @alice"}).encode()),
-            (500, b"err"),
-            (HTTP_OK, json.dumps({"description": "Not memeooorr"}).encode()),
-            (HTTP_OK, json.dumps({"description": "Memeooorr @mybot"}).encode()),
-        ]
-        idx = [0]
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Test fake_http."""
-            i = idx[0]
-            idx[0] += 1
-            r = MagicMock()
-            r.status_code = http_data[i][0]
-            r.body = http_data[i][1]
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-        assert _exhaust(MemeooorrBaseBehaviour.get_memeooorr_handles_from_chain(b)) == [
-            "alice"
-        ]
 
 
 # ---------------------------------------------------------------------------
@@ -1748,26 +1536,6 @@ class TestReplaceTweet:
 # ---------------------------------------------------------------------------
 
 
-class TestGetPackagesJsonParseError:  # pylint: disable=too-few-public-methods
-    """Tests for get_packages when the subgraph returns non-JSON on 200."""
-
-    def test_non_json_body_returns_none(self) -> None:
-        """A 200 response with invalid JSON returns None instead of crashing."""
-        b = _make_behaviour()
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Return a 200 response with non-JSON body."""
-            r = MagicMock()
-            r.status_code = HTTP_OK
-            r.body = b"<html>gateway error</html>"
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
-        b.context.logger.error.assert_called()
-
-
 class TestGetMemeCoinsSubgraphResilience:
     """Tests for meme subgraph defensive handling."""
 
@@ -1836,6 +1604,46 @@ class TestGetMemeCoinsSubgraphResilience:
         b.get_http_response = MagicMock(side_effect=fake_http)
         assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
 
+    def test_null_meme_tokens_returns_empty(self) -> None:
+        """Response JSON with memeTokens=null returns [] instead of crashing.
+
+        The Graph can return a partial-null inner object during outages.
+        Without an explicit guard, .get('items', []) on None raises
+        AttributeError on the outer chain and the per-token try/except
+        below it cannot catch that.
+        """
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON with data.memeTokens = null."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"data": {"memeTokens": None}})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+        assert result == []
+
+    def test_null_items_returns_empty(self) -> None:
+        """Response JSON with items=null returns [] instead of crashing."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON with data.memeTokens.items = null."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"data": {"memeTokens": {"items": None}}})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+        assert result == []
+
     def test_malformed_token_entry_skipped(self) -> None:
         """A token entry with missing keys is skipped instead of crashing."""
         b = _make_behaviour()
@@ -1881,77 +1689,6 @@ class TestGetMemeCoinsSubgraphResilience:
         assert len(result) == 1
         assert result[0]["token_name"] == "Good"
         b.context.logger.warning.assert_called()
-
-
-class TestIpfsMetadataResilience:
-    """Tests for IPFS metadata JSON parse resilience (Fix #3)."""
-
-    def _setup_behaviour(self) -> Any:
-        """Create behaviour with service registry data."""
-        b = _make_behaviour()
-        b.context.state.twitter_username = "mybot"
-
-        response_msg = MagicMock()
-        response_msg.performative = ContractApiMessage.Performative.STATE
-        response_msg.state = MagicMock()
-        response_msg.state.body = {
-            "services_data": [
-                {"ipfs_hash": "QmHash1"},
-                {"ipfs_hash": "QmHash2"},
-            ]
-        }
-
-        def fake_contract(**kw: Any) -> Generator[Any, None, Any]:
-            """Return a contract api response."""
-            yield
-            return response_msg
-
-        b.get_contract_api_response = MagicMock(side_effect=fake_contract)
-        b.get_service_registry_address = MagicMock(return_value="0xsr_base")
-        b.get_chain_id = MagicMock(return_value="base")
-        return b
-
-    def test_non_json_ipfs_response_continues(self) -> None:
-        """Non-JSON IPFS response is skipped, not crashed."""
-        b = self._setup_behaviour()
-        call_count = 0
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Return different responses per call."""
-            nonlocal call_count
-            r = MagicMock()
-            if call_count == 0:
-                # First IPFS fetch: invalid JSON
-                r.status_code = HTTP_OK
-                r.body = b"not-json"
-            else:
-                # Second IPFS fetch: valid but no match
-                r.status_code = HTTP_OK
-                r.body = json.dumps({"description": "Other service"})
-            call_count += 1
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-        result = _exhaust(MemeooorrBaseBehaviour.get_memeooorr_handles_from_chain(b))
-        # Should not crash; returns empty list since nothing matched
-        assert not result
-
-    def test_missing_description_key_continues(self) -> None:
-        """IPFS metadata without 'description' key doesn't crash."""
-        b = self._setup_behaviour()
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Return metadata without description."""
-            r = MagicMock()
-            r.status_code = HTTP_OK
-            r.body = json.dumps({"name": "test", "version": "1.0"})
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-        result = _exhaust(MemeooorrBaseBehaviour.get_memeooorr_handles_from_chain(b))
-        assert not result
 
 
 # ---------------------------------------------------------------------------

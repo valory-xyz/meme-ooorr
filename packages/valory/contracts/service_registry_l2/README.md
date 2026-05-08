@@ -1,1 +1,0 @@
-# Service registry contract

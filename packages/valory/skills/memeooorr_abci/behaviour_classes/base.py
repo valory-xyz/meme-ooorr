@@ -20,7 +20,6 @@
 """This package contains round behaviours of MemeooorrAbciApp."""
 
 import json
-import re
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
@@ -40,9 +39,6 @@ from packages.valory.connections.tweepy.connection import (
     PUBLIC_ID as TWEEPY_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.contracts.meme_factory.contract import MemeFactoryContract
-from packages.valory.contracts.service_registry_l2.contract import (
-    ServiceRegistryContract,
-)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.kv_store.dialogues import (
     KvStoreDialogue,
@@ -60,8 +56,6 @@ from packages.valory.skills.memeooorr_abci.rounds import SynchronizedData
 BASE_CHAIN_ID = "base"
 CELO_CHAIN_ID = "celo"
 HTTP_OK = 200
-MEMEOOORR_DESCRIPTION_PATTERN = r".*Memeooorr @(\w+)$"
-IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs/{ipfs_hash}"
 MAX_TWEET_CHARS = 280
 AGENT_TYPE_NAME = "memeooorr"
 LIST_COUNT_TO_KEEP = 20
@@ -91,22 +85,6 @@ query Tokens($limit: Int, $after: String) {
       hearters
     }
   }
-}
-"""
-
-PACKAGE_QUERY = """
-query getPackages($package_type: String!) {
-    units(where: {packageType: $package_type}) {
-        id,
-        packageType,
-        publicId,
-        packageHash,
-        tokenId,
-        metadataHash,
-        description,
-        owner,
-        image
-    }
 }
 """
 
@@ -606,99 +584,6 @@ class MemeooorrBaseBehaviour(
 
         return ""
 
-    def get_packages(self, package_type: str) -> Generator[None, None, Optional[Dict]]:
-        """Gets minted packages from the Olas subgraph"""
-
-        self.context.logger.info("Getting packages from Olas subgraph...")
-
-        headers = {
-            "Content-Type": "application/json",
-        }
-
-        data = {
-            "query": PACKAGE_QUERY,
-            "variables": {
-                "package_type": package_type,
-            },
-        }
-
-        # Get all existing agents from the subgraph
-        self.context.logger.info("Getting agents from subgraph")
-        response = yield from self.get_http_response(  # type: ignore
-            method="POST",
-            url=self.params.olas_subgraph_url,
-            headers=headers,
-            content=json.dumps(data).encode(),
-        )
-
-        if response.status_code != HTTP_OK:  # type: ignore
-            self.context.logger.error(
-                f"Error getting agents from subgraph: {response}"  # type: ignore
-            )
-            return None
-
-        # Parse the response body
-        try:
-            response_body = json.loads(response.body)  # type: ignore
-        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
-            self.context.logger.error(
-                f"Failed to parse JSON from subgraph response: {response.body}"  # type: ignore
-            )
-            return None
-
-        # Check if 'data' key exists in the response
-        if "data" not in response_body:
-            self.context.logger.error(
-                f"Expected 'data' key in response, but got: {response_body}"
-            )
-            return None
-
-        return response_body["data"]
-
-    def get_memeooorr_handles_from_subgraph(self) -> Generator[None, None, List[str]]:
-        """Get Memeooorr service handles"""
-        handles: List[str] = []
-        services = yield from self.get_packages("service")
-        if not services:
-            return handles
-
-        units = services.get("units")
-        if not units:
-            # The subgraph returned a non-empty payload without a usable
-            # 'units' list — likely a schema migration or partial outage.
-            # Surface this as a warning so it is distinguishable from the
-            # legitimate "no services registered" case above.
-            self.context.logger.warning(
-                "Olas subgraph returned no 'units' in payload; treating "
-                f"as empty handle list. Payload keys: {list(services)}"
-            )
-            return handles
-
-        for service in units:
-            match = re.match(MEMEOOORR_DESCRIPTION_PATTERN, service["description"])
-
-            if not match:
-                continue
-
-            handle = match.group(1)
-
-            # Exclude my own username
-            if handle == self.context.state.twitter_username:
-                continue
-
-            handles.append(handle)
-
-        self.context.logger.info(f"Got Twitter handles: {handles}")
-        return handles
-
-    def get_service_registry_address(self) -> str:
-        """Get the service registry address"""
-        return (
-            self.params.service_registry_address_base
-            if self.get_chain_id() == "base"
-            else self.params.service_registry_address_celo
-        )
-
     def get_olas_address(self) -> str:
         """Get the olas address"""
         return (
@@ -722,65 +607,6 @@ class MemeooorrBaseBehaviour(
             if self.get_chain_id() == "base"
             else self.params.meme_factory_deployment_block_celo
         )
-
-    def get_memeooorr_handles_from_chain(self) -> Generator[None, None, List[str]]:
-        """Get Memeooorr service handles"""
-
-        handles = []
-
-        # Use the contract api to interact with the factory contract
-        response_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.get_service_registry_address(),
-            contract_id=str(ServiceRegistryContract.contract_id),
-            contract_callable="get_services_data",
-            chain_id=self.get_chain_id(),
-        )
-
-        # Check that the response is what we expect
-        if response_msg.performative != ContractApiMessage.Performative.STATE:
-            self.context.logger.error(f"Could not get the service data: {response_msg}")
-            return []
-
-        services_data = cast(list, response_msg.state.body.get("services_data") or [])
-
-        for service_data in services_data:
-            response = yield from self.get_http_response(  # type: ignore
-                method="GET",
-                url=IPFS_ENDPOINT.format(ipfs_hash=service_data["ipfs_hash"]),
-            )
-
-            if response.status_code != HTTP_OK:  # type: ignore
-                self.context.logger.error(
-                    f"Error getting data from IPFS endpoint: {response}"  # type: ignore
-                )
-                continue
-
-            try:
-                metadata = json.loads(response.body)
-            except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
-                self.context.logger.error(
-                    f"Failed to parse IPFS metadata JSON: {response.body}"  # type: ignore
-                )
-                continue
-            match = re.match(
-                MEMEOOORR_DESCRIPTION_PATTERN, metadata.get("description", "")
-            )
-
-            if not match:
-                continue
-
-            handle = match.group(1)
-
-            # Exclude my own username
-            if handle == self.context.state.twitter_username:
-                continue
-
-            handles.append(handle)
-
-        self.context.logger.info(f"Got Twitter handles: {handles}")
-
-        return handles
 
     def get_meme_coins(self) -> Generator[None, None, Optional[List]]:
         """Get a list of meme coins"""
@@ -825,7 +651,9 @@ class MemeooorrBaseBehaviour(
             )
             return []
 
-        items = (response_json.get("data") or {}).get("memeTokens", {}).get("items", [])
+        items = ((response_json.get("data") or {}).get("memeTokens") or {}).get(
+            "items"
+        ) or []
         if not items:
             self.context.logger.warning(
                 "No meme token items found in subgraph response"

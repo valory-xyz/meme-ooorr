@@ -231,6 +231,71 @@ class TestHandleRetryableException:
         assert result is False
         logger.error.assert_called_once()  # pylint: disable=no-member
 
+    @pytest.mark.asyncio(loop_scope="function")
+    @pytest.mark.parametrize("status", [502, 503, 504])
+    async def test_transient_5xx_triggers_retry_when_opted_in(
+        self, status: int
+    ) -> None:
+        """Each transient 5xx status returns True with retry_on_5xx=True."""
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=status
+        )
+        logger = MagicMock()
+        with patch(
+            "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+            new_callable=AsyncMock,
+        ):
+            result = await _handle_retryable_exception(
+                exc, 0, 3, 0.01, logger, retry_on_5xx=True
+            )
+        assert result is True
+
+    @pytest.mark.asyncio(loop_scope="function")
+    @pytest.mark.parametrize("status", [502, 503, 504])
+    async def test_transient_5xx_does_not_retry_by_default(self, status: int) -> None:
+        """Without retry_on_5xx=True, transient 5xx falls through.
+
+        This is the duplicate-write guard: writes use the default
+        ``retry_on_5xx=False`` so a 502/504 (gateway error after the
+        upstream may have processed the request) cannot cause a duplicate
+        row on the mirror_db backend.
+
+        :param status: parametrized 5xx status code.
+        """
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=status
+        )
+        logger = MagicMock()
+        result = await _handle_retryable_exception(exc, 0, 3, 1, logger)
+        assert result is False
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_500_is_not_retryable(self) -> None:
+        """500 is excluded from RETRYABLE_5XX even with retry_on_5xx=True."""
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=500
+        )
+        logger = MagicMock()
+        result = await _handle_retryable_exception(
+            exc, 0, 3, 1, logger, retry_on_5xx=True
+        )
+        assert result is False
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_transient_5xx_max_retries(self) -> None:
+        """503 on last attempt returns False with a transient-5xx error context."""
+        exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=503
+        )
+        logger = MagicMock()
+        result = await _handle_retryable_exception(
+            exc, 2, 3, 1, logger, retry_on_5xx=True
+        )
+        assert result is False
+        logger.error.assert_called_once()  # pylint: disable=no-member
+        log_message = logger.error.call_args[0][0]  # pylint: disable=no-member
+        assert "transient 503" in log_message
+
 
 class TestRetryDecorator:  # pylint: disable=too-few-public-methods
     """Tests for retry_with_exponential_backoff decorator."""
@@ -580,6 +645,80 @@ class TestCRUDMethods:
         await connection.disconnect()
 
     @pytest.mark.asyncio(loop_scope="function")
+    @pytest.mark.parametrize("status", [502, 503, 504])
+    async def test_create_does_not_retry_on_transient_5xx(self, status: int) -> None:
+        """Writes do not retry on 5xx — duplicate-create hazard.
+
+        ``create_`` uses the default ``retry_on_5xx=False``. A 502/503/504
+        often means the upstream did process the POST and only the gateway
+        response was lost; retrying would create a duplicate row.
+
+        :param status: parametrized 5xx status code.
+        """
+        connection = make_connection()
+        await connection.connect()
+
+        transient_exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=status
+        )
+
+        call_count = 0
+
+        def mock_post(*args: Any, **kwargs: Any) -> Any:
+            nonlocal call_count
+            call_count += 1
+            raise transient_exc
+
+        with patch.object(connection.session, "post", side_effect=mock_post):
+            with patch(
+                "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+                new_callable=AsyncMock,
+            ):
+                with pytest.raises(aiohttp.ClientResponseError):
+                    await connection.create_(endpoint="/items", data={"name": "test"})
+
+        assert call_count == 1
+        await connection.disconnect()
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_create_still_retries_on_429(self) -> None:
+        """Writes still retry on 429 — request rejected before processing."""
+        connection = make_connection()
+        await connection.connect()
+
+        rate_limit_exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=429
+        )
+
+        mock_success_response = AsyncMock()
+        mock_success_response.status = 200
+        mock_success_response.json = AsyncMock(return_value={"id": 1})
+        mock_success_response.__aenter__ = AsyncMock(return_value=mock_success_response)
+        mock_success_response.__aexit__ = AsyncMock(return_value=False)
+
+        call_count = 0
+
+        def mock_post(*args: Any, **kwargs: Any) -> Any:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise rate_limit_exc
+            return mock_success_response
+
+        with patch.object(connection.session, "post", side_effect=mock_post):
+            with patch(
+                "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+                new_callable=AsyncMock,
+            ):
+                result = await connection.create_(
+                    endpoint="/items", data={"name": "test"}
+                )
+
+        assert result == {"id": 1}
+        assert call_count == 2
+        await connection.disconnect()
+
+    @pytest.mark.asyncio(loop_scope="function")
     async def test_update_success(self) -> None:
         """Test successful update_ call."""
         connection = make_connection()
@@ -654,6 +793,79 @@ class TestCRUDMethods:
 
         assert result == {"id": 1}
         assert call_count == 2
+        await connection.disconnect()
+
+    @pytest.mark.asyncio(loop_scope="function")
+    @pytest.mark.parametrize("status", [502, 503, 504])
+    async def test_read_retries_on_transient_5xx_then_succeeds(
+        self, status: int
+    ) -> None:
+        """Reads retry on 502/503/504 — opted in via retry_on_5xx=True.
+
+        Read is idempotent so 502/504 (gateway error after upstream may
+        have processed) are safe to retry, unlike on writes.
+
+        :param status: parametrized 5xx status code.
+        """
+        connection = make_connection()
+        await connection.connect()
+
+        transient_exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=status
+        )
+
+        mock_success_response = AsyncMock()
+        mock_success_response.status = 200
+        mock_success_response.json = AsyncMock(return_value={"id": 1})
+        mock_success_response.__aenter__ = AsyncMock(return_value=mock_success_response)
+        mock_success_response.__aexit__ = AsyncMock(return_value=False)
+
+        call_count = 0
+
+        def mock_get(*args: Any, **kwargs: Any) -> Any:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise transient_exc
+            return mock_success_response
+
+        with patch.object(connection.session, "get", side_effect=mock_get):
+            with patch(
+                "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+                new_callable=AsyncMock,
+            ):
+                result = await connection.read_(endpoint="/items/1")
+
+        assert result == {"id": 1}
+        assert call_count == 2
+        await connection.disconnect()
+
+    @pytest.mark.asyncio(loop_scope="function")
+    async def test_read_does_not_retry_on_500(self) -> None:
+        """500 is not in RETRYABLE_5XX so the decorator re-raises immediately."""
+        connection = make_connection()
+        await connection.connect()
+
+        non_transient_exc = aiohttp.ClientResponseError(
+            request_info=MagicMock(), history=(), status=500
+        )
+
+        call_count = 0
+
+        def mock_get(*args: Any, **kwargs: Any) -> Any:
+            nonlocal call_count
+            call_count += 1
+            raise non_transient_exc
+
+        with patch.object(connection.session, "get", side_effect=mock_get):
+            with patch(
+                "packages.valory.connections.mirror_db.connection.asyncio.sleep",
+                new_callable=AsyncMock,
+            ):
+                with pytest.raises(aiohttp.ClientResponseError):
+                    await connection.read_(endpoint="/items/1")
+
+        assert call_count == 1
         await connection.disconnect()
 
     @pytest.mark.asyncio(loop_scope="function")

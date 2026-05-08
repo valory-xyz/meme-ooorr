@@ -57,8 +57,6 @@ STAKING_TOKEN_ADDRESS = "0x" + "b" * 40
 ACTIVITY_CHECKER_ADDRESS = "0x" + "c" * 40
 MEME_FACTORY_ADDRESS_BASE = "0x" + "d" * 40
 MEME_FACTORY_ADDRESS_CELO = "0x" + "e" * 40
-SERVICE_REGISTRY_ADDRESS_BASE = "0x" + "f" * 40
-SERVICE_REGISTRY_ADDRESS_CELO = "0x" + "1" * 40
 OLAS_TOKEN_ADDRESS_BASE = "0x" + "2" * 40
 OLAS_TOKEN_ADDRESS_CELO = "0x" + "3" * 40
 MECH_MARKETPLACE_ADDRESS = "0x" + "4" * 40
@@ -253,14 +251,11 @@ def make_mock_params(**overrides: Any) -> MagicMock:
         "meme_factory_address_celo": MEME_FACTORY_ADDRESS_CELO,
         "olas_token_address_base": OLAS_TOKEN_ADDRESS_BASE,
         "olas_token_address_celo": OLAS_TOKEN_ADDRESS_CELO,
-        "service_registry_address_base": SERVICE_REGISTRY_ADDRESS_BASE,
-        "service_registry_address_celo": SERVICE_REGISTRY_ADDRESS_CELO,
         "persona": "test persona",
         "staking_token_contract_address": STAKING_TOKEN_ADDRESS,
         "activity_checker_contract_address": ACTIVITY_CHECKER_ADDRESS,
         "on_chain_service_id": 1,
         "meme_subgraph_url": "https://subgraph.example.com",
-        "olas_subgraph_url": "https://olas-subgraph.example.com",
         "skip_engagement": False,
         "min_summon_amount_base": 0.01,
         "max_summon_amount_base": 0.1,
