@@ -1666,33 +1666,28 @@ class TestHttpHandlerPostProcessPrompt:
 
         handler._handle_bad_request.assert_called_once()
 
-    def test_non_utf8_body_returns_bad_request(self) -> None:
-        """Non-UTF8 bytes are surfaced to the caller as 400, not 500."""
+    @pytest.mark.parametrize(
+        "body,case",
+        [
+            (b"\xff\xfe", "non-utf8 bytes"),
+            (b'{"prompt": "hi', "truncated json"),
+        ],
+    )
+    def test_malformed_body_returns_bad_request(
+        self, body: bytes, case: str
+    ) -> None:
+        """Malformed bodies are surfaced to the caller as 400, not 500."""
         handler = _make_http_handler()
         handler.context.params.use_x402 = False
         handler._handle_bad_request = MagicMock()
-        msg = _make_http_msg(method="post", body=b"\xff\xfe")
+        msg = _make_http_msg(method="post", body=body)
         dialogue = _make_http_dialogue()
 
         HttpHandler._handle_post_process_prompt(handler, msg, dialogue)
 
         handler._handle_bad_request.assert_called_once()
         args, _ = handler._handle_bad_request.call_args
-        assert "Malformed request body" in args[2]["error"]
-
-    def test_truncated_json_body_returns_bad_request(self) -> None:
-        """Truncated JSON bodies are surfaced to the caller as 400, not 500."""
-        handler = _make_http_handler()
-        handler.context.params.use_x402 = False
-        handler._handle_bad_request = MagicMock()
-        msg = _make_http_msg(method="post", body=b'{"prompt": "hi')
-        dialogue = _make_http_dialogue()
-
-        HttpHandler._handle_post_process_prompt(handler, msg, dialogue)
-
-        handler._handle_bad_request.assert_called_once()
-        args, _ = handler._handle_bad_request.call_args
-        assert "Malformed request body" in args[2]["error"]
+        assert "Malformed request body" in args[2]["error"], case
 
     def test_valid_prompt(self) -> None:
         """Test POST with valid prompt."""
