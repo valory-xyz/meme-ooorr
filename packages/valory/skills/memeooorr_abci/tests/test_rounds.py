@@ -1287,10 +1287,9 @@ class TestPostTxDecisionMakingRound:
     def test_mech_request_event_routes_to_finished_for_mech_request(self) -> None:
         """Event.MECH_REQUEST must transition to FinishedForMechRequestRound.
 
-        After settling a subscription-purchase tx the dispatcher emits
-        MECH_REQUEST so the agent re-enters the mech flow at version
-        detection rather than hanging in a NONE-loop on
-        PostTxDecisionMakingRound.
+        Asserts the transition-table edge only. The rationale for why
+        the event exists lives next to the dispatcher emission test in
+        ``test_behaviour_classes_chain``.
         """
         from packages.valory.skills.memeooorr_abci.rounds import (
             FinishedForMechRequestRound,

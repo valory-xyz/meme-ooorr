@@ -41,7 +41,7 @@ fingerprint:
   tests/test_handlers.py: bafybeiee7xsz4n77fsuba7no2haid72t3cjzvzkfe3qluhhzavidfyjufy
   tests/test_models.py: bafybeiajv7wsqx6p4a5klcvoepg2watg7etgoi4ucjul3cjayx4gosccmu
   tests/test_prompts.py: bafybeibmdio3tk5fzw2s4ch2fpbugb2z3nfmuo72yo2jnh4dapjtpuhbhq
-  tests/test_rounds.py: bafybeidaviv4as555o66szyhsn2hgfpryjfnqkqwon4xsefjj4ibj4a4w4
+  tests/test_rounds.py: bafybeica5go6ikpq2e62i6p5xixdxmyvmyh2kmfxziidnbuc254t5tsg6e
   tests/test_rounds_info.py: bafybeig7ctx7xngtlhdmvfyrvmddsz74py6g6recmesrshw6dgibgi32zy
 fingerprint_ignore_patterns: []
 connections:
