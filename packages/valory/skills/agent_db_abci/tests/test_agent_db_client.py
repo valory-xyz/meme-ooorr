@@ -22,6 +22,7 @@
 # pylint: disable=no-member
 
 import json
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -404,7 +405,7 @@ class TestAgentDBClientRequest:
         does not write duplicates on a transient outage.
         """
         client = self._setup_client()
-        mock_resp = MagicMock(status_code=500, text="Server Error")
+        mock_resp = SimpleNamespace(status_code=500, body=b"Server Error")
 
         def fake_http(**kwargs):
             yield
@@ -413,7 +414,7 @@ class TestAgentDBClientRequest:
         client.http_request_func = fake_http
 
         gen = client._request("GET", "/test")
-        with pytest.raises(RuntimeError, match="500"):
+        with pytest.raises(RuntimeError, match=r"500.*Server Error"):
             _exhaust_gen(gen)
 
     def test_malformed_json_body_returns_none(self):

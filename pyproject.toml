@@ -59,7 +59,7 @@ prerelease = "allow"
 packages_paths = "packages/valory"
 upstream_pins = [
     "valory-xyz/mech-interact@v0.30.0",
-    "valory-xyz/genai@v7.0.0",
+    "valory-xyz/genai@v7.1.0",
     "valory-xyz/kv-store@v0.5.0",
     "valory-xyz/funds-manager@v3.0.0",
 ]

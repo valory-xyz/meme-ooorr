@@ -131,12 +131,6 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
         self.olas_token_address_celo = self._ensure(
             "olas_token_address_celo", kwargs, str
         )
-        self.service_registry_address_base = self._ensure(
-            "service_registry_address_base", kwargs, str
-        )
-        self.service_registry_address_celo = self._ensure(
-            "service_registry_address_celo", kwargs, str
-        )
         self.persona = self._ensure("persona", kwargs, str)
         self.home_chain_id = self._ensure("home_chain_id", kwargs, str)
 
@@ -147,7 +141,6 @@ class Params(MechParams):  # pylint: disable=too-many-instance-attributes
             "meme_factory_deployment_block_celo", kwargs, int
         )
         self.meme_subgraph_url = self._ensure("meme_subgraph_url", kwargs, str)
-        self.olas_subgraph_url = self._ensure("olas_subgraph_url", kwargs, str)
         self.skip_engagement = self._ensure("skip_engagement", kwargs, bool)
 
         self.min_summon_amount_base = self._ensure(

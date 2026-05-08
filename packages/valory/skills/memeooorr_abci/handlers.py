@@ -917,7 +917,15 @@ class HttpHandler(BaseHttpHandler):  # pylint: disable=too-many-instance-attribu
                 return
 
         # Parse incoming data
-        data = json.loads(http_msg.body.decode("utf-8"))
+        try:
+            data = json.loads(http_msg.body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            self._handle_bad_request(
+                http_msg,
+                http_dialogue,
+                {"error": f"Malformed request body: {exc}"},
+            )
+            return
         user_prompt = data.get(PROMPT_FIELD, "")
 
         if not user_prompt:

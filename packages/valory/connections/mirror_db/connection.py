@@ -46,39 +46,93 @@ PUBLIC_ID = PublicId.from_str("valory/mirror_db:0.1.0")
 DEFAULT_HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
 
 
+# 502/504 are gated behind ``retry_on_5xx`` because they often mean the
+# upstream did receive the request and only the gateway response was lost
+# — retrying a non-idempotent write here would duplicate the row. 503 is
+# in the same set for symmetry with the read path; the load-shedder
+# variant is safe on writes too but a server that returns 503 to signal
+# "request handled, response dropped" cannot be distinguished from one
+# that returns 503 to signal "rejected before processing", so the same
+# gate applies.
+RETRYABLE_5XX = frozenset({502, 503, 504})
+
+
 async def _handle_retryable_exception(  # type: ignore
     exc: Union[aiohttp.ClientResponseError, aiohttp.ClientConnectionError],
     attempt: int,
     max_retries: int,
     delay: Union[int, float],
     logger: Any,
+    retry_on_5xx: bool = False,
 ) -> bool:
-    """Handle exceptions to determine if a retry should occur."""
+    """Handle exceptions to determine if a retry should occur.
+
+    :param exc: the exception raised by the wrapped call.
+    :param attempt: 0-indexed retry attempt number.
+    :param max_retries: configured retry budget.
+    :param delay: seconds to sleep before the next attempt.
+    :param logger: connection-instance logger.
+    :param retry_on_5xx: when True, the listed transient 5xx statuses
+        also trigger a retry. Off by default because 502/504/503 cannot
+        be distinguished from "upstream processed the request" without
+        backend cooperation, and retrying that on a non-idempotent write
+        risks a duplicate.
+    :return: True iff the caller should retry.
+    """
     is_rate_limit = isinstance(exc, aiohttp.ClientResponseError) and exc.status == 429
+    is_transient_5xx = (
+        retry_on_5xx
+        and isinstance(exc, aiohttp.ClientResponseError)
+        and exc.status in RETRYABLE_5XX
+    )
     is_connection_error = isinstance(exc, aiohttp.ClientConnectionError)
 
-    if not (is_rate_limit or is_connection_error):
+    if not (is_rate_limit or is_transient_5xx or is_connection_error):
         # Not a retryable error type we handle here
         return False
 
     if attempt < max_retries - 1:
-        error_type = (
-            "Rate limit exceeded" if is_rate_limit else f"Connection error: {exc}"
-        )
+        if is_rate_limit:
+            error_type = "Rate limit exceeded"
+        elif is_transient_5xx:
+            error_type = f"Transient {exc.status} from server"
+        else:
+            error_type = f"Connection error: {exc}"
         logger.warning(f"{error_type}. Retrying in {delay} seconds...")
         await asyncio.sleep(delay)
         return True  # Indicate retry should proceed
 
     # Max retries reached for a retryable error
-    error_context = "rate limiting" if is_rate_limit else "connection error"
+    if is_rate_limit:
+        error_context = "rate limiting"
+    elif is_transient_5xx:
+        error_context = f"transient {exc.status}"
+    else:
+        error_context = "connection error"
     logger.error(
         f"Max retries ({max_retries}) reached for {error_context}. Could not complete the request."
     )
     return False  # Indicate retry should stop, exception will be raised
 
 
-def retry_with_exponential_backoff(max_retries=5, initial_delay=1, backoff_factor=2):  # type: ignore
-    """Retry a function with exponential backoff."""
+def retry_with_exponential_backoff(  # type: ignore
+    max_retries=5, initial_delay=1, backoff_factor=2, retry_on_5xx: bool = False
+):
+    """Retry a function with exponential backoff.
+
+    The default retry set is 429 plus connection errors, both of which
+    can be retried on any HTTP method without write hazards. Pass
+    ``retry_on_5xx=True`` only when the wrapped call is idempotent —
+    typically GETs.
+
+    :param max_retries: maximum number of attempts before giving up.
+    :param initial_delay: seconds to sleep before the first retry.
+    :param backoff_factor: multiplier applied to the delay between attempts.
+    :param retry_on_5xx: when True, transient 5xx statuses also trigger
+        a retry. Off by default to avoid duplicate writes on
+        non-idempotent calls.
+    :return: a decorator that wraps an async function with retry logic.
+    """
 
     def decorator(func):  # type: ignore
         @wraps(func)
@@ -99,6 +153,7 @@ def retry_with_exponential_backoff(max_retries=5, initial_delay=1, backoff_facto
                         max_retries,
                         current_delay,
                         connection_instance.logger,
+                        retry_on_5xx=retry_on_5xx,
                     )
                     if not should_continue:
                         raise e  # Re-raise the exception if not retrying
@@ -365,7 +420,7 @@ class MirrorDBConnection(Connection):
             await self._raise_for_response(response, "create")
             return await response.json()
 
-    @retry_with_exponential_backoff()
+    @retry_with_exponential_backoff(retry_on_5xx=True)
     async def read_(self, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Read a resource."""
         if self.session is None:
