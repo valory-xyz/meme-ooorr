@@ -978,7 +978,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: ActionDecisionRound,
         },
         ActionPreparationRound: {
-            Event.DONE: ActionTweetRound,  # This will never happen
+            Event.DONE: ActionTweetRound,
             Event.ERROR: CallCheckpointRound,
             Event.SETTLE: CheckFundsRound,
             Event.NO_MAJORITY: ActionPreparationRound,
