@@ -33,7 +33,6 @@ alphabet_in:
 - WAIT
 default_start_state: RegistrationStartupRound
 final_states:
-- FinishedMarketplaceLegacyDetectedRound
 - FinishedMechPurchaseSubscriptionRound
 label: MemeooorrChainedSkillAbciApp
 start_states:
@@ -55,7 +54,6 @@ states:
 - FailedMechResponseRound
 - FetchPerformanceDataRound
 - FinalizationRound
-- FinishedMarketplaceLegacyDetectedRound
 - FinishedMechPurchaseSubscriptionRound
 - LoadDatabaseRound
 - MechInformationRound
@@ -174,7 +172,7 @@ transition_func:
     (MechVersionDetectionRound, NO_MAJORITY): MechVersionDetectionRound
     (MechVersionDetectionRound, NO_MARKETPLACE): MechRequestRound
     (MechVersionDetectionRound, ROUND_TIMEOUT): MechVersionDetectionRound
-    (MechVersionDetectionRound, V1): FinishedMarketplaceLegacyDetectedRound
+    (MechVersionDetectionRound, V1): MechRequestRound
     (MechVersionDetectionRound, V2): MechInformationRound
     (PostMechResponseRound, DONE): EngageTwitterRound
     (PostMechResponseRound, ERROR): FailedMechResponseRound

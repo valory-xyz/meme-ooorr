@@ -52,6 +52,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     ResetAndPauseAbci.FinishedResetAndPauseRound: AgentPerformanceSummaryAbci.FetchPerformanceDataRound,
     ResetAndPauseAbci.FinishedResetAndPauseErrorRound: ResetAndPauseAbci.ResetAndPauseRound,
     MemeooorrAbci.FinishedForMechRequestRound: MechVersionStates.MechVersionDetectionRound,
+    MechFinalStates.FinishedMarketplaceLegacyDetectedRound: MechRequestStates.MechRequestRound,
     MechFinalStates.FinishedMechLegacyDetectedRound: MechRequestStates.MechRequestRound,
     MechFinalStates.FinishedMechInformationRound: MechRequestStates.MechRequestRound,
     MechFinalStates.FailedMechInformationRound: MechVersionStates.MechVersionDetectionRound,

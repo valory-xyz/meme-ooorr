@@ -140,6 +140,24 @@ class TestAbciAppTransitionMapping:
             is TransactionSettlementAbci.RandomnessTransactionSubmissionRound
         )
 
+    def test_marketplace_legacy_detected_maps_to_request(self) -> None:
+        """Test FinishedMarketplaceLegacyDetectedRound maps to MechRequestRound.
+
+        Reachable from MechVersionDetectionRound on Event.V1. Without a
+        successor in the composition mapping the agent stalls every time
+        it talks to a v1 marketplace.
+        """
+        assert (
+            abci_app_transition_mapping[
+                MechFinalStates.FinishedMarketplaceLegacyDetectedRound
+            ]
+            is MechRequestStates.MechRequestRound
+        )
+        assert (
+            MechFinalStates.FinishedMarketplaceLegacyDetectedRound
+            not in MemeooorrChainedSkillAbciApp.final_states
+        )
+
     def test_mech_response_finished_maps_to_post_mech(self) -> None:
         """Test FinishedMechResponseRound maps to PostMechResponseRound."""
         assert (
