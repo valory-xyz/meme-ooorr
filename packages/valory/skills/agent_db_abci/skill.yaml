@@ -23,7 +23,7 @@ fingerprint:
   tests/test_agents_fun_db.py: bafybeifxbvmgaq5lj5ctmtzztfulxuhmf3lwj3fbj2vqp2qfjeg2sdo4ty
   tests/test_behaviours.py: bafybeickjtycf2wxvak2miythjrvonavyowazc6kieksrypbvoydwu2tuq
   tests/test_payloads.py: bafybeicl6s2yrgdczeaxfewihzn2br2aq5kpggm6fje7beibmffqgacjzu
-  tests/test_rounds.py: bafybeigwd4ma73kxyjn5db36xip2ujmw5q3zoyhidlw6jpsblbjandzepe
+  tests/test_rounds.py: bafybeigjk5c5kk5eko7zf2kvygbabghph5w6nwyz3o5vusg2ruhqdlcjhm
   tests/test_twitter_models.py: bafybeiaawusmjdlztv7pfzwmbj3s7o7comyy467z5smzcklfiyt4v65a34
   twitter_models.py: bafybeicanv37wsf33pdez5nd2vcn7upjoxl7l4la2qyag4ar5kvwhbj3km
 fingerprint_ignore_patterns: []

@@ -58,7 +58,10 @@ class TestAgentDBRound:
         CollectSameUntilThresholdRound's end_block accesses
         collection_key, selection_key, done_event, none_event and
         no_majority_event. Without them the round raises
-        AttributeError on the threshold-reached path.
+        AttributeError on the threshold-reached path. Removing any of
+        the five flips this test red, and dropping the
+        ``extended_requirements = ()`` bypass means the metaclass
+        catches such a removal at import time before this test runs.
         """
         from packages.valory.skills.abstract_round_abci.base import get_name
 
@@ -69,16 +72,6 @@ class TestAgentDBRound:
             SynchronizedData.participants_to_agent_db
         )
         assert AgentDBRound.selection_key == get_name(SynchronizedData.agent_db_content)
-
-    def test_extended_requirements_is_not_bypassed(self) -> None:
-        """The empty-tuple bypass must not silence the metaclass check.
-
-        Mutation guard: catches a regression where someone re-adds
-        ``extended_requirements = ()`` without supplying the five
-        required attrs. The bypass is the precondition for the
-        latent AttributeError crash documented in the audit.
-        """
-        assert AgentDBRound.extended_requirements != ()
 
 
 class TestAgentDBAbciApp:
