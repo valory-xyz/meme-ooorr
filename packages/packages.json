@@ -2,14 +2,14 @@
     "dev": {
         "contract/valory/meme_factory/0.1.0": "bafybeiesostg2s5tcci2iovzapssbio5bzvgcoa7g2dton6a2kd36ndeya",
         "connection/valory/twikit/0.1.0": "bafybeidruneqzx5hyr6w2rs2fyyflhiqt2ituuyouxr3x5zl3forzjbqn4",
-        "connection/valory/mirror_db/0.1.0": "bafybeifmhdu7z4bc7ce37rhljgbcmutceo6j7si34olium2fcegjhm2g4i",
+        "connection/valory/mirror_db/0.1.0": "bafybeibfzgiby3ltfr4xn2sspnoz3zjxxeet5kvc2ekac7546ruiv7w3da",
         "connection/valory/tweepy/0.1.0": "bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe",
         "skill/valory/memeooorr_abci/0.1.0": "bafybeidcy6hgn4kvzg6oj5tdnaxafj3hx4s5lnqrmz4mkl2fsihk4ldama",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeibh2rwr3ndoyik73zrufcfdhj3otv5zhu33alnx4bf5u3tdpfpdfu",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeiblp74kluevim2zkpa5bxtinoatq6f6nedw5urmdqxge3trz6rplm",
         "skill/valory/agent_db_abci/0.1.0": "bafybeicqe2xktxqyvtjj4amjzk47nf42hcq2rkqanv2lnf3bzq3ablegf4",
         "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeickbwazm2heozig5qx4zuk6bznsvtt3xnetkwtbr46ovrffjhealu",
-        "agent/valory/memeooorr/0.1.0": "bafybeieq5xnexq2rjexhr5c3wmnordntu64ipvy4ivondoqwy5uo6glqo4",
-        "service/dvilela/memeooorr/0.1.0": "bafybeiduvzbl5rfd3nngytsrjzef7wjcnuvli5zic2qf7ecjwnktd6ixve"
+        "agent/valory/memeooorr/0.1.0": "bafybeifkg57i4jhmcihf3rjcx65zvreluckrmdxd35oaj7mnlrect3uqvi",
+        "service/dvilela/memeooorr/0.1.0": "bafybeid5sakvrbea2yehyl2qr7mo2uw5ikznockuob2mcnqxe4km34co7e"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
