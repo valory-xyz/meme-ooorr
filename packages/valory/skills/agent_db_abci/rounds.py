@@ -68,9 +68,7 @@ class SynchronizedData(BaseSynchronizedData):
         """Get the most-voted AgentDB payload content."""
         value = self.db.get_strict("agent_db_content")
         if not isinstance(value, str):
-            raise TypeError(
-                f"agent_db_content must be str, got {type(value).__name__}"
-            )
+            raise TypeError(f"agent_db_content must be str, got {type(value).__name__}")
         return value
 
 
