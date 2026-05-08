@@ -13,6 +13,7 @@ alphabet_in:
 - INSUFFICIENT_FUNDS
 - INVALID_AUTH
 - MECH
+- MECH_REQUEST
 - MISSING_TWEET
 - NEGATIVE
 - NONE
@@ -32,8 +33,7 @@ alphabet_in:
 - VALIDATE_TIMEOUT
 - WAIT
 default_start_state: RegistrationStartupRound
-final_states:
-- FinishedMechPurchaseSubscriptionRound
+final_states: []
 label: MemeooorrChainedSkillAbciApp
 start_states:
 - RegistrationRound
@@ -54,7 +54,6 @@ states:
 - FailedMechResponseRound
 - FetchPerformanceDataRound
 - FinalizationRound
-- FinishedMechPurchaseSubscriptionRound
 - LoadDatabaseRound
 - MechInformationRound
 - MechPurchaseSubscriptionRound
@@ -157,7 +156,7 @@ transition_func:
     (MechInformationRound, NONE): MechVersionDetectionRound
     (MechInformationRound, NO_MAJORITY): MechInformationRound
     (MechInformationRound, ROUND_TIMEOUT): MechInformationRound
-    (MechPurchaseSubscriptionRound, DONE): FinishedMechPurchaseSubscriptionRound
+    (MechPurchaseSubscriptionRound, DONE): RandomnessTransactionSubmissionRound
     (MechPurchaseSubscriptionRound, NONE): MechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, NO_MAJORITY): MechPurchaseSubscriptionRound
     (MechPurchaseSubscriptionRound, ROUND_TIMEOUT): MechPurchaseSubscriptionRound
@@ -181,6 +180,7 @@ transition_func:
     (PostTxDecisionMakingRound, ACTION): ActionPreparationRound
     (PostTxDecisionMakingRound, DONE): ResetAndPauseRound
     (PostTxDecisionMakingRound, MECH): MechResponseRound
+    (PostTxDecisionMakingRound, MECH_REQUEST): MechVersionDetectionRound
     (PostTxDecisionMakingRound, NONE): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, NO_MAJORITY): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, ROUND_TIMEOUT): PostTxDecisionMakingRound

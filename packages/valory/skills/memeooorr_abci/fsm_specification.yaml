@@ -4,6 +4,7 @@ alphabet_in:
 - ERROR
 - INVALID_AUTH
 - MECH
+- MECH_REQUEST
 - MISSING_TWEET
 - NONE
 - NO_FUNDS
@@ -109,6 +110,7 @@ transition_func:
     (PostTxDecisionMakingRound, ACTION): ActionPreparationRound
     (PostTxDecisionMakingRound, DONE): FinishedToResetRound
     (PostTxDecisionMakingRound, MECH): FinishedForMechResponseRound
+    (PostTxDecisionMakingRound, MECH_REQUEST): FinishedForMechRequestRound
     (PostTxDecisionMakingRound, NONE): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, NO_MAJORITY): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, ROUND_TIMEOUT): PostTxDecisionMakingRound

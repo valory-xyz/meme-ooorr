@@ -158,6 +158,26 @@ class TestAbciAppTransitionMapping:
             not in MemeooorrChainedSkillAbciApp.final_states
         )
 
+    def test_mech_purchase_subscription_finished_maps_to_settlement(self) -> None:
+        """Test FinishedMechPurchaseSubscriptionRound maps to settlement.
+
+        The round prepares a multisend Safe tx that buys an NVM
+        subscription. It must settle, otherwise the on-chain balance
+        never reflects the purchase. Re-entry into the mech flow after
+        settlement is handled by Event.MECH_REQUEST in
+        PostTxDecisionMakingRound.
+        """
+        assert (
+            abci_app_transition_mapping[
+                MechFinalStates.FinishedMechPurchaseSubscriptionRound
+            ]
+            is TransactionSettlementAbci.RandomnessTransactionSubmissionRound
+        )
+        assert (
+            MechFinalStates.FinishedMechPurchaseSubscriptionRound
+            not in MemeooorrChainedSkillAbciApp.final_states
+        )
+
     def test_mech_response_finished_maps_to_post_mech(self) -> None:
         """Test FinishedMechResponseRound maps to PostMechResponseRound."""
         assert (

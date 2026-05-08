@@ -8,14 +8,14 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeig3at6723okpkyya67ifz3emvr4xkjicknhjqv5tpqw3v37iayjk4
   behaviours.py: bafybeifjlamzwprfnwfxn4s3papcjmdymz5iekkshytaegyoeifhoiebby
-  composition.py: bafybeifr4qkg5gv4fmddnu45j4shwcjtln2o2tzzyd3utjfumnoe5bym3i
+  composition.py: bafybeihwflambwpxy2upl75oufd3s4i46mxrwvtnhbausd6amshuzipofu
   dialogues.py: bafybeib5i6i4z6tu4oufrpakftpfomo5tbcl6jhx75ndjzfd6xt2nu45vi
-  fsm_specification.yaml: bafybeidx3nuuyhwoqdrbnqetki3mudrb3nndvdirsreezuwopjqle2li34
+  fsm_specification.yaml: bafybeie46cnbdukko6e34ebjxwvoartffimszrl43u3rpxtiu4wyo34khq
   handlers.py: bafybeihu662vv2fohddvodweyrev6sega7i63jcfq2akip3t5hz4phvhdy
   models.py: bafybeifotdlbuh3rv3gcflrp42dcqatxksqrxcdo2sn47cplw6kfnwxwry
   tests/__init__.py: bafybeicbonkikavegdoimcmc7v6jhtcdi6rg7xcbapes7aiq6ti74hzdjm
   tests/test_behaviours.py: bafybeibxakumwwgljvznqk4e6enrfat4rotjeu6pxiyz3mcopjmefimnee
-  tests/test_composition.py: bafybeigqmpg5i4ntifdbijn7ky2k35qwu72ce5nsqjpf5g67reahwwl5o4
+  tests/test_composition.py: bafybeiff4kkjtmwfmqa7xarrczuuqc3sta7ozsufcq3jeusavz3occggf4
   tests/test_models.py: bafybeiftigsccz46k5ykf5eganimwtuyuynqq54g2mdph2f5svw5246j2u
 fingerprint_ignore_patterns: []
 connections: []
@@ -27,9 +27,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeifdzwzz5byan3ytsi46n4n2svtqme6475hk5z77sopymyzqszcpoa
 - valory/transaction_settlement_abci:0.1.0:bafybeigiojqgbi54jhree3sqrzaudbmjxb7y2ete74bbliryi3t7ztwi5q
 - valory/termination_abci:0.1.0:bafybeiadbtzcvzkwbrosshlsubilj7mwzdqfni6dr75wsd3vawhslpwqeu
-- valory/memeooorr_abci:0.1.0:bafybeieqcd3sdu7nnwvhl5fiawvr3ql47shkler3mowjcccdty2ejuqq4a
+- valory/memeooorr_abci:0.1.0:bafybeiat4tybjz4sszufz23ukgv36lze2p3sh6onrnjsws7vpqwifsya3m
 - valory/mech_interact_abci:0.1.0:bafybeiburftv5nj5427qyue2f5sx56fpfskalnplwoow2ixqbvgio3kfky
-- valory/agent_performance_summary_abci:0.1.0:bafybeicwhviwfj3s5jwf6lpkf3j3or2z3nwfiqspbinfqk77h6kkb32wom
+- valory/agent_performance_summary_abci:0.1.0:bafybeidwygkzgylaas56irssda6ti5aas3mtox2z22idqdl4cjvlul3xi4
 behaviours:
   main:
     args: {}

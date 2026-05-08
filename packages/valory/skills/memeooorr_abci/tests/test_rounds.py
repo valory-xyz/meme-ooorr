@@ -1284,6 +1284,23 @@ class TestPostTxDecisionMakingRound:
         """Test payload class."""
         assert PostTxDecisionMakingRound.payload_class is PostTxDecisionMakingPayload
 
+    def test_mech_request_event_routes_to_finished_for_mech_request(self) -> None:
+        """Event.MECH_REQUEST must transition to FinishedForMechRequestRound.
+
+        After settling a subscription-purchase tx the dispatcher emits
+        MECH_REQUEST so the agent re-enters the mech flow at version
+        detection rather than hanging in a NONE-loop on
+        PostTxDecisionMakingRound.
+        """
+        from packages.valory.skills.memeooorr_abci.rounds import (
+            FinishedForMechRequestRound,
+            MemeooorrAbciApp,
+        )
+
+        transitions = MemeooorrAbciApp.transition_function[PostTxDecisionMakingRound]
+        assert Event.MECH_REQUEST in transitions
+        assert transitions[Event.MECH_REQUEST] is FinishedForMechRequestRound
+
 
 class TestCallCheckpointRound(MemeooorrRoundTestBase):
     """Tests for CallCheckpointRound using framework pattern."""

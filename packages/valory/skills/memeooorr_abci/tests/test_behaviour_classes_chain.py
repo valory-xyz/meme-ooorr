@@ -449,6 +449,31 @@ class TestPostTxDecisionMakingAsyncActPayload:
         event = self._run_async_act(tx_submitter)
         assert event == Event.MECH.value
 
+    def test_event_mech_request_for_mech_purchase_subscription(self) -> None:
+        """Subscription-purchase tx_submitter must dispatch MECH_REQUEST.
+
+        Without this branch the dispatcher falls through to NONE and
+        PostTxDecisionMakingRound loops on itself forever after every
+        successful subscription purchase.
+        """
+        from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import (
+            MechPurchaseSubscriptionBehaviour,
+        )
+
+        tx_submitter = MechPurchaseSubscriptionBehaviour.matching_round.auto_round_id()
+        event = self._run_async_act(tx_submitter)
+        assert event == Event.MECH_REQUEST.value
+
+    def test_event_none_for_unknown_tx_submitter(self) -> None:
+        """Unknown tx_submitter values must fall through to NONE.
+
+        Mutation guard: ensures the four known branches are tested by
+        absence — any new branch added in production must come with a
+        new explicit test, not silently shift an existing fallthrough.
+        """
+        event = self._run_async_act("0xdeadbeef-not-a-real-round")
+        assert event == Event.NONE.value
+
 
 class TestBuildSafeTxHash:
     """Tests for _build_safe_tx_hash method."""

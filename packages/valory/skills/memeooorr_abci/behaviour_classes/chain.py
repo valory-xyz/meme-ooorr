@@ -37,6 +37,7 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import (
+    MechPurchaseSubscriptionBehaviour,
     MechRequestBehaviour,
 )
 from packages.valory.skills.memeooorr_abci.behaviour_classes.base import (
@@ -872,6 +873,12 @@ class PostTxDecisionMakingBehaviour(
                 == MechRequestBehaviour.matching_round.auto_round_id()
             ):
                 event = Event.MECH.value
+
+            if (
+                self.synchronized_data.tx_submitter
+                == MechPurchaseSubscriptionBehaviour.matching_round.auto_round_id()
+            ):
+                event = Event.MECH_REQUEST.value
 
             payload = PostTxDecisionMakingPayload(
                 sender=self.context.agent_address,
