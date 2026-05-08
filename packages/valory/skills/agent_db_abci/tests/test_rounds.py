@@ -40,6 +40,23 @@ class TestSynchronizedData:
 
         assert issubclass(SynchronizedData, BaseSynchronizedData)
 
+    def test_agent_db_content_raises_on_non_str(self) -> None:
+        """``agent_db_content`` must raise loudly on a non-str payload.
+
+        Defends against a wrong type slipping past the consensus
+        layer (``cast`` was a runtime no-op). Forces the failure to
+        surface where the bad value is read rather than silently
+        propagating to callers typed as ``str``.
+        """
+        import pytest
+
+        from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+
+        db = AbciAppDB(setup_data={"agent_db_content": [{"not": "a string"}]})
+        synced = SynchronizedData(db=db)
+        with pytest.raises(TypeError, match="agent_db_content must be str"):
+            _ = synced.agent_db_content
+
 
 class TestAgentDBRound:
     """Tests for AgentDBRound."""

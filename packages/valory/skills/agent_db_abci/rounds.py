@@ -20,7 +20,7 @@
 """This package contains the rounds of AgentDBAbciApp."""
 
 from enum import Enum
-from typing import Dict, FrozenSet, Set, cast
+from typing import Dict, FrozenSet, Set
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -66,7 +66,12 @@ class SynchronizedData(BaseSynchronizedData):
     @property
     def agent_db_content(self) -> str:
         """Get the most-voted AgentDB payload content."""
-        return cast(str, self.db.get_strict("agent_db_content"))
+        value = self.db.get_strict("agent_db_content")
+        if not isinstance(value, str):
+            raise TypeError(
+                f"agent_db_content must be str, got {type(value).__name__}"
+            )
+        return value
 
 
 class AgentDBRound(CollectSameUntilThresholdRound):
