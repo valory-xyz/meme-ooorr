@@ -4,12 +4,12 @@
         "connection/valory/twikit/0.1.0": "bafybeidruneqzx5hyr6w2rs2fyyflhiqt2ituuyouxr3x5zl3forzjbqn4",
         "connection/valory/mirror_db/0.1.0": "bafybeifmhdu7z4bc7ce37rhljgbcmutceo6j7si34olium2fcegjhm2g4i",
         "connection/valory/tweepy/0.1.0": "bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe",
-        "skill/valory/memeooorr_abci/0.1.0": "bafybeicmoyej7jtrhnmygpuof5rmpjwu4oxnyhfedjivnxokynp5ffndkm",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeicgjyj7hmkhjb737ah54tnytmngf6w7f5236pqhnfje3vvpmmgfni",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeidcy6hgn4kvzg6oj5tdnaxafj3hx4s5lnqrmz4mkl2fsihk4ldama",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeibh2rwr3ndoyik73zrufcfdhj3otv5zhu33alnx4bf5u3tdpfpdfu",
         "skill/valory/agent_db_abci/0.1.0": "bafybeicqe2xktxqyvtjj4amjzk47nf42hcq2rkqanv2lnf3bzq3ablegf4",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeiffle3juspygvpehnan5q7rr53jpzqhxfwgapkrtjhnrjiqrpghna",
-        "agent/valory/memeooorr/0.1.0": "bafybeibblia73hfyhj6xs4rpec75h3dzmmmydpofvjmzrwxx5i45oblnpy",
-        "service/dvilela/memeooorr/0.1.0": "bafybeigexg5xxep5wadzkdzn3xiwap2mvmeb55p7ygf67saax26ve5zjk4"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeickbwazm2heozig5qx4zuk6bznsvtt3xnetkwtbr46ovrffjhealu",
+        "agent/valory/memeooorr/0.1.0": "bafybeieq5xnexq2rjexhr5c3wmnordntu64ipvy4ivondoqwy5uo6glqo4",
+        "service/dvilela/memeooorr/0.1.0": "bafybeiduvzbl5rfd3nngytsrjzef7wjcnuvli5zic2qf7ecjwnktd6ixve"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
@@ -52,7 +52,7 @@
         "connection/valory/http_server/0.22.0": "bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle",
         "connection/valory/abci/0.1.0": "bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu",
         "connection/valory/ipfs/0.1.0": "bafybeift7qz5t4ranrpdcbbojwlmh5mxktr6tjrgivc7xsuqswxqa2wp5y",
-        "connection/valory/genai/0.1.0": "bafybeiacgeofhhelgyqqkv5y2aths5b6ccv67spdzm5ps7a3ax2wzt2yj4",
+        "connection/valory/genai/0.1.0": "bafybeib6kgixol4yax3azkj3lji5zdsymxgc5ecyhgkbbgy3srirvqleiu",
         "connection/valory/kv_store/0.1.0": "bafybeiepbu6pjw4cduj7tvz6gin7z5yebnpnp2csu75ooi7cvt3erlvsaq",
         "skill/valory/abstract_abci/0.1.0": "bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeidpod4inivvvgzenx46whshq4mzmxgwsxinv6ibdvyemkstam2yz4",
