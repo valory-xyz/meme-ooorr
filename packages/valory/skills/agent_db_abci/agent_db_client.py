@@ -227,7 +227,7 @@ class AgentDBClient(Model):
         # get-then-create pattern. Behaviours catch this and skip the
         # period rather than letting the framework crash.
         raise RuntimeError(
-            f"AgentDB request failed: {response.status_code} - {response.text}"
+            f"AgentDB request failed: {response.status_code} - {response.body!r}"
         )
 
     # Agent Type Methods
