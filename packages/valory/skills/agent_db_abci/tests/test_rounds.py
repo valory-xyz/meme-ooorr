@@ -52,6 +52,34 @@ class TestAgentDBRound:
         """Test the synchronized data class attribute."""
         assert AgentDBRound.synchronized_data_class is SynchronizedData
 
+    def test_required_attributes_are_present(self) -> None:
+        """All five attributes the inherited end_block reads must be set.
+
+        CollectSameUntilThresholdRound's end_block accesses
+        collection_key, selection_key, done_event, none_event and
+        no_majority_event. Without them the round raises
+        AttributeError on the threshold-reached path.
+        """
+        from packages.valory.skills.abstract_round_abci.base import get_name
+
+        assert AgentDBRound.done_event is Event.DONE
+        assert AgentDBRound.none_event is Event.NONE
+        assert AgentDBRound.no_majority_event is Event.NO_MAJORITY
+        assert AgentDBRound.collection_key == get_name(
+            SynchronizedData.participants_to_agent_db
+        )
+        assert AgentDBRound.selection_key == get_name(SynchronizedData.agent_db_content)
+
+    def test_extended_requirements_is_not_bypassed(self) -> None:
+        """The empty-tuple bypass must not silence the metaclass check.
+
+        Mutation guard: catches a regression where someone re-adds
+        ``extended_requirements = ()`` without supplying the five
+        required attrs. The bypass is the precondition for the
+        latent AttributeError crash documented in the audit.
+        """
+        assert AgentDBRound.extended_requirements != ()
+
 
 class TestAgentDBAbciApp:
     """Tests for the AgentDBAbciApp."""
@@ -79,6 +107,7 @@ class TestAgentDBAbciApp:
         """Test AgentDBRound transitions."""
         transitions = AgentDBAbciApp.transition_function[AgentDBRound]
         assert transitions[Event.DONE] is FinishedReadingRound
+        assert transitions[Event.NONE] is AgentDBRound
         assert transitions[Event.NO_MAJORITY] is AgentDBRound
         assert transitions[Event.ROUND_TIMEOUT] is AgentDBRound
 

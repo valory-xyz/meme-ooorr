@@ -1,5 +1,6 @@
 alphabet_in:
 - DONE
+- NONE
 - NO_MAJORITY
 - ROUND_TIMEOUT
 default_start_state: AgentDBRound
@@ -13,5 +14,6 @@ states:
 - FinishedReadingRound
 transition_func:
     (AgentDBRound, DONE): FinishedReadingRound
+    (AgentDBRound, NONE): AgentDBRound
     (AgentDBRound, NO_MAJORITY): AgentDBRound
     (AgentDBRound, ROUND_TIMEOUT): AgentDBRound
