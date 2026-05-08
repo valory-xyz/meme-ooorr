@@ -645,7 +645,7 @@ class MemeooorrBaseBehaviour(
 
         try:
             response_json = json.loads(response.body)
-        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
+        except (json.JSONDecodeError, UnicodeDecodeError):
             self.context.logger.error(
                 f"Failed to parse JSON from meme subgraph response: {response.body!r}"
             )

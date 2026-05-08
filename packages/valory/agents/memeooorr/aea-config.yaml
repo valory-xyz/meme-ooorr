@@ -16,8 +16,8 @@ connections:
 - valory/tweepy:0.1.0:bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe
 - valory/kv_store:0.1.0:bafybeiepbu6pjw4cduj7tvz6gin7z5yebnpnp2csu75ooi7cvt3erlvsaq
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
-- valory/genai:0.1.0:bafybeib6kgixol4yax3azkj3lji5zdsymxgc5ecyhgkbbgy3srirvqleiu
-- valory/x402:0.1.0:bafybeiae7y5sdfkdtmrdl4tcgniinpul4tie6rsde6to3y3lxdkorhgac4
+- valory/genai:0.1.0:bafybeiaojqgrxeiwzmhqhbhz5evwjljm3chuwey4olt4snwwxwhufpeoum
+- valory/x402:0.1.0:bafybeihtnlwawysnuvlrsflivrn76gacrcubo7feh656lwcz3leswiywum
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeihfmmoyk7tfh6xg5ylqnxpsxqgzgwklablc3zonp55sz6b2vzuzue
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeicutxdhfofyqt3l2y4udiqgfh22n3sn6fl2i5r7txd2kctvuig4e4
@@ -43,11 +43,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeigiojqgbi54jhree3sqrzaudbmjxb7y2ete74bbliryi3t7ztwi5q
 - valory/registration_abci:0.1.0:bafybeietlh4pq5wjsb6srpsqehcq3gwsod5c6gs4jdiwpzkgrwyxhbbbvq
 - valory/reset_pause_abci:0.1.0:bafybeifdzwzz5byan3ytsi46n4n2svtqme6475hk5z77sopymyzqszcpoa
-- valory/memeooorr_abci:0.1.0:bafybeidcy6hgn4kvzg6oj5tdnaxafj3hx4s5lnqrmz4mkl2fsihk4ldama
-- valory/memeooorr_chained_abci:0.1.0:bafybeiblp74kluevim2zkpa5bxtinoatq6f6nedw5urmdqxge3trz6rplm
+- valory/memeooorr_abci:0.1.0:bafybeif5g5wk3ijuuu4it5w2ptbn24pnfqm6oiqymjpxe6p3u4ki3dhhqu
+- valory/memeooorr_chained_abci:0.1.0:bafybeidzpu2s2xngs4bosj6jyqygllyahcpjxcte34575v5waj5p32o4tq
 - valory/mech_interact_abci:0.1.0:bafybeiburftv5nj5427qyue2f5sx56fpfskalnplwoow2ixqbvgio3kfky
-- valory/agent_db_abci:0.1.0:bafybeicqe2xktxqyvtjj4amjzk47nf42hcq2rkqanv2lnf3bzq3ablegf4
-- valory/agent_performance_summary_abci:0.1.0:bafybeickbwazm2heozig5qx4zuk6bznsvtt3xnetkwtbr46ovrffjhealu
+- valory/agent_db_abci:0.1.0:bafybeihnufzl2cj6qcg3ifea4jpkukgqxqgonbz6bwu2ou6hi3bxfnhkvm
+- valory/agent_performance_summary_abci:0.1.0:bafybeidsnszin6cvdsm2cahpfk54ctpe2gkes7jyglqzvvibq4an6zfqha
 - valory/funds_manager:0.1.0:bafybeihuwnkgrhqixl4zj55fz2awptmpmdnmub2uzkgbx7rve7bnhkkl5i
 default_ledger: ethereum
 required_ledgers:
