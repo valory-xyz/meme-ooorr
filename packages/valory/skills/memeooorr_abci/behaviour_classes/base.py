@@ -825,7 +825,10 @@ class MemeooorrBaseBehaviour(
             )
             return []
 
-        items = (response_json.get("data") or {}).get("memeTokens", {}).get("items", [])
+        items = (
+            ((response_json.get("data") or {}).get("memeTokens") or {}).get("items")
+            or []
+        )
         if not items:
             self.context.logger.warning(
                 "No meme token items found in subgraph response"

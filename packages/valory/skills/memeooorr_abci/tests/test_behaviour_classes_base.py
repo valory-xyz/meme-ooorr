@@ -1836,6 +1836,46 @@ class TestGetMemeCoinsSubgraphResilience:
         b.get_http_response = MagicMock(side_effect=fake_http)
         assert not _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
 
+    def test_null_meme_tokens_returns_empty(self) -> None:
+        """Response JSON with memeTokens=null returns [] instead of crashing.
+
+        The Graph can return a partial-null inner object during outages.
+        Without an explicit guard, .get('items', []) on None raises
+        AttributeError on the outer chain and the per-token try/except
+        below it cannot catch that.
+        """
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON with data.memeTokens = null."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"data": {"memeTokens": None}})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+        assert result == []
+
+    def test_null_items_returns_empty(self) -> None:
+        """Response JSON with items=null returns [] instead of crashing."""
+        b = _make_behaviour()
+        b.get_chain_id = MagicMock(return_value="base")
+
+        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
+            """Return JSON with data.memeTokens.items = null."""
+            r = MagicMock()
+            r.status_code = HTTP_OK
+            r.body = json.dumps({"data": {"memeTokens": {"items": None}}})
+            yield
+            return r
+
+        b.get_http_response = MagicMock(side_effect=fake_http)
+        result = _exhaust(MemeooorrBaseBehaviour.get_meme_coins_from_subgraph(b))
+        assert result == []
+
     def test_malformed_token_entry_skipped(self) -> None:
         """A token entry with missing keys is skipped instead of crashing."""
         b = _make_behaviour()
