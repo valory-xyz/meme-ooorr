@@ -75,6 +75,9 @@ class AgentDBRound(CollectSameUntilThresholdRound):
     payload_class = AgentDBPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
+    # AgentDBPayload.content is non-Optional str, so most_voted_payload
+    # cannot be None and the (AgentDBRound, NONE) self-loop is unreachable
+    # at runtime. Declared to satisfy the metaclass contract.
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participants_to_agent_db)
