@@ -88,22 +88,6 @@ query Tokens($limit: Int, $after: String) {
 }
 """
 
-PACKAGE_QUERY = """
-query getPackages($package_type: String!) {
-    units(where: {packageType: $package_type}) {
-        id,
-        packageType,
-        publicId,
-        packageHash,
-        tokenId,
-        metadataHash,
-        description,
-        owner,
-        image
-    }
-}
-"""
-
 
 def is_tweet_valid(tweet: str) -> bool:
     """Checks a tweet length"""
@@ -599,63 +583,6 @@ class MemeooorrBaseBehaviour(
             return "CELO"
 
         return ""
-
-    def get_packages(self, package_type: str) -> Generator[None, None, Optional[Dict]]:
-        """Gets minted packages from the Olas subgraph"""
-
-        self.context.logger.info("Getting packages from Olas subgraph...")
-
-        headers = {
-            "Content-Type": "application/json",
-        }
-
-        data = {
-            "query": PACKAGE_QUERY,
-            "variables": {
-                "package_type": package_type,
-            },
-        }
-
-        # Get all existing agents from the subgraph
-        self.context.logger.info("Getting agents from subgraph")
-        response = yield from self.get_http_response(  # type: ignore
-            method="POST",
-            url=self.params.olas_subgraph_url,
-            headers=headers,
-            content=json.dumps(data).encode(),
-        )
-
-        if response.status_code != HTTP_OK:  # type: ignore
-            self.context.logger.error(
-                f"Error getting agents from subgraph: {response}"  # type: ignore
-            )
-            return None
-
-        # Parse the response body
-        try:
-            response_body = json.loads(response.body)  # type: ignore
-        except (json.JSONDecodeError, Exception):  # pylint: disable=broad-except
-            self.context.logger.error(
-                f"Failed to parse JSON from subgraph response: {response.body}"  # type: ignore
-            )
-            return None
-
-        # Check if 'data' key exists in the response
-        if "data" not in response_body:
-            self.context.logger.error(
-                f"Expected 'data' key in response, but got: {response_body}"
-            )
-            return None
-
-        return response_body["data"]
-
-    def get_service_registry_address(self) -> str:
-        """Get the service registry address"""
-        return (
-            self.params.service_registry_address_base
-            if self.get_chain_id() == "base"
-            else self.params.service_registry_address_celo
-        )
 
     def get_olas_address(self) -> str:
         """Get the olas address"""

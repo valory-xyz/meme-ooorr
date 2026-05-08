@@ -94,9 +94,6 @@ def _make_behaviour(**overrides: Any) -> MagicMock:
     b.params.meme_factory_deployment_block_celo = 200
     b.params.olas_token_address_base = "0xolas_base"
     b.params.olas_token_address_celo = "0xolas_celo"
-    b.params.service_registry_address_base = "0xsr_base"
-    b.params.service_registry_address_celo = "0xsr_celo"
-    b.params.olas_subgraph_url = "https://subgraph.example.com"
     b.params.meme_subgraph_url = "https://meme-subgraph.example.com"
 
     # Alternative model
@@ -952,69 +949,12 @@ class TestChainHelpers:
 
 
 # ---------------------------------------------------------------------------
-# get_packages (lines 610-648) tests
-# ---------------------------------------------------------------------------
-
-
-class TestGetPackages:
-    """Test TestGetPackages."""
-
-    def _setup(self, b: Any, status_code: int, body_dict: Any) -> None:
-        """Test _setup."""
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Test fake_http."""
-            r = MagicMock()
-            r.status_code = status_code
-            r.body = (
-                json.dumps(body_dict).encode()
-                if isinstance(body_dict, dict)
-                else body_dict
-            )
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-
-    def test_success(self) -> None:
-        """Test test_success."""
-        b = _make_behaviour()
-        self._setup(b, HTTP_OK, {"data": {"units": []}})
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) == {
-            "units": []
-        }
-
-    def test_http_error(self) -> None:
-        """Test test_http_error."""
-        b = _make_behaviour()
-        self._setup(b, 500, {})
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
-
-    def test_no_data_key(self) -> None:
-        """Test test_no_data_key."""
-        b = _make_behaviour()
-        self._setup(b, HTTP_OK, {"error": "x"})
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
-
-
-# ---------------------------------------------------------------------------
 # address getters (lines 674-704) tests
 # ---------------------------------------------------------------------------
 
 
 class TestAddressGetters:
     """Test TestAddressGetters."""
-
-    @pytest.mark.parametrize(
-        "chain,expected", [("base", "0xsr_base"), ("celo", "0xsr_celo")]
-    )
-    def test_service_registry(self, chain: str, expected: str) -> None:
-        """Test test_service_registry."""
-        b = _make_behaviour()
-        b.params.home_chain_id = chain
-        # Bind get_chain_id so the real method works
-        b.get_chain_id = lambda: MemeooorrBaseBehaviour.get_chain_id(b)
-        assert MemeooorrBaseBehaviour.get_service_registry_address(b) == expected
 
     @pytest.mark.parametrize(
         "chain,expected", [("base", "0xolas_base"), ("celo", "0xolas_celo")]
@@ -1594,26 +1534,6 @@ class TestReplaceTweet:
 # ---------------------------------------------------------------------------
 # Resilience fixes — additional tests
 # ---------------------------------------------------------------------------
-
-
-class TestGetPackagesJsonParseError:  # pylint: disable=too-few-public-methods
-    """Tests for get_packages when the subgraph returns non-JSON on 200."""
-
-    def test_non_json_body_returns_none(self) -> None:
-        """A 200 response with invalid JSON returns None instead of crashing."""
-        b = _make_behaviour()
-
-        def fake_http(**kw: Any) -> Generator[Any, None, Any]:
-            """Return a 200 response with non-JSON body."""
-            r = MagicMock()
-            r.status_code = HTTP_OK
-            r.body = b"<html>gateway error</html>"
-            yield
-            return r
-
-        b.get_http_response = MagicMock(side_effect=fake_http)
-        assert _exhaust(MemeooorrBaseBehaviour.get_packages(b, "service")) is None
-        b.context.logger.error.assert_called()
 
 
 class TestGetMemeCoinsSubgraphResilience:

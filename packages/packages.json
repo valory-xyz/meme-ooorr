@@ -1,16 +1,15 @@
 {
     "dev": {
         "contract/valory/meme_factory/0.1.0": "bafybeiesostg2s5tcci2iovzapssbio5bzvgcoa7g2dton6a2kd36ndeya",
-        "contract/valory/service_registry_l2/0.1.0": "bafybeiagvunee7lwm3nhiel2wbtieknltb76j5o2gbvakzz6cxjobaidki",
         "connection/valory/twikit/0.1.0": "bafybeidruneqzx5hyr6w2rs2fyyflhiqt2ituuyouxr3x5zl3forzjbqn4",
         "connection/valory/mirror_db/0.1.0": "bafybeifmhdu7z4bc7ce37rhljgbcmutceo6j7si34olium2fcegjhm2g4i",
         "connection/valory/tweepy/0.1.0": "bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe",
-        "skill/valory/memeooorr_abci/0.1.0": "bafybeievq5is2nsh33ea3cbpnz7kvqtml6qjtwoutp4o7ptogqqscp7phq",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeifbpbmvejcr6o6ws4hhrek7fhchjikaehugdingnowov6vrhae4ue",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeietai7m4ljvodvbv2oglpxcvgfln2thg7remcotjauo6wrjuhrjx4",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeidgcqgbz7fwgnouw5snso5wzjfnuwnx5n4itluoupij2tr6otjjby",
         "skill/valory/agent_db_abci/0.1.0": "bafybeian6cwibrm2kcwiixlbjbauzoelg44wshxsrpzk3fwgjjyopjxjvu",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeicxlffb2zjrzf6y6dln3icm476cuskacrgijff2dw75f4fznduv74",
-        "agent/valory/memeooorr/0.1.0": "bafybeifqagul4ecrpvabxo73npxprwn2wot3qrc4hscnqf4nput34clbdq",
-        "service/dvilela/memeooorr/0.1.0": "bafybeih3bnjtxsjycj3aengvfljioqpr4ca4ifcqx3s62qlcdfju6ghrae"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeidxkxicgdpj3afu3zlihtkuloecmxjz57cvekojefi2oxqeoo3tne",
+        "agent/valory/memeooorr/0.1.0": "bafybeig7y4kqe4d76hwfwvhiphl7cgkmybt5xv2jeuwlalvmgdvhzmnc7q",
+        "service/dvilela/memeooorr/0.1.0": "bafybeic7j2e6l3rorcz57rj5l6a72jrv2z7rqtksb7hbhsfwucovvxhnh4"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
@@ -53,7 +52,7 @@
         "connection/valory/http_server/0.22.0": "bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle",
         "connection/valory/abci/0.1.0": "bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu",
         "connection/valory/ipfs/0.1.0": "bafybeift7qz5t4ranrpdcbbojwlmh5mxktr6tjrgivc7xsuqswxqa2wp5y",
-        "connection/valory/genai/0.1.0": "bafybeifyqyvrg3w4hz2uwhxpfngmgbcrcsu4xfp4eutrcyte2h3zicgzbi",
+        "connection/valory/genai/0.1.0": "bafybeiacgeofhhelgyqqkv5y2aths5b6ccv67spdzm5ps7a3ax2wzt2yj4",
         "connection/valory/kv_store/0.1.0": "bafybeiepbu6pjw4cduj7tvz6gin7z5yebnpnp2csu75ooi7cvt3erlvsaq",
         "skill/valory/abstract_abci/0.1.0": "bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeidpod4inivvvgzenx46whshq4mzmxgwsxinv6ibdvyemkstam2yz4",
