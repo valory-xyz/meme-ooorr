@@ -52,7 +52,6 @@ connections:
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeihfmmoyk7tfh6xg5ylqnxpsxqgzgwklablc3zonp55sz6b2vzuzue
 - valory/meme_factory:0.1.0:bafybeiesostg2s5tcci2iovzapssbio5bzvgcoa7g2dton6a2kd36ndeya
-- valory/service_registry_l2:0.1.0:bafybeiagvunee7lwm3nhiel2wbtieknltb76j5o2gbvakzz6cxjobaidki
 - valory/staking_token:0.1.0:bafybeic6rlrsdgo5my3nxiy247njlsn2tupodhcehxqis6dpfyz325bdp4
 - valory/staking_activity_checker:0.1.0:bafybeideqqajn76jxdukqcyl4ear5mwjnc25zpko75u236afiimhm6imba
 - valory/agent_mech:0.1.0:bafybeibdig2phm4hmquta6msnuhpb5y6btcvikpjzlmbz76bqxhsboppqm
