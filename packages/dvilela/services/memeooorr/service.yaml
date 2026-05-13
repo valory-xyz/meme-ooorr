@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifngitemoxhahloctciywjzfmlhp373ijuvrocmwbyxl3bate2fne
 fingerprint_ignore_patterns: []
-agent: valory/memeooorr:0.1.0:bafybeig5fhmteeqb6stobcdptglinsj4wxa7e65ws2cpuendlm3no2ru44
+agent: valory/memeooorr:0.1.0:bafybeibzw5766bfbmbdc5ppfxb7iab2h57chovcilwhqxsau4ry3f4osmm
 number_of_agents: 1
 deployment:
   agent:
@@ -127,16 +127,8 @@ extra:
         is_agent_performance_summary_enabled: ${IS_AGENT_PERFORMANCE_SUMMARY_ENABLED:bool:true}
         performance_summary_ttl: ${PERFORMANCE_SUMMARY_TTL:int:86400}
         stop_posting_if_staking_kpi_met: ${STOP_POSTING_IF_STAKING_KPI_MET:bool:true}
-        irrelevant_tools:
-        - openai-text-davinci-002
-        - openai-text-davinci-003
-        - openai-gpt-3.5-turbo
-        - openai-gpt-4
-        - stabilityai-stable-diffusion-v1-5
-        - stabilityai-stable-diffusion-xl-beta-v2-2-2
-        - stabilityai-stable-diffusion-512-v2-1
-        - stabilityai-stable-diffusion-768-v2-1
-        ignored_mechs: []
+        valid_mechs: ${VALID_MECHS:list:["0xe535d7acdeed905dddcb5443f41980436833ca2b"]}
+        valid_tools: ${VALID_TOOLS:list:["google_image_gen"]}
         penalize_mech_time_window: 1800
         deliveries_lookback_days: ${DELIVERIES_LOOKBACK_DAYS:int:30}
 ---

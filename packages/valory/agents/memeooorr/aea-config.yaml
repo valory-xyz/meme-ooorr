@@ -43,11 +43,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeigiojqgbi54jhree3sqrzaudbmjxb7y2ete74bbliryi3t7ztwi5q
 - valory/registration_abci:0.1.0:bafybeietlh4pq5wjsb6srpsqehcq3gwsod5c6gs4jdiwpzkgrwyxhbbbvq
 - valory/reset_pause_abci:0.1.0:bafybeifdzwzz5byan3ytsi46n4n2svtqme6475hk5z77sopymyzqszcpoa
-- valory/memeooorr_abci:0.1.0:bafybeicc4ja3d3bfc64cxjmwfthribng43522ot5onw3s24pbdunaxm2ey
-- valory/memeooorr_chained_abci:0.1.0:bafybeicem7u7ezzezta47na6pbiyclypth5odu55ddewrhsrp7jtbpwq34
-- valory/mech_interact_abci:0.1.0:bafybeiburftv5nj5427qyue2f5sx56fpfskalnplwoow2ixqbvgio3kfky
+- valory/memeooorr_abci:0.1.0:bafybeiai4jarunkbem6mwtx77ghuxznih63mf2xbyinx6tepytrg6xbzfu
+- valory/memeooorr_chained_abci:0.1.0:bafybeiabt3ljc4hmqkajph2tdofxkffi46pgvntaftstzi3ssafbupbxzm
+- valory/mech_interact_abci:0.1.0:bafybeihds6vqk3gsevtsdsowz56jdnbbhc6gnswwd25opm6rrj32dhsmou
 - valory/agent_db_abci:0.1.0:bafybeihnufzl2cj6qcg3ifea4jpkukgqxqgonbz6bwu2ou6hi3bxfnhkvm
-- valory/agent_performance_summary_abci:0.1.0:bafybeigvhu5u3ccwzcylopzowazkcaalctngpcexf7zk3re736ksguhfgm
+- valory/agent_performance_summary_abci:0.1.0:bafybeihsaoxkrvmswk4ir7z5uwlq2xe4d2azfsoc2ka7sm2imen36seali
 - valory/funds_manager:0.1.0:bafybeifff3amddh44muocd4nfo3txu5lltgjtycvqa4jiwgde6idwvdoii
 default_ledger: ethereum
 required_ledgers:
@@ -257,16 +257,8 @@ models:
       is_agent_performance_summary_enabled: ${bool:true}
       performance_summary_ttl: ${int:86400}
       stop_posting_if_staking_kpi_met: ${bool:true}
-      irrelevant_tools:
-      - openai-text-davinci-002
-      - openai-text-davinci-003
-      - openai-gpt-3.5-turbo
-      - openai-gpt-4
-      - stabilityai-stable-diffusion-v1-5
-      - stabilityai-stable-diffusion-xl-beta-v2-2-2
-      - stabilityai-stable-diffusion-512-v2-1
-      - stabilityai-stable-diffusion-768-v2-1
-      ignored_mechs: []
+      valid_mechs: ${list:["0xe535d7acdeed905dddcb5443f41980436833ca2b"]}
+      valid_tools: ${list:["google_image_gen"]}
       penalize_mech_time_window: 1800
       mech_wrapped_native_token_address: ${str:0x4200000000000000000000000000000000000006}
       deliveries_lookback_days: ${int:30}
