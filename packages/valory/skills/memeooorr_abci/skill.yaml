@@ -45,9 +45,9 @@ fingerprint:
   tests/test_rounds_info.py: bafybeig7ctx7xngtlhdmvfyrvmddsz74py6g6recmesrshw6dgibgi32zy
 fingerprint_ignore_patterns: []
 connections:
-- valory/kv_store:0.1.0:bafybeiepbu6pjw4cduj7tvz6gin7z5yebnpnp2csu75ooi7cvt3erlvsaq
+- valory/kv_store:0.1.0:bafybeiallj66uerng45tk3y75qdkfakzmudmzl7y737ekwzsehisvuinaq
 - valory/tweepy:0.1.0:bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe
-- valory/genai:0.1.0:bafybeib6kgixol4yax3azkj3lji5zdsymxgc5ecyhgkbbgy3srirvqleiu
+- valory/genai:0.1.0:bafybeighrq424xlroekehgk2oaqxkvziq22gffqzodm4ynhjgzhch4pcq4
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeihfmmoyk7tfh6xg5ylqnxpsxqgzgwklablc3zonp55sz6b2vzuzue
@@ -66,7 +66,7 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeigiojqgbi54jhree3sqrzaudbmjxb7y2ete74bbliryi3t7ztwi5q
 - valory/mech_interact_abci:0.1.0:bafybeiburftv5nj5427qyue2f5sx56fpfskalnplwoow2ixqbvgio3kfky
 - valory/agent_db_abci:0.1.0:bafybeihnufzl2cj6qcg3ifea4jpkukgqxqgonbz6bwu2ou6hi3bxfnhkvm
-- valory/funds_manager:0.1.0:bafybeihuwnkgrhqixl4zj55fz2awptmpmdnmub2uzkgbx7rve7bnhkkl5i
+- valory/funds_manager:0.1.0:bafybeifff3amddh44muocd4nfo3txu5lltgjtycvqa4jiwgde6idwvdoii
 behaviours:
   main:
     args: {}
