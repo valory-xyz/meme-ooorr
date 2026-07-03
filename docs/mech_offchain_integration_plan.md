@@ -1,6 +1,6 @@
 # Mech-interact off-chain integration plan (meme-ooorr)
 
-Scope: wire meme-ooorr onto mech-interact v0.32.4-rc1 (off-chain HTTP request/response support). Default behaviour stays on-chain; operators opt in per service.yaml by flipping `use_offchain: true` inside `MECH_MARKETPLACE_CONFIG`.
+Scope: wire meme-ooorr onto mech-interact v0.32.4-rc1 (off-chain HTTP request/response support). Default behaviour stays on-chain; operators opt in per service.yaml by flipping `use_offchain: true` inside `MECH_MARKETPLACE_CONFIG` **and** setting an endpoint for the executor to reach — either `offchain_url` (static per-service) or `use_dynamic_mech_selection: true` (discover URL from the on-chain manifest). With both left at their shipped defaults (`null` and `false`), `MechMarketplaceConfig.__post_init__` raises at startup.
 
 Reference implementations that ship the same shape:
 
@@ -45,7 +45,7 @@ Pre-existing mech contract registration (`agent_mech`, `mech`, `mech_mm`, `mech_
 
 ### 3. Config surface — off-chain knobs on `MECH_MARKETPLACE_CONFIG`
 
-Extend the env-default dict in both locations with seven off-chain fields, defaulting `use_offchain: false` so today's behaviour is bit-for-bit unchanged:
+Extend the env-default dict in both locations with seven off-chain fields, defaulting `use_offchain: false` so today's FSM entries are unchanged. Note that the mech-interact bump from v0.32.2 to v0.32.4-rc1 does move the `MechResponseRound` timeout from the shared 30s `ROUND_TIMEOUT` to a dedicated 330s `RESPONSE_ROUND_TIMEOUT`; this applies to on-chain agents too (they wait longer before declaring a mech unresponsive), matching what trader/optimus ship.
 
 - `packages/dvilela/services/memeooorr/service.yaml:108` (the deployed service.yaml override)
 - `packages/valory/agents/memeooorr/aea-config.yaml:247` (the agent's own `mech_marketplace_config` under the mech_interact_abci skill block)
@@ -122,4 +122,4 @@ Read `.github/workflows/*.yaml` — run every `tox -e` env locally, including `c
 
 ## Rollback
 
-Set `use_offchain: false` in the operator env override for `MECH_MARKETPLACE_CONFIG`. The on-chain path is unchanged bit-for-bit; no code removal is needed to revert to today's behaviour.
+Set `use_offchain: false` in the operator env override for `MECH_MARKETPLACE_CONFIG`. The on-chain FSM entries are unchanged; the only behavioural side-effect from the v0.32.4-rc1 skill bump that remains active is the longer `RESPONSE_ROUND_TIMEOUT` (see the config-surface note above). No code removal is needed to revert to today's routing.
