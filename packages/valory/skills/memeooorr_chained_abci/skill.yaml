@@ -8,14 +8,14 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeig3at6723okpkyya67ifz3emvr4xkjicknhjqv5tpqw3v37iayjk4
   behaviours.py: bafybeifjlamzwprfnwfxn4s3papcjmdymz5iekkshytaegyoeifhoiebby
-  composition.py: bafybeihwflambwpxy2upl75oufd3s4i46mxrwvtnhbausd6amshuzipofu
+  composition.py: bafybeibhxrsixdd66alku4ya2zqpxemj2xebyf7pnvj3n3ieqmmlj5zlky
   dialogues.py: bafybeib5i6i4z6tu4oufrpakftpfomo5tbcl6jhx75ndjzfd6xt2nu45vi
-  fsm_specification.yaml: bafybeie46cnbdukko6e34ebjxwvoartffimszrl43u3rpxtiu4wyo34khq
+  fsm_specification.yaml: bafybeicqha6bc3f3h4yyy4mnjnfhonjvwbrtjhnxany7uyy5riyr4nx62m
   handlers.py: bafybeihu662vv2fohddvodweyrev6sega7i63jcfq2akip3t5hz4phvhdy
   models.py: bafybeifotdlbuh3rv3gcflrp42dcqatxksqrxcdo2sn47cplw6kfnwxwry
   tests/__init__.py: bafybeicbonkikavegdoimcmc7v6jhtcdi6rg7xcbapes7aiq6ti74hzdjm
   tests/test_behaviours.py: bafybeibxakumwwgljvznqk4e6enrfat4rotjeu6pxiyz3mcopjmefimnee
-  tests/test_composition.py: bafybeiff4kkjtmwfmqa7xarrczuuqc3sta7ozsufcq3jeusavz3occggf4
+  tests/test_composition.py: bafybeigyrqyln36updh64ycahor5dbes37m7jbt6x3mvr4nn366x64u2ja
   tests/test_models.py: bafybeiftigsccz46k5ykf5eganimwtuyuynqq54g2mdph2f5svw5246j2u
 fingerprint_ignore_patterns: []
 connections: []
@@ -27,9 +27,9 @@ skills:
 - valory/reset_pause_abci:0.1.0:bafybeihc4ruh25s7wuunfy2b3k2n4eypyhvtry3usgom44wsymagbcr3ki
 - valory/transaction_settlement_abci:0.1.0:bafybeibv3tycpdhphlblu62zpcbjsj7hnwkutexxqagorkelhjlt4t4fii
 - valory/termination_abci:0.1.0:bafybeibnnzry5kknci3z46gcjgutv4jid3ir6xn6a5adq3tx6v2e25augq
-- valory/memeooorr_abci:0.1.0:bafybeidrykygqlyly44rercaxvdkjpmi3r4h5xs4yogxsuoor3n3sqg3ce
-- valory/mech_interact_abci:0.1.0:bafybeidnmszufszq3ro4ebgrqzmhqgctrsc6sykeanfsbvotghvt2cgfsy
-- valory/agent_performance_summary_abci:0.1.0:bafybeicacu7a4jjy65c6poym5yhmbce6g5bvlao7jnrvhu6pxt4vryhzri
+- valory/memeooorr_abci:0.1.0:bafybeigwng7uq3rlb5vnt74okbprgswrp46yv7rzhcgamiml4ygdraaoim
+- valory/mech_interact_abci:0.1.0:bafybeihhwzpa6x5ypth426tzd2zjsnys6jmjaab4zvk4edisetzktft754
+- valory/agent_performance_summary_abci:0.1.0:bafybeico2jgb4tdrforraaznaiccw7ri7lao2payedjcytok6yzg6euxci
 behaviours:
   main:
     args: {}
@@ -186,6 +186,13 @@ models:
         requester_staking_instance_address: '0x0000000000000000000000000000000000000000'
         use_dynamic_mech_selection: false
         response_timeout: 300
+        use_offchain: false
+        offchain_url: null
+        offchain_deposit_target_calls: 10
+        auto_deposit_cap_per_cycle: 5000000
+        offchain_poll_interval_seconds: 3.0
+        offchain_poll_timeout_seconds: 300.0
+        offchain_failover_max_retries: 2
       use_acn_for_delivers: false
       valid_mechs: []
       valid_tools: []

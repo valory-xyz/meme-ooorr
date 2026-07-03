@@ -20,8 +20,13 @@ alphabet_in:
 - NO_FUNDS
 - NO_MAJORITY
 - NO_MARKETPLACE
+- OFFCHAIN_ALL_FAILED
+- OFFCHAIN_DEPOSIT_NEEDED
+- OFFCHAIN_DONE
+- OFFCHAIN_MECH_DEPOSIT_SETTLED
 - RESET_AND_PAUSE_TIMEOUT
 - RESET_TIMEOUT
+- RESPONSE_ROUND_TIMEOUT
 - RETRY
 - ROUND_TIMEOUT
 - SETTLE
@@ -163,11 +168,14 @@ transition_func:
     (MechRequestRound, BUY_SUBSCRIPTION): MechPurchaseSubscriptionRound
     (MechRequestRound, DONE): RandomnessTransactionSubmissionRound
     (MechRequestRound, NO_MAJORITY): MechRequestRound
+    (MechRequestRound, OFFCHAIN_ALL_FAILED): FailedMechRequestRound
+    (MechRequestRound, OFFCHAIN_DEPOSIT_NEEDED): RandomnessTransactionSubmissionRound
+    (MechRequestRound, OFFCHAIN_DONE): MechResponseRound
     (MechRequestRound, ROUND_TIMEOUT): MechRequestRound
     (MechRequestRound, SKIP_REQUEST): FailedMechRequestRound
     (MechResponseRound, DONE): PostMechResponseRound
     (MechResponseRound, NO_MAJORITY): MechResponseRound
-    (MechResponseRound, ROUND_TIMEOUT): FailedMechResponseRound
+    (MechResponseRound, RESPONSE_ROUND_TIMEOUT): FailedMechResponseRound
     (MechVersionDetectionRound, NO_MAJORITY): MechVersionDetectionRound
     (MechVersionDetectionRound, NO_MARKETPLACE): MechRequestRound
     (MechVersionDetectionRound, ROUND_TIMEOUT): MechVersionDetectionRound
@@ -183,6 +191,7 @@ transition_func:
     (PostTxDecisionMakingRound, MECH_REQUEST): MechVersionDetectionRound
     (PostTxDecisionMakingRound, NONE): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, NO_MAJORITY): PostTxDecisionMakingRound
+    (PostTxDecisionMakingRound, OFFCHAIN_MECH_DEPOSIT_SETTLED): MechRequestRound
     (PostTxDecisionMakingRound, ROUND_TIMEOUT): PostTxDecisionMakingRound
     (PullMemesRound, DONE): CollectFeedbackRound
     (PullMemesRound, NO_MAJORITY): PullMemesRound

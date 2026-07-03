@@ -62,6 +62,38 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     MechFinalStates.FinishedMechRequestSkipRound: MemeooorrAbci.FailedMechRequestRound,
     MechFinalStates.FinishedMechResponseTimeoutRound: MemeooorrAbci.FailedMechResponseRound,
     MemeooorrAbci.FinishedForMechResponseRound: MechResponseStates.MechResponseRound,
+    # Off-chain mech_interact_abci edges. Default (use_offchain=false)
+    # never reaches any of these; the on-chain edges above route
+    # unchanged. One behavioural note from the vendored skill bump
+    # (v0.32.2 -> v0.32.4-rc1) applies to both paths: the
+    # ``MechResponseRound`` timeout moved from the shared 30s
+    # ``ROUND_TIMEOUT`` to a dedicated ``RESPONSE_ROUND_TIMEOUT``
+    # (330s default; runtime-rebound to
+    # ``mech_marketplace_config.offchain_poll_timeout_seconds``).
+    # On-chain agents therefore wait longer for a mech reply before
+    # transitioning to ``FinishedMechResponseTimeoutRound``. Intended
+    # upstream, matches trader/optimus.
+    #
+    # Happy path: HTTP 200 from the mech, skip on-chain settlement and
+    # jump straight to the polling response leg. ``MechResponseBehaviour``
+    # branches internally on ``use_offchain`` and polls
+    # ``/fetch_offchain_info`` instead of the on-chain map.
+    MechFinalStates.FinishedOffchainMechRequestRound: MechResponseStates.MechResponseRound,
+    # Structured 402: ``OffchainRequestExecutor`` built the auto-deposit
+    # multisend (approve + BalanceTracker.depositFor) and stamped the
+    # ``OFFCHAIN_DEPOSIT_TX_SUBMITTER`` sentinel. Settle it through the
+    # existing tx submission pipeline.
+    MechFinalStates.FinishedOffchainMechDepositNeededRound: TransactionSettlementAbci.RandomnessTransactionSubmissionRound,
+    # After the deposit lands, ``PostTxDecisionMakingBehaviour`` maps the
+    # sentinel to ``FinishedForOffchainMechDepositSettledRound``. Route
+    # back into ``MechRequestRound`` so
+    # ``OffchainRequestExecutor._retry_pending`` re-POSTs the cached
+    # request without operator intervention.
+    MemeooorrAbci.FinishedForOffchainMechDepositSettledRound: MechRequestStates.MechRequestRound,
+    # All ranked mechs exhausted their failover budget: enter the same
+    # bail path as the on-chain request-skip branch so quarantine / tool
+    # penalty bookkeeping fires identically for both paths.
+    MechFinalStates.FailedOffchainMechRequestRound: MemeooorrAbci.FailedMechRequestRound,
 }
 
 
