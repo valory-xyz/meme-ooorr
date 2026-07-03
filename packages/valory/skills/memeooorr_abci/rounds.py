@@ -823,8 +823,8 @@ class FinishedForMechResponseRound(DegenerateRound):
     """FinishedForMechResponseRound"""
 
 
-class FinishedWithOffchainMechDepositSettledRound(DegenerateRound):
-    """FinishedWithOffchainMechDepositSettledRound.
+class FinishedForOffchainMechDepositSettledRound(DegenerateRound):
+    """FinishedForOffchainMechDepositSettledRound.
 
     Terminal state entered after a 402-triggered off-chain mech deposit
     (approve + BalanceTracker.depositFor) settles on-chain. The chained
@@ -932,9 +932,9 @@ class MemeooorrAbciApp(AbciApp[Event]):
         16. FinishedToSettlementRound
         17. FinishedForMechRequestRound
         18. FinishedForMechResponseRound
-        19. FinishedWithOffchainMechDepositSettledRound
+        19. FinishedForOffchainMechDepositSettledRound
 
-    Final states: {FinishedForMechRequestRound, FinishedForMechResponseRound, FinishedToResetRound, FinishedToSettlementRound, FinishedWithOffchainMechDepositSettledRound}
+    Final states: {FinishedForMechRequestRound, FinishedForMechResponseRound, FinishedForOffchainMechDepositSettledRound, FinishedToResetRound, FinishedToSettlementRound}
 
     Timeouts:
         round timeout: 30
@@ -1022,7 +1022,7 @@ class MemeooorrAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: PostTxDecisionMakingRound,
             Event.MECH: FinishedForMechResponseRound,
             Event.MECH_REQUEST: FinishedForMechRequestRound,
-            Event.OFFCHAIN_MECH_DEPOSIT_SETTLED: FinishedWithOffchainMechDepositSettledRound,
+            Event.OFFCHAIN_MECH_DEPOSIT_SETTLED: FinishedForOffchainMechDepositSettledRound,
         },
         CallCheckpointRound: {
             Event.DONE: FinishedToResetRound,
@@ -1058,14 +1058,14 @@ class MemeooorrAbciApp(AbciApp[Event]):
         FinishedToSettlementRound: {},
         FinishedForMechRequestRound: {},
         FinishedForMechResponseRound: {},
-        FinishedWithOffchainMechDepositSettledRound: {},
+        FinishedForOffchainMechDepositSettledRound: {},
     }
     final_states: Set[AppState] = {
         FinishedToResetRound,
         FinishedToSettlementRound,
         FinishedForMechRequestRound,
         FinishedForMechResponseRound,
-        FinishedWithOffchainMechDepositSettledRound,
+        FinishedForOffchainMechDepositSettledRound,
     }
     event_to_timeout: EventToTimeout = {Event.ROUND_TIMEOUT: 30}
     cross_period_persisted_keys: FrozenSet[str] = frozenset(
@@ -1086,6 +1086,6 @@ class MemeooorrAbciApp(AbciApp[Event]):
         FinishedToResetRound: set(),
         FinishedForMechRequestRound: set(),
         FinishedForMechResponseRound: set(),
-        FinishedWithOffchainMechDepositSettledRound: set(),
+        FinishedForOffchainMechDepositSettledRound: set(),
         FinishedToSettlementRound: {"most_voted_tx_hash"},
     }

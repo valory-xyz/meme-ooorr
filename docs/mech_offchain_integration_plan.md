@@ -68,13 +68,13 @@ Four new edges under `abci_app_transition_mapping`:
 
 - `MechFinalStates.FinishedOffchainMechRequestRound` → `MechResponseStates.MechResponseRound` — happy path, skip settlement, poll HTTP.
 - `MechFinalStates.FinishedOffchainMechDepositNeededRound` → `TransactionSettlementAbci.RandomnessTransactionSubmissionRound` — settle the `approve + depositFor` multisend.
-- `MemeooorrAbci.FinishedWithOffchainMechDepositSettledRound` → `MechRequestStates.MechRequestRound` — deposit landed, re-enter the request round so `OffchainRequestExecutor._retry_pending` re-POSTs the cached `offchain_pending_request`.
+- `MemeooorrAbci.FinishedForOffchainMechDepositSettledRound` → `MechRequestStates.MechRequestRound` — deposit landed, re-enter the request round so `OffchainRequestExecutor._retry_pending` re-POSTs the cached `offchain_pending_request`.
 - `MechFinalStates.FailedOffchainMechRequestRound` → `MemeooorrAbci.FailedMechRequestRound` — mirror the existing `FinishedMechRequestSkipRound` bail path so failure bookkeeping (quarantine, tool penalty, etc.) fires identically for both paths.
 
 ### 5. Event + degenerate round in `memeooorr_abci`
 
 - `memeooorr_abci/rounds.py` — add `Event.OFFCHAIN_MECH_DEPOSIT_SETTLED = "offchain_mech_deposit_settled"` to the `Event(Enum)` at line 73.
-- `memeooorr_abci/rounds.py` — add `class FinishedWithOffchainMechDepositSettledRound(DegenerateRound)`, register it in `final_states` and the top-level rounds set.
+- `memeooorr_abci/rounds.py` — add `class FinishedForOffchainMechDepositSettledRound(DegenerateRound)`, register it in `final_states` and the top-level rounds set.
 - Update the `MemeooorrAbciApp` docstring's "Final states" list (regen via `make generators`).
 
 ### 6. `PostTxDecisionMakingBehaviour` dispatch
@@ -96,8 +96,8 @@ The existing `Event.NONE` fall-through + `logger.error("Unknown tx_submitter…"
 - `memeooorr_chained_abci/tests/test_composition.py` — parametrise each new edge individually. Flat set assertions would let a silent target swap pass (this bit trader in review).
 - `memeooorr_abci/tests/` — add:
   - a positive test that `PostTxDecisionMakingBehaviour` dispatches `OFFCHAIN_DEPOSIT_TX_SUBMITTER` to `Event.OFFCHAIN_MECH_DEPOSIT_SETTLED`;
-  - a negative test that an unknown submitter still returns `Event.NONE` and logs the error at ERROR (protects the fall-through against a future refactor turning the dict lookup into a KeyError);
-  - a symmetric off-path test that with `use_offchain=false` in `MECH_MARKETPLACE_CONFIG` the off-chain edges are unreachable in one FSM traversal (protects `use_offchain=false` as the safe default; per the flag-symmetry review rule).
+  - a negative test that an unknown submitter still returns `Event.NONE` and logs the error at ERROR (protects the fall-through against a future refactor turning the dict lookup into a KeyError).
+- Off-path traversal is intentionally not tested at the composition level: `abci_app_transition_mapping` is a static dict at import time, so `use_offchain=false` doesn't gate any edge — whether the off-chain terminals are ever reached is decided inside the vendored mech_interact_abci behaviour, which owns that test.
 
 ### 8. Regen + lock
 

@@ -65,9 +65,9 @@ from packages.valory.skills.memeooorr_abci.rounds import (
     FailedMechResponseRound,
     FinishedForMechRequestRound,
     FinishedForMechResponseRound,
+    FinishedForOffchainMechDepositSettledRound,
     FinishedToResetRound,
     FinishedToSettlementRound,
-    FinishedWithOffchainMechDepositSettledRound,
     LoadDatabaseRound,
     MAX_CHECK_FUNDS_COUNT,
     MechRoundBase,
@@ -1565,7 +1565,7 @@ class TestMemeooorrAbciApp:
             FinishedToSettlementRound,
             FinishedForMechRequestRound,
             FinishedForMechResponseRound,
-            FinishedWithOffchainMechDepositSettledRound,
+            FinishedForOffchainMechDepositSettledRound,
         }
         assert MemeooorrAbciApp.final_states == expected
 
@@ -1591,7 +1591,7 @@ class TestMemeooorrAbciApp:
             FinishedToSettlementRound,
             FinishedForMechRequestRound,
             FinishedForMechResponseRound,
-            FinishedWithOffchainMechDepositSettledRound,
+            FinishedForOffchainMechDepositSettledRound,
         }
         assert set(MemeooorrAbciApp.transition_function.keys()) == expected_keys
 

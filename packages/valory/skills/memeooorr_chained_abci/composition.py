@@ -85,11 +85,11 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     # existing tx submission pipeline.
     MechFinalStates.FinishedOffchainMechDepositNeededRound: TransactionSettlementAbci.RandomnessTransactionSubmissionRound,
     # After the deposit lands, ``PostTxDecisionMakingBehaviour`` maps the
-    # sentinel to ``FinishedWithOffchainMechDepositSettledRound``. Route
+    # sentinel to ``FinishedForOffchainMechDepositSettledRound``. Route
     # back into ``MechRequestRound`` so
     # ``OffchainRequestExecutor._retry_pending`` re-POSTs the cached
     # request without operator intervention.
-    MemeooorrAbci.FinishedWithOffchainMechDepositSettledRound: MechRequestStates.MechRequestRound,
+    MemeooorrAbci.FinishedForOffchainMechDepositSettledRound: MechRequestStates.MechRequestRound,
     # All ranked mechs exhausted their failover budget: enter the same
     # bail path as the on-chain request-skip branch so quarantine / tool
     # penalty bookkeeping fires identically for both paths.

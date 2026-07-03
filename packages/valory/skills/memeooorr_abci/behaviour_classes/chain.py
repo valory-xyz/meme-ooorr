@@ -871,7 +871,7 @@ class PostTxDecisionMakingBehaviour(
                 # tx_submitter by ``OffchainRequestExecutor`` so that once
                 # the approve+depositFor multisend settles, ``PostTxDecisionMakingBehaviour``
                 # routes back into ``MechRequestRound`` (via
-                # ``FinishedWithOffchainMechDepositSettledRound`` in the
+                # ``FinishedForOffchainMechDepositSettledRound`` in the
                 # chained ABCI), where ``_retry_pending`` re-POSTs the
                 # cached request. Any collision with an on-chain submitter
                 # would double-fire the mech leg, so the id is intentionally

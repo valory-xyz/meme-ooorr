@@ -246,7 +246,7 @@ class TestAbciAppTransitionMapping:
         """
         assert (
             abci_app_transition_mapping[
-                MemeooorrAbci.FinishedWithOffchainMechDepositSettledRound
+                MemeooorrAbci.FinishedForOffchainMechDepositSettledRound
             ]
             is MechRequestStates.MechRequestRound
         )
