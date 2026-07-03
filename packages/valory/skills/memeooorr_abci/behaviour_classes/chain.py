@@ -40,6 +40,9 @@ from packages.valory.skills.mech_interact_abci.behaviours.round_behaviour import
     MechPurchaseSubscriptionBehaviour,
     MechRequestBehaviour,
 )
+from packages.valory.skills.mech_interact_abci.states.request import (
+    OFFCHAIN_DEPOSIT_TX_SUBMITTER,
+)
 from packages.valory.skills.memeooorr_abci.behaviour_classes.base import (
     MemeooorrBaseBehaviour,
 )
@@ -864,6 +867,16 @@ class PostTxDecisionMakingBehaviour(
                 ActionPreparationBehaviour.matching_round.auto_round_id(): Event.ACTION.value,
                 MechRequestBehaviour.matching_round.auto_round_id(): Event.MECH.value,
                 MechPurchaseSubscriptionBehaviour.matching_round.auto_round_id(): Event.MECH_REQUEST.value,
+                # The off-chain 402 deposit is stamped with this sentinel
+                # tx_submitter by ``OffchainRequestExecutor`` so that once
+                # the approve+depositFor multisend settles, ``PostTxDecisionMakingBehaviour``
+                # routes back into ``MechRequestRound`` (via
+                # ``FinishedWithOffchainMechDepositSettledRound`` in the
+                # chained ABCI), where ``_retry_pending`` re-POSTs the
+                # cached request. Any collision with an on-chain submitter
+                # would double-fire the mech leg, so the id is intentionally
+                # unique to the off-chain path.
+                OFFCHAIN_DEPOSIT_TX_SUBMITTER: Event.OFFCHAIN_MECH_DEPOSIT_SETTLED.value,
             }
 
             event = submitter_to_event.get(tx_submitter, Event.NONE.value)

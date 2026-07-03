@@ -62,6 +62,30 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     MechFinalStates.FinishedMechRequestSkipRound: MemeooorrAbci.FailedMechRequestRound,
     MechFinalStates.FinishedMechResponseTimeoutRound: MemeooorrAbci.FailedMechResponseRound,
     MemeooorrAbci.FinishedForMechResponseRound: MechResponseStates.MechResponseRound,
+    # Off-chain mech_interact_abci edges. Default (use_offchain=false)
+    # never reaches any of these; the on-chain path is bit-for-bit
+    # unchanged.
+    #
+    # Happy path: HTTP 200 from the mech, skip on-chain settlement and
+    # jump straight to the polling response leg. ``MechResponseBehaviour``
+    # branches internally on ``use_offchain`` and polls
+    # ``/fetch_offchain_info`` instead of the on-chain map.
+    MechFinalStates.FinishedOffchainMechRequestRound: MechResponseStates.MechResponseRound,
+    # Structured 402: ``OffchainRequestExecutor`` built the auto-deposit
+    # multisend (approve + BalanceTracker.depositFor) and stamped the
+    # ``OFFCHAIN_DEPOSIT_TX_SUBMITTER`` sentinel. Settle it through the
+    # existing tx submission pipeline.
+    MechFinalStates.FinishedOffchainMechDepositNeededRound: TransactionSettlementAbci.RandomnessTransactionSubmissionRound,
+    # After the deposit lands, ``PostTxDecisionMakingBehaviour`` maps the
+    # sentinel to ``FinishedWithOffchainMechDepositSettledRound``. Route
+    # back into ``MechRequestRound`` so
+    # ``OffchainRequestExecutor._retry_pending`` re-POSTs the cached
+    # request without operator intervention.
+    MemeooorrAbci.FinishedWithOffchainMechDepositSettledRound: MechRequestStates.MechRequestRound,
+    # All ranked mechs exhausted their failover budget: enter the same
+    # bail path as the on-chain request-skip branch so quarantine / tool
+    # penalty bookkeeping fires identically for both paths.
+    MechFinalStates.FailedOffchainMechRequestRound: MemeooorrAbci.FailedMechRequestRound,
 }
 
 
