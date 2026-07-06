@@ -64,15 +64,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     MemeooorrAbci.FinishedForMechResponseRound: MechResponseStates.MechResponseRound,
     # Off-chain mech_interact_abci edges. Default (use_offchain=false)
     # never reaches any of these; the on-chain edges above route
-    # unchanged. One behavioural note from the vendored skill bump
-    # (v0.32.2 -> v0.32.4-rc1) applies to both paths: the
-    # ``MechResponseRound`` timeout moved from the shared 30s
-    # ``ROUND_TIMEOUT`` to a dedicated ``RESPONSE_ROUND_TIMEOUT``
-    # (330s default; runtime-rebound to
-    # ``mech_marketplace_config.offchain_poll_timeout_seconds``).
-    # On-chain agents therefore wait longer for a mech reply before
-    # transitioning to ``FinishedMechResponseTimeoutRound``. Intended
-    # upstream, matches trader/optimus.
+    # unchanged.
     #
     # Happy path: HTTP 200 from the mech, skip on-chain settlement and
     # jump straight to the polling response leg. ``MechResponseBehaviour``
