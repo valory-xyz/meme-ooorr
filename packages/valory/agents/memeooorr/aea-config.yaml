@@ -27,7 +27,6 @@ contracts:
 - valory/staking_activity_checker:0.1.0:bafybeicfvf4f25eon2iqjezztiistcifyfltbezz2ilc55lxtpjwkybf74
 - valory/mech_marketplace:0.1.0:bafybeigrcnjaycggulxyx2tsjub4ssjij66d7nfzsavo6gd54hm7beliiu
 - valory/balance_tracker_fixed_price_native:0.1.0:bafybeihyaxqkyw2ulroqlhpfcgkrwtrwkhshn35fdq2ystraezwyco3k4u
-- valory/balance_tracker_fixed_price_token:0.1.0:bafybeibg3nlz6cuankbs3aikch3o2lbjburcoym5nrxj5kpo6vgx2u5uce
 - valory/erc20:0.1.0:bafybeibpuyikvpmtaraca4lqokf3kf6jlpmafkqm6oixnps3ig23jfbllq
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye

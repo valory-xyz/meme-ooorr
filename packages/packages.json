@@ -1,6 +1,5 @@
 {
     "dev": {
-        "contract/valory/balance_tracker_fixed_price_token/0.1.0": "bafybeibg3nlz6cuankbs3aikch3o2lbjburcoym5nrxj5kpo6vgx2u5uce",
         "contract/valory/meme_factory/0.1.0": "bafybeihdjvdljwzmq6gcma7zaobnpijq76ffcq55kfqdcljzz2yjucw3uu",
         "connection/valory/twikit/0.1.0": "bafybeidruneqzx5hyr6w2rs2fyyflhiqt2ituuyouxr3x5zl3forzjbqn4",
         "connection/valory/mirror_db/0.1.0": "bafybeifpnteogn6omfoqpjza3e43slyucck247ti6aufqqj4n22z4yt4bm",
@@ -9,8 +8,8 @@
         "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeiec4qtiyymiv7zrn7vc3dfnx5qnr2ulqbexprnhfqy2kn6yeeqsl4",
         "skill/valory/agent_db_abci/0.1.0": "bafybeiagtellrrf6wkookqk6jjx3wgxts462u6xtifl7gojtulgwitejnu",
         "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeievd4vqhettgrtarwgnhdtpojwv4jfx46gjswpk7sgxu5fpow5liy",
-        "agent/valory/memeooorr/0.1.0": "bafybeiasq2sfn4sglkw3j7c4kev7swvrjxxgg2fahkbvqlmb6bntvahg7m",
-        "service/dvilela/memeooorr/0.1.0": "bafybeibw23spw3bz2ex2i7jmsjluw7wgvq6sbv4mw4xhblwdfdedccueu4"
+        "agent/valory/memeooorr/0.1.0": "bafybeigdnshrcpky54eyysizhzglhq6n6rn2uf4m3rmxe6ldwf2snjo5la",
+        "service/dvilela/memeooorr/0.1.0": "bafybeihmcz7rxvdnyabj7qsskwjhcchih2bk3fre7omimtng5u25udhnza"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
