@@ -47,7 +47,7 @@ skills:
 - valory/registration_abci:0.1.0:bafybeif4n2esdjvquomdkwktv7eolepskpo5jlqrfda2abxjqzy2ljsxzi
 - valory/reset_pause_abci:0.1.0:bafybeifrnmlscfiki7wojs6zasppefupd2wkjyq6orhdllfppjud7isrxi
 - valory/memeooorr_abci:0.1.0:bafybeigjihs6fb46k6shul7icvieccnya3jdo7bgd6j7p25ox23qkwkyki
-- valory/memeooorr_chained_abci:0.1.0:bafybeicrr4cbue4xpqi6ikn22be3mav5h6mbnsox7ts5gllkecslbs2vfu
+- valory/memeooorr_chained_abci:0.1.0:bafybeicvxfndfkrxdmdqswwzjuxv3sn6ureiyw5n6tj7xr6ayq3yygurbe
 - valory/mech_interact_abci:0.1.0:bafybeici5tsgtlypnyrnp5colj7katnsyjfdzt6js4xdbnpdms4232muje
 - valory/agent_db_abci:0.1.0:bafybeiagtellrrf6wkookqk6jjx3wgxts462u6xtifl7gojtulgwitejnu
 - valory/agent_performance_summary_abci:0.1.0:bafybeiczk5y3nupgya2p7jkbo54mpbza6zj27pzl4l4pkf3nfiizmvja6a
