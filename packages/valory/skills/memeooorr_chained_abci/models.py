@@ -71,6 +71,12 @@ AgentsFunDatabase = BaseAgentsFunDatabase
 
 MARGIN = 5
 MULTIPLIER = 10
+# Effective MechInteractEvent.ROUND_TIMEOUT = round_timeout_seconds * MULTIPLIER_MECH.
+# Must stay >= mech_interact_abci's off-chain poll budget (offchain_poll_timeout_seconds
+# in MECH_MARKETPLACE_CONFIG, ceiling 570s for the guard) whenever use_offchain=true,
+# otherwise MechRequestBehaviour raises at startup via _check_round_timeout_fits_poll_budget.
+# v0.32.4 no longer auto-scales the response timeout, so this pairing is manual — keep
+# round_timeout_seconds hardcoded rather than env-templated, or bump MULTIPLIER_MECH.
 MULTIPLIER_MECH = 20
 
 

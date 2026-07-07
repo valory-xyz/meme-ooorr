@@ -26,7 +26,6 @@ alphabet_in:
 - OFFCHAIN_MECH_DEPOSIT_SETTLED
 - RESET_AND_PAUSE_TIMEOUT
 - RESET_TIMEOUT
-- RESPONSE_ROUND_TIMEOUT
 - RETRY
 - ROUND_TIMEOUT
 - SETTLE
@@ -175,7 +174,7 @@ transition_func:
     (MechRequestRound, SKIP_REQUEST): FailedMechRequestRound
     (MechResponseRound, DONE): PostMechResponseRound
     (MechResponseRound, NO_MAJORITY): MechResponseRound
-    (MechResponseRound, RESPONSE_ROUND_TIMEOUT): FailedMechResponseRound
+    (MechResponseRound, ROUND_TIMEOUT): FailedMechResponseRound
     (MechVersionDetectionRound, NO_MAJORITY): MechVersionDetectionRound
     (MechVersionDetectionRound, NO_MARKETPLACE): MechRequestRound
     (MechVersionDetectionRound, ROUND_TIMEOUT): MechVersionDetectionRound
