@@ -2313,6 +2313,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "asn1crypto" },
+    { name = "cffi" },
     { name = "eth-account" },
     { name = "filelock" },
     { name = "google-generativeai" },
@@ -2353,6 +2354,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "asn1crypto", specifier = ">=1.4.0,<1.5.0" },
+    { name = "cffi", specifier = "<2.1.0" },
     { name = "eth-account", specifier = ">=0.13.0,<0.14.0" },
     { name = "filelock", specifier = ">=3.20.1,<4" },
     { name = "google-generativeai", specifier = "==0.8.2" },
