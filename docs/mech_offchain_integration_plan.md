@@ -1,6 +1,6 @@
 # Mech-interact off-chain integration plan (meme-ooorr)
 
-Scope: wire meme-ooorr onto mech-interact v0.32.4-rc1 (off-chain HTTP request/response support). Default behaviour stays on-chain; operators opt in per service.yaml by flipping `use_offchain: true` inside `MECH_MARKETPLACE_CONFIG` **and** setting an endpoint for the executor to reach — either `offchain_url` (static per-service) or `use_dynamic_mech_selection: true` (discover URL from the on-chain manifest). With both left at their shipped defaults (`null` and `false`), `MechMarketplaceConfig.__post_init__` raises at startup.
+Scope: wire meme-ooorr onto mech-interact v0.32.4 (off-chain HTTP request/response support). Default behaviour stays on-chain; operators opt in per service.yaml by flipping `use_offchain: true` inside `MECH_MARKETPLACE_CONFIG` **and** setting an endpoint for the executor to reach — either `offchain_url` (static per-service) or `use_dynamic_mech_selection: true` (discover URL from the on-chain manifest). With both left at their shipped defaults (`null` and `false`), `MechMarketplaceConfig.__post_init__` raises at startup.
 
 Reference implementations that ship the same shape:
 
@@ -23,13 +23,13 @@ meme-ooorr uses `PostTxDecisionMakingRound + PostTxDecisionMakingBehaviour` as t
 
 ### 1. Vendor updated mech_interact_abci + 3 new contracts
 
-- Replace `packages/valory/skills/mech_interact_abci/` with the v0.32.4-rc1 tree (adds `behaviours/offchain_request.py`, `behaviours/offchain_response.py`, three new degenerate rounds under `states/final_states.py`, seven off-chain knobs on `MechMarketplaceConfig`, `OFFCHAIN_DEPOSIT_TX_SUBMITTER` sentinel at `states/request.py:44`).
+- Replace `packages/valory/skills/mech_interact_abci/` with the v0.32.4 tree (adds `behaviours/offchain_request.py`, `behaviours/offchain_response.py`, three new degenerate rounds under `states/final_states.py`, seven off-chain knobs on `MechMarketplaceConfig`, `OFFCHAIN_DEPOSIT_TX_SUBMITTER` sentinel at `states/request.py:44`).
 - Vendor three new contract packages (mirrors trader/optimus):
   - `packages/valory/contracts/mech_marketplace/`
   - `packages/valory/contracts/balance_tracker_fixed_price_native/`
   - `packages/valory/contracts/balance_tracker_fixed_price_token/`
 - `packages/packages.json`:
-  - Bump `skill/valory/mech_interact_abci/0.1.0` hash to v0.32.4-rc1 (`bafybeihhwzpa6x5ypth426tzd2zjsnys6jmjaab4zvk4edisetzktft754`).
+  - Bump `skill/valory/mech_interact_abci/0.1.0` hash to v0.32.4 (`bafybeici5tsgtlypnyrnp5colj7katnsyjfdzt6js4xdbnpdms4232muje`).
   - Add three new `contract/valory/*` entries under `third_party`.
 - `packages/valory/skills/memeooorr_chained_abci/skill.yaml` — bump the sibling `mech_interact_abci` skill dep hash to match.
 
@@ -45,7 +45,7 @@ Pre-existing mech contract registration (`agent_mech`, `mech`, `mech_mm`, `mech_
 
 ### 3. Config surface — off-chain knobs on `MECH_MARKETPLACE_CONFIG`
 
-Extend the env-default dict in both locations with seven off-chain fields, defaulting `use_offchain: false` so today's FSM entries are unchanged. Note that the mech-interact bump from v0.32.2 to v0.32.4-rc1 does move the `MechResponseRound` timeout from the shared 30s `ROUND_TIMEOUT` to a dedicated 330s `RESPONSE_ROUND_TIMEOUT`; this applies to on-chain agents too (they wait longer before declaring a mech unresponsive), matching what trader/optimus ship.
+Extend the env-default dict in both locations with seven off-chain fields, defaulting `use_offchain: false` so today's FSM entries are unchanged. Timeout note: v0.32.4 keeps `MechResponseRound` on the shared `MechInteractEvent.ROUND_TIMEOUT` (rc2's briefly-lived dedicated `RESPONSE_ROUND_TIMEOUT` was reverted before the tag). meme-ooorr overrides `MechInteractEvent.ROUND_TIMEOUT` in `MemeooorrChainedSkillAbciApp.event_to_timeout` at `memeooorr_chained_abci/models.py` via `round_timeout_seconds × MULTIPLIER_MECH` (`MULTIPLIER_MECH = 20`), giving 600s effective — comfortably above v0.32.4's ≥330s poll-budget guard for the off-chain path. Same wiring was in place under v0.32.2, so the response-round timeout is unchanged across the bump.
 
 - `packages/dvilela/services/memeooorr/service.yaml:108` (the deployed service.yaml override)
 - `packages/valory/agents/memeooorr/aea-config.yaml:247` (the agent's own `mech_marketplace_config` under the mech_interact_abci skill block)
@@ -122,4 +122,4 @@ Read `.github/workflows/*.yaml` — run every `tox -e` env locally, including `c
 
 ## Rollback
 
-Set `use_offchain: false` in the operator env override for `MECH_MARKETPLACE_CONFIG`. The on-chain FSM entries are unchanged; the only behavioural side-effect from the v0.32.4-rc1 skill bump that remains active is the longer `RESPONSE_ROUND_TIMEOUT` (see the config-surface note above). No code removal is needed to revert to today's routing.
+Set `use_offchain: false` in the operator env override for `MECH_MARKETPLACE_CONFIG`. The on-chain FSM entries are unchanged; nothing else from the v0.32.4 skill bump alters on-chain behaviour (the response-round timeout stays on the shared `MechInteractEvent.ROUND_TIMEOUT` we already override to 600s — see the config-surface note above — same as under v0.32.2). No code removal is needed to revert to today's routing.
