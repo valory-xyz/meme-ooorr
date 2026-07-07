@@ -41,6 +41,7 @@ dependencies = [
     "web3<8,>=7.0.0",
     "httpx<0.28,>=0.23",
     "setuptools<=81.0.0",
+    "cffi<2.1.0",
 ]
 
 [project.urls]
