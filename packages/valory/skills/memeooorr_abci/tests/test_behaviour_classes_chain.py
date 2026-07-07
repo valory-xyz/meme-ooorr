@@ -474,6 +474,22 @@ class TestPostTxDecisionMakingAsyncActPayload:
         event = self._run_async_act("0xdeadbeef-not-a-real-round")
         assert event == Event.NONE.value
 
+    def test_event_offchain_deposit_settled_for_offchain_sentinel(self) -> None:
+        """Off-chain 402 deposit sentinel dispatches OFFCHAIN_MECH_DEPOSIT_SETTLED.
+
+        ``OffchainRequestExecutor`` stamps the settlement payload with
+        ``OFFCHAIN_DEPOSIT_TX_SUBMITTER`` after building the auto-deposit
+        multisend. Without this branch the dispatcher falls through to
+        NONE and the request never gets re-POSTed, so operators pay for
+        the deposit but never see the response.
+        """
+        from packages.valory.skills.mech_interact_abci.states.request import (
+            OFFCHAIN_DEPOSIT_TX_SUBMITTER,
+        )
+
+        event = self._run_async_act(OFFCHAIN_DEPOSIT_TX_SUBMITTER)
+        assert event == Event.OFFCHAIN_MECH_DEPOSIT_SETTLED.value
+
 
 class TestBuildSafeTxHash:
     """Tests for _build_safe_tx_hash method."""

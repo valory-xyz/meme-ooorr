@@ -9,6 +9,7 @@ alphabet_in:
 - NONE
 - NO_FUNDS
 - NO_MAJORITY
+- OFFCHAIN_MECH_DEPOSIT_SETTLED
 - RETRY
 - ROUND_TIMEOUT
 - SETTLE
@@ -18,6 +19,7 @@ default_start_state: LoadDatabaseRound
 final_states:
 - FinishedForMechRequestRound
 - FinishedForMechResponseRound
+- FinishedForOffchainMechDepositSettledRound
 - FinishedToResetRound
 - FinishedToSettlementRound
 label: MemeooorrAbciApp
@@ -44,6 +46,7 @@ states:
 - FailedMechResponseRound
 - FinishedForMechRequestRound
 - FinishedForMechResponseRound
+- FinishedForOffchainMechDepositSettledRound
 - FinishedToResetRound
 - FinishedToSettlementRound
 - LoadDatabaseRound
@@ -113,6 +116,7 @@ transition_func:
     (PostTxDecisionMakingRound, MECH_REQUEST): FinishedForMechRequestRound
     (PostTxDecisionMakingRound, NONE): PostTxDecisionMakingRound
     (PostTxDecisionMakingRound, NO_MAJORITY): PostTxDecisionMakingRound
+    (PostTxDecisionMakingRound, OFFCHAIN_MECH_DEPOSIT_SETTLED): FinishedForOffchainMechDepositSettledRound
     (PostTxDecisionMakingRound, ROUND_TIMEOUT): PostTxDecisionMakingRound
     (PullMemesRound, DONE): CollectFeedbackRound
     (PullMemesRound, NO_MAJORITY): PullMemesRound

@@ -16,24 +16,24 @@ fingerprint:
   agentsfun-ui-build/index.html: bafybeicdwxxusppmc5spztrfb65ps52xxadgagw4bbkvxttp3l6h7dxl4e
   behaviour_classes/__init__.py: bafybeias427pxcg3ndkjanrczwwaotrqozmvdo2mnchdjbzlw4n6hdkurq
   behaviour_classes/base.py: bafybeihb5gl3llmvgtcixusx2ufs67znrvjbwi2ob5xpoi32lm5rqihbyy
-  behaviour_classes/chain.py: bafybeibciucoo3keq7fdk7n3lzsaltko73orbfxd7vzsxsjsllouv4jk5a
+  behaviour_classes/chain.py: bafybeiabasqrzv76tdrgs3qqaem272j3lwtudfrl3crvmqcqpriglqcw2e
   behaviour_classes/db.py: bafybeifrnm4cgd47quevcucbneulhgxpkrpn7rt3vscaaphqkkcptzovde
   behaviour_classes/llm.py: bafybeidedb2wqhvkxqnudgzaxa3kptpg6ak25dhnrnonfjmyyw7dt3jgf4
   behaviour_classes/mech.py: bafybeidlnhj56itt6epygalr3pli3awwo4c2cb54pi24hzlgm6prqfwzzi
   behaviour_classes/twitter.py: bafybeihgemiypgdolujbfkgsn7eqnkcj6xehttd7pvv7g67yiqtqsyh2du
   behaviours.py: bafybeifcsrtnnviu3hcuuopf3mrdk347s6nw2i6hh2aushuervubomzuti
   dialogues.py: bafybeidevvhglynhlnpf6y66xhrxte3wzlfmaf7mjhngy7yea53hgqmmke
-  fsm_specification.yaml: bafybeih5psxxt5mfibwrlmpw26iuflp4jny36fsrrimkrduuttahoysrdy
+  fsm_specification.yaml: bafybeigzxwf57xbrjkbqa7ylxkvzbwrhjy5htqdvtbmjewlgtjgepbku2a
   handlers.py: bafybeig562wh3qh3hnndh6ojli7avji75zurv34gow6pfbynbe7azhw2ay
   models.py: bafybeibf3naivkqnkuqbmugxtwj4jucte6o4y375222ew32iv6wvv3mode
   payloads.py: bafybeigsubasnmooyxclbm4byalkj5ctwksbgekujzackgy7v4xx75rmxm
   prompts.py: bafybeifnelzscaj6vno42jkpgiiyj5y3u5qakrek4j3cns34gpjeryc5ty
-  rounds.py: bafybeib43eag7fqw7k27lfa3w65u3iaoktqq77df7d4lzzjlqp36irdgcy
+  rounds.py: bafybeibfh4rmzptgaq73sw5golxm5duumsf7t5cc3r2ftwbtvjze6gz4jm
   rounds_info.py: bafybeic3lo56wclkjino5g4p76ek4db5ei7qjbnu5gvtfjdlqu7fk2v62i
   tests/__init__.py: bafybeiep2skhj742bdjbvelskxhshtxofngkmqkb5zrplger6v372pgyai
   tests/conftest.py: bafybeihawwszfoiuhoife4335snphoewabgff7h7g2hvidqg2x4e34duny
   tests/test_behaviour_classes_base.py: bafybeibtoxu64jd3uemgtq2i7lflqyadehbafbaunjrlkj7a4u44bwd5ee
-  tests/test_behaviour_classes_chain.py: bafybeiapzx6dzscagwsj7jm4hfkit3skpdku6lxvrhrf3rrq6wlph7hgcm
+  tests/test_behaviour_classes_chain.py: bafybeif3xadcm4qlkmw3tozh6jxdlrksdjusoe4paqvffewvrqdsmf3adq
   tests/test_behaviour_classes_db.py: bafybeifp77fxj67mqdpqfvdevjbmgsrswn2ma36ajswccr5ttxykni27ia
   tests/test_behaviour_classes_llm.py: bafybeibxubv6qna7qok2mfvmyo7uh62k7cmljpsyomuror5fslqtduw7hu
   tests/test_behaviour_classes_mech.py: bafybeidflohgfu5abka2h2jjyjoglg6cyfunipop2uf63qlzmlnz3xj2qq
@@ -41,32 +41,32 @@ fingerprint:
   tests/test_handlers.py: bafybeih4h3a33rlx55nrpkk6ijbsvnjklj7f6pz27qyask6o2jrwxgud2q
   tests/test_models.py: bafybeidxzmmqnc47tvzkk6ysqzimkew7lbohurstye4z66brxsknpnvijm
   tests/test_prompts.py: bafybeibmdio3tk5fzw2s4ch2fpbugb2z3nfmuo72yo2jnh4dapjtpuhbhq
-  tests/test_rounds.py: bafybeica5go6ikpq2e62i6p5xixdxmyvmyh2kmfxziidnbuc254t5tsg6e
+  tests/test_rounds.py: bafybeicm7tj2y7s2wxi7jzgdrkbi6imphvmx2abh76mp4phlw6nsxpwboe
   tests/test_rounds_info.py: bafybeig7ctx7xngtlhdmvfyrvmddsz74py6g6recmesrshw6dgibgi32zy
 fingerprint_ignore_patterns: []
 connections:
-- valory/kv_store:0.1.0:bafybeiallj66uerng45tk3y75qdkfakzmudmzl7y737ekwzsehisvuinaq
+- valory/kv_store:0.1.0:bafybeib2tvoui6kndvrd2gpvs55rizpjee7mqjtjsfbr6fdp5hxslh6gd4
 - valory/tweepy:0.1.0:bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe
 - valory/genai:0.1.0:bafybeighrq424xlroekehgk2oaqxkvziq22gffqzodm4ynhjgzhch4pcq4
 - valory/http_server:0.22.0:bafybeihs6dufyaa5l4uorplzx3wiyna5qlq2x43tmyl3yonkl265vspdle
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeif6cfjeruji2ovns6dhc5qivvjr7t7rh5mmudgh5gvumezin26qne
-- valory/meme_factory:0.1.0:bafybeifdeqsznebigwrv6qvstnaqhkj5g2xsc5lr3qkqj7wlovv5reejve
-- valory/staking_token:0.1.0:bafybeiev2of6e273dcmm4vqh5lejurn26wbhw4jf4wdabghrfi6abv6sqa
-- valory/staking_activity_checker:0.1.0:bafybeif7h7ewjdojrqjg6fps2t4navbftvnjn45zcpiza554xhefdhprwa
-- valory/agent_mech:0.1.0:bafybeieiqd6n7zfnfq2bq6oqf7tskzw3hwwb3vj4djtipkbne7cybpdrne
+- valory/gnosis_safe:0.1.0:bafybeiek7zs3r5c4wspwwuvnhunc2ddvccbsuy3xccedbjffju5eywp3ju
+- valory/meme_factory:0.1.0:bafybeihdjvdljwzmq6gcma7zaobnpijq76ffcq55kfqdcljzz2yjucw3uu
+- valory/staking_token:0.1.0:bafybeihqnd5ot5w56i37pvzucsfoljhl5oi36ridluvtikzzbczqjztffi
+- valory/staking_activity_checker:0.1.0:bafybeicfvf4f25eon2iqjezztiistcifyfltbezz2ilc55lxtpjwkybf74
+- valory/agent_mech:0.1.0:bafybeidrkuruvewbi7xmi7py26ylgpcslmr5yuyu4tw6o7uekolmsj2zqa
 protocols:
 - valory/srr:0.1.0:bafybeibfs6osw7guctdpollf4iwt4vhd6yk7ai34tqk5djuxtgowjwdjb4
-- valory/kv_store:0.1.0:bafybeia5olmoljxmwymwdlw6egrjcsbm3r2olayycz3dpbg57bqtij75mq
+- valory/kv_store:0.1.0:bafybeidlfrgv5rc7m7kj3j6u6umogmpy5bgcdzqtnsy3v75wn3likvyt6m
 - valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicioxhbhnsoqyqvkeevd7df7r2vubbiglyf7ucps2el73objazjsq
-- valory/transaction_settlement_abci:0.1.0:bafybeibv3tycpdhphlblu62zpcbjsj7hnwkutexxqagorkelhjlt4t4fii
-- valory/mech_interact_abci:0.1.0:bafybeidnmszufszq3ro4ebgrqzmhqgctrsc6sykeanfsbvotghvt2cgfsy
-- valory/agent_db_abci:0.1.0:bafybeibmadjil45pt326ob7royaesq3jroxxl3vgfsi6ggp35o3jsffur4
-- valory/funds_manager:0.1.0:bafybeibne4vkmbper3ryn7q6kt7lclbyylgorziscyn6msr5qt46aihv4m
+- valory/abstract_round_abci:0.1.0:bafybeifkxnvvgsldkb4rgejsoon2mvrmrnl7asy2nhenwss7hpwg3myflu
+- valory/transaction_settlement_abci:0.1.0:bafybeihizaapype5sz7vlosms3nfo6jzfj4ujycuf5uthviq2otvmw6f6m
+- valory/mech_interact_abci:0.1.0:bafybeici5tsgtlypnyrnp5colj7katnsyjfdzt6js4xdbnpdms4232muje
+- valory/agent_db_abci:0.1.0:bafybeiagtellrrf6wkookqk6jjx3wgxts462u6xtifl7gojtulgwitejnu
+- valory/funds_manager:0.1.0:bafybeicfw7qjtnlcbw6awsvxdahqu42fxsfsd3wy7mbyhcbls4l5pee3by
 behaviours:
   main:
     args: {}

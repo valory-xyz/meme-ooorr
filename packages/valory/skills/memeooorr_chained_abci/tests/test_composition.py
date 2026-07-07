@@ -208,6 +208,61 @@ class TestAbciAppTransitionMapping:
             is MechResponseStates.MechResponseRound
         )
 
+    def test_offchain_mech_request_maps_to_response_round(self) -> None:
+        """Off-chain 200 skips settlement and jumps to MechResponseRound.
+
+        ``MechResponseBehaviour`` branches internally on ``use_offchain``
+        and polls ``/fetch_offchain_info``; on a silent swap of this
+        target the agent would try to settle a Safe tx that was never
+        built.
+        """
+        assert (
+            abci_app_transition_mapping[
+                MechFinalStates.FinishedOffchainMechRequestRound
+            ]
+            is MechResponseStates.MechResponseRound
+        )
+
+    def test_offchain_deposit_needed_maps_to_settlement(self) -> None:
+        """402 deposit multisend routes into the tx settlement pipeline.
+
+        The approve + BalanceTracker.depositFor multisend must land
+        before the request can be re-POSTed. Any other target skips
+        settlement and leaves the mech un-funded.
+        """
+        assert (
+            abci_app_transition_mapping[
+                MechFinalStates.FinishedOffchainMechDepositNeededRound
+            ]
+            is TransactionSettlementAbci.RandomnessTransactionSubmissionRound
+        )
+
+    def test_offchain_deposit_settled_maps_to_mech_request(self) -> None:
+        """After the deposit settles, re-enter MechRequestRound to retry.
+
+        ``OffchainRequestExecutor._retry_pending`` reads the cached
+        ``offchain_pending_request`` from synced_data and re-POSTs.
+        Routing anywhere else here loses the retry.
+        """
+        assert (
+            abci_app_transition_mapping[
+                MemeooorrAbci.FinishedForOffchainMechDepositSettledRound
+            ]
+            is MechRequestStates.MechRequestRound
+        )
+
+    def test_offchain_all_failed_maps_to_failed_mech_request(self) -> None:
+        """Off-chain failover exhaustion enters the same bail path as skip.
+
+        Sharing the terminal round with ``FinishedMechRequestSkipRound``
+        keeps quarantine and tool-penalty bookkeeping identical for both
+        paths, so on-chain fallback behaviour doesn't diverge silently.
+        """
+        assert (
+            abci_app_transition_mapping[MechFinalStates.FailedOffchainMechRequestRound]
+            is MemeooorrAbci.FailedMechRequestRound
+        )
+
 
 class TestTerminationConfig:
     """Tests for termination_config."""
