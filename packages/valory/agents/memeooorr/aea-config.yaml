@@ -46,11 +46,11 @@ skills:
 - valory/transaction_settlement_abci:0.1.0:bafybeihizaapype5sz7vlosms3nfo6jzfj4ujycuf5uthviq2otvmw6f6m
 - valory/registration_abci:0.1.0:bafybeif4n2esdjvquomdkwktv7eolepskpo5jlqrfda2abxjqzy2ljsxzi
 - valory/reset_pause_abci:0.1.0:bafybeifrnmlscfiki7wojs6zasppefupd2wkjyq6orhdllfppjud7isrxi
-- valory/memeooorr_abci:0.1.0:bafybeigiddypa2lmaqcvs2ztqrxwvh56ddvhh3yfor6iocrxjg5ho5lgui
-- valory/memeooorr_chained_abci:0.1.0:bafybeifhel6lchyjhrmkldb6ny3cpszylyddco3x4a7hy5qpl3v3jimd3a
-- valory/mech_interact_abci:0.1.0:bafybeifbkpgivxjexlhrptn2iaju7vyzeusevvucsin6tbjwveniykad2q
+- valory/memeooorr_abci:0.1.0:bafybeicaq6xx4jfhgsn3yhnmy2po66mur5fhb5hwoguzbgddjaoeygyj7y
+- valory/memeooorr_chained_abci:0.1.0:bafybeicjq3wy5tgi5otv7q7tshyfnrbxlswrzgz2ifekfmt5gvz6uqushq
+- valory/mech_interact_abci:0.1.0:bafybeic5xfxdod5l56o7aojdamojnvi562nql2mlah73bf47d4guz4xnwi
 - valory/agent_db_abci:0.1.0:bafybeiagtellrrf6wkookqk6jjx3wgxts462u6xtifl7gojtulgwitejnu
-- valory/agent_performance_summary_abci:0.1.0:bafybeid4c3cr4hd6mbtmdmdg2t3qfsrlbgitinq2wuxu4vvkjjlwtpirve
+- valory/agent_performance_summary_abci:0.1.0:bafybeif3kicomdovxotfeg67huyuy5kk4phge6riz6ucodefywueru7tsu
 - valory/funds_manager:0.1.0:bafybeicfw7qjtnlcbw6awsvxdahqu42fxsfsd3wy7mbyhcbls4l5pee3by
 default_ledger: ethereum
 required_ledgers:
@@ -247,7 +247,9 @@ models:
       mech_chain_id: base
       mech_interaction_sleep_time: 10
       use_mech_marketplace: true
-      mech_marketplace_config: ${dict:{"mech_marketplace_address":"0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020","priority_mech_address":"0xe535D7AcDEeD905dddcb5443f41980436833cA2B","priority_mech_staking_instance_address":"0x0000000000000000000000000000000000000000","priority_mech_service_id":0,"requester_staking_instance_address":"0x0000000000000000000000000000000000000000","use_dynamic_mech_selection":false,"response_timeout":300,"use_offchain":false,"offchain_url":null,"offchain_deposit_target_calls":10,"auto_deposit_cap_per_cycle":5000000,"offchain_poll_interval_seconds":3.0,"offchain_poll_timeout_seconds":300.0,"offchain_failover_max_retries":2}}
+      mech_marketplace_config: ${dict:{"mech_marketplace_address":"0xf24eE42edA0fc9b33B7D41B06Ee8ccD2Ef7C5020","priority_mech_address":"0xe535D7AcDEeD905dddcb5443f41980436833cA2B","priority_mech_staking_instance_address":"0x0000000000000000000000000000000000000000","priority_mech_service_id":0,"requester_staking_instance_address":"0x0000000000000000000000000000000000000000","use_dynamic_mech_selection":false,"response_timeout":300,"offchain_url":null,"auto_deposit_cap_per_cycle":5000000,"offchain_poll_interval_seconds":3.0,"offchain_poll_timeout_seconds":300.0,"offchain_failover_max_retries":2}}
+      use_offchain: ${USE_OFFCHAIN:bool:false}
+      offchain_deposit_target_calls: ${OFFCHAIN_DEPOSIT_TARGET_CALLS:int:10}
       use_acn_for_delivers: false
       summon_cooldown_seconds: ${SUMMON_COOLDOWN_SECONDS:int:2592000}
       heart_cooldown_hours: ${int:48}
