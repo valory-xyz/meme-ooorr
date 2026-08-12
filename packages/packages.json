@@ -4,12 +4,12 @@
         "connection/valory/twikit/0.1.0": "bafybeidruneqzx5hyr6w2rs2fyyflhiqt2ituuyouxr3x5zl3forzjbqn4",
         "connection/valory/mirror_db/0.1.0": "bafybeifpnteogn6omfoqpjza3e43slyucck247ti6aufqqj4n22z4yt4bm",
         "connection/valory/tweepy/0.1.0": "bafybeihaz3cx7sypsrpqescha3hg35jlr7jylczwfgjoivl5jayjhnjuwe",
-        "skill/valory/memeooorr_abci/0.1.0": "bafybeiglup4lullo7sucusrm5hv2vvtg7ykcut7to4ajhufli6m7dmkpju",
-        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeihstbyaa4w2et3ojiuoloa5gw454yoxaz7ffnct6rkzojqiwzwrbu",
+        "skill/valory/memeooorr_abci/0.1.0": "bafybeihnbuydxxyr5kdc7lxhbn43vfpdsqboicfj3zsotxaeh5iew7qdou",
+        "skill/valory/memeooorr_chained_abci/0.1.0": "bafybeigis4usqh2ul6uekff2makey5mjhiqsuuosnajhgsyudl6q7i3pc4",
         "skill/valory/agent_db_abci/0.1.0": "bafybeiagtellrrf6wkookqk6jjx3wgxts462u6xtifl7gojtulgwitejnu",
-        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeibrbuttmxhunmdjrvibavtjpd7q4kiyezgpbrbvct6trdsuonkok4",
-        "agent/valory/memeooorr/0.1.0": "bafybeifj2zskm7nrgl5u2uyfz22fq3t743mn4w45jahezcwcbwsuvjbmnq",
-        "service/dvilela/memeooorr/0.1.0": "bafybeid3q2yfzezep6y6b7n2ibxkwkebjuj5fr7zftj7ukkqf2q4zaya3a"
+        "skill/valory/agent_performance_summary_abci/0.1.0": "bafybeihz7d3n6cgyfgsw4mnmdo3c3g7wjmnhj25cp6xea7nmu7sqzgq6qy",
+        "agent/valory/memeooorr/0.1.0": "bafybeihzyzqif6k2ygqwk4saqi5jb4fblrjhi7iuvnbllvyoehh3apdx2a",
+        "service/dvilela/memeooorr/0.1.0": "bafybeif4m23h7swf5iq7slybijeyjhabztrdsq4fpk5c42fowrdzdgg32q"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
@@ -63,7 +63,7 @@
         "skill/valory/registration_abci/0.1.0": "bafybeif4n2esdjvquomdkwktv7eolepskpo5jlqrfda2abxjqzy2ljsxzi",
         "skill/valory/reset_pause_abci/0.1.0": "bafybeifrnmlscfiki7wojs6zasppefupd2wkjyq6orhdllfppjud7isrxi",
         "skill/valory/termination_abci/0.1.0": "bafybeih6sa2ttcvvjk7rcfn7ure2ws23kcfufssb4qmluzcfvednkfpvoi",
-        "skill/valory/mech_interact_abci/0.1.0": "bafybeigv3h4xlkmaahlhhfpp7g6mmspuz7rsudlifhy3kjpvoumrqrioqa",
+        "skill/valory/mech_interact_abci/0.1.0": "bafybeif3cnuns2i7xh2wyrpj45xdmkjkgqpy72ox66tijtbf5okn2l2iiu",
         "skill/valory/funds_manager/0.1.0": "bafybeicfw7qjtnlcbw6awsvxdahqu42fxsfsd3wy7mbyhcbls4l5pee3by"
     }
 }
